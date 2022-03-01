@@ -1,4 +1,4 @@
 Tutorial
 ========
 
-Coming soon.
+- insert tutorial steps here 

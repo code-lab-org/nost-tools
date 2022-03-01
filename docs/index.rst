@@ -15,7 +15,7 @@ and easily ensure that the application will be compatible with the simulation as
 a whole.
 
 In this webpage, you can find the documentation for the provided templates, as
-well as several :ref:`example cases<Example Case Documentation>` showing the templates integrated
+well as several example cases showing the templates integrated
 into a user application.
 
 The tools library is an expansion of the NOS-T testbed infrastructure project, intended to simplify
@@ -27,6 +27,6 @@ component interoperability for distributed systems testing. Read more about the 
    :hidden:
 
    api/modules
-   api/examplemodules
+   examples/index
    tutorial
    whatis

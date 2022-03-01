@@ -13,6 +13,15 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, os.path.abspath('../examples/firesat/fires'))
+sys.path.insert(0, os.path.abspath('../examples/firesat/fire_config_files'))
+sys.path.insert(0, os.path.abspath('../examples/firesat/grounds'))
+sys.path.insert(0, os.path.abspath('../examples/firesat/manager'))
+sys.path.insert(0, os.path.abspath('../examples/firesat/satellites'))
+sys.path.insert(0, os.path.abspath('../examples/realtime'))
+sys.path.insert(0, os.path.abspath('../examples/scalability/delay'))
+sys.path.insert(0, os.path.abspath('../examples/scalability/heartbeat'))
+sys.path.insert(0, os.path.abspath('../examples/scalability/manager'))
 import nost_tools
 
 # -- Project information -----------------------------------------------------
