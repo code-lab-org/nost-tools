@@ -27,3 +27,13 @@ University Affiliated Research Center managed by Stevens Institute of
 Technology. Any opinions, findings, and conclusions or recommendations
 expressed in this material are those of the authors and do not necessarily
 reflect the views of the United States Department of Defense.
+
+Current project team:
+ * PI: Paul T. Grogan <pgrogan@stevens.edu>
+ * Brian Chell
+ * Matthew LeVine
+ * Leigha Capra
+
+Project alumni:
+ * Hayden Daly
+ * Matthew Brand
