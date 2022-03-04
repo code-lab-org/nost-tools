@@ -2,7 +2,7 @@
 
 A collection of tools for the New Observing Strategies Testbed (NOS-T).
 
-Documentation: [https://nost-tools.readthedocs.io]
+Documentation: https://nost-tools.readthedocs.io
 
 ## Installation
 
