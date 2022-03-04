@@ -2,6 +2,8 @@
 
 A collection of tools for the New Observing Strategies Testbed (NOS-T).
 
+Documentation: [https://nost-tools.readthedocs.io]
+
 ## Installation
 
 To install `nost-tools` as an editable Python library, run the following command
