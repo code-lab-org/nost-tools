@@ -562,21 +562,23 @@ if __name__ == "__main__":
     # SUOMI NPP (VIIRS) = 37849, Index 551
     # SENTINEL 2A = ?, Index = 904
     # SENTINEL 2B = ?, Index = 1174
-    names = ["AQUA (MODIS)", "TERRA (MODIS)", "SUOMI NPP (VIIRS)", "NOAA-20 (VIIRS)", "SENTINEL-2A (MSI)", "SENTINEL-2B (MSI)"]
+    names = ["CAP1_DENALI","CAP2_SEQUOIA","CAP3_WHITNEY","CAP4_WHITNEY","CAP5_WHITNEY","CAP6_WHITNEY","CAP7_WHITNEY","CAP8_WHITNEY"]
     # names = ["AQUA (MODIS)", "TERRA (MODIS)", "SENTINEL-2A (MSI)", "SENTINEL-2B (MSI)"]
     # names = ["SUOMI NPP (VIIRS)","MADE UP SC"]
-    AQUA = activesats[149]
-    TERRA = activesats[101]
-    NPP = activesats[545]
-    NOAA20 = activesats[1306]
-    SENTINEL2A = activesats[898]
-    SENTINEL2B = activesats[1166]
-    ES = [AQUA, TERRA, NPP, NOAA20, SENTINEL2A, SENTINEL2B]
+    CAP1_DENALI = activesats[1588]
+    CAP2_SEQUOIA = activesats[2599]
+    CAP3_WHITNEY = activesats[3191]
+    CAP4_WHITNEY = activesats[3183]
+    CAP5_WHITNEY = activesats[4193]
+    CAP6_WHITNEY= activesats[4027]
+    CAP7_WHITNEY= activesats[4871]
+    CAP8_WHITNEY= activesats[4870]
+    ES = [CAP1_DENALI,CAP2_SEQUOIA,CAP3_WHITNEY,CAP4_WHITNEY,CAP5_WHITNEY,CAP6_WHITNEY,CAP7_WHITNEY,CAP8_WHITNEY]
     # ES = [AQUA, TERRA, SENTINEL2A, SENTINEL2B]
     
 
     # initialize the Constellation object class (in this example from EarthSatellite type)
-    constellation = Constellation("constellation", app, [0, 1, 2, 3, 4, 5], names, ES)
+    constellation = Constellation("constellation", app, [0, 1, 2, 3, 4, 5, 6, 7], names, ES)
 
     # add observer classes to the Constellation object class
     constellation.add_observer(FireDetectedObserver(app))

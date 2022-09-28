@@ -32,6 +32,8 @@ from constellation_config_files.schemas import (
     FireStarted,
     FireDetected,
     FireReported,
+    SatelliteReady,
+    SatelliteAllReady,
     SatelliteStatus,
     GroundLocation,
 )
@@ -41,6 +43,9 @@ from constellation_config_files.config import (
     SCALE,
     TLES,
     FIELD_OF_REGARD,
+    SSR_CAPACITY,
+    PCT_CAPACITY_USED,
+    INSTRUMENT_RATES
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -224,6 +229,9 @@ class Constellation(Entity):
             )
             for i, satellite in enumerate(self.satellites)
         ]
+        self.ssr_capacity = SSR_CAPACITY
+        self.pct_capacity_used = PCT_CAPACITY_USED
+        self.instrument_rates = INSTRUMENT_RATES
         # # Two print lines below can be used as sanity check that SMAD Ch. 5 equations implemented properly
         # print("\nInitial elevation angles:\n")
         # print(self.min_elevations_fire)
@@ -243,12 +251,23 @@ class Constellation(Entity):
                 "longitude": pd.Series([], dtype="float"),
                 "elevAngle": pd.Series([], dtype="float"),
                 "operational": pd.Series([], dtype="bool"),
+                "downlinkRate": pd.Series([], dtype="float")
             }
         )
         self.positions = self.next_positions = [
             wgs84.subpoint(satellite.at(self.ts.from_datetime(init_time)))
             for satellite in self.satellites
         ]
+        
+        for i, satellite in enumerate(self.satellites):
+            self.app.send_message(
+                "ready",
+                SatelliteReady(
+                    id=self.id[i],
+                    name=self.names[i]
+                ).json()
+            )
+        self.app.send_message("allReady", SatelliteAllReady().json())
 
     def tick(self, time_step):
         """
@@ -465,12 +484,14 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
                 "location",
                 SatelliteStatus(
                     id=i,
-                    name=satellite.name,
+                    name=self.constellation.names[i],
                     latitude=subpoint.latitude.degrees,
                     longitude=subpoint.longitude.degrees,
                     altitude=subpoint.elevation.m,
                     radius=sensorRadius,
+                    pct_capacity_used=self.pct_capacity_used[i],
                     commRange=self.isInRange[i],
+                    groundId=groundId,
                     time=constellation.get_time(),
                 ).json(),
             )
@@ -562,21 +583,21 @@ if __name__ == "__main__":
     # SUOMI NPP (VIIRS) = 37849, Index 551
     # SENTINEL 2A = ?, Index = 904
     # SENTINEL 2B = ?, Index = 1174
-    names = ["AQUA (MODIS)", "TERRA (MODIS)", "SUOMI NPP (VIIRS)", "NOAA-20 (VIIRS)", "SENTINEL-2A (MSI)", "SENTINEL-2B (MSI)"]
+    names = ["AQUA (MODIS)", "TERRA (MODIS)", "SUOMI NPP (VIIRS)", "NOAA-20 (VIIRS)"]
     # names = ["AQUA (MODIS)", "TERRA (MODIS)", "SENTINEL-2A (MSI)", "SENTINEL-2B (MSI)"]
     # names = ["SUOMI NPP (VIIRS)","MADE UP SC"]
-    AQUA = activesats[149]
-    TERRA = activesats[101]
-    NPP = activesats[545]
-    NOAA20 = activesats[1306]
-    SENTINEL2A = activesats[898]
-    SENTINEL2B = activesats[1166]
-    ES = [AQUA, TERRA, NPP, NOAA20, SENTINEL2A, SENTINEL2B]
+    AQUA = activesats[151]
+    TERRA = activesats[102]
+    NPP = activesats[551]
+    NOAA20 = activesats[1324]
+    # SENTINEL2A = activesats[904]
+    # SENTINEL2B = activesats[1174]
+    ES = [AQUA, TERRA, NPP, NOAA20]
     # ES = [AQUA, TERRA, SENTINEL2A, SENTINEL2B]
     
 
     # initialize the Constellation object class (in this example from EarthSatellite type)
-    constellation = Constellation("constellation", app, [0, 1, 2, 3, 4, 5], names, ES)
+    constellation = Constellation("constellation", app, [0, 1, 2, 3], names, ES)
 
     # add observer classes to the Constellation object class
     constellation.add_observer(FireDetectedObserver(app))

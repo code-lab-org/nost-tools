@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-*This script contains a post-processing script for plotting times recorded by the main_fire.py application*
+*This script contains a post-processing script for plotting times recorded by the main_constellation.py application*
 
 Placeholder
 
@@ -18,9 +18,14 @@ from scipy import stats
 font1 = {"family": "sans-serif", "weight": "bold", "size": 24}
 font1 = {"family": "sans-serif", "weight": "bold", "size": 10}
 
-reported_fires = fires[fires["fireState"] == FireState.reported]
-reported_fires.set_index("fireId", inplace=True)
-reported_fires["Time to Detect [s]"] = (
+start = pd.DataFrame(constellation.fires)
+start.set_index("fireId", inplace=True)
+detect = pd.DataFrame(constellation.detect)
+detect.set_index("fireId", inplace=True)
+report = pd.DataFrame(constellation.report)
+report.set_index("fireId", inplace=True)
+
+detect["AQUA"] = (
     reported_fires["detected"] - reported_fires["start"]
 ).dt.seconds
 reported_fires["Time to Report [s]"] = (
@@ -36,8 +41,8 @@ reported_fires["Match?"] = (
 sns.set_style("white")
 plt.figure(figsize=(12,10))
 sns.displot(
-    reported_fires, x="Time to Report [s]", multiple="stack",hue="reported_by") #, hue_order=["TERRA (MODIS)","AQUA (MODIS)","SENTINEL-2A (MSI)","SENTINEL-2B (MSI)"])
-# plt.savefig("ThreeSats_10kfires.svg", format="svg")
+    reported_fires, x="Time to Report [s]", hue="reported_by")
+plt.savefig("Three_Sats_5days.svg", format="svg")
 
 stats = {
         'mean detect (s)': np.mean(reported_fires["Time to Detect [s]"]),

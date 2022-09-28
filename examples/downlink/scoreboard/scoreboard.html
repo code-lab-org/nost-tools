@@ -19,15 +19,8 @@
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
   <script>
-  var CESIUM_ACCESS_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlMGE4YTEyMi0wNzllLTRjYmItYTY3Ny1kOTA3YzEwNzk3ZDEiLCJpZCI6MTYyNzcsInNjb3BlcyI6WyJhc3IiLCJnYyJdLCJpYXQiOjE1NzAwNjA5MzF9.NgsS6QgAqCD3SkBP23vtQro_QWUDVgUnEEOW-UQ2ypQ';
-  var BROKER_HOST = 'testbed.mysmce.com';
-  var BROKER_PORT = 8443;
-  var BROKER_CLIENT_USERNAME = 'mlevine4';
-  var BROKER_CLIENT_PASSWORD = 'w6A1lKFiLT0K';
-  
-  
   $(document).ready(function(){
-    Cesium.Ion.defaultAccessToken = CESIUM_ACCESS_TOKEN;
+    Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlMGE4YTEyMi0wNzllLTRjYmItYTY3Ny1kOTA3YzEwNzk3ZDEiLCJpZCI6MTYyNzcsInNjb3BlcyI6WyJhc3IiLCJnYyJdLCJpYXQiOjE1NzAwNjA5MzF9.NgsS6QgAqCD3SkBP23vtQro_QWUDVgUnEEOW-UQ2ypQ';
 	var clock = new Cesium.Clock({
 				currentTime: Cesium.JulianDate.fromIso8601("1900-01-01"),
 				clockStep: Cesium.ClockStep.SYSTEM_CLOCK_MULTIPLIER,
@@ -51,7 +44,7 @@
 	<!-- viewer.scene.globe.enableLighting = true; -->
 
     // create a MQTT client
-    var client = new Paho.MQTT.Client(BROKER_HOST, BROKER_PORT, "");
+    var client = new Paho.MQTT.Client("testbed.mysmce.com", 8443, "");
 
     var satellites = {}; <!-- Positions of satellites as points at altitude, BLUE out of comms range, GREEN in comms range -->
 	var sensorCircles = {}; <!-- Circles showing views of nadir pointed satellites -->
@@ -220,8 +213,8 @@
     }
 
     client.connect({
-      "userName": BROKER_CLIENT_USERNAME,
-      "password": BROKER_CLIENT_PASSWORD,
+      "userName": "mlevine4",
+      "password": "w6A1lKFiLT0K",
       "useSSL": true,
       "onSuccess": function() {
         client.subscribe("greenfield/#", {

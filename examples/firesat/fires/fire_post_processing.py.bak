@@ -36,8 +36,8 @@ reported_fires["Match?"] = (
 sns.set_style("white")
 plt.figure(figsize=(12,10))
 sns.displot(
-    reported_fires, x="Time to Report [s]", multiple="stack",hue="reported_by") #, hue_order=["TERRA (MODIS)","AQUA (MODIS)","SENTINEL-2A (MSI)","SENTINEL-2B (MSI)"])
-# plt.savefig("ThreeSats_10kfires.svg", format="svg")
+    reported_fires, x="Time to Detect [s]", multiple="stack",hue="reported_by") #, hue_order=["TERRA (MODIS)","AQUA (MODIS)","SENTINEL-2A (MSI)","SENTINEL-2B (MSI)"])
+plt.savefig("ThreeSats_10kfires.svg", format="svg")
 
 stats = {
         'mean detect (s)': np.mean(reported_fires["Time to Detect [s]"]),
