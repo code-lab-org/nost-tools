@@ -5,7 +5,6 @@
     The application contains one :obj:`Constellation` (:obj:`Entity`) object class, one :obj:`PositionPublisher` (:obj:`WallclockTimeIntervalPublisher`), and two :obj:`Observer` object classes to monitor for :obj:`FireDetected` and :obj:`FireReported` events, respectively. The application also contains several methods outside of these classes, which contain standardized calculations sourced from Ch. 5 of *Space Mission Analysis and Design* by Wertz and Larson.
 
 """
-
 import logging
 from datetime import datetime, timezone, timedelta
 from dotenv import dotenv_values
@@ -555,7 +554,7 @@ if __name__ == "__main__":
     # load current TLEs for active satellites from Celestrak (NOTE: User has option to specify their own TLE instead)
     activesats_url = "https://celestrak.com/NORAD/elements/active.txt"
     activesats = load.tle_file(activesats_url, reload=True)
-
+    by_name = {sat.name: sat for sat in activesats}
     # keys for CelesTrak TLEs used in this example (all 3 contained in active.txt, but indexes often change over time)
     # AQUA (MODIS) = 27424, Index 150
     # TERRA (MODIS) = 25994, Index 102
@@ -565,9 +564,12 @@ if __name__ == "__main__":
     names = ["AQUA (MODIS)", "TERRA (MODIS)", "SUOMI NPP (VIIRS)"]
     # names = ["AQUA (MODIS)", "TERRA (MODIS)", "SENTINEL-2A (MSI)", "SENTINEL-2B (MSI)"]
     # names = ["SUOMI NPP (VIIRS)"]
-    AQUA = activesats[150]
-    TERRA = activesats[102]
-    NPP = activesats[552]
+    # AQUA = activesats[150]
+    # TERRA = activesats[102]
+    # NPP = activesats[552]
+    AQUA = by_name['AQUA']
+    TERRA = by_name['TERRA']
+    NPP = by_name['SUOMI NPP']
     # SENTINEL2A = activesats[905]
     # SENTINEL2B = activesats[1177]
     ES = [AQUA, TERRA, NPP]
@@ -605,3 +607,4 @@ if __name__ == "__main__":
     # add message callbacks
     app.add_message_callback("fire", "location", constellation.on_fire)
     app.add_message_callback("ground", "location", constellation.on_ground)
+    
