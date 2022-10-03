@@ -17,7 +17,6 @@ class Mode(str, Enum):
     * `EXECUTING` -- The simulation is running with the provided parameters
     * `TERMINATING` -- The simulation is in the process of terminating (disconnecting from the broker)
     * `TERMINATED` -- The simulation has ended
-
     """
 
     UNDEFINED = "UNDEFINED"
