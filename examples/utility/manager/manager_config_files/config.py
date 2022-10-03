@@ -2,8 +2,8 @@ import os
 from datetime import datetime, timezone
 from nost_tools.manager import TimeScaleUpdate
 
-PREFIX = os.getenv("PREFIX", "greenfield")
-NAME = os.getenv("NAME", "Manager")
+PREFIX = os.getenv("PREFIX", "utility")
+NAME = os.getenv("NAME", "manager")
 LOG = f"\x1b[1m[\x1b[32m{NAME}\x1b[37m]\x1b[0m"
 HEADER = {
     "name": NAME,

@@ -47,7 +47,7 @@ if __name__ == "__main__":
     # execute a test plan
     manager.execute_test_plan(
         datetime(2020, 1, 1, 7, 20, 0, tzinfo=timezone.utc),    # scenario start datetime
-        datetime(2020, 1, 1, 8, 20, 0, tzinfo=timezone.utc),     # scenario stop datetime
+        datetime(2020, 1, 1, 10, 20, 0, tzinfo=timezone.utc),     # scenario stop datetime
         start_time=None,                                        # optionally specify a wallclock start datetime for synchronization
         time_step=timedelta(seconds=1),                         # wallclock time resolution for simulation
         time_scale_factor=SCALE,                                # initial scale between wallclock and scenario clock (e.g. if SCALE = 60.0 then  1 wallclock second = 1 scenario minute)

@@ -28,14 +28,14 @@ from nost_tools.publisher import WallclockTimeIntervalPublisher
 
 from skyfield.api import load, wgs84, EarthSatellite
 
-from constellation_config_files.schemas import (
+from Capella_config_files.schemas import (
     FireStarted,
     FireDetected,
     FireReported,
     SatelliteStatus,
     GroundLocation,
 )
-from constellation_config_files.config import (
+from Capella_config_files.config import (
     PREFIX,
     NAME,
     SCALE,
@@ -565,14 +565,14 @@ if __name__ == "__main__":
     names = ["CAP1_DENALI","CAP2_SEQUOIA","CAP3_WHITNEY","CAP4_WHITNEY","CAP5_WHITNEY","CAP6_WHITNEY","CAP7_WHITNEY","CAP8_WHITNEY"]
     # names = ["AQUA (MODIS)", "TERRA (MODIS)", "SENTINEL-2A (MSI)", "SENTINEL-2B (MSI)"]
     # names = ["SUOMI NPP (VIIRS)","MADE UP SC"]
-    CAP1_DENALI = activesats[1588]
-    CAP2_SEQUOIA = activesats[2599]
-    CAP3_WHITNEY = activesats[3191]
-    CAP4_WHITNEY = activesats[3183]
-    CAP5_WHITNEY = activesats[4193]
-    CAP6_WHITNEY= activesats[4027]
-    CAP7_WHITNEY= activesats[4871]
-    CAP8_WHITNEY= activesats[4870]
+    CAP1_DENALI = activesats[1587]
+    CAP2_SEQUOIA = activesats[2597]
+    CAP3_WHITNEY = activesats[3189]
+    CAP4_WHITNEY = activesats[3181]
+    CAP5_WHITNEY = activesats[4191]
+    CAP6_WHITNEY= activesats[4025]
+    CAP7_WHITNEY= activesats[4869]
+    CAP8_WHITNEY= activesats[4868]
     ES = [CAP1_DENALI,CAP2_SEQUOIA,CAP3_WHITNEY,CAP4_WHITNEY,CAP5_WHITNEY,CAP6_WHITNEY,CAP7_WHITNEY,CAP8_WHITNEY]
     # ES = [AQUA, TERRA, SENTINEL2A, SENTINEL2B]
     
