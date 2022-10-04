@@ -557,20 +557,21 @@ if __name__ == "__main__":
     activesats = load.tle_file(activesats_url, reload=True)
 
     # keys for CelesTrak TLEs used in this example (all 3 contained in active.txt, but indexes often change over time)
-    # AQUA (MODIS) = 27424, Index 151
-    # TERRA (MODIS) = 25994, Index 102
-    # SUOMI NPP (VIIRS) = 37849, Index 551
-    # SENTINEL 2A = ?, Index = 904
-    # SENTINEL 2B = ?, Index = 1174
+    # AQUA (MODIS) = 27424, Index 149
+    # TERRA (MODIS) = 25994, Index 101
+    # SUOMI NPP (VIIRS) = 37849, Index 544
+    # NOAA 20 (VIIRS) = ?, Index 1297
+    # SENTINEL 2A = ?, Index = 897
+    # SENTINEL 2B = ?, Index = 1164
     names = ["AQUA (MODIS)", "TERRA (MODIS)", "SUOMI NPP (VIIRS)", "NOAA-20 (VIIRS)", "SENTINEL-2A (MSI)", "SENTINEL-2B (MSI)"]
     # names = ["AQUA (MODIS)", "TERRA (MODIS)", "SENTINEL-2A (MSI)", "SENTINEL-2B (MSI)"]
     # names = ["SUOMI NPP (VIIRS)","MADE UP SC"]
     AQUA = activesats[149]
     TERRA = activesats[101]
-    NPP = activesats[545]
-    NOAA20 = activesats[1306]
-    SENTINEL2A = activesats[898]
-    SENTINEL2B = activesats[1166]
+    NPP = activesats[544]
+    NOAA20 = activesats[1297]
+    SENTINEL2A = activesats[897]
+    SENTINEL2B = activesats[1164]
     ES = [AQUA, TERRA, NPP, NOAA20, SENTINEL2A, SENTINEL2B]
     # ES = [AQUA, TERRA, SENTINEL2A, SENTINEL2B]
     

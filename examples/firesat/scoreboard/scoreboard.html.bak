@@ -90,7 +90,6 @@
           payload = JSON.parse(message.payloadString);
 		  commRange = payload.commRange;
 		  if (commRange){
-			
 			satColor = Cesium.Color.GREEN
 		  } else {
 			satColor = Cesium.Color.BLUE

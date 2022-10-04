@@ -1,7 +1,7 @@
 import os
 from skyfield.api import load
 
-PREFIX = os.getenv("PREFIX", "utility")
+PREFIX = os.getenv("PREFIX", "greenfield")
 NAME = "capella"
 LOG = f"\x1b[1m[\x1b[34m{NAME}\x1b[37m]\x1b[0m"
 HEADER = {
