@@ -312,21 +312,14 @@ Obtaining Documentation, Tools, and Information 
 To obtain copies of development and verification tools cited in this
 document, please contact the principal investigator:
 
-   Paul Grogan, Assistant Professor
-
-   School of Systems and Enterprises
-
-   Stevens Institute of Technology
-
-   Office: Castle Point on Hudson
-
-   Babbio Center 517
-
-   Hoboken, NJ 07030
-
-   Phone: (201) 216-5378
-
-   Email: pgrogan@stevens.edu
+| Paul Grogan, Assistant Professor
+| School of Systems and Enterprises
+| Stevens Institute of Technology
+| Office: Castle Point on Hudson
+| Babbio Center 517
+| Hoboken, NJ 07030
+| Phone: (201) 216-5378
+| Email: pgrogan@stevens.edu
 
 Disclaimers
 -----------
@@ -378,7 +371,7 @@ proposal, to test campaign to analysis and publication.
    :width: 6.5in
    :height: 3.14583in
 
-Figure . Investigator Journey Map from Concept through Publication
+Figure 2. Investigator Journey Map from Concept through Publication
 illustrating interaction with NOS-T.
 
 The three swim lanes correspond to the NOS-T Operator (orange),
@@ -570,7 +563,7 @@ to the server to establish communication.
    :width: 6.0625in
    :height: 0.8125in
 
-Figure . MQTT Connection Process
+Figure 4. MQTT Connection Process
 
 Each application identifies event topics to which it publishes and
 subscribes messages. A topic is a hierarchical addressing scheme written
@@ -604,7 +597,8 @@ by) applications B and C. More complex system concepts introduce event
 feedback loops between applications to indicate dynamic and responsive
 operations.
 
-|image13|\ |image14|\ |image15|\ |image16|\ |image17|\ |image18|\ |image19|
+.. image:: media/figure5.png
+   :alt: Diagram Description automatically generated
 
 Figure 5. Publish-Subscribe Messaging Pattern in (A) Physical Network
 and (B) Event-oriented Diagrams.
@@ -627,21 +621,16 @@ more complex data types, like timestamps, using standards like ISO-8601.
 For example, the manager-issued start event has the following JSON
 structure:
 
-{
+.. code-block:: json
 
-"taskingParameters": {
-
-"startTime": "2021-04-15T12:00:00+00:00",
-
-"simStartTime": "2019-03-15T00:00:00+00:00",
-
-"simStopTime": "2019-03-19T00:00:00+00:00",
-
-"timeScalingFactor": 60
-
-}
-
-}
+  {
+    "taskingParameters": {
+      "startTime": "2021-04-15T12:00:00+00:00",
+      "simStartTime": "2019-03-15T00:00:00+00:00",
+      "simStopTime": "2019-03-19T00:00:00+00:00",
+      "timeScalingFactor": 60
+      }
+  }
 
 Using JSON to encode payload strings is optional but recommended for
 user-defined event messages because it allows for simple parsing and
@@ -670,49 +659,35 @@ sends a plain text message to the topic *nost/example/hello* every
 second (receiving messages while calling the *loop()* function), and
 prints out received messages to console using a callback function.
 
-#!/usr/bin/env python3
+.. code-block:: python3
 
-import paho.mqtt.client as mqtt
+  #!/usr/bin/env python3
 
-import time
+  import paho.mqtt.client as mqtt
+  import time
 
-# callback to run when a message is received
+  # callback to run when a message is received
+  def on_message(client, userdata, msg):
+    print(msg.topic + " " + str(msg.payload))
 
-def on_message(client, userdata, msg):
+  # instantiate a new client and bind the callback
+  client = mqtt.Client()
+  client.on_message = on_message
 
-print(msg.topic + " " + str(msg.payload))
+  # connect to the broker and subscribe to a topic
+  client.username_pw_set(CLIENT_USERNAME, CLIENT_PASSWORD)
+  client.tls_set()
+  client.connect(BROKER_ADDR, BROKER_PORT)
+  client.subscribe("nost/manager/#")
 
-# instantiate a new client and bind the callback
-
-client = mqtt.Client()
-
-client.on_message = on_message
-
-# connect to the broker and subscribe to a topic
-
-client.username_pw_set(CLIENT_USERNAME, CLIENT_PASSWORD)
-
-client.tls_set()
-
-client.connect(BROKER_ADDR, BROKER_PORT)
-
-client.subscribe("nost/manager/#")
-
-# main execution loop
-
-for i in range(10):
-
-# publish message to a topic
-
-client.publish("nost/example/hello", f"Hello {i}")
-
-# process message events for 1 second
-
-t = time.time()
-
-while time.time() - t < 1.0:
-
-client.loop()
+  # main execution loop
+  for i in range(10):
+    # publish message to a topic
+    client.publish("nost/example/hello", f"Hello {i}")
+    # process message events for 1 second
+    t = time.time()
+    while time.time() - t < 1.0:
+      client.loop()
 
 Additional Eclipse Paho features described in the documentation [6]
 include background threads to process message events (rather than
@@ -754,6 +729,34 @@ schema in the Sensor Things Tasking API [5] with a top-level key
 *taskingParameters* to group event-specific parameters. Table 2 lists
 the four manager control event types described in the following
 sections.
+
+.. list-table:: List table example.
+   :widths: 25 25 50
+   :header-rows: 1
+
+   * - Event
+     - Message Topic
+     - Example Message Payload (JSON)
+   * - Row 1, column 1
+     -
+     - Row 1, column 3
+   * - Row 2, column 1
+     - Row 2, column 2
+     - .. code-block:: json
+
+         {
+           "taskingParameters": {
+             "startTime": "2021-04-15T12:00:00+00:00",
+             "simStartTime": "2019-03-15T00:00:00+00:00",
+             "simStopTime": "2019-03-19T00:00:00+00:00",
+             "timeScalingFactor": 60
+             }
+         }
+
+.. csv-table:: Release history.
+  :file: C:\Users\brian\Documents\Postdoc\NOS-T\Codes\nost-tools\docs\source\media\jsontest.csv
+  :widths: 10, 20, 70
+  :header-rows: 1
 
 .. table:: Table 3. Initialize Control Event Properties
 
@@ -843,6 +846,22 @@ a test case execution starts.
    |           | string   |                                              |
    +-----------+----------+----------------------------------------------+
 
+.. table:: Table 4. Start Control Event Properties v2
+
+  +-----------------+---------------------------+-----------------------------------------------------------------------------+
+  | Property        | Type                      | Description                                                                 |
+  +=================+===========================+=============================================================================+
+  | *simStartTime*  | ISO-8601 datetime string  | The earliest possible scenario start time.                                  |
+  +-----------------+---------------------------+-----------------------------------------------------------------------------+
+  | *simStopTime*   | ISO-8601 datetime string  | The latest possible scenario end time (shall be later than simStartTime).   |
+  +-----------------+---------------------------+-----------------------------------------------------------------------------+
+
+.. csv-table:: Table 4. Start Control Event Properties v3
+   :file: C:\Users\brian\Documents\Postdoc\NOS-T\Codes\nost-tools\docs\source\media\table3.csv
+   :widths: 10, 20, 70
+   :header-rows: 1
+
+
 Start Control Event
 ^^^^^^^^^^^^^^^^^^^
 
@@ -908,14 +927,14 @@ determines the end of the test case execution.
 
 .. table:: Table 7. List of NOS-T Manager Status Events
 
-   +--------------+-----------+------------------------------------------+
-   | **Property** | **Type**  | **Description**                          |
-   +==============+===========+==========================================+
-   | *            | ISO-8601  | The earliest scenario time at which to   |
-   | simStopTime* | datetime  | end the test case execution (shall be    |
-   |              | string    | within the bounds specified in the       |
-   |              |           | initialization event).                   |
-   +--------------+-----------+------------------------------------------+
+   +---------------+-----------+------------------------------------------+
+   | **Property**  | **Type**  | **Description**                          |
+   +===============+===========+==========================================+
+   | *simStopTime* | ISO-8601  | The earliest scenario time at which to   |
+   |               | datetime  | end the test case execution (shall be    |
+   |               | string    | within the bounds specified in the       |
+   |               |           | initialization event).                   |
+   +---------------+-----------+------------------------------------------+
 
 Status Events
 ~~~~~~~~~~~~~
@@ -929,43 +948,43 @@ event types described in the following sections.
 
 .. table:: Table 8. Time Status Event Properties
 
-   +------+--------------------+-----------------------------------------+
-   | *    | **Message Topic**  | **Example Message Payload (JSON)**      |
-   | *Eve |                    |                                         |
-   | nt** |                    |                                         |
-   +======+====================+=========================================+
-   | Time | $P                 | {                                       |
-   |      | REFIX/manager/time |                                         |
-   |      |                    | "name": "Manager",                      |
-   |      |                    |                                         |
-   |      |                    | "description": "Manages a test case     |
-   |      |                    | execution",                             |
-   |      |                    |                                         |
-   |      |                    | "properties": {                         |
-   |      |                    |                                         |
-   |      |                    | "simTime": "2019-03-15T00:00:00+00:00", |
-   |      |                    |                                         |
-   |      |                    | "time": "2021-04-15T12:00:00+00:00"     |
-   |      |                    |                                         |
-   |      |                    | }                                       |
-   |      |                    |                                         |
-   |      |                    | }                                       |
-   +------+--------------------+-----------------------------------------+
-   | Mode | $P                 | {                                       |
-   |      | REFIX/manager/mode |                                         |
-   |      |                    | "name": "Manager",                      |
-   |      |                    |                                         |
-   |      |                    | "description": "Manages a test case     |
-   |      |                    | execution",                             |
-   |      |                    |                                         |
-   |      |                    | "properties": {                         |
-   |      |                    |                                         |
-   |      |                    | "mode": "EXECUTING"                     |
-   |      |                    |                                         |
-   |      |                    | }                                       |
-   |      |                    |                                         |
-   |      |                    | }                                       |
-   +------+--------------------+-----------------------------------------+
+   +-----------+----------------------+-----------------------------------------+
+   | **Event** | **Message Topic**    | **Example Message Payload (JSON)**      |
+   |           |                      |                                         |
+   |           |                      |                                         |
+   +===========+======================+=========================================+
+   | Time      | $PREFIX/manager/time | {                                       |
+   |           |                      |                                         |
+   |           |                      | "name": "Manager",                      |
+   |           |                      |                                         |
+   |           |                      | "description": "Manages a test case     |
+   |           |                      | execution",                             |
+   |           |                      |                                         |
+   |           |                      | "properties": {                         |
+   |           |                      |                                         |
+   |           |                      | "simTime": "2019-03-15T00:00:00+00:00", |
+   |           |                      |                                         |
+   |           |                      | "time": "2021-04-15T12:00:00+00:00"     |
+   |           |                      |                                         |
+   |           |                      | }                                       |
+   |           |                      |                                         |
+   |           |                      | }                                       |
+   +-----------+----------------------+-----------------------------------------+
+   | Mode      | $PREFIX/manager/mode | {                                       |
+   |           |                      |                                         |
+   |           |                      | "name": "Manager",                      |
+   |           |                      |                                         |
+   |           |                      | "description": "Manages a test case     |
+   |           |                      | execution",                             |
+   |           |                      |                                         |
+   |           |                      | "properties": {                         |
+   |           |                      |                                         |
+   |           |                      | "mode": "EXECUTING"                     |
+   |           |                      |                                         |
+   |           |                      | }                                       |
+   |           |                      |                                         |
+   |           |                      | }                                       |
+   +-----------+----------------------+-----------------------------------------+
 
 Time Status Event
 ^^^^^^^^^^^^^^^^^
@@ -1052,7 +1071,9 @@ describe how user applications respond to manager events. Figure 7
 illustrates the interface between the manager and a managed user
 application.
 
-Figure . Event Interface between Manager and Managed User Applications.
+|figure7|\
+
+Figure 7. Event Interface between Manager and Managed User Applications.
 
 To avoid only describing an abstract interface, we will use a specific
 example of a managed use case throughout this section. The example is
@@ -1181,7 +1202,7 @@ execution.
    :width: 6.46875in
    :height: 4.20469in
 
-Figure . Detailed Message Flow for a Generic Managed Application
+Figure 12. Detailed Message Flow for a Generic Managed Application
 
 Table 10 contains the necessary events, seen in Figure 12, that are
 published for a managed application test case along with their publisher
@@ -1245,13 +1266,10 @@ criteria are shown in Table 11.
 
 .. image:: media/image49.png
    :alt: Basic interface between NOS-T system and User Applications.
-   :width: 6.5in
-   :height: 3.65625in
 
-Figure . Basic interface between NOS-T system and User Applications.
+Figure 13. Basic interface between NOS-T system and User Applications.
 
-.. table:: Table . NOS-T Design Structure Matrix for FireSat+ Test
-Campaign User Applications
+.. table:: Table . NOS-T Design Structure Matrix for FireSat+ Test Campaign User Applications
 
    +-------+-------------+--------------------+---------------------------+
    | **Num | **Name**    | **Description**    | **Rationale**             |
@@ -1391,31 +1409,21 @@ payload for a *Fire Status* event in the FireSat+ test case (published
 by the *Fires/Science* application and subscribed to by the
 *Constellation/Satellites* application) can be structured as:
 
-{
+.. code-block:: JSON
 
-"name": "fire",
-
-"description": "Models the spread of a fire.",
-
-"properties": {
-
-"timestamp": "2019-03-13T04:11:40+00:00",
-
-"intensity": 35398693.13517181,
-
-"latitude": 42.49602475523592,
-
-"longitude": -103.69767511612058,
-
-"windSpeed": 5,
-
-"growRate": 1.705270367448615,
-
-"fireStart": "2019-03-13T00:00:00+00:00"
-
-}
-
-}
+  {
+    "name": "fire",
+    "description": "Models the spread of a fire.",
+    "properties": {
+      "timestamp": "2019-03-13T04:11:40+00:00",
+        "intensity": 35398693.13517181,
+        "latitude": 42.49602475523592,
+        "longitude": -103.69767511612058,
+        "windSpeed": 5,
+        "growRate": 1.705270367448615,
+        "fireStart": "2019-03-13T00:00:00+00:00"
+    }
+  }
 
 Some test cases may require alternate communication protocols to
 overcome broker limitations. For example, some test cases may consider
@@ -1499,43 +1507,13 @@ the diagonal and interfaces, from and to, are again read clockwise. The
 items in the off-diagonal boxes represent messages being sent between
 user applications and are labeled with the message topics.
 
-.. table:: Table . NOS-T NxN Matrix for FireSat+ Test Campaign User
-  Applications
+.. image:: media/table13.png\
 
-   +-------------+------------+--------------+-------------+-------------+
-   |             | Satellite  | Ground       | Wildfire    | Scoreboard  |
-   |             | App        | Station App  | App         | App         |
-   +=============+============+==============+=============+=============+
-   | Satellite   |            |              |             |             |
-   | App         |            |              |             |             |
-   +-------------+------------+--------------+-------------+-------------+
-   | Ground      |            |              |             |             |
-   | Station App |            |              |             |             |
-   +-------------+------------+--------------+-------------+-------------+
-   | Wildfire    |            |              |             |             |
-   | App         |            |              |             |             |
-   +-------------+------------+--------------+-------------+-------------+
-   | Scoreboard  |            |              |             |             |
-   | App         |            |              |             |             |
-   +-------------+------------+--------------+-------------+-------------+
+Figure XX. NOS-T Design Structure Matrix for FireSat+ Test Campaign User Applications.
 
-.. table:: Table . NOS-T Tools for Executing Test Cases
+.. image:: media/nxn.png\
 
-   +----------------+----------------+-----------------+------------------+
-   | **Satellite    | /sat           | /sat            | /sa              |
-   | App**          | ellite/request | ellite/detected | tellite/location |
-   |                |                | /sat            |                  |
-   |                |                | ellite/reported |                  |
-   +================+================+=================+==================+
-   | /g             | **Ground       |                 | /ground/location |
-   | round/location | Station App**  |                 |                  |
-   +----------------+----------------+-----------------+------------------+
-   | /fire/location |                | **Wildfire      | /fire/location   |
-   |                |                | App**           |                  |
-   +----------------+----------------+-----------------+------------------+
-   |                |                |                 | **Scoreboard     |
-   |                |                |                 | App**            |
-   +----------------+----------------+-----------------+------------------+
+Figure XX. NOS-T NxN Matrix for FireSat+ Test Campaign User Applications
 
 Developing Applications
 -----------------------
@@ -1885,67 +1863,17 @@ performance relative to Suomi NPP.
 Blank Science Traceability Matrix Template
 ------------------------------------------
 
-.. image:: media/image57
+.. image:: media/blankSTM.png
    :width: 9in
    :height: 5.325in
 
 .. |figure1| image:: media/figure1.png
+   :align: middle
+
+.. |figure7| image:: media/image47.png
    :width: 6.3249in
    :height: 2.40208in
-.. |image2| image:: media/image3.png
-   :width: 6.3249in
-   :height: 2.40208in
-.. |image3| image:: media/image5.png
-   :width: 6.3249in
-   :height: 2.40208in
-.. |image4| image:: media/image7.png
-   :width: 6.3249in
-   :height: 2.40208in
-.. |image5| image:: media/image9.png
-   :width: 6.3249in
-   :height: 2.40208in
-.. |image6| image:: media/image11.png
-   :width: 6.3249in
-   :height: 2.40208in
-.. |image7| image:: media/image13.png
-   :width: 6.3249in
-   :height: 2.40208in
-.. |image8| image:: media/image15.png
-   :width: 6.3249in
-   :height: 2.40208in
-.. |image9| image:: media/image11.png
-   :width: 6.3249in
-   :height: 2.40208in
-.. |image10| image:: media/image15.png
-   :width: 6.3249in
-   :height: 2.40208in
-.. |image11| image:: media/image17.png
-   :width: 6.3249in
-   :height: 2.40208in
-.. |image12| image:: media/image19.png
-   :width: 6.3249in
-   :height: 2.40208in
-.. |image13| image:: media/image34.png
-   :width: 6.5in
-   :height: 2.23611in
-.. |image14| image:: media/image36.png
-   :width: 6.5in
-   :height: 2.23611in
-.. |image15| image:: media/image38.png
-   :width: 6.5in
-   :height: 2.23611in
-.. |image16| image:: media/image38.png
-   :width: 6.5in
-   :height: 2.23611in
-.. |image17| image:: media/image38.png
-   :width: 6.5in
-   :height: 2.23611in
-.. |image18| image:: media/image34.png
-   :width: 6.5in
-   :height: 2.23611in
-.. |image19| image:: media/image34.png
-   :width: 6.5in
-   :height: 2.23611in
+   
 .. |Table Description automatically generated| image:: media/image51.png
    :width: 9in
    :height: 5.17392in
