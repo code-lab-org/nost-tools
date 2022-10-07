@@ -14,5 +14,5 @@ main_delay.py module
 
 This unmanged application monitors time status updates for any managed application specified by the user. The application records the difference between wallclock time when message published (included in message payload) and wallclock time when message received (checked against local clock with offset from initial NIST query). The following code demonstrates how this unmanaged application connects to the message broker, set up subscriptions to different topics, and add callback functions *without* using the NOS-T tools library.
 
-.. literalinclude:: /../../scalability/delay/main_delay.py
+.. literalinclude:: /../../../nost-tools/examples/scalability/delay/main_delay.py
 	:lines: 185-

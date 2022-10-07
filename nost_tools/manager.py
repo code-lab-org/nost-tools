@@ -24,8 +24,8 @@ class TimeScaleUpdate(object):
     to change the time_scale_factor to the indicated value.
 
     Attributes:
-        time_scale_factor (float): Scenario seconds per wallclock second.
-        sim_update_time (:obj:`datetime`): Scenario time that the update will occur.
+        time_scale_factor (float): Scenario seconds per wallclock second
+        sim_update_time (:obj:`datetime`): Scenario time that the update will occur
     """
 
     def __init__(self, time_scale_factor, sim_update_time):
@@ -40,15 +40,15 @@ class Manager(Application):
     This object class defines a manager to orchestrate test run executions.
 
     Attributes:
-        prefix (str) : The test run namespace (prefix).
-        simulator (:obj:`Simulator`): Application simulator.
-        client (:obj:`Client`): Application MQTT client.
-        time_step (:obj:`timedelta`): Scenario time step used in execution.
-        time_status_step (:obj:`timedelta`): Scenario duration between time status messages.
-        time_status_init (:obj:`datetime`): Scenario time of first time status message.
-        app_name (str): Test run application name.
-        app_description (str): Test run application description (optional).
-        required_apps_status (dict): Ready status for all required applications.
+        prefix (str) : The test run namespace (prefix)
+        simulator (:obj:`Simulator`): Application simulator
+        client (:obj:`Client`): Application MQTT client
+        time_step (:obj:`timedelta`): Scenario time step used in execution
+        time_status_step (:obj:`timedelta`): Scenario duration between time status messages
+        time_status_init (:obj:`datetime`): Scenario time of first time status message
+        app_name (str): Test run application name
+        app_description (str): Test run application description (optional)
+        required_apps_status (dict): Ready status for all required applications
     """
 
     def __init__(self):
@@ -78,18 +78,18 @@ class Manager(Application):
         or consistent test-case runs.
 
         Args:
-            sim_start_time (:obj:`datetime`): Scenario time at which to start execution.
-            sim_stop_time (:obj:`datetime`): Scenario time at which to stop execution.
-            start_time (:obj:`datetime`): Wallclock time at which to start execution (default: now).
-            time_step (:obj:`timedelta`): Scenario time step used in execution (default: 1 second).
-            time_scale_factor (float): Scenario seconds per wallclock second (default: 1.0).
-            time_scale_updates (:obj:list(`TimeScaleUpdate`)): List of scheduled time scale updates (default: []).
-            time_status_step (:obj:`timedelta`): Scenario duration between time status messages.
-            time_status_init (:obj:`datetime`): Scenario time of first time status message.
-            command_lead (:obj:`timedelta`): Wallclock lead time between command and action (default: 0 seconds).
-            required_apps (list): List of application names required to continue with the execution.
-            init_retry_delay_s (float): Number of seconds to wait between initialization commands while waiting for required applications.
-            init_max_retry (int): Number of initialization commands while waiting for required applications before continuing to execution.
+            sim_start_time (:obj:`datetime`): Scenario time at which to start execution
+            sim_stop_time (:obj:`datetime`): Scenario time at which to stop execution
+            start_time (:obj:`datetime`): Wallclock time at which to start execution (default: now)
+            time_step (:obj:`timedelta`): Scenario time step used in execution (default: 1 second)
+            time_scale_factor (float): Scenario seconds per wallclock second (default: 1.0)
+            time_scale_updates (list(:obj:`TimeScaleUpdate`)): List of scheduled time scale updates (default: [])
+            time_status_step (:obj:`timedelta`): Scenario duration between time status messages
+            time_status_init (:obj:`datetime`): Scenario time of first time status message
+            command_lead (:obj:`timedelta`): Wallclock lead time between command and action (default: 0 seconds)
+            required_apps (list): List of application names required to continue with the execution
+            init_retry_delay_s (float): Number of seconds to wait between initialization commands while waiting for required applications
+            init_max_retry (int): Number of initialization commands while waiting for required applications before continuing to execution
         """
         self.required_apps_status = dict(
             zip(required_apps, [False] * len(required_apps))
@@ -211,9 +211,9 @@ class Manager(Application):
         Publishes an initialize command to initialize a test run execution.
 
         Args:
-            sim_start_time (:obj:`datetime`): Earliest possible scenario start time.
-            sim_stop_time (:obj:`datetime`): Latest possible scenario end time.
-            required_apps (list(str)): List of required apps.
+            sim_start_time (:obj:`datetime`): Earliest possible scenario start time
+            sim_stop_time (:obj:`datetime`): Latest possible scenario end time
+            required_apps (list(str)): List of required apps
         """
         # publish init command message
         command = InitCommand.parse_obj(
@@ -246,13 +246,13 @@ class Manager(Application):
         a start command, which can be received by the connected applications.
 
         Args:
-            sim_start_time (:obj:`datetime`): Scenario time at which to start execution.
-            sim_stop_time (:obj:`datetime`): Scenario time at which to stop execution.
-            start_time (:obj:`datetime`): Wallclock time at which to start execution (default: now).
-            time_step (:obj:`timedelta`): Scenario time step used in execution (default: 1 second).
-            time_scale_factor (float): Scenario seconds per wallclock second (default: 1.0).
-            time_status_step (:obj:`timedelta`): Scenario duration between time status messages.
-            time_status_init (:obj:`datetime`): Scenario time of first time status message.
+            sim_start_time (:obj:`datetime`): Scenario time at which to start execution
+            sim_stop_time (:obj:`datetime`): Scenario time at which to stop execution
+            start_time (:obj:`datetime`): Wallclock time at which to start execution (default: now)
+            time_step (:obj:`timedelta`): Scenario time step used in execution (default: 1 second)
+            time_scale_factor (float): Scenario seconds per wallclock second (default: 1.0)
+            time_status_step (:obj:`timedelta`): Scenario duration between time status messages
+            time_status_init (:obj:`datetime`): Scenario time of first time status message
         """
         if start_time is None:
             start_time = self.simulator.get_wallclock_time()
@@ -309,8 +309,8 @@ class Manager(Application):
         and publishing an update command.
 
         Args:
-            time_scale_factor (float): Scenario seconds per wallclock second.
-            sim_update_time (:obj:`datetime`): Scenario time at which to update.
+            time_scale_factor (float): Scenario seconds per wallclock second
+            sim_update_time (:obj:`datetime`): Scenario time at which to update
         """
         # publish an update command message
         command = UpdateCommand.parse_obj(

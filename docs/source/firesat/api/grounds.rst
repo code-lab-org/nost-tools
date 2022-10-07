@@ -15,5 +15,5 @@ main_ground.py module
 
 The following code demonstrates how the ground application is started up and how the :obj:`Environment` :obj:`Observer` object class is initialized and added to the simulator:
 
-.. literalinclude:: /../../firesat/grounds/main_ground.py
+.. literalinclude:: /../../../nost-tools/examples/firesat/grounds/main_ground.py
 	:lines: 67-

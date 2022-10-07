@@ -18,11 +18,12 @@ NOS-T Graphical Concept
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
    nost_tools
    ICD
+   examples
 
 
 

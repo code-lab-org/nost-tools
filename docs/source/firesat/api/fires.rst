@@ -23,5 +23,5 @@ main_fire.py module
 
 The following code demonstrates how the fires application is started up and how the :obj:`Environment` :obj:`Observer` object class is initialized and added to the simulator:
 
-.. literalinclude:: /../../firesat/fires/main_fire.py
+.. literalinclude:: /../../../nost-tools/examples/firesat/fires/main_fire.py
 	:lines: 136-

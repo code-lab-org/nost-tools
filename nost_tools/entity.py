@@ -11,7 +11,7 @@ class Entity(Observable):
     defined through this class can maintain its own scenario clock (time).
 
     Attributes:
-        name (str): The entity name (optional).
+        name (str): The entity name (optional)
     """
 
     PROPERTY_TIME = "time"
@@ -24,10 +24,10 @@ class Entity(Observable):
     def initialize(self, init_time):
         """
         initialize is a function that activates the entity ('self') at a time of initialization provided by
-        the scenario input
+        the scenario input.
 
         Args:
-            init_time (obj:`datetime`) : The time of simulation initialization provided by the input scenario
+            init_time (:obj:`datetime`) : The time of simulation initialization provided by the input scenario
         """
         self._init_time = self._time = self._next_time = init_time
 
@@ -37,8 +37,7 @@ class Entity(Observable):
         the simulation time by the indicated timestep.
 
         Args:
-            time_step (:obj:`timedelta`) : The timedelta that will advance the simulation time (the difference between
-            the current time and the next simulation time)
+            time_step (:obj:`timedelta`) : The timedelta that will advance the simulation time (the difference between the current time and the next simulation time)
         """
         self._next_time = self._time + time_step
 
@@ -56,9 +55,9 @@ class Entity(Observable):
 
     def get_time(self):
         """
-        get_time computes the new entity state after an elapsed scenario duration for the calling entity ('self')
+        get_time computes the new entity state after an elapsed scenario duration for the calling entity ('self').
 
         Returns:
-            :obj:`timedelta`: The current entity time.
+            :obj:`timedelta`: The current entity time
         """
         return self._time

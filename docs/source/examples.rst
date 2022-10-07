@@ -1,5 +1,5 @@
-Example Test Suites - 2021 documentation
-========================================
+Example Test Suites
+===================
 
 *Various example test suites demonstrating both managed and unmanaged application use cases*
 

@@ -32,7 +32,7 @@ main_constellation.py module
 	
 .. automethod:: FireDetectedObserver.on_change
 
-.. literalinclude:: /../../firesat/satellites/main_constellation.py
+.. literalinclude:: /../../../nost-tools/examples/firesat/satellites/main_constellation.py
             :lines: 499-507
             
 
@@ -41,12 +41,12 @@ main_constellation.py module
 	
 .. automethod:: FireReportedObserver.on_change
 
-.. literalinclude:: /../../firesat/satellites/main_constellation.py
+.. literalinclude:: /../../../nost-tools/examples/firesat/satellites/main_constellation.py
             :lines: 530-539
 
 The following code demonstrates how the constellation application is started up and how the :obj:`Constellation` :obj:`Entity` object class is initialized and added to the simulator:
 
-.. literalinclude:: /../../firesat/satellites/main_constellation.py
+.. literalinclude:: /../../../nost-tools/examples/firesat/satellites/main_constellation.py
 	:lines: 544-
 	
-In this example, three satellites (AQUA, TERRA, and SUOMI NPP) are included in the simulation. CelesTrak is queried for current active TLEs, which returns this information as :obj:`list` of :obj:`EarthSatellite` objects. A subset :obj:`list` is constructed containing the three satellites of interest.  
+In this example, six satellites (AQUA, TERRA, SUOMI NPP, NOAA 20, SENTINEL 2A, SENTINEL 2B) are included in the simulation. CelesTrak is queried for current active TLEs, which returns this information as *list* of :obj:`EarthSatellite` objects. A subset *list* is constructed containing the six satellites of interest.  
