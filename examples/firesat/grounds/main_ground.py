@@ -44,7 +44,7 @@ class Environment(Observer):
 
         In this instance, the callback function checks when the **PROPERTY_MODE** switches to **EXECUTING** to send a :obj:`GroundLocation` message to the *PREFIX/ground/location* topic:
             
-            .. literalinclude:: /../examples/firesat/grounds/main_ground.py
+            .. literalinclude:: /../../../nost-tools/examples/firesat/grounds/main_ground.py
                 :lines: 51-62
 
         """

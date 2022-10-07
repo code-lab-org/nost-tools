@@ -17,14 +17,14 @@ class ManagedApplication(Application):
     that utilizes an external Manager to command simulator execution.
 
     Attributes:
-        prefix (str) : The test run namespace (prefix).
+        prefix (str) : The test run namespace (prefix)
         simulator (:obj:`Simulator`): Application simulator defined in the *Simulator* class
-        client (:obj:`Client`): Application MQTT client.
-        app_name (str): Test run application name.
-        app_description (str): Test run application description (optional).
-        time_status_step (:obj:`timedelta`): Scenario duration between time status messages.
-        time_status_init (:obj:`datetime`): Scenario time of first time status message.
-        time_step (:obj:`timedelta`): Scenario time step used in execution.
+        client (:obj:`Client`): Application MQTT client
+        app_name (str): Test run application name
+        app_description (str): Test run application description (optional)
+        time_status_step (:obj:`timedelta`): Scenario duration between time status messages
+        time_status_init (:obj:`datetime`): Scenario time of first time status message
+        time_step (:obj:`timedelta`): Scenario time step used in execution
     """
 
     def __init__(self, app_name, app_description=None):
@@ -49,14 +49,14 @@ class ManagedApplication(Application):
         subscribing to manager events, and registering callback functions.
 
         Args:
-            prefix (str): The test run namespace (prefix).
-            config (:obj:`ConnectionConfig`): The connection configuration.
-            set_offset (bool): True, if the system clock offset shall be set.
-            time_status_step (:obj:`timedelta`): Scenario duration between time status messages.
-            time_status_init (:obj:`datetime`): Scenario time for first time status message.
-            shut_down_when_terminated (bool) : True, if the application should shut down when the simulation is terminated.
-            time_step (:obj:`timedelta`): Scenario time step used in execution.
-            manager_app_name (str): Name of the manager application (Default: manager).
+            prefix (str): The test run namespace (prefix)
+            config (:obj:`ConnectionConfig`): The connection configuration
+            set_offset (bool): True, if the system clock offset shall be set
+            time_status_step (:obj:`timedelta`): Scenario duration between time status messages
+            time_status_init (:obj:`datetime`): Scenario time for first time status message
+            shut_down_when_terminated (bool) : True, if the application should shut down when the simulation is terminated
+            time_step (:obj:`timedelta`): Scenario time step used in execution
+            manager_app_name (str): Name of the manager application (Default: manager)
         """
         # start up base application
         super().start_up(
@@ -116,9 +116,9 @@ class ManagedApplication(Application):
         and sim_stop_time to determine application initilize time within the simulation.
 
         Args:
-            client (:obj:`Client`): The client instance for this callback.
-            userdata (obj): The private user data as set in the client.
-            message (:obj:`MQTTMessage`): The MQTT message.
+            client (:obj:`Client`): The client instance for this callback
+            userdata (obj): The private user data as set in the client
+            message (:obj:`MQTTMessage`): The MQTT message
         """
         try:
             # parse message payload
@@ -141,9 +141,9 @@ class ManagedApplication(Application):
         timedelta for the time_step, the wallclock_epoch, and the time_scale_factor responsbible for the speed of the simulation.
 
         Args:
-            client (:obj:`Client`): The client instance for this callback.
-            userdata (obj): The private user data as set in the client.
-            message (:obj:`MQTTMessage`): The MQTT message.
+            client (:obj:`Client`): The client instance for this callback
+            userdata (obj): The private user data as set in the client
+            message (:obj:`MQTTMessage`): The MQTT message
         """
         try:
             # parse message payload
@@ -178,9 +178,9 @@ class ManagedApplication(Application):
         respond to a stop command sent from the manager. It will parse the payload to extract the new sim_stop_time.
 
         Args:
-            client (:obj:`Client`): The client instance for this callback.
-            userdata (obj): The private user data as set in the client.
-            message (:obj:`MQTTMessage`): The MQTT message.
+            client (:obj:`Client`): The client instance for this callback
+            userdata (obj): The private user data as set in the client
+            message (:obj:`MQTTMessage`): The MQTT message
         """
         try:
             # parse message payload
@@ -201,9 +201,9 @@ class ManagedApplication(Application):
         It will parse the payload to extract the new time_scale_factor.
 
         Args:
-            client (:obj:`Client`): The client instance for this callback.
-            userdata (obj): The private user data as set in the client.
-            message (:obj:`MQTTMessage`): The MQTT message.
+            client (:obj:`Client`): The client instance for this callback
+            userdata (obj): The private user data as set in the client
+            message (:obj:`MQTTMessage`): The MQTT message
         """
         try:
             # parse message payload

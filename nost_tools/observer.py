@@ -12,10 +12,10 @@ class Observer(ABC):
         """Callback notifying of a change.
 
         Args:
-            source (:obj:`Observable`): The observervable that triggered the change.
-            property_name (str): The name of property that is changing.
-            old_value (obj): The old value of the named property.
-            new_value (obj): The new value of the named property.
+            source (:obj:`Observable`): The observervable that triggered the change
+            property_name (str): The name of property that is changing
+            old_value (obj): The old value of the named property
+            new_value (obj): The new value of the named property
         """
         pass
 
@@ -36,7 +36,7 @@ class Observable(object):
         Adds an observer to the referenced object ('self').
 
         Args:
-            observer (:obj:`Observer`): The observer object to be observed.
+            observer (:obj:`Observer`): The observer object to be observed
         """
         self._observers.append(observer)
 
@@ -45,10 +45,10 @@ class Observable(object):
         Removes an observer from the referenced object ('self').
 
         Args:
-            observer (:obj:`Observer`): The observer object to no longer be observed.
+            observer (:obj:`Observer`): The observer object to no longer be observed
 
         Returns:
-            :obj:`Observer`: The observer object that was removed.
+            :obj:`Observer`: The observer object that was removed
         """
         return self._observers.remove(observer)
 
@@ -57,9 +57,9 @@ class Observable(object):
         Notifies observers of a property change in the referenced object ('self').
 
         Args:
-            property_name (str): The name of property that is changing.
-            old_value (obj): The old value of the named property.
-            new_value (obj): The new value of the named property.
+            property_name (str): The name of property that is changing
+            old_value (obj): The old value of the named property
+            new_value (obj): The new value of the named property
         """
         if old_value != new_value:
             for observer in self._observers:

@@ -12,7 +12,7 @@ class ScenarioTimeIntervalPublisher(Observer, ABC):
     or 'simulation time statuses'.
 
     Attributes:
-        update_rate (:obj:`timedelta`): Maximum update interval in scenario time.
+        update_rate (:obj:`timedelta`): Maximum update interval in scenario time
     """
 
     def __init__(self, app, time_status_step=None, time_status_init=None):
@@ -46,7 +46,7 @@ class WallclockTimeIntervalPublisher(Observer, ABC):
     the current wallclock time, rather than the internal simulation time. This message ensures accurate and synchornized simulation start and end times.
 
     Attributes:
-        update_rate (:obj:`timedelta`): Maximum update interval in wallclock time.
+        update_rate (:obj:`timedelta`): Maximum update interval in wallclock time
     """
 
     def __init__(self, app, time_status_step=None, time_status_init=None):
