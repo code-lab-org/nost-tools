@@ -19,31 +19,27 @@ TLE2_SC2 = str(os.getenv(
     "TLE2", "2 37849  53.7213 301.202 0001371  69.7366 357.989 14.19561536000000"))  # Historic SUOMI NPP TLE
 TLES = [[TLE1_SC1,TLE2_SC1],[TLE1_SC2,TLE2_SC2]]
 
-FIELD_OF_REGARD = [float(os.getenv("FIELD_OF_REGARD", 110)),
-    float(os.getenv("FIELD_OF_REGARD", 110)),
-    float(os.getenv("FIELD_OF_REGARD", 110)),
-    float(os.getenv("FIELD_OF_REGARD", 110)),
-    float(os.getenv("FIELD_OF_REGARD", 110)),
-    float(os.getenv("FIELD_OF_REGARD", 110)),
-    float(os.getenv("FIELD_OF_REGARD", 110)),
-    float(os.getenv("FIELD_OF_REGARD", 110)),
-    float(os.getenv("FIELD_OF_REGARD", 110)),
-    float(os.getenv("FIELD_OF_REGARD", 110)),
-    float(os.getenv("FIELD_OF_REGARD", 110)),
-    float(os.getenv("FIELD_OF_REGARD", 110)),
-    float(os.getenv("FIELD_OF_REGARD", 110)),
-    float(os.getenv("FIELD_OF_REGARD", 110)),
-    float(os.getenv("FIELD_OF_REGARD", 110)),
-    float(os.getenv("FIELD_OF_REGARD", 110)),
-    float(os.getenv("FIELD_OF_REGARD", 110)),
-    float(os.getenv("FIELD_OF_REGARD", 110)),
-    float(os.getenv("FIELD_OF_REGARD", 110)),
-    float(os.getenv("FIELD_OF_REGARD", 110)),
-    float(os.getenv("FIELD_OF_REGARD", 110))
-]  # degrees (found max zenith angle for MODIS is 65-degrees, FoR = 2 * zenith angle, field-of-view for VIIRS = 112.56-degrees)
-# MIN_ELEVATION_COMMS = float(
-#     os.getenv("MIN_ELEVATION_COMMS", 5.0)
-# )  # degrees (comms more forgiving than sensor, not currently used)
-# MIN_INTENSITY = float(os.getenv("MIN_INTENSITY", 10.0))  # square meters
+FIELD_OF_REGARD = [float(os.getenv("FIELD_OF_REGARD", 50.0)),
+    float(os.getenv("FIELD_OF_REGARD", 50.0)),
+    float(os.getenv("FIELD_OF_REGARD", 50.0)),
+    float(os.getenv("FIELD_OF_REGARD", 50.0)),
+    float(os.getenv("FIELD_OF_REGARD", 50.0)),
+    float(os.getenv("FIELD_OF_REGARD", 50.0)),
+    float(os.getenv("FIELD_OF_REGARD", 50.0)),
+    float(os.getenv("FIELD_OF_REGARD", 50.0)),
+    float(os.getenv("FIELD_OF_REGARD", 50.0)),
+    float(os.getenv("FIELD_OF_REGARD", 50.0)),
+    float(os.getenv("FIELD_OF_REGARD", 50.0)),
+    float(os.getenv("FIELD_OF_REGARD", 50.0)),
+    float(os.getenv("FIELD_OF_REGARD", 50.0)),
+    float(os.getenv("FIELD_OF_REGARD", 50.0)),
+    float(os.getenv("FIELD_OF_REGARD", 50.0)),
+    float(os.getenv("FIELD_OF_REGARD", 50.0)),
+    float(os.getenv("FIELD_OF_REGARD", 50.0)),
+    float(os.getenv("FIELD_OF_REGARD", 50.0)),
+    float(os.getenv("FIELD_OF_REGARD", 50.0)),
+    float(os.getenv("FIELD_OF_REGARD", 50.0)),
+    float(os.getenv("FIELD_OF_REGARD", 50.0))
+]  # degrees (Planet product guide cites view_angle of -25 to +25-degrees off-nadir, total 50-degrees)
 
 SCALE = 120							
