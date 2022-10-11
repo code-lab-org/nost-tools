@@ -49,10 +49,10 @@ if __name__ == "__main__":
         datetime(2022, 10, 3, 7, 20, 0, tzinfo=timezone.utc),    # scenario start datetime
         datetime(2022, 10, 3, 10, 20, 0, tzinfo=timezone.utc),     # scenario stop datetime
         start_time=None,                                        # optionally specify a wallclock start datetime for synchronization
-        time_step=timedelta(seconds=1),                         # wallclock time resolution for simulation
+        time_step=timedelta(seconds=2),                         # wallclock time resolution for simulation
         time_scale_factor=SCALE,                                # initial scale between wallclock and scenario clock (e.g. if SCALE = 60.0 then  1 wallclock second = 1 scenario minute)
         time_scale_updates=UPDATE,                              # optionally schedule changes to the time_scale_factor at a specified scenario time
-        time_status_step=timedelta(seconds=1)
+        time_status_step=timedelta(seconds=0.5)
         * SCALE,                                                # optional duration between time status 'heartbeat' messages
         time_status_init=datetime(
             2022, 10, 3, 7, 21, 0, tzinfo=timezone.utc

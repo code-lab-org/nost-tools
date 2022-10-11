@@ -1,7 +1,7 @@
 import os
 from skyfield.api import load
 
-PREFIX = os.getenv("PREFIX", "greenfield")
+PREFIX = os.getenv("PREFIX", "utility")
 NAME = "capella"
 LOG = f"\x1b[1m[\x1b[34m{NAME}\x1b[37m]\x1b[0m"
 HEADER = {
@@ -57,4 +57,4 @@ FIELD_OF_REGARD = [float(os.getenv("FIELD_OF_REGARD", 112.56)),
 # )  # degrees (comms more forgiving than sensor, not currently used)
 # MIN_INTENSITY = float(os.getenv("MIN_INTENSITY", 10.0))  # square meters
 
-SCALE = 60							
+SCALE = 120							

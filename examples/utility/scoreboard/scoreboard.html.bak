@@ -83,7 +83,7 @@
 						} else if(topic=="utility/manager/update"){
 							payload = JSON.parse(message.payloadString);
 							viewer.clockViewModel.multiplier = payload.taskingParameters.timeScalingFactor;
-						} else if(topic=="utility/capella/location") {
+						} else if(topic=="utility/constellation/location") {
 							payload = JSON.parse(message.payloadString);
 							commRange = payload.commRange;
 							if (commRange){
