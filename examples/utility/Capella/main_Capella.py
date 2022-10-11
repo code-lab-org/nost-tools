@@ -556,7 +556,7 @@ if __name__ == "__main__":
     activesats_url = "https://celestrak.com/NORAD/elements/active.txt"
     activesats = load.tle_file(activesats_url, reload=True)
 
-    # keys for CelesTrak TLEs used in this example (all 3 contained in active.txt, but indexes often change over time)
+    # keys for CelesTrak TLEs used in this example (indexes often change over time)
     # CAP1_DENALI, Index 1585
     # CAP2_SEQUOIA, Index 2594
     # CAP3_WHITNEY, Index 3186
@@ -577,7 +577,7 @@ if __name__ == "__main__":
     ES = [CAP1_DENALI,CAP2_SEQUOIA,CAP3_WHITNEY,CAP4_WHITNEY,CAP5_WHITNEY,CAP6_WHITNEY,CAP7_WHITNEY,CAP8_WHITNEY]
     
     # initialize the Constellation object class (in this example from EarthSatellite type)
-    constellation = Constellation("constellation", app, [0, 1, 2, 3, 4, 5, 6, 7], names, ES)
+    constellation = Constellation("capella", app, [0, 1, 2, 3, 4, 5, 6, 7], names, ES)
 
     # add observer classes to the Constellation object class
     constellation.add_observer(FireDetectedObserver(app))

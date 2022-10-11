@@ -28,14 +28,14 @@ from nost_tools.publisher import WallclockTimeIntervalPublisher
 
 from skyfield.api import load, wgs84, EarthSatellite
 
-from constellation_config_files.schemas import (
+from planet_config_files.schemas import (
     FireStarted,
     FireDetected,
     FireReported,
     SatelliteStatus,
     GroundLocation,
 )
-from constellation_config_files.config import (
+from planet_config_files.config import (
     PREFIX,
     NAME,
     SCALE,
@@ -556,42 +556,56 @@ if __name__ == "__main__":
     activesats_url = "https://celestrak.com/NORAD/elements/active.txt"
     activesats = load.tle_file(activesats_url, reload=True)
 
-    # keys for CelesTrak TLEs used in this example (all 3 contained in active.txt, but indexes often change over time)
-    # AQUA (MODIS) = 27424, Index 151
-    # TERRA (MODIS) = 25994, Index 102
-    # SUOMI NPP (VIIRS) = 37849, Index 551
-    # SENTINEL 2A = ?, Index = 904
-    # SENTINEL 2B = ?, Index = 1174
+    # keys for CelesTrak TLEs used in this example (indexes often change over time)
+    # SKYSAT_A, Index 716
+    # SKYSAT_B, Index 806
+    # SKYSAT_C1, Index 1024
+    # SKYSAT_C2, Index 1048
+    # SKYSAT_C3, Index 1049
+    # SKYSAT_C4, Index 1046
+    # SKYSAT_C5, Index 1047
+    # SKYSAT_C6, Index 1290
+    # SKYSAT_C7, Index 1289
+    # SKYSAT_C8, Index 1288
+    # SKYSAT_C9, Index 1287
+    # SKYSAT_C10, Index 1286
+    # SKYSAT_C11, Index 1285
+    # SKYSAT_C12, Index 1591
+    # SKYSAT_C13, Index 1596
+    # SKYSAT_C14, Index 2449
+    # SKYSAT_C15, Index 2451
+    # SKYSAT_C16, Index 2450
+    # SKYSAT_C17, Index 2584
+    # SKYSAT_C18, Index 2585
+    # SKYSAT_C19, Index 2589
     names = ["SKYSAT_A","SKYSAT_B","SKYSAT_C1","SKYSAT_C2","SKYSAT_C3","SKYSAT_C4","SKYSAT_C5","SKYSAT_C6","SKYSAT_C7","SKYSAT_C8","SKYSAT_C9","SKYSAT_C10","SKYSAT_C11","SKYSAT_C12","SKYSAT_C13","SKYSAT_C14","SKYSAT_C15","SKYSAT_C16","SKYSAT_C17","SKYSAT_C18","SKYSAT_C19"]
     # names = ["AQUA (MODIS)", "TERRA (MODIS)", "SENTINEL-2A (MSI)", "SENTINEL-2B (MSI)"]
     # names = ["SUOMI NPP (VIIRS)","MADE UP SC"]
-    SKYSAT_A = activesats[718]
-    SKYSAT_B = activesats[807]
+    SKYSAT_A = activesats[716]
+    SKYSAT_B = activesats[806]
     SKYSAT_C1 = activesats[1024]
-    SKYSAT_C2 = activesats[1049]
-    SKYSAT_C3 = activesats[1050]
-    SKYSAT_C4 = activesats[1047]
-    SKYSAT_C5 = activesats[1048]
-    SKYSAT_C6 = activesats[1291]
-    SKYSAT_C7 = activesats[1290]
-    SKYSAT_C8 = activesats[1289]
-    SKYSAT_C9 = activesats[1288]
-    SKYSAT_C10 = activesats[1287]
-    SKYSAT_C11 = activesats[1286]
-    SKYSAT_C12 = activesats[1594]
-    SKYSAT_C13 = activesats[1599]
-    SKYSAT_C14 = activesats[2454]
-    SKYSAT_C15 = activesats[2456]
-    SKYSAT_C16 = activesats[2455]
-    SKYSAT_C17 = activesats[2589]
-    SKYSAT_C18 = activesats[2590]
-    SKYSAT_C19 = activesats[2594]
+    SKYSAT_C2 = activesats[1048]
+    SKYSAT_C3 = activesats[1049]
+    SKYSAT_C4 = activesats[1046]
+    SKYSAT_C5 = activesats[1047]
+    SKYSAT_C6 = activesats[1290]
+    SKYSAT_C7 = activesats[1289]
+    SKYSAT_C8 = activesats[1288]
+    SKYSAT_C9 = activesats[1287]
+    SKYSAT_C10 = activesats[1286]
+    SKYSAT_C11 = activesats[1285]
+    SKYSAT_C12 = activesats[1591]
+    SKYSAT_C13 = activesats[1596]
+    SKYSAT_C14 = activesats[2449]
+    SKYSAT_C15 = activesats[2451]
+    SKYSAT_C16 = activesats[2450]
+    SKYSAT_C17 = activesats[2584]
+    SKYSAT_C18 = activesats[2585]
+    SKYSAT_C19 = activesats[2589]
     ES = [SKYSAT_A,SKYSAT_B,SKYSAT_C1,SKYSAT_C2,SKYSAT_C3,SKYSAT_C4,SKYSAT_C5,SKYSAT_C6,SKYSAT_C7,SKYSAT_C8,SKYSAT_C9,SKYSAT_C10,SKYSAT_C11,SKYSAT_C12,SKYSAT_C13,SKYSAT_C14,SKYSAT_C15,SKYSAT_C16,SKYSAT_C17,SKYSAT_C18,SKYSAT_C19]
-    # ES = [AQUA, TERRA, SENTINEL2A, SENTINEL2B]
     
-
     # initialize the Constellation object class (in this example from EarthSatellite type)
-    constellation = Constellation("constellation", app, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20], names, ES)
+    constellation = Constellation("planet", app, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20], names, ES)
 
     # add observer classes to the Constellation object class
     constellation.add_observer(FireDetectedObserver(app))
@@ -614,8 +628,8 @@ if __name__ == "__main__":
         config,
         True,
         time_status_step=timedelta(seconds=10) * SCALE,
-        time_status_init=datetime(2020, 1, 1, 7, 20, tzinfo=timezone.utc),
-        time_step=timedelta(seconds=1) * SCALE,
+        time_status_init=datetime(2022, 10, 3, 7, 20, tzinfo=timezone.utc),
+        time_step=timedelta(seconds=2) * SCALE,
     )
 
     # add message callbacks
