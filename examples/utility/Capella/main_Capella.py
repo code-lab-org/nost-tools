@@ -28,14 +28,14 @@ from nost_tools.publisher import WallclockTimeIntervalPublisher
 
 from skyfield.api import load, wgs84, EarthSatellite
 
-from capella_config_files.schemas import (
+from Capella_config_files.schemas import (
     FireStarted,
     FireDetected,
     FireReported,
     SatelliteStatus,
     GroundLocation,
 )
-from capella_config_files.config import (
+from Capella_config_files.config import (
     PREFIX,
     NAME,
     SCALE,
@@ -555,7 +555,7 @@ if __name__ == "__main__":
     # load current TLEs for active satellites from Celestrak (NOTE: User has option to specify their own TLE instead)
     activesats_url = "https://celestrak.com/NORAD/elements/active.txt"
     activesats = load.tle_file(activesats_url, reload=True)
-
+    by_name = {sat.name: sat for sat in activesats}
     # keys for CelesTrak TLEs used in this example (indexes often change over time)
     # CAP1_DENALI, Index 1585
     # CAP2_SEQUOIA, Index 2594
@@ -565,19 +565,34 @@ if __name__ == "__main__":
     # CAP6_WHITNEY, Index 4022
     # CAP7_WHITNEY, Index 4865
     # CAP8_WHITNEY, Index 4864
-    names = ["CAP1_DENALI","CAP2_SEQUOIA","CAP3_WHITNEY","CAP4_WHITNEY","CAP5_WHITNEY","CAP6_WHITNEY","CAP7_WHITNEY","CAP8_WHITNEY"]
-    CAP1_DENALI = activesats[1585]
-    CAP2_SEQUOIA = activesats[2594]
-    CAP3_WHITNEY = activesats[3186]
-    CAP4_WHITNEY = activesats[3178]
-    CAP5_WHITNEY = activesats[4188]
-    CAP6_WHITNEY= activesats[4022]
-    CAP7_WHITNEY= activesats[4865]
-    CAP8_WHITNEY= activesats[4864]
-    ES = [CAP1_DENALI,CAP2_SEQUOIA,CAP3_WHITNEY,CAP4_WHITNEY,CAP5_WHITNEY,CAP6_WHITNEY,CAP7_WHITNEY,CAP8_WHITNEY]
+    # names = ["CAP1_DENALI","CAP2_SEQUOIA","CAP3_WHITNEY","CAP4_WHITNEY","CAP5_WHITNEY","CAP6_WHITNEY","CAP7_WHITNEY","CAP8_WHITNEY"]
+    names = ["CAPELLA-1-DENALI", \
+            "CAPELLA-2-SEQUOIA", \
+            "CAPELLA-3-WHITNEY", \
+            "CAPELLA-4-WHITNEY", \
+            "CAPELLA-5-WHITNEY", \
+            "CAPELLA-6-WHITNEY", \
+            "CAPELLA-7-WHITNEY", \
+            "CAPELLA-8-WHITNEY"]
+    ES = []
+    indices = []
+    for name_i, name in enumerate(names):
+        ES.append(by_name[name])
+        indices.append(name_i)
+    
+    # CAP1_DENALI = activesats[1585]
+    # CAP2_SEQUOIA = activesats[2594]
+    # CAP3_WHITNEY = activesats[3186]
+    # CAP4_WHITNEY = activesats[3178]
+    # CAP5_WHITNEY = activesats[4188]
+    # CAP6_WHITNEY= activesats[4022]
+    # CAP7_WHITNEY= activesats[4865]
+    # CAP8_WHITNEY= activesats[4864]
+    # ES = [CAP1_DENALI,CAP2_SEQUOIA,CAP3_WHITNEY,CAP4_WHITNEY,CAP5_WHITNEY,CAP6_WHITNEY,CAP7_WHITNEY,CAP8_WHITNEY]
     
     # initialize the Constellation object class (in this example from EarthSatellite type)
-    constellation = Constellation("capella", app, [0, 1, 2, 3, 4, 5, 6, 7], names, ES)
+    # constellation = Constellation("capella", app, [0, 1, 2, 3, 4, 5, 6, 7], names, ES)
+    constellation = Constellation('capella', app, indices, names, ES)
 
     # add observer classes to the Constellation object class
     constellation.add_observer(FireDetectedObserver(app))
@@ -607,3 +622,6 @@ if __name__ == "__main__":
     # add message callbacks
     app.add_message_callback("fire", "location", constellation.on_fire)
     app.add_message_callback("ground", "location", constellation.on_ground)
+
+    while True:
+        pass
