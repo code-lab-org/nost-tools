@@ -10,14 +10,15 @@ logger = logging.getLogger(__name__)
 
 class Mode(str, Enum):
     """
-    The execution mode of the simulation. It describes the functioning status of the simulation in 6 categories:
-    * `UNDEFINED` -- The simulation mode is not assigned to one of the other 5 modes
-    * `INITIALIZING` -- The simulation is in the process of initializing (connecting to the broker, establishing simulation varaibles)
-    * `INITIALIZED` -- The simulation is ready to begin
-    * `EXECUTING` -- The simulation is running with the provided parameters
-    * `TERMINATING` -- The simulation is in the process of terminating (disconnecting from the broker)
-    * `TERMINATED` -- The simulation has ended
-
+    The execution mode of the simulation. 
+    
+    The mode describes the functioning status of the simulation in 6 categories:
+     * `UNDEFINED` -- The simulation mode is not assigned to one of the other 5 modes.
+     * `INITIALIZING` -- The simulation is in the process of initializing (connecting to the broker, establishing simulation varaibles).
+     * `INITIALIZED` -- The simulation is ready to begin.
+     * `EXECUTING` -- The simulation is running with the provided parameters.
+     * `TERMINATING` -- The simulation is in the process of terminating (disconnecting from the broker).
+     * `TERMINATED` -- The simulation has ended.
     """
 
     UNDEFINED = "UNDEFINED"
@@ -147,10 +148,9 @@ class Simulator(Observable):
         and finally transitioning to the INITIALIZED mode.
 
         Args:
-            init_time (:obj:`datetime`): Scenario time at which to start execution.
-            wallclock_epoch (:obj:`datetime`): Wallclock time at which to start
-                execution, None means to start immediately (default: None).
-            time_scale_factor (float): Scenario seconds per wallclock second (default: 1).
+            init_time (:obj:`datetime`): Scenario time at which to start execution
+            wallclock_epoch (:obj:`datetime`): Wallclock time at which to start execution, None means to start immediately (default: None)\n     
+            time_scale_factor (float): Scenario seconds per wallclock second (default: 1)
         """
         if self._mode == Mode.INITIALIZING:
             raise RuntimeError("Cannot initialize: simulator is initializing.")
@@ -180,11 +180,11 @@ class Simulator(Observable):
         Execute a simulation for a given duration with uniform time steps as defined in the initilize message from the manager.
 
         Args:
-            init_time (:obj:`datetime`) : The time at which the simulation will initialize.
-            duration (:obj:`timedelta`) : The duration of the simulation.
-            time_step (:obj:`timedelta`) : The next iterated timestamp for the simulation.
-            wallclock_epoch (:obj:`datetime`) : The wallclock timechange (default value: None).
-            time_scale_factor (float) : The factor to scale the simulation time in comparison to wallclock time (default value: 1).
+            init_time (:obj:`datetime`) : The time at which the simulation will initialize
+            duration (:obj:`timedelta`) : The duration of the simulation
+            time_step (:obj:`timedelta`) : The next iterated timestamp for the simulation
+            wallclock_epoch (:obj:`datetime`) : The wallclock timechange (default value: None)\n
+            time_scale_factor (float) : The factor to scale the simulation time in comparison to wallclock time (default value: 1)
         """
         if self._mode != Mode.INITIALIZED:
             self.initialize(init_time, wallclock_epoch, time_scale_factor)
@@ -305,7 +305,7 @@ class Simulator(Observable):
         Sets the simulation mode to one of the 6 modes defined in class /Node/.
 
         Args:
-            mode (:obj:`Mode`): The mode to which the simulation will be set.
+            mode (:obj:`Mode`): The mode to which the simulation will be set
         """
         prev_mode = self._mode
         self._mode = mode
@@ -313,10 +313,10 @@ class Simulator(Observable):
 
     def get_time_scale_factor(self):
         """
-        Returns the time scale factor in simulations seconds per wall clock second (>1 is faster-than-real-time) .
+        Returns the time scale factor in simulations seconds per wall clock second (>1 is faster-than-real-time).
 
         Returns:
-            float: The current time scale factor.
+            float: The current time scale factor
         """
         return self._time_scale_factor
 
@@ -325,7 +325,7 @@ class Simulator(Observable):
         Returns the wallclock epoch (wallclock time of initial scenario time).
 
         Returns:
-            float: The current wallclock epoch.
+            float: The current wallclock epoch
         """
         return self._wallclock_epoch
 
@@ -334,7 +334,7 @@ class Simulator(Observable):
         Returns the simulation epoch (initial scenario time).
 
         Returns:
-            :obj:`datetime`: The current simulation epoch.
+            :obj:`datetime`: The current simulation epoch
         """
         return self._simulation_epoch
 
@@ -343,7 +343,7 @@ class Simulator(Observable):
         Returns the simulation duration given by the difference between start and intended stop times.
 
         Returns:
-            :obj:`timedelta`: The current simulation duration.
+            :obj:`timedelta`: The current simulation duration
         """
         return self._duration
 
@@ -352,7 +352,7 @@ class Simulator(Observable):
         Retruns the last timestep as the simulation is terminated, the simulation stop time.
 
         Returns:
-            :obj:`datetime`: The final simulation time.
+            :obj:`datetime`: The final simulation time
         """
         return self._init_time + self._duration
 
@@ -361,7 +361,7 @@ class Simulator(Observable):
         Returns the time of simulation initialization.
 
         Returns:
-            :obj:`datetime`: The initial simulation time.
+            :obj:`datetime`: The initial simulation time
         """
         return self._init_time
 
@@ -370,7 +370,7 @@ class Simulator(Observable):
         Returns the current simulation time.
 
         Returns:
-            :obj:`datetime`: The current simulation time.
+            :obj:`datetime`: The current simulation time
         """
         return self._time
 
@@ -379,7 +379,7 @@ class Simulator(Observable):
         Returns the simulation time step in scenario time.
 
         Returns:
-            :obj:`timedelta`: The current simulation time step (scenario time).
+            :obj:`timedelta`: The current simulation time step (scenario time)
         """
         return self._time_step
 
@@ -388,7 +388,7 @@ class Simulator(Observable):
         Returns the simulation time step in wallclock time.
 
         Returns:
-            :obj:`timedelta`: The current simulation time step (wallclock time).
+            :obj:`timedelta`: The current simulation time step (wallclock time)
         """
         if self._time_scale_factor is None or self._time_scale_factor <= 0:
             return self._time_step
@@ -400,7 +400,7 @@ class Simulator(Observable):
         Returns the current wallclock time based on standardized NIST time.
 
         Returns:
-            :obj:`datetime`: The current wallclock time, accounting for offset.
+            :obj:`datetime`: The current wallclock time, accounting for offset
         """
         return datetime.now(tz=timezone.utc) + self._wallclock_offset
 
@@ -409,7 +409,7 @@ class Simulator(Observable):
         Returns the wallclock time corresponding to the given simulation time.
 
         Args:
-            time (:obj:`datetime`): The simulation time for which the wallclock time is being identified.
+            time (:obj:`datetime`): The simulation time for which the wallclock time is being identified
 
         Returns:
             :obj:`datetime`: The wallclock time for the identified simulation time
@@ -427,8 +427,8 @@ class Simulator(Observable):
         Sets the simulation time scale factor in simulation seconds per wallclock second if the mode allows (>1 is faster-than-real-time).
 
         Args:
-            time_scale_factor (float): The factor to scale the simulation time in comparison to wallclock time.
-            simulation_epoch (:obj:`datetime`): The simulation epoch at which the timescale should be set.
+            time_scale_factor (float): The factor to scale the simulation time in comparison to wallclock time
+            simulation_epoch (:obj:`datetime`): The simulation epoch at which the timescale should be set
         """
         if self._mode != Mode.EXECUTING:
             raise RuntimeError("Can only change time scale factor while executing.")
@@ -443,7 +443,7 @@ class Simulator(Observable):
         Sets the simulation end time to the provided endtime if the mode allows.
 
         Args:
-            end_time (:obj:`datetime`): The time at which the simulation will end.
+            end_time (:obj:`datetime`): The time at which the simulation will end
         """
         if self._mode != Mode.EXECUTING:
             raise RuntimeError("Can only change simulation end time while executing.")
@@ -454,7 +454,7 @@ class Simulator(Observable):
         Sets the simulation duration to the provided duration if the mode allows.
 
         Args:
-            duration (:obj:`timedelta`): The duration of the simulation.
+            duration (:obj:`timedelta`): The duration of the simulation
         """
         if self._mode != Mode.EXECUTING:
             raise RuntimeError("Can only change simulation duration while executing.")
@@ -465,7 +465,7 @@ class Simulator(Observable):
         Set the simulation time step to the providede timestep if the mode allows.
 
         Args:
-            time_step (:obj:`timedelta`): The simulation time step.
+            time_step (:obj:`timedelta`): The simulation time step
         """
         if self._mode != Mode.EXECUTING:
             raise RuntimeError("Can only change simulation time step while executing.")
@@ -476,7 +476,7 @@ class Simulator(Observable):
         Set the wallclock offset to the provided offset if the mode allows.
 
         Args:
-            wallclock_offset(:obj:`timedelta`): The wallclock offset for the simulation.
+            wallclock_offset(:obj:`timedelta`): The wallclock offset for the simulation
         """
         if self._mode == Mode.EXECUTING:
             raise RuntimeError("Cannot set wallclock offset: simulator is executing")
