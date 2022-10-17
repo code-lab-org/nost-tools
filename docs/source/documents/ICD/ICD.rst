@@ -1,10 +1,17 @@
 Interface Control Document
 ==========================
 
-.. csv-table:: Release history.
-   :file: C:\Users\brian\Documents\Postdoc\NOS-T\Codes\nost-tools\docs\source\media\releaseTable.csv
-   :widths: 10, 20, 70
-   :header-rows: 1
+.. list-table:: Table 1. Definitions and Glossary of Terms
+  :widths: 10 20 70
+  :header-rows: 1
+  
+  * - Release
+    - Date
+    - Description
+  * - v.1.0
+    - Feb. 1, 2022
+    - Initial release of the ICD and documentation of NOS-T Tools library.
+
 
 **TABLE OF CONTENTS**
 
