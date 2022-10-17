@@ -1,10 +1,10 @@
 Interface Control Document
 ==========================
 
-.. list-table:: Table 1. Definitions and Glossary of Terms
+.. list-table:: Release History
   :widths: 10 20 70
   :header-rows: 1
-  
+
   * - Release
     - Date
     - Description
