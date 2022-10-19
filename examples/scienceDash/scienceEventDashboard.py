@@ -9,16 +9,14 @@
 """
 
 import paho.mqtt.client as mqtt
-import csv
 import json
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 import plotly.express as px
 import pandas as pd
 from datetime import datetime, timedelta
-
 
 
 def on_message(mqttc, obj, msg):
@@ -29,22 +27,9 @@ def on_message(mqttc, obj, msg):
     latitude = eventMessage["latitude"]
     longitude = eventMessage["longitude"]
     utility = eventMessage["utility"]
-
-    df = pd.DataFrame.from_dict(eventMessage)
     
-    # def update_fig(n):
-    #     dffig = df
-    #     fig = px.line(dffig, x='time', y='utility', color='latitude', markers=True,
-    #                       labels={"time":"time", "utility":"utility (n.d.)"},
-    #                       title="Science Event Utility")
-    #     return fig
+    df = pd.DataFrame(eventMessage, index=[0])
     
-    # fig = px.line(df, x='time', y='utility', color='latitude', markers=True,
-    #                       labels={"time":"time", "utility":"utility (n.d.)"},
-    #                       title="Science Event Utility")
-    
-    
-    print(df)
 
 
 # name guard
@@ -64,27 +49,27 @@ if __name__ == "__main__":
     client.on_message = on_message
     # start a background thread to let MQTT do things
     client.loop_start()
-    
-    # intialize df
-    currentTime = datetime.now()
-    global eventMessage
-    eventMessage = {"time":[currentTime.strftime('%H%M%S')],
-                    "latitude":[0],
-                    "longitude":[0],
-                    "utility":[0]}
-    df = pd.DataFrame.from_dict(eventMessage)
 
-       
+    # initialize df
+    eventMessage = pd.DataFrame()
+    time = eventMessage["time"]
+    latitude = eventMessage["latitude"]
+    longitude = eventMessage["longitude"]
+    utility = eventMessage["utility"]
+    
+   # df = pd.DataFrame(eventMessage, index=[0])          
+    
+
     app = dash.Dash(__name__)
     
-    # defining dashboard figure
+    # for dashboard plot
     fig = px.line(df, x='time', y='utility', color='latitude', markers=True,
                           labels={"time":"time", "utility":"utility (n.d.)"},
                           title="Science Event Utility")
-    
+
     app.layout = html.Div([
         dcc.Graph(
-            id='Utility_Plot', figure=fig
+            id="Utility_Plot", figure=fig
             ),
         dcc.Interval(
             id="interval-component",
@@ -92,21 +77,23 @@ if __name__ == "__main__":
             n_intervals=0
         )
     ])
-    
+
     @app.callback(
         Output("Utility_Plot", 'figure'),
         [Input("interval-component", 'n_intervals')]
     )
-    
     def update_fig(n):
         fig = px.line(df, x='time', y='utility', color='latitude', markers=True,
                               labels={"time":"time", "utility":"utility (n.d.)"},
                               title="Science Event Utility")
         return fig
     
+
     
-    if __name__ == '__main__':
-        app.run_server(debug=True)
+
+    app.run_server(debug=True)
+        
+
 
 
 

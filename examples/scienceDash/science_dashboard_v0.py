@@ -44,7 +44,6 @@ if __name__ == "__main__":
         Output("Utility_Plot", 'figure'),
         [Input("interval-component", 'n_intervals')]
     )
-
     def update_fig(n):
         plotData = pd.read_csv(filename)
         df = pd.DataFrame(data=plotData)

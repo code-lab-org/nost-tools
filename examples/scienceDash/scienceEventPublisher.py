@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-This application 
+This application publishes "science events" for testing.
 """
 
 import paho.mqtt.client as mqtt
