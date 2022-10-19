@@ -49,13 +49,14 @@
 
 				// create a MQTT client
 				var client = new Paho.MQTT.Client(BROKER_HOST, BROKER_PORT, "");
-				var satellites = {}; <!-- Positions of satellites as points at altitude, BLUE out of comms range, GREEN in comms range -->
-				var sensorCircles = {}; <!-- Circles showing views of nadir pointed satellites -->
-				var sensorStripMap = {}; <!-- Rectangles for showing swath width of sensor -->
+				var satellitesCapella = {}; <!-- Positions of satellites as points at altitude, BLUE out of comms range, GREEN in comms range -->
+				var satellitesPlanet = {}; <!-- Positions of satellites as points at altitude, BLUE out of comms range, GREEN in comms range -->
+				var sensorCirclesCapella = {}; <!-- Circles showing views of nadir pointed satellites -->
+				var sensorCirclesPlanet = {}; <!-- Circles showing views of nadir pointed satellites -->
 				var commsCones = {}; <!-- Views from ground station FOR comms -->
 				var commsRange = false; <!-- Initialize this commsRange boolean as false, but will update based on satellite subscription -->
 				var satColor = Cesium.Color.BLUE; <!-- Initialize satColor as Cesium's default BLUE, which is color when commsRange is false -->
-				var fires = viewer.scene.primitives.add(new Cesium.PointPrimitiveCollection()); <!-- Initialize fires as primitive points since there will be so many -->
+				var events = viewer.scene.primitives.add(new Cesium.PointPrimitiveCollection()); <!-- Initialize events as primitive points since there will be so many -->
 				var grounds = {}; <!-- Surface position of ground stations as PINK points -->
 				var updates = {};
 
@@ -83,7 +84,7 @@
 						} else if(topic=="utility/manager/update"){
 							payload = JSON.parse(message.payloadString);
 							viewer.clockViewModel.multiplier = payload.taskingParameters.timeScalingFactor;
-						} else if(topic=="utility/constellation/location") {
+						} else if(topic=="utility/capella/location") {
 							payload = JSON.parse(message.payloadString);
 							commRange = payload.commRange;
 							if (commRange){
@@ -91,21 +92,21 @@
 							} else {
 								satColor = Cesium.Color.BLUE
 							};
-							if(satellites[payload.id]) {
-								satellites[payload.id].position=Cesium.Cartesian3.fromDegrees(
+							if(satellitesCapella[payload.id]) {
+								satellitesCapella[payload.id].position=Cesium.Cartesian3.fromDegrees(
 									payload.longitude,
 									payload.latitude,
 									payload.altitude
 								);
-								satellites[payload.id].point.color = satColor;
-								sensorCircles[payload.id].ellipse.semiMajorAxis = payload.radius;
-								sensorCircles[payload.id].ellipse.semiMinorAxis = payload.radius;
-								sensorCircles[payload.id].position=Cesium.Cartesian3.fromDegrees(
+								satellitesCapella[payload.id].point.color = satColor;
+								sensorCirclesCapella[payload.id].ellipse.semiMajorAxis = payload.radius;
+								sensorCirclesCapella[payload.id].ellipse.semiMinorAxis = payload.radius;
+								sensorCirclesCapella[payload.id].position=Cesium.Cartesian3.fromDegrees(
 									payload.longitude,
 									payload.latitude
 								);
 							} else {
-								satellites[payload.id] = viewer.entities.add({
+								satellitesCapella[payload.id] = viewer.entities.add({
 									position: Cesium.Cartesian3.fromDegrees(
 										payload.longitude,
 										payload.latitude,
@@ -139,7 +140,7 @@
 									},
 									show: true
 								});
-								sensorCircles[payload.id]=viewer.entities.add({
+								sensorCirclesCapella[payload.id]=viewer.entities.add({
 									position: Cesium.Cartesian3.fromDegrees(
 										payload.longitude,
 										payload.latitude
@@ -150,26 +151,79 @@
 										material: Cesium.Color.BLUE.withAlpha(0.2)
 									}
 								});
-								<!-- sensorStripMap[payload.id]=viewer.entities.add({ -->
-									<!-- corridor: { -->
-										<!-- positions: Cesium.Cartesian3.fromDegreesArray([ -->
-											<!-- -100.0, -->
-											<!-- 40.0, -->
-											<!-- payload.longitude, -->
-											<!-- payload.latitude, -->
-											<!-- -105.0, -->
-											<!-- 35.0, -->
-										<!-- ]), -->
-										<!-- width: 5000.0, -->
-										<!-- material: Cesium.Color.RED.withAlpha(0.5), -->
-										<!-- cornerType: Cesium.CornerType.MITERED, -->
-									<!-- } -->
-								<!-- }); -->
 							}
-						} else if(topic=="utility/fire/location") {
-							<!-- Cesium suggests using PointPrimitives when have large collection of points, applies to fires -->
+						} else if(topic=="utility/planet/location") {
 							payload = JSON.parse(message.payloadString);
-							fires.add({
+							commRange = payload.commRange;
+							if (commRange){
+								satColor = Cesium.Color.DARKORANGE
+							} else {
+								satColor = Cesium.Color.RED
+							};
+							if(satellitesPlanet[payload.id]) {
+								satellitesPlanet[payload.id].position=Cesium.Cartesian3.fromDegrees(
+									payload.longitude,
+									payload.latitude,
+									payload.altitude
+								);
+								satellitesPlanet[payload.id].point.color = satColor;
+								sensorCirclesPlanet[payload.id].ellipse.semiMajorAxis = payload.radius;
+								sensorCirclesPlanet[payload.id].ellipse.semiMinorAxis = payload.radius;
+								sensorCirclesPlanet[payload.id].position=Cesium.Cartesian3.fromDegrees(
+									payload.longitude,
+									payload.latitude
+								);
+							} else {
+								satellitesPlanet[payload.id] = viewer.entities.add({
+									position: Cesium.Cartesian3.fromDegrees(
+										payload.longitude,
+										payload.latitude,
+										payload.altitude
+									),
+									point: {
+										pixelSize: 8,
+										color: satColor
+									},
+									label: {
+										text: payload.name,
+										font: "12px Georgia",
+										fillColor: Cesium.Color.SKYBLUE,
+										outlineColor: Cesium.Color.BLACK,
+										outlineWidth: 2,
+										style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+										pixelOffset: new Cesium.Cartesian2(40.0, 8.0),
+										pixelOffsetScaleByDistance: new Cesium.NearFarScalar(
+											1.5e2,
+											3.0,
+											1.5e7,
+											0.5
+										),
+										scaleByDistance: new Cesium.NearFarScalar(1.5e2, 2.0, 1.5e7, 0.5),
+										translucencyByDistance: new Cesium.NearFarScalar(
+											1.5e2,
+											1.0,
+											1.5e8,
+											0.0
+										),
+									},
+									show: true
+								});
+								sensorCirclesPlanet[payload.id]=viewer.entities.add({
+									position: Cesium.Cartesian3.fromDegrees(
+										payload.longitude,
+										payload.latitude
+									),
+									ellipse: {
+										semiMajorAxis: payload.radius,
+										semiMinorAxis: payload.radius,
+										material: Cesium.Color.RED.withAlpha(0.2)
+									}
+								});
+							}
+						} else if(topic=="utility/event/location") {
+							<!-- Cesium suggests using PointPrimitives when have large collection of points, applies to events -->
+							payload = JSON.parse(message.payloadString);
+							events.add({
 								position : new Cesium.Cartesian3.fromDegrees(
 									payload.longitude,
 									payload.latitude
@@ -180,10 +234,10 @@
 							});
 						} else if(topic=="utility/capella/detected"){
 							payload = JSON.parse(message.payloadString);
-							fires.get(payload.fireId).color = Cesium.Color.DARKORANGE
+							events.get(payload.eventId).color = Cesium.Color.DARKORANGE
 						} else if(topic=="utility/capella/reported"){
 							payload = JSON.parse(message.payloadString);
-							fires.get(payload.fireId).color = Cesium.Color.YELLOW
+							events.get(payload.eventId).color = Cesium.Color.YELLOW
 						} else if(topic=="utility/ground/location"){
 							payload = JSON.parse(message.payloadString);
 							activeCheck = payload.operational;
