@@ -213,9 +213,9 @@ var CESIUM_ACCESS_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlMGE4
 														color: Cesium.Color.RED,
 														show: true});
 
-						} else if(topic=="utility/event/end") {
+						} else if(topic=="utility/event/finish") {
 							payload = JSON.parse(message.payloadString);
-							console.log(eventsById[payload.eventId]);
+							// console.log(eventsById[payload.eventId]);
 							events.remove(eventsById[payload.eventId]);
 
 						} else if(topic=="utility/capella/detected"){
