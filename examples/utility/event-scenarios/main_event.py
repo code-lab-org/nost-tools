@@ -6,11 +6,12 @@
 
 """
 
-from random import randint, randrange, seed
+import random
 import sys
 import logging
 from datetime import datetime, timezone, timedelta
 from dotenv import dotenv_values
+from numpy import datetime_as_string
 import pandas as pd
 
 pd.options.mode.chained_assignment = None
@@ -22,7 +23,7 @@ from nost_tools.observer import Observer
 from nost_tools.managed_application import ManagedApplication
 
 from event_config_files.schemas import EventState, EventStarted, EventDetected, EventReported
-from event_config_files.config import PREFIX, SCALE, EVENT_COUNT
+from event_config_files.config import PREFIX, SCALE, SEED, EVENT_COUNT, EVENT_LENGTH, EVENT_TIMESPAN
 
 logging.basicConfig(level=logging.INFO)
 
@@ -55,7 +56,7 @@ class Environment(Observer):
             new_events = self.events[
                 (self.events.start <= new_value) & (self.events.start > old_value)
             ]
-            print(f"cum: {new_events}")
+
             for index, event in new_events.iterrows():
                 # print(f"eventId: {event.eventId}")
                 self.app.send_message(
@@ -63,6 +64,24 @@ class Environment(Observer):
                     EventStarted(
                         eventId=event.eventId,
                         start=event.start,
+                        end=event.end,
+                        latitude=event.latitude,
+                        longitude=event.longitude,
+                    ).json(),
+                )
+
+            ended_events = self.events[
+                (self.events.end <= new_value) & (self.events.end > old_value)
+            ]
+
+            for index, event in ended_events.iterrows():
+                # print(f"eventId: {event.eventId}")
+                self.app.send_message(
+                    "end",
+                    EventStarted(
+                        eventId=event.eventId,
+                        start=event.start,
+                        end=event.end,
                         latitude=event.latitude,
                         longitude=event.longitude,
                     ).json(),
@@ -146,26 +165,33 @@ if __name__ == "__main__":
     # create the managed application
     app = ManagedApplication("event")
 
-    if (len(sys.argv) == 0):
-        seed(randint(0, 10000000000))
+    # Checks if a seed is passed when the script is ran, if not generate a random one
+    if (not SEED==0):
+        random.seed(SEED)
     else:
-        seed(sys.argv[0])
+        SEED = datetime_as_string(datetime.now())
+        print(f"The seed used for this simulation run is: {SEED}")
+        random.seed(SEED)
 
     eventIds = [id for id in range(0, EVENT_COUNT)]
 
     eventStarts = []
+    eventEnds = []
     eventLats = []
     eventLongs = []
     for event in range(0, EVENT_COUNT):
-        eventStarts.append(datetime(2022, 10, 3, 7, 20, 0, tzinfo=timezone.utc) + timedelta(minutes=randrange(0, 3*1440)))
-        eventLats.append(randrange(-90, 90))
-        eventLongs.append(randrange(-180, 180))
+        eventStart = datetime(2022, 10, 3, 7, 20, 0, tzinfo=timezone.utc) + timedelta(minutes=random.randrange(0, EVENT_TIMESPAN))
+        eventStarts.append(eventStart)
+        eventEnds.append(eventStart + timedelta(hours=EVENT_LENGTH))
+        eventLats.append(random.randrange(-90, 90))
+        eventLongs.append(random.randrange(-180, 180))
 
     # Read the csv file and convert to a DataFrame with initial column defining the index
     events = pd.DataFrame(
         data={
             "eventId": eventIds,
             "start": eventStarts,
+            "end": eventEnds,
             "latitude": eventLats,
             "longitude": eventLongs,
         }
@@ -174,11 +200,11 @@ if __name__ == "__main__":
 
     # Add blank columns to data frame for logging state, detection time, reporting time, and detector satellite
     events.insert(1, "eventState", EventState.undefined)
-    events.insert(3, "detected", datetime(1900, 1, 1, tzinfo=timezone.utc))
-    events.insert(4, "detected_by", "Undetected")
-    events.insert(5, "reported", datetime(1900, 1, 1, tzinfo=timezone.utc))
-    events.insert(6, "reported_by", "Unreported")
-    events.insert(7, "reported_to", None)
+    events.insert(4, "detected", datetime(1900, 1, 1, tzinfo=timezone.utc))
+    events.insert(5, "detected_by", "Undetected")
+    events.insert(6, "reported", datetime(1900, 1, 1, tzinfo=timezone.utc))
+    events.insert(7, "reported_by", "Unreported")
+    events.insert(8, "reported_to", None)
 
     # add the environment observer to monitor for event status events
     app.simulator.add_observer(Environment(app, events))
