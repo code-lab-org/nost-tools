@@ -56,7 +56,7 @@
 				var commsCones = {}; <!-- Views from ground station FOR comms -->
 				var commsRange = false; <!-- Initialize this commsRange boolean as false, but will update based on satellite subscription -->
 				var satColor = Cesium.Color.BLUE; <!-- Initialize satColor as Cesium's default BLUE, which is color when commsRange is false -->
-				var fires = viewer.scene.primitives.add(new Cesium.PointPrimitiveCollection()); <!-- Initialize fires as primitive points since there will be so many -->
+				var events = viewer.scene.primitives.add(new Cesium.PointPrimitiveCollection()); <!-- Initialize events as primitive points since there will be so many -->
 				var grounds = {}; <!-- Surface position of ground stations as PINK points -->
 				var updates = {};
 
@@ -220,10 +220,10 @@
 									}
 								});
 							}
-						} else if(topic=="utility/fire/location") {
-							<!-- Cesium suggests using PointPrimitives when have large collection of points, applies to fires -->
+						} else if(topic=="utility/event/location") {
+							<!-- Cesium suggests using PointPrimitives when have large collection of points, applies to events -->
 							payload = JSON.parse(message.payloadString);
-							fires.add({
+							events.add({
 								position : new Cesium.Cartesian3.fromDegrees(
 									payload.longitude,
 									payload.latitude
@@ -234,10 +234,10 @@
 							});
 						} else if(topic=="utility/capella/detected"){
 							payload = JSON.parse(message.payloadString);
-							fires.get(payload.fireId).color = Cesium.Color.DARKORANGE
+							events.get(payload.eventId).color = Cesium.Color.DARKORANGE
 						} else if(topic=="utility/capella/reported"){
 							payload = JSON.parse(message.payloadString);
-							fires.get(payload.fireId).color = Cesium.Color.YELLOW
+							events.get(payload.eventId).color = Cesium.Color.YELLOW
 						} else if(topic=="utility/ground/location"){
 							payload = JSON.parse(message.payloadString);
 							activeCheck = payload.operational;
