@@ -12,9 +12,9 @@ from datetime import datetime
 from enum import Enum
 
 
-class FireState(str, Enum):
+class EventState(str, Enum):
     """
-    *Enumeration used to classify the current state of the fire:*
+    *Enumeration used to classify the current state of the event:*
 
     .. literalinclude:: /../../firesat/fires/fire_config_files/schemas.py
         :lines: 15,24-27
@@ -27,7 +27,7 @@ class FireState(str, Enum):
     reported = "reported"
 
 
-class FireStarted(BaseModel):
+class EventStarted(BaseModel):
     """
     *Message schema object class with properties inherited from the pydantic library's BaseModel*
     
@@ -38,7 +38,7 @@ class FireStarted(BaseModel):
 
     """
 
-    fireId: int = Field(..., description="Unique fire identifier.")
+    eventId: int = Field(..., description="Unique fire identifier.")
     start: Optional[datetime] = Field(description="Time fire started.")
     latitude: Optional[confloat(ge=-90, le=90)] = Field(
         description="Latitude (deg) of fire location."
@@ -48,7 +48,7 @@ class FireStarted(BaseModel):
     )
 
 
-class FireDetected(BaseModel):
+class EventDetected(BaseModel):
     """
     *Message schema object class with properties inherited from the pydantic library's BaseModel*
     
@@ -59,12 +59,12 @@ class FireDetected(BaseModel):
 
     """
 
-    fireId: int = Field(..., description="Unique fire identifier.")
+    eventId: int = Field(..., description="Unique fire identifier.")
     detected: datetime = Field(..., description="Time fire detected.")
     detected_by: str = Field(..., description="Satellite name that detected the fire.")
 
 
-class FireReported(BaseModel):
+class EventReported(BaseModel):
     """
     *Message schema object class with properties inherited from the pydantic library's BaseModel*
     
@@ -75,7 +75,7 @@ class FireReported(BaseModel):
 
     """
 
-    fireId: int = Field(..., description="Unique fire identifier.")
+    eventId: int = Field(..., description="Unique fire identifier.")
     reported: datetime = Field(..., description="Time fire reported.")
     reported_by: str = Field(
         ..., description="Satellite name that sent the fire report."
