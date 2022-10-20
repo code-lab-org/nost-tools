@@ -6,4 +6,4 @@ python-dotenv==0.21.0
 skyfield==1.45
 dash==2.6.1
 seaborn==0.12
-scipy
+scipy==1.7.3
