@@ -11,8 +11,8 @@
 import paho.mqtt.client as mqtt
 import json
 import dash
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import dcc
+from dash import html
 from dash.dependencies import Input, Output, State
 import plotly.express as px
 import pandas as pd
@@ -21,15 +21,15 @@ from datetime import datetime, timedelta
 
 def on_message(mqttc, obj, msg):
     """ Callback to process an incoming message."""
-    # setting up DataFrame 
+    # setting up DataFrame
     eventMessage = json.loads(msg.payload.decode("utf-8"))
     time = eventMessage["time"]
     latitude = eventMessage["latitude"]
     longitude = eventMessage["longitude"]
     utility = eventMessage["utility"]
-    
+
     df = pd.DataFrame(eventMessage, index=[0])
-    
+
 
 
 # name guard
@@ -56,12 +56,12 @@ if __name__ == "__main__":
     latitude = eventMessage["latitude"]
     longitude = eventMessage["longitude"]
     utility = eventMessage["utility"]
-    
-   # df = pd.DataFrame(eventMessage, index=[0])          
-    
+
+   # df = pd.DataFrame(eventMessage, index=[0])
+
 
     app = dash.Dash(__name__)
-    
+
     # for dashboard plot
     fig = px.line(df, x='time', y='utility', color='latitude', markers=True,
                           labels={"time":"time", "utility":"utility (n.d.)"},
@@ -87,18 +87,8 @@ if __name__ == "__main__":
                               labels={"time":"time", "utility":"utility (n.d.)"},
                               title="Science Event Utility")
         return fig
-    
 
-    
+
+
 
     app.run_server(debug=True)
-        
-
-
-
-
-    
-
-
-
-    
