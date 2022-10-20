@@ -9,7 +9,7 @@ file, the dash figure is updated.
 """
 
 import dash
-from dash import dcc
+from dash import dcc  # need to upgrade to python 3.8 if this throws a warning
 from dash import html
 from dash.dependencies import Input, Output
 import plotly.express as px

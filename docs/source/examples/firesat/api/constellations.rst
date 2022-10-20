@@ -32,7 +32,7 @@ main_constellation.py module
 
 .. automethod:: FireDetectedObserver.on_change
 
-.. literalinclude:: /../../../nost-tools/examples/firesat/satellites/main_constellation.py
+.. literalinclude:: /home/docs/checkouts/readthedocs.org/user_builds/nos-t-doc-bc-dev2/checkouts/nost-tools/examples/firesat/satellites/main_constellation.py
             :lines: 499-507
 
 
