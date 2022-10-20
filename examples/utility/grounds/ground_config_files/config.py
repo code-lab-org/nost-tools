@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 
-PREFIX = os.getenv("PREFIX", "greenfield")
+PREFIX = os.getenv("PREFIX", "utility")
 NAME = os.getenv("NAME", "Grounds")
 LOG = f"\x1b[1m[\x1b[32m{NAME}\x1b[37m]\x1b[0m"
 HEADER = {
@@ -13,7 +13,7 @@ HEADER = {
 LAT = float(os.getenv("LAT", 78.229772))
 LNG = float(os.getenv("LNG", 15.407786))
 MIN_ELEVATION = 5.0  # minimum view angle (degrees) for ground-satellite communications
-SCALE = 60.0
+SCALE = 20
 
 # define grounds in a Dataframe constructed from a Python dictionary
 GROUND = pd.DataFrame(

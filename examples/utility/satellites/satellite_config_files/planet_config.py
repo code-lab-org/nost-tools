@@ -42,4 +42,4 @@ FIELD_OF_REGARD = [float(os.getenv("FIELD_OF_REGARD", 50.0)),
     float(os.getenv("FIELD_OF_REGARD", 50.0))
 ]  # degrees (Planet product guide cites view_angle of -25 to +25-degrees off-nadir, total 50-degrees)
 
-SCALE = 120							
+SCALE = 20

@@ -25,6 +25,7 @@ class EventState(str, Enum):
     started = "started"
     detected = "detected"
     reported = "reported"
+    finished = "finished"
 
 
 class EventStarted(BaseModel):

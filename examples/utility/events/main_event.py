@@ -11,7 +11,6 @@ import sys
 import logging
 from datetime import datetime, timezone, timedelta
 from dotenv import dotenv_values
-from numpy import datetime_as_string
 import pandas as pd
 
 pd.options.mode.chained_assignment = None
@@ -74,7 +73,7 @@ class Environment(Observer):
                 (self.events.finish <= new_value) & (self.events.finish > old_value)
             ]
 
-            for index, event in finisheded_events.iterrows():
+            for index, event in finished_events.iterrows():
                 # print(f"eventId: {event.eventId}")
                 self.app.send_message(
                     "finish",
@@ -181,20 +180,20 @@ if __name__ == "__main__":
     if (not SEED==0):
         random.seed(SEED)
     else:
-        SEED = datetime_as_string(datetime.now())
+        SEED = datetime.now()
         print(f"The seed used for this simulation run is: {SEED}")
         random.seed(SEED)
 
     eventIds = [id for id in range(0, EVENT_COUNT)]
 
     eventStarts = []
-    eventEnds = []
+    eventFinishes = []
     eventLats = []
     eventLongs = []
     for event in range(0, EVENT_COUNT):
         eventStart = datetime(2022, 10, 3, 7, 20, 0, tzinfo=timezone.utc) + timedelta(minutes=random.randrange(0, EVENT_TIMESPAN))
         eventStarts.append(eventStart)
-        eventEnds.append(eventStart + timedelta(hours=EVENT_LENGTH))
+        eventFinishes.append(eventStart + timedelta(hours=EVENT_LENGTH))
         eventLats.append(random.randrange(-90, 90))
         eventLongs.append(random.randrange(-180, 180))
 

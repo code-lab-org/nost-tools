@@ -137,9 +137,9 @@ var CESIUM_ACCESS_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlMGE4
 							payload = JSON.parse(message.payloadString);
 							commRange = payload.commRange;
 							if (commRange){
-								satColor = Cesium.Color.DARKORANGE
+								satColor = Cesium.Color.CHARTREUSE
 							} else {
-								satColor = Cesium.Color.RED
+								satColor = Cesium.Color.AQUA
 							};
 							if(satellitesPlanet[payload.id]) {
 								satellitesPlanet[payload.id].position=Cesium.Cartesian3.fromDegrees(
@@ -197,7 +197,7 @@ var CESIUM_ACCESS_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlMGE4
 									ellipse: {
 										semiMajorAxis: payload.radius,
 										semiMinorAxis: payload.radius,
-										material: Cesium.Color.RED.withAlpha(0.2)
+										material: Cesium.Color.AQUA.withAlpha(0.2)
 									}
 								});
 							}
