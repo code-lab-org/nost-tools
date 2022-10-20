@@ -25,7 +25,7 @@ sys.path.insert(0, os.path.abspath("../../examples/realtime"))
 sys.path.insert(0, os.path.abspath("../../examples/scalability"))
 sys.path.insert(0, os.path.abspath("../../examples/scalability/delay"))
 sys.path.insert(0, os.path.abspath("../../examples/scalability/heartbeat"))
-import manager, satellites, grounds, fires, realtime, delay, heartbeat
+#import manager, satellites, grounds, fires, realtime, delay, heartbeat
 import sphinx_rtd_theme
 
 
