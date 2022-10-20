@@ -11,7 +11,7 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 
-root_doc = 'index'
+master_doc = 'index'
 
 import os
 import sys
