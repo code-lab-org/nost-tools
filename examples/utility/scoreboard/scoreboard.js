@@ -224,6 +224,12 @@ var CESIUM_ACCESS_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlMGE4
 						} else if(topic=="utility/capella/reported"){
 							payload = JSON.parse(message.payloadString);
 							events.get(payload.eventId).color = Cesium.Color.YELLOW
+						} else if(topic=="utility/planet/detected"){
+							payload = JSON.parse(message.payloadString);
+							events.get(payload.eventId).color = Cesium.Color.DARKORANGE
+						} else if(topic=="utility/planet/reported"){
+							payload = JSON.parse(message.payloadString);
+							events.get(payload.eventId).color = Cesium.Color.YELLOW
 						} else if(topic=="utility/ground/location"){
 							payload = JSON.parse(message.payloadString);
 							activeCheck = payload.operational;

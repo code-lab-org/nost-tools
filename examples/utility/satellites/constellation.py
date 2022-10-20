@@ -16,7 +16,6 @@ from satellite_config_files.schemas import (
     GroundLocation,
 )
 
-logging.basicConfig(level=logging.INFO)
 
 def compute_min_elevation(altitude, field_of_regard):
     """
@@ -269,7 +268,6 @@ class Constellation(Entity):
                             self.report[j]["firstReportedTo"] = groundId
         # tok = time.time() - tik
         # print(f"The tick took {tok} seconds to filter \n")
-
     def tock(self):
         """
         Commits the next :obj:`Constellation` state and advances simulation scenario time
@@ -471,6 +469,11 @@ class EventDetectedObserver(Observer):
 
         """
         if property_name == Constellation.PROPERTY_EVENT_DETECTED:
+            print({EventDetected(
+                    eventId=new_value["eventId"],
+                    detected=new_value["detected"],
+                    detected_by=new_value["detected_by"]
+                ).json()})
             self.app.send_message(
                 "detected",
                 EventDetected(

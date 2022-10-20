@@ -41,6 +41,7 @@ class EventStarted(BaseModel):
 
     eventId: int = Field(..., description="Unique event identifier.")
     start: Optional[datetime] = Field(description="Time event started.")
+    finish: Optional[datetime] = Field(description="Time event will finish.")
     latitude: Optional[confloat(ge=-90, le=90)] = Field(
         description="Latitude (deg) of event location."
     )

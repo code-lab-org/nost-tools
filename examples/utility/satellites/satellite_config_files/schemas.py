@@ -13,6 +13,7 @@ from enum import Enum
 class EventState(str, Enum):
     undefined = "undefined"
     started = "started"
+    finished = "finished"
     detected = "detected"
     reported = "reported"
 
@@ -20,6 +21,7 @@ class EventState(str, Enum):
 class EventStarted(BaseModel):
     eventId: int = Field(..., description="Unique event identifier.")
     start: Optional[datetime] = Field(description="Time event started.")
+    finish: Optional[datetime] = Field(description="Time event finished.")
     latitude: Optional[confloat(ge=-90, le=90)] = Field(
         description="Latitude (deg) of event location."
     )
@@ -42,6 +44,17 @@ class EventReported(BaseModel):
     )
     reported_to: int = Field(
         ..., description="Station id that received the event report."
+    )
+
+
+class EventFinished(BaseModel):
+    eventId: int = Field(..., description="Unique event identifier.")
+    finish: Optional[datetime] = Field(description="Time event started.")
+    latitude: Optional[confloat(ge=-90, le=90)] = Field(
+        description="Latitude (deg) of event location."
+    )
+    longitude: Optional[confloat(ge=-180, le=180)] = Field(
+        description="Longitude (deg) of event location."
     )
 
 
