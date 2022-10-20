@@ -3,4 +3,4 @@ sphinx==4.2.0
 sphinx_rtd_theme==1.0.0
 readthedocs-sphinx-search==0.1.1
 python-dotenv==0.21.0
-skyfield==1.34
+skyfield==1.45
