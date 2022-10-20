@@ -12,7 +12,6 @@ from dotenv import dotenv_values
 import numpy as np
 import pandas as pd
 import copy
-import skyfield
 # import matplotlib.pyplot as plt
 # import matplotlib.patches as mpatches
 # import seaborn as sns
