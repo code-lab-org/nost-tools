@@ -16,7 +16,7 @@ class EventState(str, Enum):
     """
     *Enumeration used to classify the current state of the event:*
 
-    .. literalinclude:: /../../firesat/fires/fire_config_files/schemas.py
+    .. literalinclude:: /../../eventsat/events/event_config_files/schemas.py
         :lines: 15,24-27
 
     """
@@ -31,20 +31,20 @@ class EventStarted(BaseModel):
     """
     *Message schema object class with properties inherited from the pydantic library's BaseModel*
     
-    Standardized message for fire ignition includes fireId (*int*), ignition start (:obj:`datetime`), and latitude-longitude location (:obj:`GeographicPosition`)
+    Standardized message for event ignition includes eventId (*int*), ignition start (:obj:`datetime`), and latitude-longitude location (:obj:`GeographicPosition`)
 
-    .. literalinclude:: /../../firesat/fires/fire_config_files/schemas.py
+    .. literalinclude:: /../../eventsat/events/event_config_files/schemas.py
         :lines: 30,41-48
 
     """
 
-    eventId: int = Field(..., description="Unique fire identifier.")
-    start: Optional[datetime] = Field(description="Time fire started.")
+    eventId: int = Field(..., description="Unique event identifier.")
+    start: Optional[datetime] = Field(description="Time event started.")
     latitude: Optional[confloat(ge=-90, le=90)] = Field(
-        description="Latitude (deg) of fire location."
+        description="Latitude (deg) of event location."
     )
     longitude: Optional[confloat(ge=-180, le=180)] = Field(
-        description="Longitude (deg) of fire location."
+        description="Longitude (deg) of event location."
     )
 
 
@@ -52,36 +52,47 @@ class EventDetected(BaseModel):
     """
     *Message schema object class with properties inherited from the pydantic library's BaseModel*
     
-    Standardized message for fire detection includes fireId (*int*), time of detection (:obj:`datetime`), and name (*str*) of detecting satellite
+    Standardized message for event detection includes eventId (*int*), time of detection (:obj:`datetime`), and name (*str*) of detecting satellite
 
-    .. literalinclude:: /../../firesat/fires/fire_config_files/schemas.py
+    .. literalinclude:: /../../eventsat/events/event_config_files/schemas.py
         :lines: 51,62-64
 
     """
 
-    eventId: int = Field(..., description="Unique fire identifier.")
-    detected: datetime = Field(..., description="Time fire detected.")
-    detected_by: str = Field(..., description="Satellite name that detected the fire.")
+    eventId: int = Field(..., description="Unique event identifier.")
+    detected: datetime = Field(..., description="Time event detected.")
+    detected_by: str = Field(..., description="Satellite name that detected the event.")
 
 
 class EventReported(BaseModel):
     """
     *Message schema object class with properties inherited from the pydantic library's BaseModel*
     
-    Standardized message for fire report includes fireId (*int*), time of report (:obj:`datetime`), name (*str*) of reporting satellite, and groundId (*int*) of ground station receiving report
+    Standardized message for event report includes eventId (*int*), time of report (:obj:`datetime`), name (*str*) of reporting satellite, and groundId (*int*) of ground station receiving report
 
-    .. literalinclude:: /../../firesat/fires/fire_config_files/schemas.py
+    .. literalinclude:: /../../eventsat/events/event_config_files/schemas.py
         :lines: 67,78-85
 
     """
 
-    eventId: int = Field(..., description="Unique fire identifier.")
-    reported: datetime = Field(..., description="Time fire reported.")
+    eventId: int = Field(..., description="Unique event identifier.")
+    reported: datetime = Field(..., description="Time event reported.")
     reported_by: str = Field(
-        ..., description="Satellite name that sent the fire report."
+        ..., description="Satellite name that sent the event report."
     )
     reported_to: int = Field(
-        ..., description="Station id that received the fire report."
+        ..., description="Station id that received the event report."
+    )
+
+
+class EventFinished(BaseModel):
+    eventId: int = Field(..., description="Unique event identifier.")
+    finish: Optional[datetime] = Field(description="Time event started.")
+    latitude: Optional[confloat(ge=-90, le=90)] = Field(
+        description="Latitude (deg) of event location."
+    )
+    longitude: Optional[confloat(ge=-180, le=180)] = Field(
+        description="Longitude (deg) of event location."
     )
 
 
@@ -91,7 +102,7 @@ class SatelliteStatus(BaseModel):
     
     Standardized message for satellite position publisher includes satellite id (*int*), name (*str*), latitude-longitude-altitude location (:obj:`GeographicPosition`), sensor view radius (*float*), indication of whether comms in range of ground station (*bool*), and current scenario time (:obj:`datetime`)
 
-    .. literalinclude:: /../../firesat/fires/fire_config_files/schemas.py
+    .. literalinclude:: /../../eventsat/events/event_config_files/schemas.py
         :lines: 88,99-114
 
     """
@@ -120,7 +131,7 @@ class GroundLocation(BaseModel):
     
     Standardized message for ground station information includes groundId (*int*), latitude-longitude location (:obj:`GeographicPosition`), min elevation angle constraint (*float*), and operational status (*bool*)
 
-    .. literalinclude:: /../../firesat/fires/fire_config_files/schemas.py
+    .. literalinclude:: /../../eventsat/events/event_config_files/schemas.py
         :lines: 117,128-141
 
     """

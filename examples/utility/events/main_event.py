@@ -22,7 +22,7 @@ from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
 from nost_tools.observer import Observer
 from nost_tools.managed_application import ManagedApplication
 
-from event_config_files.schemas import EventState, EventStarted, EventDetected, EventReported
+from event_config_files.schemas import EventState, EventStarted, EventDetected, EventReported, EventFinished
 from event_config_files.config import PREFIX, SCALE, SEED, EVENT_COUNT, EVENT_LENGTH, EVENT_TIMESPAN
 
 logging.basicConfig(level=logging.INFO)
@@ -64,24 +64,24 @@ class Environment(Observer):
                     EventStarted(
                         eventId=event.eventId,
                         start=event.start,
-                        end=event.end,
+                        finish=event.finish,
                         latitude=event.latitude,
                         longitude=event.longitude,
                     ).json(),
                 )
 
-            ended_events = self.events[
-                (self.events.end <= new_value) & (self.events.end > old_value)
+            finished_events = self.events[
+                (self.events.finish <= new_value) & (self.events.finish > old_value)
             ]
 
-            for index, event in ended_events.iterrows():
+            for index, event in finisheded_events.iterrows():
                 # print(f"eventId: {event.eventId}")
                 self.app.send_message(
-                    "end",
+                    "finish",
                     EventStarted(
                         eventId=event.eventId,
                         start=event.start,
-                        end=event.end,
+                        finish=event.finish,
                         latitude=event.latitude,
                         longitude=event.longitude,
                     ).json(),
@@ -113,6 +113,12 @@ class Environment(Observer):
                 self.events["reported_to"][key] = report.reported_to
                 break
 
+    def on_finished(self, client, userdata, message):
+        report = EventFinished.parse_raw(message.payload)
+        for key, event in self.events.iterrows():
+            if key == report.eventId:
+                self.events["eventState"][key] = EventState.finished
+                break
 
 def on_event(client, userdata, message):
     """
@@ -153,6 +159,12 @@ def on_reported(client, userdata, message):
             app.simulator._observers[index].on_reported(client, userdata, message)
 
 
+def on_finished(client, userdata, message):
+    for index, observer in enumerate(app.simulator._observers):
+        if isinstance(observer, Environment):
+            app.simulator._observers[index].on_finished(client, userdata, message)
+
+
 if __name__ == "__main__":
     # Note that these are loaded from a .env file in current working directory
     credentials = dotenv_values(".env")
@@ -191,7 +203,7 @@ if __name__ == "__main__":
         data={
             "eventId": eventIds,
             "start": eventStarts,
-            "end": eventEnds,
+            "finish": eventFinishes,
             "latitude": eventLats,
             "longitude": eventLongs,
         }
@@ -226,6 +238,7 @@ if __name__ == "__main__":
     app.add_message_callback("event", "location", on_event)
     app.add_message_callback("constellation", "detected", on_detected)
     app.add_message_callback("constellation", "reported", on_reported)
+    app.add_message_callback("event", "finish", on_finished)
 
     while True:
         pass
