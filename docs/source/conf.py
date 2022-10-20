@@ -10,9 +10,6 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-
-master_doc = 'index'
-
 import os
 import sys
 
@@ -28,7 +25,7 @@ sys.path.insert(0, os.path.abspath("../../examples/realtime"))
 sys.path.insert(0, os.path.abspath("../../examples/scalability"))
 sys.path.insert(0, os.path.abspath("../../examples/scalability/delay"))
 sys.path.insert(0, os.path.abspath("../../examples/scalability/heartbeat"))
-
+import manager, satellites, grounds, fires, realtime, delay, heartbeat
 import sphinx_rtd_theme
 
 
