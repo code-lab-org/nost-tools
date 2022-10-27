@@ -9,6 +9,7 @@ data/flow rate update time for site.  Finally, it is published to the NOS-T
 system, currently using the userPrefix/streamGauge/flowrate topic.
 The following link can be used to set up different NWIS data requests, i.e.
 different locations and/or different outputs:
+
 https://waterservices.usgs.gov/rest/IV-Test-Tool.html
 """
 from dotenv import dotenv_values
@@ -24,7 +25,7 @@ if __name__ == "__main__":
     # Note that these are loaded from a .env file in current working directory
     credentials = dotenv_values(".env")
     HOST, PORT = credentials["SMCE_HOST"], int(credentials["SMCE_PORT"])
-    USERNAME, PASSWORD = credentials["SMCE_USERNAME"], credentials["SMCE_PASSWORD"]    
+    USERNAME, PASSWORD = credentials["SMCE_USERNAME"], credentials["SMCE_PASSWORD"]
 
     # build the MQTT client
     client = mqtt.Client()

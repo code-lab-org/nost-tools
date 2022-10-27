@@ -54,7 +54,7 @@ if __name__ == "__main__":
             
             
         # time step between possible events
-        next_step = datetime.now() + timedelta(seconds=5)
+        next_step = datetime.now() + timedelta(seconds=1)
 
         # allows application to be stopped with GUI every second
         while datetime.now() < next_step:
