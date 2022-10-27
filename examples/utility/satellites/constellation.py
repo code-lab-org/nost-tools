@@ -9,6 +9,7 @@ from nost_tools.observer import Observer
 from nost_tools.publisher import WallclockTimeIntervalPublisher
 
 from satellite_config_files.schemas import (
+    EventState,
     EventStarted,
     EventDetected,
     EventReported,
@@ -189,6 +190,8 @@ class Constellation(Entity):
                 )
         self.detect = []
         self.report = []
+        self.new_detect = []
+        self.new_report = []
         self.positions = self.next_positions = [None for satellite in self.satellites]
         self.min_elevations_event = [
             compute_min_elevation(
@@ -230,7 +233,7 @@ class Constellation(Entity):
         Args:
             time_step (:obj:`timedelta`): Duration between current and next simulation scenario time
         """
-        # tik = time.time()
+
         super().tick(time_step)
         self.next_positions = [
             wgs84.subpoint(
@@ -238,72 +241,72 @@ class Constellation(Entity):
             )
             for satellite in self.satellites
         ]
+
         for i, satellite in enumerate(self.satellites):
             then = self.ts.from_datetime(self.get_time() + time_step)
             self.min_elevations_event[i] = compute_min_elevation(
                 float(self.next_positions[i].elevation.m), self.field_of_regard[i]
             )
+            isInRange, groundId = check_in_range(then, satellite, self.grounds)
+
             for j, event in enumerate(self.events):
-                if self.detect[j][self.names[i]] is None:
-                    topos = wgs84.latlon(event["latitude"], event["longitude"])
-                    isInView = check_in_view(
-                        then, satellite, topos, self.min_elevations_event[i]
-                    )
-                    if isInView:
-                        self.detect[j][self.names[i]] = (
-                            self.get_time() + time_step
-                        )  # TODO could use event times
-                        if self.detect[j]["firstDetector"] is None:
-                            self.detect[j]["firstDetect"] = True
-                            self.detect[j]["firstDetector"] = self.names[i]
-                if (self.detect[j][self.names[i]] is not None) and (
-                    self.report[j][self.names[i]] is None
-                ):
-                    isInRange, groundId = check_in_range(then, satellite, self.grounds)
-                    if isInRange:
-                        self.report[j][self.names[i]] = self.get_time() + time_step
-                        if self.report[j]["firstReporter"] is None:
-                            self.report[j]["firstReport"] = True
-                            self.report[j]["firstReporter"] = self.names[i]
-                            self.report[j]["firstReportedTo"] = groundId
-        # tok = time.time() - tik
-        # print(f"The tick took {tok} seconds to filter \n")
+                topos = wgs84.latlon(event["latitude"], event["longitude"])
+                isInView = check_in_view(then, satellite, topos, self.min_elevations_event[i])
+
+                # Checks if the current satellite is in detection range of the current event, updates 
+                # event dictionary and adds event to new_detect if applicable
+                if event["state"]==EventState.started and isInView:
+                    event["state"]="detected"
+                    event["detected"]=self.get_time() + time_step
+                    event["detected_by"]=satellite.name
+                    self.new_detect.append(event)
+
+                # Checks if the current satellite detected the current event and is in range to report, updates 
+                # event dictionary and adds event to new_report if applicable
+                if ((event["detected_by"]==satellite.name or (event["state"]==EventState.started and isInView)) and isInRange):
+                    event["state"]="reported"
+                    event["reported"]=self.get_time() + time_step
+                    event["reported_by"]=satellite.name
+                    event["reprted_to"]=groundId
+                    self.new_report.append(event)
+
     def tock(self):
         """
         Commits the next :obj:`Constellation` state and advances simulation scenario time
         
         """
-        # tik = time.time()
+
+        # Advances positions
         self.positions = self.next_positions
-        for i, newly_detected_event in enumerate(self.detect):
-            if newly_detected_event["firstDetect"]:
-                detector = newly_detected_event["firstDetector"]
-                self.notify_observers(
-                    self.PROPERTY_EVENT_DETECTED,
-                    None,
-                    {
-                        "eventId": newly_detected_event["eventId"],
-                        "detected": newly_detected_event[detector],
-                        "detected_by": detector,
-                    },
-                )
-                self.detect[i]["firstDetect"] = False
-        for i, newly_reported_event in enumerate(self.report):
-            if newly_reported_event["firstReport"]:
-                reporter = newly_reported_event["firstReporter"]
-                self.notify_observers(
-                    self.PROPERTY_EVENT_REPORTED,
-                    None,
-                    {
-                        "eventId": newly_reported_event["eventId"],
-                        "reported": newly_reported_event[reporter],
-                        "reported_by": reporter,
-                        "reported_to": newly_reported_event["firstReportedTo"],
-                    },
-                )
-            self.report[i]["firstReport"] = False
-        # tok = time.time() - tik
-        # print(f"The tock took {tok} seconds \n")
+        
+        # Notifies observers of each newly detected event
+        for event in self.new_detect:
+            self.notify_observers(
+                self.PROPERTY_EVENT_DETECTED,
+                None,
+                {
+                    "eventId": event["eventId"],
+                    "detected": event["detected"],
+                    "detected_by": event["detected_by"]
+                }
+            )
+
+        # Notifies observers of each newly detected event
+        for event in self.new_report:
+            self.notify_observers(
+                self.PROPERTY_EVENT_REPORTED,
+                None,
+                {
+                    "eventId": event["eventId"],
+                    "reported": event["reported"],
+                    "reported_by": event["reported_by"],
+                    "reported_to": 0
+                }
+            )
+        
+        self.new_detect = []
+        self.new_report = []
+
         super().tock()
 
     def on_event(self, client, userdata, message):
@@ -320,28 +323,18 @@ class Constellation(Entity):
         self.events.append(
             {
                 "eventId": started.eventId,
+                "state": EventState.started,
                 "start": started.start,
                 "latitude": started.latitude,
                 "longitude": started.longitude,
-            },
+                "detected": None,
+                "detected_by": None,
+                "reported": None,
+                "reported_by": None,
+                "reported_to": None,
+            }
         )
-        satelliteDictionary = dict.fromkeys(
-            self.names
-        )  # Creates dictionary where keys are satellite names and values are defaulted to NoneType
-        satelliteDictionary[
-            "eventId"
-        ] = (
-            started.eventId
-        )  # Adds eventId to dictionary, which will coordinate with position of dictionary in list of dictionaries
-        detectDictionary = copy.deepcopy(satelliteDictionary)
-        detectDictionary["firstDetect"] = False
-        detectDictionary["firstDetector"] = None
-        self.detect.append(detectDictionary)
-        reportDictionary = copy.deepcopy(satelliteDictionary)
-        reportDictionary["firstReport"] = False
-        reportDictionary["firstReporter"] = None
-        reportDictionary["firstReportedTo"] = None
-        self.report.append(reportDictionary)
+
 
     def on_ground(self, client, userdata, message):
         """
@@ -403,7 +396,7 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
         super().__init__(app, time_status_step, time_status_init)
         self.constellation = constellation
         self.isInRange = [
-            False for i, satellite in enumerate(self.constellation.satellites)
+            False for _ in self.constellation.satellites
         ]
 
     def publish_message(self):
@@ -469,11 +462,6 @@ class EventDetectedObserver(Observer):
 
         """
         if property_name == Constellation.PROPERTY_EVENT_DETECTED:
-            print({EventDetected(
-                    eventId=new_value["eventId"],
-                    detected=new_value["detected"],
-                    detected_by=new_value["detected_by"]
-                ).json()})
             self.app.send_message(
                 "detected",
                 EventDetected(

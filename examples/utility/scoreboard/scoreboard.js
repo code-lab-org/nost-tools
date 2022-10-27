@@ -40,6 +40,7 @@ var CESIUM_ACCESS_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlMGE4
 				var eventsById = {};
 				var grounds = {}; //<!-- Surface position of ground stations as PINK points -->
 				var updates = {};
+				var eventIndex = 0;
 
 				function handleMessage(message) {
 					// get the message payload as a string
@@ -203,76 +204,105 @@ var CESIUM_ACCESS_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlMGE4
 							}
 						} else if(topic=="utility/event/location") {
 							//<!-- Cesium suggests using PointPrimitives when have large collection of points, applies to events -->
-							payload = JSON.parse(message.payloadString);
-							eventsById[payload.eventId] = events.add({
-														position: new Cesium.Cartesian3.fromDegrees(
-															payload.longitude,
-															payload.latitude
-														),
-														pixelSize: 8,
-														color: Cesium.Color.RED,
-														show: true});
-
-						} else if(topic=="utility/event/finish") {
-							payload = JSON.parse(message.payloadString);
-							// console.log(eventsById[payload.eventId]);
-							events.remove(eventsById[payload.eventId]);
-
-						} else if(topic=="utility/capella/detected"){
-							payload = JSON.parse(message.payloadString);
-							events.get(payload.eventId).color = Cesium.Color.DARKORANGE
-						} else if(topic=="utility/capella/reported"){
-							payload = JSON.parse(message.payloadString);
-							events.get(payload.eventId).color = Cesium.Color.YELLOW
-						} else if(topic=="utility/planet/detected"){
-							payload = JSON.parse(message.payloadString);
-							events.get(payload.eventId).color = Cesium.Color.DARKORANGE
-						} else if(topic=="utility/planet/reported"){
-							payload = JSON.parse(message.payloadString);
-							events.get(payload.eventId).color = Cesium.Color.YELLOW
-						} else if(topic=="utility/ground/location"){
-							payload = JSON.parse(message.payloadString);
-							activeCheck = payload.operational;
-							if (activeCheck){
-								groundColor = Cesium.Color.PINK
-								groundMaterial = Cesium.Color.PINK.withAlpha(0.1)
-							} else {
-								groundColor = Cesium.Color.LIGHTGRAY
-								groundMaterial = Cesium.Color.LIGHTGRAY.withAlpha(0.1)
-							};
-							if (!grounds[payload.groundId]) {
-								//<!-- Only add grounds with unique ids -->
-								grounds[payload.groundId] = viewer.entities.add({
-									position: Cesium.Cartesian3.fromDegrees(
+							try {
+								payload = JSON.parse(message.payloadString);
+								eventsById[payload.eventId] = events.add({
+									id: eventIndex,
+									position: new Cesium.Cartesian3.fromDegrees(
 										payload.longitude,
 										payload.latitude
 									),
-									point: {
-										pixelSize: 8,
-										color: groundColor
-									},
-									show: true
-								});
-								//<!-- Currently hardcoded cylinder dimensions, although angle read from message -->
-								commsCones[payload.groundId] = viewer.entities.add({
-									position: Cesium.Cartesian3.fromDegrees(
-										payload.longitude,
-										payload.latitude,
-										100000.0
-									),
-									cylinder: {
-										length: 200000.0,
-										topRadius: 200000.0*Math.tan((90-payload.elevAngle)*Math.PI/180),
-										bottomRadius: 0.0,
-										material: groundMaterial,
-										outline: true,
-										outlineWidth: 1.0,
-									}
-								});
+									pixelSize: 8,
+									color: Cesium.Color.RED,
+									show: true});
+								eventIndex = eventIndex + 1;
+							} catch {
+								console.log("Error: utility/event/location");
 							}
+						} else if(topic=="utility/event/finish") {
+							try {
+								payload = JSON.parse(message.payloadString);
+								events.remove(eventsById[payload.eventId])
+							} catch {
+								console.log("Error: utility/event/finish");
+							}
+							
+						} else if(topic=="utility/capella/detected"){
+							try {
+								payload = JSON.parse(message.payloadString);
+								events.get(eventsById[payload.eventId].id).color = Cesium.Color.DARKORANGE
+							} catch {
+								console.log("Error: utility/capella/detected");
+							}
+						} else if(topic=="utility/capella/reported"){
+							try {
+								payload = JSON.parse(message.payloadString);
+								events.get(eventsById[payload.eventId].id).color = Cesium.Color.YELLOW
+							} catch {
+								console.log("Error: utility/capella/reported");
+							}
+						} else if(topic=="utility/planet/detected"){
+							try {
+								payload = JSON.parse(message.payloadString);
+								events.get(eventsById[payload.eventId].id).color = Cesium.Color.DARKORANGE
+							} catch {
+								console.log("Error: utility/planet/detected");
+							}
+						} else if(topic=="utility/planet/reported"){
+							try {
+								payload = JSON.parse(message.payloadString);
+								events.get(eventsById[payload.eventId].id).color = Cesium.Color.YELLOW
+							} catch {
+								console.log("Error: utility/planet/reported");
+							}
+						} else if(topic=="utility/ground/location"){
+							try {
+								payload = JSON.parse(message.payloadString);
+								activeCheck = payload.operational;
+								if (activeCheck){
+									groundColor = Cesium.Color.PINK
+									groundMaterial = Cesium.Color.PINK.withAlpha(0.1)
+								} else {
+									groundColor = Cesium.Color.LIGHTGRAY
+									groundMaterial = Cesium.Color.LIGHTGRAY.withAlpha(0.1)
+								};
+								if (!grounds[payload.groundId]) {
+									//<!-- Only add grounds with unique ids -->
+									grounds[payload.groundId] = viewer.entities.add({
+										position: Cesium.Cartesian3.fromDegrees(
+											payload.longitude,
+											payload.latitude
+										),
+										point: {
+											pixelSize: 8,
+											color: groundColor
+										},
+										show: true
+									});
+									//<!-- Currently hardcoded cylinder dimensions, although angle read from message -->
+									commsCones[payload.groundId] = viewer.entities.add({
+										position: Cesium.Cartesian3.fromDegrees(
+											payload.longitude,
+											payload.latitude,
+											100000.0
+										),
+										cylinder: {
+											length: 200000.0,
+											topRadius: 200000.0*Math.tan((90-payload.elevAngle)*Math.PI/180),
+											bottomRadius: 0.0,
+											material: groundMaterial,
+											outline: true,
+											outlineWidth: 1.0,
+										}
+									});
+								}
+							} catch {
+								console.log("Error: utility/ground/location");
+							}
+
 						}
-					} catch(err) {
-						console.log('An error was caught somewhere...')
+					} catch {
+						console.log("An error was caught somewhere");
 					}
 				}
 

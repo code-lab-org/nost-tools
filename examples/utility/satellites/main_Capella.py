@@ -6,11 +6,13 @@
 
 """
 
+import time
 import logging
 from datetime import datetime, timezone, timedelta
 from dotenv import dotenv_values
 
 from skyfield.api import load
+from nost_tools.simulator import Mode
 from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
 from nost_tools.managed_application import ManagedApplication
 
@@ -25,12 +27,6 @@ from examples.utility.satellites.satellite_config_files.capella_config import (
 )
 
 logging.basicConfig(level=logging.INFO)
-
-
-# class Capella(Constellation):
-
-#     def __init__(self, cName, app, id, names, field_of_regard, ES=None, tles=None):
-#         super().__init__(cName, app, id, names, field_of_regard, ES=None, tles=None)
 
 
 # name guard used to ensure script only executes if it is run as the __main__
@@ -81,7 +77,7 @@ if __name__ == "__main__":
 
     # add a position publisher to update satellite state every 5 seconds of wallclock time
     app.simulator.add_observer(
-        PositionPublisher(app, constellation, timedelta(seconds=1))
+        PositionPublisher(app, constellation, timedelta(seconds=2))
     )
 
     # start up the application on PREFIX, publish time status every 10 seconds of wallclock time
@@ -98,5 +94,6 @@ if __name__ == "__main__":
     app.add_message_callback("event", "location", constellation.on_event)
     app.add_message_callback("ground", "location", constellation.on_ground)
 
-    while True:
-        pass
+    # Ensures the application hangs until the simulation is terminated, to allow background threads to run
+    while not app.simulator.get_mode() == Mode.TERMINATED:
+        time.sleep(1)

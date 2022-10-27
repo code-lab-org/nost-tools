@@ -6,6 +6,7 @@
 
 """
 
+import time
 import logging
 from datetime import datetime, timezone, timedelta
 from dotenv import dotenv_values
@@ -91,5 +92,6 @@ if __name__ == "__main__":
         time_step=timedelta(seconds=2) * SCALE,
     )
 
-    while True:
-        pass
+    # Ensures the application hangs until the simulation is terminated, to allow background threads to run
+    while not app.simulator.get_mode() == Mode.TERMINATED:
+        time.sleep(1)
