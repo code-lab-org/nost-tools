@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-    *An application that prints science utility values to a dashboard.*
+    This application demonstrates how to create a simple dashboard for
+    visualizing NOS-T data in real time. It subscribes to the 
+    scienceEventPublisher.py application and displays the science utility
+    separated by location.
 """
 
 import paho.mqtt.client as mqtt
@@ -19,13 +22,14 @@ def on_message(mqttc, obj, msg):
     """ Callback to process an incoming message."""
     # setting up list of dictionaries
     eventMessage = json.loads(msg.payload.decode("utf-8"))
+    eventMessage["location"] = eventMessage["latitude"], eventMessage["longitude"]
     eventLOD.append(eventMessage)
     update_fig(n)
 
 
 def update_fig(n):
     df = pd.DataFrame(eventLOD)
-    fig = px.line(df, x='time', y='utility', color='latitude', markers=True,
+    fig = px.line(df, x='time', y='utility', color='location', markers=True,
                           labels={"time":"time", "utility":"utility (n.d.)"},
                           title="Science Event Utility")
     return fig
@@ -53,17 +57,20 @@ if __name__ == "__main__":
 
     # initialize df
     df0 = pd.DataFrame()
-    df0["time"] = 0
+    latitude = 0
+    longitude = 0
     df0["latitude"] = 0
     df0["longitude"] = 0
+    df0["time"] = 0
     df0["utility"] = 0
+    df0["location"] = (latitude, longitude)
     n=0
     eventLOD = []
 
     app = dash.Dash(__name__)
 
     # for dashboard plot
-    fig = px.line(df0, x='time', y='utility', color='latitude', markers=True,
+    fig = px.line(df0, x='time', y='utility', color='location', markers=True,
                           labels={"time":"time", "utility":"utility (n.d.)"},
                           title="Science Event Utility")
 

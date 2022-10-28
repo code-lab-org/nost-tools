@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-This application publishes the utility of "science events" for testing.
+This application publishes random "science events" for testing other NOS-T
+applications. The message payload contains the current time, a random location,
+and the science utility function value at that time step.
 """
 
 import paho.mqtt.client as mqtt
