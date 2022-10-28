@@ -9,6 +9,7 @@ Example Test Suites
    examples/firesat/api/modules
    examples/realtime/api/modules
    examples/scalability/api/modules
+   examples/scienceDash/api/modules
 
 Indices and tables
 ==================

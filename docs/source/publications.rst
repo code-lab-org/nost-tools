@@ -1,6 +1,8 @@
 Publications
 ============
 
+Chell, B., LeVine, M. J., Capra, L., Sellers, J. J., & Grogan, P. T. (2022, June 13) *Conceptual Design of Space Missions Integrated with Real-Time, In Situ Sensors.* engrXiv `[Preprint LINK] <https://engrxiv.org/preprint/view/2408>`_
+
 Grogan, P. T., Daly, H. C., Brand, M. S., & Sellers, J. J. (2021, July). New Observing Strategies Testbed (NOS-T) Architecture: Evaluating Dynamic Response to Emergent Events. In *2021 IEEE International Geoscience and Remote Sensing Symposium IGARSS* (pp. 1470-1473). IEEE. `[LINK] <https://ieeexplore.ieee.org/abstract/document/9555131?casa_token=A_mkHjzwUawAAAAA:VUH_fs4RuDUwAFyuqY6jNMPSmSaQ0LCorKRvTOOYeMnPpK4qLO_2kjRzF3nwZRnB14v9PVk-9Q>`_
 
 LeVine, M. J., Chell, B., Capra, L., Sellers, J. J., & Grogan, P. T. (2022, July). Planning, Implementing, and Executing Test Campaigns with the New Observing Strategies Testbed (NOS-T): The Firesat+ Example. In *IGARSS 2022-2022 IEEE International Geoscience and Remote Sensing Symposium* (pp. 5321-5324). IEEE. `[LINK] <https://ieeexplore.ieee.org/abstract/document/9883290>`_

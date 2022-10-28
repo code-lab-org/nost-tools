@@ -89,7 +89,7 @@ if __name__ == "__main__":
                 }
             floodId = floodId+1
             client.publish("BCtest/streamGauge/floodWarning", payload=json.dumps(floodWarningMessage))
-            print(floodWarningMessage)
+            #print(floodWarningMessage)
             if floodId > 33:
                 break
                         
@@ -108,7 +108,7 @@ if __name__ == "__main__":
         
         # publish time and gage height
         client.publish("BCtest/streamGauge/gageHeight", payload=json.dumps(gageHeightMessage))
-        # print(gageHeightMessage)
+        print(gageHeightMessage)
 
         # allows application to be stopped with GUI every second
         while datetime.now() < next_step:

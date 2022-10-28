@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-This application publishes "science events" for testing.
+This application publishes the utility of "science events" for testing.
 """
 
 import paho.mqtt.client as mqtt
@@ -23,18 +23,18 @@ if __name__ == "__main__":
     client.loop_start()
 
     while True:
-        
+
         # event trigger
         eventRand = random.randint(100)
         if eventRand <= 99:
-            
+
             # event location
             eventLat = random.uniform(-180,180)
             eventLon = random.uniform(-90,90)
-            
+
             # loop for utility function
             for i in range(10):
-                
+
                 # science utility funciton
                 utility = -((i/10)**2)+1
                 currentTime = datetime.now()
@@ -47,12 +47,12 @@ if __name__ == "__main__":
                                 "utility":utility}
                 client.publish("BCtest/AIAA/eventUtility", payload=json.dumps(eventMessage))
                 print(eventMessage)
-                
+
                 #wait for next utility step
                 time.sleep(1)
 
-            
-            
+
+
         # time step between possible events
         next_step = datetime.now() + timedelta(seconds=1)
 
