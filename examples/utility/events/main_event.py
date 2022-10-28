@@ -28,7 +28,7 @@ from nost_tools.managed_application import ManagedApplication
 from event_config_files.schemas import EventState, EventStarted, EventDetected, EventReported, EventFinished
 from event_config_files.config import PREFIX, SCALE, SEED, EVENT_COUNT, EVENT_LENGTH, EVENT_TIMESPAN
 
-# logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO)
 
 # define an observer to manage event updates and record to a dataframe events
 class Environment(Observer):
@@ -97,23 +97,21 @@ class Environment(Observer):
 
     def on_detected(self, client, userdata, message):
         detect = EventDetected.parse_raw(message.payload)
-        print("DETECTED")
         for key, event in self.events.iterrows():
             if key == detect.eventId:
                 self.events["eventState"][key] = EventState.detected
-                self.events["detected"][key] = detect.detected
-                self.events["detected_by"][key] = detect.detected_by
+                self.events["detected"][key].append(detect.detected)
+                self.events["detected_by"][key].append(detect.detected_by)
                 break
 
     def on_reported(self, client, userdata, message):
         report = EventReported.parse_raw(message.payload)
-        print("REPORTED")
         for key, event in self.events.iterrows():
             if key == report.eventId:
                 self.events["eventState"][key] = EventState.reported
-                self.events["reported"][key] = report.reported
-                self.events["reported_by"][key] = report.reported_by
-                self.events["reported_to"][key] = report.reported_to
+                self.events["reported"][key].append(report.reported)
+                self.events["reported_by"][key].append(report.reported_by)
+                self.events["reported_to"][key].append(report.reported_to)
                 break
 
     def on_finished(self, client, userdata, message):
@@ -146,7 +144,6 @@ def on_detected(client, userdata, message):
     """
     for index, observer in enumerate(app.simulator._observers):
         if isinstance(observer, Environment):
-            print("detected")
             app.simulator._observers[index].on_detected(client, userdata, message)
 
 
@@ -160,7 +157,6 @@ def on_reported(client, userdata, message):
     """
     for index, observer in enumerate(app.simulator._observers):
         if isinstance(observer, Environment):
-            print("reported")
             app.simulator._observers[index].on_reported(client, userdata, message)
 
 
@@ -222,11 +218,12 @@ if __name__ == "__main__":
     )
     # Add blank columns to data frame for logging state, detection time, reporting time, and detector satellite
     events.insert(1, "eventState", EventState.undefined)
-    events.insert(4, "detected", datetime.datetime(1900, 1, 1, tzinfo=datetime.timezone.utc))
-    events.insert(5, "detected_by", "Undetected")
-    events.insert(6, "reported", datetime.datetime(1900, 1, 1, tzinfo=datetime.timezone.utc))
-    events.insert(7, "reported_by", "Unreported")
-    events.insert(8, "reported_to", None)
+    events.insert(4, "detected", [[] for _ in events.index])
+    events.insert(5, "detected_by", [[] for _ in events.index])
+    events.insert(6, "reported", [[] for _ in events.index])
+    events.insert(7, "reported_by", [[] for _ in events.index])
+    events.insert(8, "reported_to", [[] for _ in events.index])
+
 
     # add the environment observer to monitor for event status events
     app.simulator.add_observer(Environment(app, events))

@@ -171,6 +171,7 @@ class Constellation(Entity):
     PROPERTY_EVENT_DETECTED = "detected"
     PROPERTY_POSITION = "position"
 
+
     def __init__(self, cName, app, id, names, field_of_regard, ES=None, tles=None):
         super().__init__(cName)
         self.app = app
@@ -188,8 +189,8 @@ class Constellation(Entity):
                 self.satellites.append(
                     EarthSatellite(tle[0], tle[1], self.names[i], self.ts)
                 )
-        self.detect = []
-        self.report = []
+
+        self.sat_data = {sat.name: [] for sat in ES}
         self.new_detect = []
         self.new_report = []
         self.positions = self.next_positions = [None for satellite in self.satellites]
@@ -203,6 +204,7 @@ class Constellation(Entity):
         # # Two print lines below can be used as sanity check that SMAD Ch. 5 equations implemented properly
         # print("\nInitial elevation angles:\n")
         # print(self.min_elevations_event)
+
 
     def initialize(self, init_time):
         """
@@ -226,6 +228,7 @@ class Constellation(Entity):
             for satellite in self.satellites
         ]
 
+
     def tick(self, time_step):
         """
         Computes the next :obj:`Constellation` state after the specified scenario duration and the next simulation scenario time
@@ -244,6 +247,8 @@ class Constellation(Entity):
 
         for i, satellite in enumerate(self.satellites):
             then = self.ts.from_datetime(self.get_time() + time_step)
+            now = self.ts.from_datetime(self.get_time())
+
             self.min_elevations_event[i] = compute_min_elevation(
                 float(self.next_positions[i].elevation.m), self.field_of_regard[i]
             )
@@ -251,24 +256,27 @@ class Constellation(Entity):
 
             for j, event in enumerate(self.events):
                 topos = wgs84.latlon(event["latitude"], event["longitude"])
-                isInView = check_in_view(then, satellite, topos, self.min_elevations_event[i])
+                isInViewCurr = check_in_view(now, satellite, topos, self.min_elevations_event[i-1])
+                isInViewNext = check_in_view(then, satellite, topos, self.min_elevations_event[i])
 
-                # Checks if the current satellite is in detection range of the current event, updates 
-                # event dictionary and adds event to new_detect if applicable
-                if event["state"]==EventState.started and isInView:
-                    event["state"]="detected"
-                    event["detected"]=self.get_time() + time_step
-                    event["detected_by"]=satellite.name
-                    self.new_detect.append(event)
+                if isInViewNext and not isInViewCurr:
+                    event_change = {}
+                    event_change["eventId"]=event["eventId"]
+                    event_change["detected"]=self.get_time() + time_step
+                    event_change["detected_by"]=satellite.name
+                    self.new_detect.append(event_change)
+                    self.sat_data[satellite.name].append(event["eventId"])
 
-                # Checks if the current satellite detected the current event and is in range to report, updates 
-                # event dictionary and adds event to new_report if applicable
-                if ((event["detected_by"]==satellite.name or (event["state"]==EventState.started and isInView)) and isInRange):
-                    event["state"]="reported"
-                    event["reported"]=self.get_time() + time_step
-                    event["reported_by"]=satellite.name
-                    event["reprted_to"]=groundId
-                    self.new_report.append(event)
+            if (isInRange and self.sat_data[satellite.name]):
+                for id in self.sat_data[satellite.name]:
+                    event_change = {}
+                    event_change["eventId"]=id
+                    event_change["reported"]=self.get_time() + time_step
+                    event_change["reported_by"]=satellite.name
+                    event_change["reprted_to"]=groundId
+                    self.new_report.append(event_change)
+                self.sat_data[satellite.name] = []
+
 
     def tock(self):
         """
@@ -280,27 +288,27 @@ class Constellation(Entity):
         self.positions = self.next_positions
         
         # Notifies observers of each newly detected event
-        for event in self.new_detect:
+        for event_change in self.new_detect:
             self.notify_observers(
                 self.PROPERTY_EVENT_DETECTED,
                 None,
                 {
-                    "eventId": event["eventId"],
-                    "detected": event["detected"],
-                    "detected_by": event["detected_by"]
+                    "eventId": event_change["eventId"],
+                    "detected": event_change["detected"],
+                    "detected_by": event_change["detected_by"]
                 }
             )
 
         # Notifies observers of each newly detected event
-        for event in self.new_report:
+        for event_change in self.new_report:
             self.notify_observers(
                 self.PROPERTY_EVENT_REPORTED,
                 None,
                 {
-                    "eventId": event["eventId"],
-                    "reported": event["reported"],
-                    "reported_by": event["reported_by"],
-                    "reported_to": 0
+                    "eventId": event_change["eventId"],
+                    "reported": event_change["reported"],
+                    "reported_by": event_change["reported_by"],
+                    "reported_to": event_change["reported_to"]
                 }
             )
         
@@ -308,6 +316,7 @@ class Constellation(Entity):
         self.new_report = []
 
         super().tock()
+
 
     def on_event(self, client, userdata, message):
         """
@@ -323,15 +332,9 @@ class Constellation(Entity):
         self.events.append(
             {
                 "eventId": started.eventId,
-                "state": EventState.started,
                 "start": started.start,
                 "latitude": started.latitude,
                 "longitude": started.longitude,
-                "detected": None,
-                "detected_by": None,
-                "reported": None,
-                "reported_by": None,
-                "reported_to": None,
             }
         )
 
