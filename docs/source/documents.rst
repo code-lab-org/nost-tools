@@ -7,3 +7,4 @@ Documents
    :maxdepth: 1
 
    documents/ICD/ICD
+   documents/TB/TB
