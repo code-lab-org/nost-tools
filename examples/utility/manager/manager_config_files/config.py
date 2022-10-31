@@ -10,9 +10,9 @@ HEADER = {
     "description": f'Synchronizes a test case on the testbed on the "{PREFIX}/#" topic.',
 }
 
-SCALE = 60
+SCALE = 240
 SCENARIO_START = datetime(2022, 10, 3, 7, 20, 0, tzinfo=timezone.utc)
-SCENARIO_END = datetime(2022, 10, 4, 7, 20, 0, tzinfo=timezone.utc)
+SCENARIO_END = datetime(2022, 10, 6, 7, 20, 0, tzinfo=timezone.utc)
 UPDATE = []
 # UPDATE = [
 #     TimeScaleUpdate(120.0, datetime(2020, 1, 1, 8, 20, 0, tzinfo=timezone.utc)),

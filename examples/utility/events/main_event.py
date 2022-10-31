@@ -182,7 +182,7 @@ if __name__ == "__main__":
     if (not SEED==0):
         random.seed(SEED)
     else:
-        SEED = datetime.datetime.now()
+        SEED = str(datetime.datetime.now())
         print(f"The seed used for this simulation run is: {SEED}")
         random.seed(SEED)
 
@@ -197,9 +197,9 @@ if __name__ == "__main__":
 
     # Creates random values for event start times and locations, creates finish times at a fixed interval after start
     for event in range(0, EVENT_COUNT):
-        eventStart = datetime.datetime(2022, 10, 3, 7, 21, 0, tzinfo=datetime.timezone.utc) + datetime.timedelta(minutes=random.randrange(0, EVENT_TIMESPAN))
+        eventStart = datetime.datetime(2022, 10, 3, 7, 21, 0, tzinfo=datetime.timezone.utc) + datetime.timedelta(minutes=random.randrange(0, EVENT_TIMESPAN*60))
         eventStarts.append(eventStart)
-        eventFinishes.append(eventStart + datetime.timedelta(minutes=EVENT_LENGTH))
+        eventFinishes.append(eventStart + datetime.timedelta(minutes=EVENT_LENGTH*60))
         eventLats.append(random.randrange(-90, 90))
         eventLongs.append(random.randrange(-180, 180))
     
@@ -238,7 +238,7 @@ if __name__ == "__main__":
         True,
         time_status_step=datetime.timedelta(seconds=10) * SCALE,
         time_status_init=datetime.datetime(2022, 10, 3, 7, 20, 0, tzinfo=datetime.timezone.utc),
-        time_step=datetime.timedelta(seconds=2) * SCALE,
+        time_step=datetime.timedelta(seconds=0.5) * SCALE,
     )
 
     # add message callbacks for event ignition, detection, and report
@@ -253,7 +253,11 @@ if __name__ == "__main__":
     while not app.simulator.get_mode() == Mode.TERMINATED:
         time.sleep(1)
 
+    with open("events.csv", "w") as f:
+        f.write(f"This simulation run included {EVENT_COUNT} events, each with a lifespan of {EVENT_LENGTH} hours and start times within the first {EVENT_TIMESPAN} hours of the simulation. \n\
+The seed used for the random generation was: '{SEED}'. \n\n\n")
+
     # Saves the event DataFrame after simulation finishes
-    events.to_csv("events.csv")
+    events.to_csv("events.csv", mode="a")
  
 

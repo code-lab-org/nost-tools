@@ -13,7 +13,7 @@ HEADER = {
 LAT = float(os.getenv("LAT", 78.229772))
 LNG = float(os.getenv("LNG", 15.407786))
 MIN_ELEVATION = 5.0  # minimum view angle (degrees) for ground-satellite communications
-SCALE = 60
+SCALE = 240
 
 # define grounds in a Dataframe constructed from a Python dictionary
 GROUND = pd.DataFrame(

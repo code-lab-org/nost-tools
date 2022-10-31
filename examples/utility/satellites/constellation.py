@@ -253,7 +253,6 @@ class Constellation(Entity):
                 float(self.next_positions[i].elevation.m), self.field_of_regard[i]
             )
             isInRange, groundId = check_in_range(then, satellite, self.grounds)
-
             for j, event in enumerate(self.events):
                 topos = wgs84.latlon(event["latitude"], event["longitude"])
                 isInViewCurr = check_in_view(now, satellite, topos, self.min_elevations_event[i-1])
@@ -273,7 +272,7 @@ class Constellation(Entity):
                     event_change["eventId"]=id
                     event_change["reported"]=self.get_time() + time_step
                     event_change["reported_by"]=satellite.name
-                    event_change["reprted_to"]=groundId
+                    event_change["reported_to"]=groundId
                     self.new_report.append(event_change)
                 self.sat_data[satellite.name] = []
 

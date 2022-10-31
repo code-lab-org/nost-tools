@@ -99,7 +99,7 @@ if __name__ == "__main__":
         True,
         time_status_step=timedelta(seconds=10) * SCALE,
         time_status_init=datetime(2022, 10, 3, 7, 20, tzinfo=timezone.utc),
-        time_step=timedelta(seconds=2) * SCALE,
+        time_step=timedelta(seconds=0.5) * SCALE,
     )
 
     # add message callbacks

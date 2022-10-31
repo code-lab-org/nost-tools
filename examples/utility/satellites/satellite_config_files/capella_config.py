@@ -54,4 +54,4 @@ FIELD_OF_REGARD = [float(os.getenv("FIELD_OF_REGARD", 80.0)),
 ]  # degrees (Capella standard products have max look angle of 40-degrees off nadir, left or right makes 80)
 # NOTE: Higher quality product and better resolution if look angle is less than 25-degrees off nadir, left for right makes 50
 
-SCALE = 60
+SCALE = 240

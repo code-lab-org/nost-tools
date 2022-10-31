@@ -9,8 +9,8 @@ HEADER = {
     "name": NAME,
     "description": "Publishes historical fire data from the VIIRS instrument.",
 }
-SCALE = 60
+SCALE = 240
 SEED = 0
-EVENT_COUNT = 500
-EVENT_LENGTH = 12*60
-EVENT_TIMESPAN = 12*60
+EVENT_COUNT = 200
+EVENT_LENGTH = 36
+EVENT_TIMESPAN = 36
