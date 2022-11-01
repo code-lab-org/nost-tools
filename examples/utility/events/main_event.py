@@ -25,8 +25,9 @@ from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
 from nost_tools.observer import Observer
 from nost_tools.managed_application import ManagedApplication
 
-from event_config_files.schemas import EventState, EventStarted, EventDetected, EventReported, EventFinished
-from event_config_files.config import PREFIX, SCALE, SEED, EVENT_COUNT, EVENT_LENGTH, EVENT_TIMESPAN
+from examples.utility.schemas import EventState, EventStarted, EventDetected, EventReported, EventFinished
+from examples.utility.config import PREFIX, SCALE, SCENARIO_START, SCENARIO_END, SIM_NAME, SEED, EVENT_COUNT, EVENT_LENGTH, EVENT_START_RANGE
+
 
 logging.basicConfig(level=logging.INFO)
 
@@ -167,6 +168,7 @@ def on_finished(client, userdata, message):
 
 
 if __name__ == "__main__":
+
     # Note that these are loaded from a .env file in current working directory
     credentials = dotenv_values(".env")
     HOST, PORT = credentials["SMCE_HOST"], int(credentials["SMCE_PORT"])
@@ -197,7 +199,7 @@ if __name__ == "__main__":
 
     # Creates random values for event start times and locations, creates finish times at a fixed interval after start
     for event in range(0, EVENT_COUNT):
-        eventStart = datetime.datetime(2022, 10, 3, 7, 21, 0, tzinfo=datetime.timezone.utc) + datetime.timedelta(minutes=random.randrange(0, EVENT_TIMESPAN*60))
+        eventStart = SCENARIO_START + datetime.timedelta(minutes=random.randrange(0, EVENT_START_RANGE*60))
         eventStarts.append(eventStart)
         eventFinishes.append(eventStart + datetime.timedelta(minutes=EVENT_LENGTH*60))
         eventLats.append(random.randrange(-90, 90))
@@ -224,9 +226,10 @@ if __name__ == "__main__":
     events.insert(7, "reported_by", [[] for _ in events.index])
     events.insert(8, "reported_to", [[] for _ in events.index])
 
+    environment = Environment(app, events)
 
     # add the environment observer to monitor for event status events
-    app.simulator.add_observer(Environment(app, events))
+    app.simulator.add_observer(environment)
 
     # add a shutdown observer to shut down after a single test case
     app.simulator.add_observer(ShutDownObserver(app))
@@ -237,27 +240,39 @@ if __name__ == "__main__":
         config,
         True,
         time_status_step=datetime.timedelta(seconds=10) * SCALE,
-        time_status_init=datetime.datetime(2022, 10, 3, 7, 20, 0, tzinfo=datetime.timezone.utc),
+        time_status_init=SCENARIO_START,
         time_step=datetime.timedelta(seconds=0.5) * SCALE,
     )
 
     # add message callbacks for event ignition, detection, and report
-    app.add_message_callback("event", "location", on_event)
-    app.add_message_callback("capella", "detected", on_detected)
-    app.add_message_callback("capella", "reported", on_reported)
-    app.add_message_callback("planet", "detected", on_detected)
-    app.add_message_callback("planet", "reported", on_reported)
-    app.add_message_callback("event", "finish", on_finished)
+    app.add_message_callback("event", "location", environment.on_event)
+    app.add_message_callback("capella", "detected", environment.on_detected)
+    app.add_message_callback("capella", "reported", environment.on_reported)
+    app.add_message_callback("planet", "detected", environment.on_detected)
+    app.add_message_callback("planet", "reported", environment.on_reported)
+    app.add_message_callback("event", "finish", environment.on_finished)
 
     # Ensures the application hangs until the simulation is terminated, to allow background threads to run
     while not app.simulator.get_mode() == Mode.TERMINATED:
         time.sleep(1)
 
-    with open("events.csv", "w") as f:
-        f.write(f"This simulation run included {EVENT_COUNT} events, each with a lifespan of {EVENT_LENGTH} hours and start times within the first {EVENT_TIMESPAN} hours of the simulation. \n\
-The seed used for the random generation was: '{SEED}'. \n\n\n")
+    # Record all parameters used to config the simulation
+    parameters = pd.Series(
+        data={"SCENARIO_START": SCENARIO_START,
+                "SCENARIO_END": SCENARIO_END,
+                "EVENT_COUNT": EVENT_COUNT,
+                "EVENT_LENGTH": EVENT_LENGTH,
+                "EVENT_START_RANGE": EVENT_START_RANGE,
+                "SEED": SEED
+        }
+    )
 
-    # Saves the event DataFrame after simulation finishes
-    events.to_csv("events.csv", mode="a")
- 
+    # Writes the parameters DataFrame to the output file
+    parameters.to_csv(f"outputs/{SIM_NAME}.csv", mode="w")
 
+    # Add whitespace to separate parameters from data
+    with open(f"outputs/{SIM_NAME}.csv", "a") as f:
+        f.write("\n\n\n")
+
+    # Appends data to output file after parameters
+    events.to_csv(f"outputs/{SIM_NAME}.csv", mode="a")

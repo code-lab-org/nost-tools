@@ -17,7 +17,7 @@ from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
 from nost_tools.manager import Manager
 
 # client credentials should be saved to config.py file in manager_config_files directory
-from manager_config_files.config import (
+from examples.utility.config import (
     PREFIX,
     SCALE,
     SCENARIO_START,
@@ -56,9 +56,8 @@ if __name__ == "__main__":
         time_scale_updates=UPDATE,                              # optionally schedule changes to the time_scale_factor at a specified scenario time
         time_status_step=timedelta(seconds=5)
         * SCALE,                                                # optional duration between time status 'heartbeat' messages
-        time_status_init=datetime(
-            2022, 10, 3, 7, 21, 0, tzinfo=timezone.utc
-        ),                                                      # optional initial scenario datetime to start publishing time status 'heartbeat' messages
+        time_status_init=
+            SCENARIO_START + timedelta(minutes=1),                                                      # optional initial scenario datetime to start publishing time status 'heartbeat' messages
         command_lead=timedelta(
             seconds=5
         ),                                                      # lead time before a scheduled update or stop command

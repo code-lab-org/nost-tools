@@ -8,7 +8,7 @@ from nost_tools.entity import Entity
 from nost_tools.observer import Observer
 from nost_tools.publisher import WallclockTimeIntervalPublisher
 
-from satellite_config_files.schemas import (
+from examples.utility.schemas import (
     EventState,
     EventStarted,
     EventDetected,
@@ -190,7 +190,7 @@ class Constellation(Entity):
                     EarthSatellite(tle[0], tle[1], self.names[i], self.ts)
                 )
 
-        self.sat_data = {sat.name: [] for sat in ES}
+        self.sat_data = {sat.name: [] for sat in self.satellites}
         self.new_detect = []
         self.new_report = []
         self.positions = self.next_positions = [None for satellite in self.satellites]
