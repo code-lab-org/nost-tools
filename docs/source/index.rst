@@ -9,7 +9,7 @@ NOS-T Documentation
 The New Observing Strategies Testbed (NOS-T) is a digital engineering environment for testing
 distributed space mission concepts.
 
-.. image:: ../../images/graphicalConcept.jpg
+.. image:: media/graphicalConcept.png
    :width: 600
    :align: center
 

@@ -103,7 +103,7 @@ proposed new observing strategies. Recorded data and outcomes provide
 evidence to advance technology readiness level and improve or innovate
 upon existing Earth science measurement techniques.
 
-|image1|\ |image2|\ |image3|\ |image4|\ |image5|\ |image6|\ |image7|\ |image8|\ |image9|\ |image10|\ |image11|\ |image12|
+|image1|\
 
 Figure 1. New Observing Strategies Testbed Comprised of User Systems and
 the NOS-T System.
@@ -198,7 +198,7 @@ run. Figure 2 illustrates how the manager publishes events to other
 applications through the event broker. The manager application publishes
 messages following the topic and payload specifications in Section 2.3.
 
-|image13|\ |image14|\ |image15|\ |image16|\ |image17|\ |image18|\ |image19|\ |image20|\ |image21|\ |image22|\ |image23|\ |image24|\ |image25|\ |image26|\ |image27|\ |image28|
+|image2|\
 
 Figure 2. NOS-T System Architecture Illustrating the Route of a Message
 from Publisher to Subscribers.
@@ -267,7 +267,7 @@ by) applications B and C. More complex system concepts introduce event
 feedback loops between applications to indicate dynamic and responsive
 operations.
 
-|image29|\ |image30|\ |image31|\ |image32|\ |image33|\ |image34|\ |image35|
+|image3|\
 
 Figure 3. Publish-Subscribe Messaging Pattern in (A) Physical Network
 and (B) Event-oriented Diagrams.
@@ -403,10 +403,7 @@ The manager issues control events to orchestrate a test run execution.
 The test run execution lifecycle follows the activity diagram in Figure
 4 with an initialization, start, optional updates, and a stop event.
 
-.. image:: /media/image4.jpg
-   :alt: Diagram Description automatically generated
-   :width: 6.5in
-   :height: 1.55486in
+|image4|\
 
 Figure 4. Typical Test Run Execution Lifecycle.
 
@@ -419,9 +416,9 @@ sections.
 .. table:: Table 1. List of NOS-T Manager Control Events
 
    +------+--------------------+-----------------------------------------+
-   | *    | **Message Topic**  | **Example Message Payload (JSON)**      |
-   | *Eve |                    |                                         |
-   | nt** |                    |                                         |
+   |      | **Message Topic**  | **Example Message Payload (JSON)**      |
+   | Eve  |                    |                                         |
+   | nt   |                    |                                         |
    +======+====================+=========================================+
    | In   | $P                 | {                                       |
    | itia | REFIX/manager/init |                                         |
@@ -530,8 +527,8 @@ execution.
    |              | string    | bounds specified in the initialization   |
    |              |           | event).                                  |
    +--------------+-----------+------------------------------------------+
-   | *            | ISO-8601  | The scenario time at which to end the    |
-   | simStopTime* | datetime  | test run execution (shall be within the  |
+   |              | ISO-8601  | The scenario time at which to end the    |
+   | simStopTime  | datetime  | test run execution (shall be within the  |
    |              | string    | bounds specified in the initialization   |
    |              |           | event and later than *simStartTime*).    |
    +--------------+-----------+------------------------------------------+
@@ -573,8 +570,8 @@ determines the end of the test run execution.
    +--------------+-----------+------------------------------------------+
    | **Property** | **Type**  | **Description**                          |
    +==============+===========+==========================================+
-   | *            | ISO-8601  | The earliest scenario time at which to   |
-   | simStopTime* | datetime  | end the test run execution (shall be     |
+   |              | ISO-8601  | The earliest scenario time at which to   |
+   | simStopTime  | datetime  | end the test run execution (shall be     |
    |              | string    | within the bounds specified in the       |
    |              |           | initialization event).                   |
    +--------------+-----------+------------------------------------------+
@@ -592,9 +589,9 @@ event types described in the following sections.
 .. table:: Table 6. List of NOS-T Manager Status Events
 
    +------+--------------------+-----------------------------------------+
-   | *    | **Message Topic**  | **Example Message Payload (JSON)**      |
-   | *Eve |                    |                                         |
-   | nt** |                    |                                         |
+   |      | **Message Topic**  | **Example Message Payload (JSON)**      |
+   |Event |                    |                                         |
+   |      |                    |                                         |
    +======+====================+=========================================+
    | Time | $P                 | {                                       |
    |      | REFIX/manager/time |                                         |
@@ -928,108 +925,15 @@ References
    including the Federal Aviation Administration's System-wide
    Information Management (SWIM) Cloud Distribution Service (SCDS).
 
-.. |image1| image:: media/image2.png
+.. |image1| image:: media/image1.png
    :width: 6.28333in
    :height: 2.40208in
-.. |image2| image:: media/image4.png
+.. |image2| image:: media/image2.png
    :width: 6.28333in
    :height: 2.40208in
-.. |image3| image:: media/image6.png
+.. |image3| image:: media/image3.png
    :width: 6.28333in
    :height: 2.40208in
-.. |image4| image:: media/image8.png
-   :width: 6.28333in
-   :height: 2.40208in
-.. |image5| image:: media/image10.png
-   :width: 6.28333in
-   :height: 2.40208in
-.. |image6| image:: media/image12.png
-   :width: 6.28333in
-   :height: 2.40208in
-.. |image7| image:: media/image14.png
-   :width: 6.28333in
-   :height: 2.40208in
-.. |image8| image:: media/image16.png
-   :width: 6.28333in
-   :height: 2.40208in
-.. |image9| image:: media/image12.png
-   :width: 6.28333in
-   :height: 2.40208in
-.. |image10| image:: media/image16.png
-   :width: 6.28333in
-   :height: 2.40208in
-.. |image11| image:: media/image18.png
-   :width: 6.28333in
-   :height: 2.40208in
-.. |image12| image:: media/image20.png
-   :width: 6.28333in
-   :height: 2.40208in
-.. |image13| image:: media/image18.png
-   :width: 6.80694in
-   :height: 2.53097in
-.. |image14| image:: media/image33.png
-   :width: 6.80694in
-   :height: 2.53097in
-.. |image15| image:: media/image2.png
-   :width: 6.80694in
-   :height: 2.53097in
-.. |image16| image:: media/image35.png
-   :width: 6.80694in
-   :height: 2.53097in
-.. |image17| image:: media/image37.png
-   :width: 6.80694in
-   :height: 2.53097in
-.. |image18| image:: media/image14.png
-   :width: 6.80694in
-   :height: 2.53097in
-.. |image19| image:: media/image18.png
-   :width: 6.80694in
-   :height: 2.53097in
-.. |image20| image:: media/image39.png
-   :width: 6.80694in
-   :height: 2.53097in
-.. |image21| image:: media/image10.png
-   :width: 6.80694in
-   :height: 2.53097in
-.. |image22| image:: media/image20.png
-   :width: 6.80694in
-   :height: 2.53097in
-.. |image23| image:: media/image42.png
-   :width: 6.80694in
-   :height: 2.53097in
-.. |image24| image:: media/image12.png
-   :width: 6.80694in
-   :height: 2.53097in
-.. |image25| image:: media/image16.png
-   :width: 6.80694in
-   :height: 2.53097in
-.. |image26| image:: media/image44.png
-   :width: 6.80694in
-   :height: 2.53097in
-.. |image27| image:: media/image46.png
-   :width: 6.80694in
-   :height: 2.53097in
-.. |image28| image:: media/image46.png
-   :width: 6.80694in
-   :height: 2.53097in
-.. |image29| image:: media/image55.png
-   :width: 6.5in
-   :height: 2.23611in
-.. |image30| image:: media/image57.png
-   :width: 6.5in
-   :height: 2.23611in
-.. |image31| image:: media/image59.png
-   :width: 6.5in
-   :height: 2.23611in
-.. |image32| image:: media/image59.png
-   :width: 6.5in
-   :height: 2.23611in
-.. |image33| image:: media/image59.png
-   :width: 6.5in
-   :height: 2.23611in
-.. |image34| image:: media/image55.png
-   :width: 6.5in
-   :height: 2.23611in
-.. |image35| image:: media/image55.png
-   :width: 6.5in
-   :height: 2.23611in
+.. |image4| image:: media/image4.png
+  :width: 6.28333in
+  :height: 2.40208in
