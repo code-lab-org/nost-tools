@@ -50,7 +50,7 @@
 				// create a MQTT client
 				var client = new Paho.MQTT.Client(BROKER_HOST, BROKER_PORT, "");
 				var satellitesCapella = {}; <!-- Positions of satellites as points at altitude, BLUE out of comms range, GREEN in comms range -->
-				var satellitesPlanet = {}; <!-- Positions of satellites as points at altitude, RED out of comms range, DARKORANGE in comms range -->
+				var satellitesPlanet = {}; <!-- Positions of satellites as points at altitude, BLUE out of comms range, GREEN in comms range -->
 				var sensorCirclesCapella = {}; <!-- Circles showing views of nadir pointed satellites -->
 				var sensorCirclesPlanet = {}; <!-- Circles showing views of nadir pointed satellites -->
 				var commsCones = {}; <!-- Views from ground station FOR comms -->
