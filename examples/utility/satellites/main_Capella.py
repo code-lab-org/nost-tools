@@ -29,7 +29,6 @@ from examples.utility.config import (
 logging.basicConfig(level=logging.INFO)
 
 
-
 # name guard used to ensure script only executes if it is run as the __main__
 if __name__ == "__main__":
     # Note that these are loaded from a .env file in current working directory
@@ -42,9 +41,6 @@ if __name__ == "__main__":
 
     # create the managed application
     app = ManagedApplication("capella")
-
-    # URL of most recent satellite two line elements
-    load.download("https://celestrak.com/NORAD/elements/active.txt")
 
     # Names of Capella satellites used in Celestrak database
     names = ["CAPELLA-1-DENALI", \
@@ -62,13 +58,17 @@ if __name__ == "__main__":
     if TLES == None:
         # load current TLEs for active satellites from Celestrak (NOTE: User has option to specify their own TLE instead)
         load.download("https://celestrak.com/NORAD/elements/active.txt")
-        TLES = {}
+        TLES = pd.Series(
+            data=[[] for _ in range(len(names))],
+            index=names
+        )
         with open("active.txt", "r") as f:
+            f = list(f)
             for i, row in enumerate(f):
-                if i%3 == 1 and row in names:
-                    TLES[row] == [f[i+1], f[i+2]]
+                if i % 3 == 0 and row.strip(' \n') in names:
+                    TLES[row.strip(' \n')].append(f[i+1])
+                    TLES[row.strip(' \n')].append(f[i+2])
 
-    
     # initialize the Constellation object class from TLEs    
     constellation = Constellation('capella', app, indices, names, FIELD_OF_REGARD["Capella"], tles=TLES)
 
@@ -98,8 +98,10 @@ if __name__ == "__main__":
     )
 
     # add message callbacks
-    app.add_message_callback("event", "location", constellation.on_event)
+    app.add_message_callback("event", "start", constellation.on_event_start)
     app.add_message_callback("ground", "location", constellation.on_ground)
+    app.add_message_callback("manager", "stop", constellation.on_manager_stop)
+    app.add_message_callback("event", "finish", constellation.on_event_finish)
 
     # Ensures the application hangs until the simulation is terminated, to allow background threads to run
     while not app.simulator.get_mode() == Mode.TERMINATED:

@@ -202,7 +202,7 @@ var CESIUM_ACCESS_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlMGE4
 									}
 								});
 							}
-						} else if(topic=="utility/event/location") {
+						} else if(topic=="utility/event/start") {
 							//<!-- Cesium suggests using PointPrimitives when have large collection of points, applies to events -->
 							try {
 								payload = JSON.parse(message.payloadString);
@@ -217,7 +217,7 @@ var CESIUM_ACCESS_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlMGE4
 									show: true});
 								eventIndex = eventIndex + 1;
 							} catch {
-								console.log("Error: utility/event/location");
+								console.log("Error: utility/event/start");
 							}
 						} else if(topic=="utility/event/finish") {
 							try {

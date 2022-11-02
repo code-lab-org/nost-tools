@@ -7,15 +7,15 @@ import pandas as pd
 PREFIX = os.getenv("PREFIX", "utility")
 SCALE = 240
 SCENARIO_START = datetime(2022, 10, 3, 7, 20, 0, tzinfo=timezone.utc)
-SCENARIO_LENGTH = 1
+SCENARIO_LENGTH = 12
 SCENARIO_END = SCENARIO_START + timedelta(hours=SCENARIO_LENGTH)
 SIM_NAME = "test_output"
 
 # Event parameters
-SEED = 0
+SEED = str(datetime.datetime.now())
 EVENT_COUNT = 100
-EVENT_LENGTH = 12
-EVENT_START_RANGE = 12
+EVENT_LENGTH = 11
+EVENT_START_RANGE = 1
 
 # Ground parameters
 GROUND = pd.DataFrame(

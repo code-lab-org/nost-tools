@@ -4,6 +4,7 @@ import pandas as pd
 import copy
 
 from skyfield.api import load, wgs84, EarthSatellite
+from skyfield import almanac
 from nost_tools.entity import Entity
 from nost_tools.observer import Observer
 from nost_tools.publisher import WallclockTimeIntervalPublisher
@@ -13,6 +14,7 @@ from examples.utility.schemas import (
     EventStarted,
     EventDetected,
     EventReported,
+    EventFinished,
     SatelliteStatus,
     GroundLocation,
 )
@@ -167,27 +169,37 @@ class Constellation(Entity):
     """
 
     ts = load.timescale()
+    eph = load('de421.bsp')
     PROPERTY_EVENT_REPORTED = "reported"
     PROPERTY_EVENT_DETECTED = "detected"
     PROPERTY_POSITION = "position"
 
 
-    def __init__(self, cName, app, id, names, field_of_regard, ES=None, tles=None):
+    def __init__(self, cName, app, id, names, field_of_regard, night_sight=True, ES=None, tles=None):
         super().__init__(cName)
         self.app = app
         self.id = id
         self.names = names
-        self.events = []
+        self.events = pd.DataFrame(
+            data={
+                "eventId": [],
+                "latitude": [],
+                "longitude": []
+            }
+        )
+        self.events.set_index("eventId", inplace=True)
         self.grounds = None
+        self.tles = tles
         self.satellites = []
         self.field_of_regard = field_of_regard
+        self.night_sight = night_sight
         if ES is not None:
             for satellite in ES:
                 self.satellites.append(satellite)
-        if tles is not None:
-            for i, tle in enumerate(tles):
+        if self.tles is not None:
+            for name in self.tles.keys():
                 self.satellites.append(
-                    EarthSatellite(tle[0], tle[1], self.names[i], self.ts)
+                    EarthSatellite(self.tles[name][0], self.tles[name][1], name, self.ts)
                 )
 
         self.sat_data = {sat.name: [] for sat in self.satellites}
@@ -253,23 +265,23 @@ class Constellation(Entity):
                 float(self.next_positions[i].elevation.m), self.field_of_regard[i]
             )
             isInRange, groundId = check_in_range(then, satellite, self.grounds)
-            for j, event in enumerate(self.events):
+            for j, event in self.events.iterrows():
                 topos = wgs84.latlon(event["latitude"], event["longitude"])
                 isInViewCurr = check_in_view(now, satellite, topos, self.min_elevations_event[i-1])
                 isInViewNext = check_in_view(then, satellite, topos, self.min_elevations_event[i])
 
                 if isInViewNext and not isInViewCurr:
                     event_change = {}
-                    event_change["eventId"]=event["eventId"]
+                    event_change["eventId"]=j
                     event_change["detected"]=self.get_time() + time_step
                     event_change["detected_by"]=satellite.name
                     self.new_detect.append(event_change)
-                    self.sat_data[satellite.name].append(event["eventId"])
+                    self.sat_data[satellite.name].append(j)
 
             if (isInRange and self.sat_data[satellite.name]):
-                for id in self.sat_data[satellite.name]:
+                for j in self.sat_data[satellite.name]:
                     event_change = {}
-                    event_change["eventId"]=id
+                    event_change["eventId"]=j
                     event_change["reported"]=self.get_time() + time_step
                     event_change["reported_by"]=satellite.name
                     event_change["reported_to"]=groundId
@@ -317,7 +329,11 @@ class Constellation(Entity):
         super().tock()
 
 
-    def on_event(self, client, userdata, message):
+    def on_manager_stop(self, client, userdata, message):
+        self.app.send_message("tles", self.tles.to_string())
+
+
+    def on_event_start(self, client, userdata, message):
         """
         Callback function appends a dictionary of information for a new event to events :obj:`list` when message detected on the *PREFIX/events/location* topic
         
@@ -328,14 +344,14 @@ class Constellation(Entity):
             
         """
         started = EventStarted.parse_raw(message.payload)
-        self.events.append(
-            {
-                "eventId": started.eventId,
-                "start": started.start,
-                "latitude": started.latitude,
-                "longitude": started.longitude,
-            }
-        )
+        self.events.loc[started.eventId] = {
+            "latitude": started.latitude,
+            "longitude": started.longitude
+        }
+
+    def on_event_finish(self, client, userdata, message):
+        finished = EventFinished.parse_raw(message.payload)
+        self.events.drop(finished.eventId)
 
 
     def on_ground(self, client, userdata, message):

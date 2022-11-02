@@ -27,6 +27,7 @@ from examples.utility.config import (
 
 logging.basicConfig(level=logging.INFO)
 
+
 # name guard used to ensure script only executes if it is run as the __main__
 if __name__ == "__main__":
     # Note that these are loaded from a .env file in current working directory
