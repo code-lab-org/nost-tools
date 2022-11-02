@@ -33,7 +33,7 @@ class Entity(Observable):
 
     def tick(self, time_step):
         """
-        tick computes the new entity state after an elapsed scenario duration. It is repsonsible for changing
+        tick computes the new entity state after an elapsed scenario duration. It is responsible for changing
         the simulation time by the indicated timestep.
 
         Args:

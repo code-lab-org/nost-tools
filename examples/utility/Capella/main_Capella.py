@@ -28,14 +28,14 @@ from nost_tools.publisher import WallclockTimeIntervalPublisher
 
 from skyfield.api import load, wgs84, EarthSatellite
 
-from Capella_config_files.schemas import (
+from capella_config_files.schemas import (
     FireStarted,
     FireDetected,
     FireReported,
     SatelliteStatus,
     GroundLocation,
 )
-from Capella_config_files.config import (
+from capella_config_files.config import (
     PREFIX,
     NAME,
     SCALE,
@@ -50,12 +50,12 @@ def compute_min_elevation(altitude, field_of_regard):
     Computes the minimum elevation angle required for a satellite to observe a point from current location.
 
     Args:
-        altitude (float): Altitude (meters) above surface of the observation.
-        field_of_regard (float): Angular width (degrees) of observation.
+        altitude (float): Altitude (meters) above surface of the observation
+        field_of_regard (float): Angular width (degrees) of observation
 
     Returns:
         float : min_elevation
-            The minimum elevation angle (degrees) for observation.
+            The minimum elevation angle (degrees) for observation
     """
     earth_equatorial_radius = 6378137.000000000
     earth_polar_radius = 6356752.314245179
@@ -77,12 +77,12 @@ def compute_sensor_radius(altitude, min_elevation):
     Computes the sensor radius for a satellite at current altitude given minimum elevation constraints.
 
     Args:
-        altitude (float): Altitude (meters) above surface of the observation.
-        min_elevation (float): Minimum angle (degrees) with horizon for visibility.
+        altitude (float): Altitude (meters) above surface of the observation
+        min_elevation (float): Minimum angle (degrees) with horizon for visibility
 
     Returns:
         float : sensor_radius
-            The radius (meters) of the nadir pointing sensors circular view of observation.
+            The radius (meters) of the nadir pointing sensors circular view of observation
     """
     earth_equatorial_radius = 6378137.0
     earth_polar_radius = 6356752.314245179
@@ -100,7 +100,7 @@ def compute_sensor_radius(altitude, min_elevation):
 
 def get_elevation_angle(t, sat, loc):
     """
-    Returns the elevation angle (degrees) of satellite with respect to the topocentric horizon
+    Returns the elevation angle (degrees) of satellite with respect to the topocentric horizon.
 
     Args:
         t (:obj:`Time`): Time object of skyfield.timelib module
@@ -120,7 +120,7 @@ def get_elevation_angle(t, sat, loc):
 
 def check_in_view(t, satellite, topos, min_elevation):
     """
-    Checks if the elevation angle of the satellite with respect to the ground location is greater than the minimum elevation angle constraint
+    Checks if the elevation angle of the satellite with respect to the ground location is greater than the minimum elevation angle constraint.
 
     Args:
         t (:obj:`Time`): Time object of skyfield.timelib module
@@ -141,7 +141,7 @@ def check_in_view(t, satellite, topos, min_elevation):
 
 def check_in_range(t, satellite, grounds):
     """
-    Checks if the satellite is in range of any of the operational ground stations
+    Checks if the satellite is in range of any of the operational ground stations.
 
     Args:
         t (:obj:`Time`): Time object of skyfield.timelib module
@@ -176,20 +176,20 @@ class Constellation(Entity):
     Args:
         cName (str): A string containing the name for the constellation application
         app (:obj:`ManagedApplication`): An application containing a test-run namespace, a name and description for the app, client credentials, and simulation timing instructions
-        id (:obj:`list`): List of unique *int* ids for each satellite in the constellation
-        names (:obj:`list`): List of unique *str* for each satellite in the constellation (must be same length as **id**)
-        ES (:obj:`list`): Optional list of :obj:`EarthSatellite` objects to be included in the constellation (NOTE: at least one of **ES** or **tles** MUST be specified, or an exception will be thrown)
-        tles (:obj:`list`): Optional list of Two-Line Element *str* to be converted into :obj:`EarthSatellite` objects and included in the simulation
+        id (list): List of unique *int* ids for each satellite in the constellation
+        names (list): List of unique *str* for each satellite in the constellation (must be same length as **id**)\n
+        ES (list): Optional list of :obj:`EarthSatellite` objects to be included in the constellation (NOTE: at least one of **ES** or **tles** MUST be specified, or an exception will be thrown)\n
+        tles (list): Optional list of Two-Line Element *str* to be converted into :obj:`EarthSatellite` objects and included in the simulation
         
     Attributes:
-        fires (:obj:`list`): List of fires with unique fireId (*int*), ignition (:obj:`datetime`), and latitude-longitude location (:obj:`GeographicPosition`) - *NOTE:* initialized as [ ]
+        fires (list): List of fires with unique fireId (*int*), ignition (:obj:`datetime`), and latitude-longitude location (:obj:`GeographicPosition`) - *NOTE:* initialized as [ ]
         grounds (:obj:`DataFrame`): Dataframe containing information about ground stations with unique groundId (*int*), latitude-longitude location (:obj:`GeographicPosition`), min_elevation (*float*) angle constraints, and operational status (*bool*) - *NOTE:* initialized as **None**
-        satellites (:obj:`list`): List of :obj:`EarthSatellite` objects included in the constellation - *NOTE:* must be same length as **id**
-        detect (:obj:`list`): List of detected fires with unique fireId (*int*), detected :obj:`datetime`, and name (*str*) of detecting satellite - *NOTE:* initialized as [ ]
-        report (:obj:`list`): List of reported fires with unique fireId (*int*), reported :obj:`datetime`, name (*str*) of reporting satellite, and groundId (*int*) of ground station reported to - *NOTE:* initialized as [ ]
-        positions (:obj:`list`): List of current latitude-longitude-altitude locations (:obj:`GeographicPosition`) of each satellite in the constellation - *NOTE:* must be same length as **id**
-        next_positions (:obj:`list`): List of next latitude-longitude-altitude locations (:obj:`GeographicPosition`) of each satellite in the constellation - *NOTE:* must be same length as **id**
-        min_elevations_fire (:obj:`list`): List of *floats* indicating current elevation angle (degrees) constraint for visibility by each satellite - *NOTE:* must be same length as **id**, updates every time step
+        satellites (list): List of :obj:`EarthSatellite` objects included in the constellation - *NOTE:* must be same length as **id**
+        detect (list): List of detected fires with unique fireId (*int*), detected :obj:`datetime`, and name (*str*) of detecting satellite - *NOTE:* initialized as [ ]
+        report (list): List of reported fires with unique fireId (*int*), reported :obj:`datetime`, name (*str*) of reporting satellite, and groundId (*int*) of ground station reported to - *NOTE:* initialized as [ ]
+        positions (list): List of current latitude-longitude-altitude locations (:obj:`GeographicPosition`) of each satellite in the constellation - *NOTE:* must be same length as **id**
+        next_positions (list): List of next latitude-longitude-altitude locations (:obj:`GeographicPosition`) of each satellite in the constellation - *NOTE:* must be same length as **id**
+        min_elevations_fire (list): List of *floats* indicating current elevation angle (degrees) constraint for visibility by each satellite - *NOTE:* must be same length as **id**, updates every time step
         
     """
 
@@ -441,11 +441,11 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
         This method sends a message to the *PREFIX/constellation/location* topic for each satellite in the constellation (:obj:`Constellation`), including:
             
         Args:
-            id (:obj:`list`): list of unique *int* ids for each satellite in the constellation
-            names (:obj:`list`): list of unique *str* for each satellite in the constellation - *NOTE:* must be same length as **id**
-            positions (:obj:`list`): list of current latitude-longitude-altitude locations (:obj:`GeographicPosition`) of each satellite in the constellation - *NOTE:* must be same length as **id**
-            radius (:obj:`list`): list of the radius (meters) of the nadir pointing sensors circular view of observation for each satellite in the constellation - *NOTE:* must be same length as **id**
-            commRange (:obj:`list`): list of *bool* indicating each satellites visibility to *any* ground station - *NOTE:* must be same length as **id**
+            id (list): list of unique *int* ids for each satellite in the constellation
+            names (list): list of unique *str* for each satellite in the constellation - *NOTE:* must be same length as **id**
+            positions (list): list of current latitude-longitude-altitude locations (:obj:`GeographicPosition`) of each satellite in the constellation - *NOTE:* must be same length as **id**
+            radius (list): list of the radius (meters) of the nadir pointing sensors circular view of observation for each satellite in the constellation - *NOTE:* must be same length as **id**
+            commRange (list): list of *bool* indicating each satellites visibility to *any* ground station - *NOTE:* must be same length as **id**
             time (:obj:`datetime`): current scenario :obj:`datetime`
 
         """
@@ -556,29 +556,28 @@ if __name__ == "__main__":
     activesats_url = "https://celestrak.com/NORAD/elements/active.txt"
     activesats = load.tle_file(activesats_url, reload=True)
 
-    # keys for CelesTrak TLEs used in this example (all 3 contained in active.txt, but indexes often change over time)
-    # AQUA (MODIS) = 27424, Index 151
-    # TERRA (MODIS) = 25994, Index 102
-    # SUOMI NPP (VIIRS) = 37849, Index 551
-    # SENTINEL 2A = ?, Index = 904
-    # SENTINEL 2B = ?, Index = 1174
-    names = ["CAP1_DENALI","CAP2_SEQUOIA","CAP3_WHITNEY","CAP4_WHITNEY","CAP5_WHITNEY","CAP6_WHITNEY"] #,"CAP7_WHITNEY","CAP8_WHITNEY"]
-    # names = ["AQUA (MODIS)", "TERRA (MODIS)", "SENTINEL-2A (MSI)", "SENTINEL-2B (MSI)"]
-    # names = ["SUOMI NPP (VIIRS)","MADE UP SC"]
-    CAP1_DENALI = activesats[1587]
-    CAP2_SEQUOIA = activesats[2597]
-    CAP3_WHITNEY = activesats[3189]
-    CAP4_WHITNEY = activesats[3181]
-    CAP5_WHITNEY = activesats[4191]
-    CAP6_WHITNEY= activesats[4025]
-    # CAP7_WHITNEY= activesats[4869]
-    # CAP8_WHITNEY= activesats[4868]
-    ES = [CAP1_DENALI,CAP2_SEQUOIA,CAP3_WHITNEY,CAP4_WHITNEY,CAP5_WHITNEY,CAP6_WHITNEY] #,CAP7_WHITNEY,CAP8_WHITNEY]
-    # ES = [AQUA, TERRA, SENTINEL2A, SENTINEL2B]
+    # keys for CelesTrak TLEs used in this example (indexes often change over time)
+    # CAP1_DENALI, Index 1585
+    # CAP2_SEQUOIA, Index 2594
+    # CAP3_WHITNEY, Index 3186
+    # CAP4_WHITNEY, Index 3178
+    # CAP5_WHITNEY, Index 4188
+    # CAP6_WHITNEY, Index 4022
+    # CAP7_WHITNEY, Index 4865
+    # CAP8_WHITNEY, Index 4864
+    names = ["CAP1_DENALI","CAP2_SEQUOIA","CAP3_WHITNEY","CAP4_WHITNEY","CAP5_WHITNEY","CAP6_WHITNEY","CAP7_WHITNEY","CAP8_WHITNEY"]
+    CAP1_DENALI = activesats[1585]
+    CAP2_SEQUOIA = activesats[2594]
+    CAP3_WHITNEY = activesats[3186]
+    CAP4_WHITNEY = activesats[3178]
+    CAP5_WHITNEY = activesats[4188]
+    CAP6_WHITNEY= activesats[4022]
+    CAP7_WHITNEY= activesats[4865]
+    CAP8_WHITNEY= activesats[4864]
+    ES = [CAP1_DENALI,CAP2_SEQUOIA,CAP3_WHITNEY,CAP4_WHITNEY,CAP5_WHITNEY,CAP6_WHITNEY,CAP7_WHITNEY,CAP8_WHITNEY]
     
-
     # initialize the Constellation object class (in this example from EarthSatellite type)
-    constellation = Constellation("constellation", app, [0, 1, 2, 3, 4, 5], names, ES)
+    constellation = Constellation("capella", app, [0, 1, 2, 3, 4, 5, 6, 7], names, ES)
 
     # add observer classes to the Constellation object class
     constellation.add_observer(FireDetectedObserver(app))
@@ -601,8 +600,8 @@ if __name__ == "__main__":
         config,
         True,
         time_status_step=timedelta(seconds=10) * SCALE,
-        time_status_init=datetime(2020, 1, 1, 7, 20, tzinfo=timezone.utc),
-        time_step=timedelta(seconds=1) * SCALE,
+        time_status_init=datetime(2022, 10, 3, 7, 20, tzinfo=timezone.utc),
+        time_step=timedelta(seconds=2) * SCALE,
     )
 
     # add message callbacks

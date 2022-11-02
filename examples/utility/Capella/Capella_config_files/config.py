@@ -1,7 +1,7 @@
 import os
 from skyfield.api import load
 
-PREFIX = os.getenv("PREFIX", "greenfield")
+PREFIX = os.getenv("PREFIX", "utility")
 NAME = "capella"
 LOG = f"\x1b[1m[\x1b[34m{NAME}\x1b[37m]\x1b[0m"
 HEADER = {
@@ -43,18 +43,15 @@ TLE2_SC8 = str(os.getenv(
     "TLE2", "2 51071  97.4777 335.8824 0010902  81.7532 278.4934 15.12272297 38846"))  #CAPELLA-8-WHITNEY
 TLES = [[TLE1_SC1,TLE2_SC1],[TLE1_SC2,TLE2_SC2],[TLE1_SC3,TLE2_SC3],[TLE1_SC4,TLE2_SC4],[TLE1_SC5,TLE2_SC5],[TLE1_SC6,TLE2_SC6],[TLE1_SC7,TLE2_SC7],[TLE1_SC8,TLE2_SC8]]
 
-FIELD_OF_REGARD = [float(os.getenv("FIELD_OF_REGARD", 112.56)),
-    float(os.getenv("FIELD_OF_REGARD", 112.56)),
-    float(os.getenv("FIELD_OF_REGARD", 112.56)),
-    float(os.getenv("FIELD_OF_REGARD", 112.56)),
-    float(os.getenv("FIELD_OF_REGARD", 112.56)),
-    float(os.getenv("FIELD_OF_REGARD", 112.56)),
-    float(os.getenv("FIELD_OF_REGARD", 112.56)),
-    float(os.getenv("FIELD_OF_REGARD", 112.56))
-]  # degrees (found max zenith angle for MODIS is 65-degrees, FoR = 2 * zenith angle, field-of-view for VIIRS = 112.56-degrees)
-# MIN_ELEVATION_COMMS = float(
-#     os.getenv("MIN_ELEVATION_COMMS", 5.0)
-# )  # degrees (comms more forgiving than sensor, not currently used)
-# MIN_INTENSITY = float(os.getenv("MIN_INTENSITY", 10.0))  # square meters
+FIELD_OF_REGARD = [float(os.getenv("FIELD_OF_REGARD", 80.0)),
+    float(os.getenv("FIELD_OF_REGARD", 80.0)),
+    float(os.getenv("FIELD_OF_REGARD", 80.0)),
+    float(os.getenv("FIELD_OF_REGARD", 80.0)),
+    float(os.getenv("FIELD_OF_REGARD", 80.0)),
+    float(os.getenv("FIELD_OF_REGARD", 80.0)),
+    float(os.getenv("FIELD_OF_REGARD", 80.0)),
+    float(os.getenv("FIELD_OF_REGARD", 80.0))
+]  # degrees (Capella standard products have max look angle of 40-degrees off nadir, left or right makes 80)
+# NOTE: Higher quality product and better resolution if look angle is less than 25-degrees off nadir, left for right makes 50
 
-SCALE = 60							
+SCALE = 120							
