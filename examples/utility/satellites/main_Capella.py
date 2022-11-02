@@ -18,12 +18,12 @@ from nost_tools.managed_application import ManagedApplication
 
 from constellation import *
 
-from examples.utility.satellites.satellite_config_files.capella_config import (
+from examples.utility.config import (
     PREFIX,
-    NAME,
     SCALE,
-    TLES,
+    SCENARIO_START,
     FIELD_OF_REGARD,
+    TLES
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -40,12 +40,7 @@ if __name__ == "__main__":
     config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, True)
 
     # create the managed application
-    app = ManagedApplication(NAME)
-
-    # load current TLEs for active satellites from Celestrak (NOTE: User has option to specify their own TLE instead)
-    activesats_url = "https://celestrak.com/NORAD/elements/active.txt"
-    activesats = load.tle_file(activesats_url, reload=True)
-    by_name = {sat.name: sat for sat in activesats}
+    app = ManagedApplication("capella")
 
     # Names of Capella satellites used in Celestrak database
     names = ["CAPELLA-1-DENALI", \
@@ -56,14 +51,26 @@ if __name__ == "__main__":
             "CAPELLA-6-WHITNEY", \
             "CAPELLA-7-WHITNEY", \
             "CAPELLA-8-WHITNEY"]
-    ES = []
-    indices = []
-    for name_i, name in enumerate(names):
-        ES.append(by_name[name])
-        indices.append(name_i)
     
-    # initialize the Constellation object class (in this example from EarthSatellite type)
-    constellation = Constellation('capella', app, indices, names, FIELD_OF_REGARD, ES)
+    indices = [i for i in range(len(names))]
+    
+    # Checks if the TLES parameter is given and if not pulls the most recent ones from Celestrak
+    if TLES == None:
+        # load current TLEs for active satellites from Celestrak (NOTE: User has option to specify their own TLE instead)
+        load.download("https://celestrak.com/NORAD/elements/active.txt")
+        TLES = pd.Series(
+            data=[[] for _ in range(len(names))],
+            index=names
+        )
+        with open("active.txt", "r") as f:
+            f = list(f)
+            for i, row in enumerate(f):
+                if i % 3 == 0 and row.strip(' \n') in names:
+                    TLES[row.strip(' \n')].append(f[i+1])
+                    TLES[row.strip(' \n')].append(f[i+2])
+
+    # initialize the Constellation object class from TLEs    
+    constellation = Constellation('capella', app, indices, names, FIELD_OF_REGARD["Capella"], tles=TLES)
 
     # add observer classes to the Constellation object class
     constellation.add_observer(EventDetectedObserver(app))
@@ -86,13 +93,15 @@ if __name__ == "__main__":
         config,
         True,
         time_status_step=timedelta(seconds=10) * SCALE,
-        time_status_init=datetime(2022, 10, 3, 7, 20, tzinfo=timezone.utc),
-        time_step=timedelta(seconds=2) * SCALE,
+        time_status_init=SCENARIO_START,
+        time_step=timedelta(seconds=0.5) * SCALE,
     )
 
     # add message callbacks
-    app.add_message_callback("event", "location", constellation.on_event)
+    app.add_message_callback("event", "start", constellation.on_event_start)
     app.add_message_callback("ground", "location", constellation.on_ground)
+    app.add_message_callback("manager", "stop", constellation.on_manager_stop)
+    app.add_message_callback("event", "finish", constellation.on_event_finish)
 
     # Ensures the application hangs until the simulation is terminated, to allow background threads to run
     while not app.simulator.get_mode() == Mode.TERMINATED:

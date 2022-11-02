@@ -18,15 +18,16 @@ from nost_tools.managed_application import ManagedApplication
 
 from constellation import *
 
-from examples.utility.satellites.satellite_config_files.planet_config import (
+from examples.utility.config import (
     PREFIX,
-    NAME,
     SCALE,
-    TLES,
+    SCENARIO_START,
     FIELD_OF_REGARD,
+    TLES
 )
 
 logging.basicConfig(level=logging.INFO)
+
 
 # name guard used to ensure script only executes if it is run as the __main__
 if __name__ == "__main__":
@@ -39,43 +40,50 @@ if __name__ == "__main__":
     config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, True)
 
     # create the managed application
-    app = ManagedApplication(NAME)
-
-    # load current TLEs for active satellites from Celestrak (NOTE: User has option to specify their own TLE instead)
-    activesats_url = "https://celestrak.com/NORAD/elements/active.txt"
-    activesats = load.tle_file(activesats_url, reload=True)
-    by_name = {sat.name: sat for sat in activesats}
+    app = ManagedApplication("planet")
     
     # Names of Planet satellites used in Celestrak database
     names = ["SKYSAT-A", \
-            "SKYSAT-B", \
-            "SKYSAT-C1", \
-            "SKYSAT-C2", \
-            "SKYSAT-C3", \
-            "SKYSAT-C4", \
-            "SKYSAT-C5", \
-            "SKYSAT-C6", \
-            "SKYSAT-C7", \
-            "SKYSAT-C8", \
-            "SKYSAT-C9", \
-            "SKYSAT-C10", \
-            "SKYSAT-C11", \
-            "SKYSAT-C12", \
-            "SKYSAT-C13", \
-            "SKYSAT-C14", \
-            "SKYSAT-C15", \
-            "SKYSAT-C16", \
-            "SKYSAT-C17", \
-            "SKYSAT-C18", \
-            "SKYSAT-C19"]
-    ES = []
-    indices = []
-    for name_i, name in enumerate(names):
-        ES.append(by_name[name])
-        indices.append(name_i)
+                "SKYSAT-B", \
+                "SKYSAT-C1", \
+                "SKYSAT-C2", \
+                "SKYSAT-C3", \
+                "SKYSAT-C4", \
+                "SKYSAT-C5", \
+                "SKYSAT-C6", \
+                "SKYSAT-C7", \
+                "SKYSAT-C8", \
+                "SKYSAT-C9", \
+                "SKYSAT-C10", \
+                "SKYSAT-C11", \
+                "SKYSAT-C12", \
+                "SKYSAT-C13", \
+                "SKYSAT-C14", \
+                "SKYSAT-C15", \
+                "SKYSAT-C16", \
+                "SKYSAT-C17", \
+                "SKYSAT-C18", \
+                "SKYSAT-C19"]
+                
+    indices = [i for i in range(len(names))]
+
+    # Checks if the TLES parameter is given and if not pulls the most recent ones from Celestrak
+    if TLES ==None:
+        # load current TLEs for active satellites from Celestrak (NOTE: User has option to specify their own TLE instead)
+        # load.download("https://celestrak.com/NORAD/elements/active.txt")
+        TLES = pd.Series(
+            data=[[] for _ in range(len(names))],
+            index=names
+        )
+        with open("active.txt", "r") as f:
+            f = list(f)
+            for i, row in enumerate(f):
+                if i%3 == 0 and row.strip(' \n') in names:
+                    TLES[row.strip(" \n")].append(f[i+1])
+                    TLES[row.strip(" \n")].append(f[i+2])
 
     # initialize the Constellation object class (in this example from EarthSatellite type)
-    constellation = Constellation('planet', app, indices, names, FIELD_OF_REGARD, ES)
+    constellation = Constellation('planet', app, indices, names, FIELD_OF_REGARD["Planet"], tles=TLES)
 
     # add observer classes to the Constellation object class
     constellation.add_observer(EventDetectedObserver(app))
@@ -98,13 +106,15 @@ if __name__ == "__main__":
         config,
         True,
         time_status_step=timedelta(seconds=10) * SCALE,
-        time_status_init=datetime(2022, 10, 3, 7, 20, tzinfo=timezone.utc),
-        time_step=timedelta(seconds=2) * SCALE,
+        time_status_init=SCENARIO_START,
+        time_step=timedelta(seconds=0.5) * SCALE,
     )
 
     # add message callbacks
-    app.add_message_callback("event", "location", constellation.on_event)
+    app.add_message_callback("event", "start", constellation.on_event_start)
+    app.add_message_callback("manager", "stop", constellation.on_manager_stop)
     app.add_message_callback("ground", "location", constellation.on_ground)
+    app.add_message_callback("event", "finish", constellation.on_event_finish)
 
     # Ensures the application hangs until the simulation is terminated, to allow background threads to run
     while not app.simulator.get_mode() == Mode.TERMINATED:

@@ -16,10 +16,11 @@ from nost_tools.simulator import Simulator, Mode
 from nost_tools.observer import Observer
 from nost_tools.managed_application import ManagedApplication
 
-from ground_config_files.schemas import GroundLocation
-from ground_config_files.config import (
+from examples.utility.schemas import GroundLocation
+from examples.utility.config import (
     PREFIX,
     SCALE,
+    SCENARIO_START,
     GROUND,
 )
 
@@ -88,7 +89,7 @@ if __name__ == "__main__":
         config,
         True,
         time_status_step=timedelta(seconds=10) * SCALE,
-        time_status_init=datetime(2022, 10, 3, 7, 20, 0, tzinfo=timezone.utc),
+        time_status_init=SCENARIO_START,
         time_step=timedelta(seconds=2) * SCALE,
     )
 
