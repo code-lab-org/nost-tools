@@ -253,8 +253,8 @@ class LinkEndObserver(Observer):
 if __name__ == "__main__":
     # Note that these are loaded from a .env file in current working directory
     credentials = dotenv_values(".env")
-    HOST, PORT = credentials["SMCE_HOST"], int(credentials["SMCE_PORT"])
-    USERNAME, PASSWORD = credentials["SMCE_USERNAME"], credentials["SMCE_PASSWORD"]
+    HOST, PORT = "testbed.mysmce.com", 8883
+    USERNAME, PASSWORD = "bchell", "cT8T1pd62KnZ"
     
     # set the client credentials
     config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, True)

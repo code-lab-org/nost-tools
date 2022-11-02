@@ -51,7 +51,17 @@ if __name__ == "__main__":
                 print(eventMessage)
                 
                 #wait for next utility step
-                time.sleep(1)                    
+                time.sleep(1)
+
+                obsRand = random.randint(100)
+                if obsRand <= 50:
+                    
+                    obsMessage = {"time":currentTime,
+                                    "latitude":eventLat,
+                                    "longitude":eventLon,
+                                    "obsUtility":utility}
+                    client.publish("BCtest/AIAA/obsUtility", payload=json.dumps(eventMessage))
+                    
                 
         # time step between possible events
         next_step = datetime.now() + timedelta(seconds=1)

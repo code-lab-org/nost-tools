@@ -25,8 +25,7 @@ def on_message(mqttc, obj, msg):
     eventMessage["location"] = eventMessage["latitude"], eventMessage["longitude"]
     eventLOD.append(eventMessage)
     update_fig(n)
-
-
+    
 def update_fig(n):
     df = pd.DataFrame(eventLOD)
     fig = px.line(df, x='time', y='utility', color='location', markers=True,
@@ -48,7 +47,7 @@ if __name__ == "__main__":
     client.tls_set()
     # connect to MQTT server on port 8883
     client.connect("testbed.mysmce.com", 8883)
-    # subscribe to science event topic
+    # subscribe to science event topics
     client.subscribe("BCtest/AIAA/eventUtility",0)
     # bind the message handler
     client.on_message = on_message
@@ -66,7 +65,7 @@ if __name__ == "__main__":
     df0["location"] = (latitude, longitude)
     n=0
     eventLOD = []
-
+    
     app = dash.Dash(__name__)
 
     # for dashboard plot

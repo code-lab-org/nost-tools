@@ -2,7 +2,7 @@
 """
     *An application that aggregates data from the floods application case to determine latency metrics*
 
-    This application subscribes to the timestamps published to the flood warning, image taken, and image downlinked topics. The data are saved in the list, floodList.
+    This application subscribes to the timestamps published to the flood warning, image taken, and image downlinked ats. The data are saved in the list, floodList.
 """
 
 import paho.mqtt.client as mqtt
