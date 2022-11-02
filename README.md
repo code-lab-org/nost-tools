@@ -1,7 +1,7 @@
 # New Observing Strategies Testbed (NOS-T)
 
 The New Observing Strategies Testbed (NOS-T) is a computational testbed for
-maturing technologies related to the NASA New Observing Stratgies thrust.
+maturing technologies related to the NASA New Observing Strategies thrust.
 
 Documentation: https://nost-tools.readthedocs.io
 
