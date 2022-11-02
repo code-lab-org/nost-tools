@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-Fire
 """
-Example script to specify object schemas for the FireSat test case.
+Example script to specify object schemas for the EventSat test case.
 
 """
 
@@ -10,38 +10,51 @@ from datetime import datetime
 from enum import Enum
 
 
-class FireState(str, Enum):
+class EventState(str, Enum):
     undefined = "undefined"
     started = "started"
+    finished = "finished"
     detected = "detected"
     reported = "reported"
 
 
-class FireStarted(BaseModel):
-    fireId: int = Field(..., description="Unique fire identifier.")
-    start: Optional[datetime] = Field(description="Time fire started.")
+class EventStarted(BaseModel):
+    eventId: int = Field(..., description="Unique event identifier.")
+    start: Optional[datetime] = Field(description="Time event started.")
+    finish: Optional[datetime] = Field(description="Time event finished.")
     latitude: Optional[confloat(ge=-90, le=90)] = Field(
-        description="Latitude (deg) of fire location."
+        description="Latitude (deg) of event location."
     )
     longitude: Optional[confloat(ge=-180, le=180)] = Field(
-        description="Longitude (deg) of fire location."
+        description="Longitude (deg) of event location."
     )
 
 
-class FireDetected(BaseModel):
-    fireId: int = Field(..., description="Unique fire identifier.")
-    detected: datetime = Field(..., description="Time fire detected.")
-    detected_by: str = Field(..., description="Satellite name that detected the fire.")
+class EventDetected(BaseModel):
+    eventId: int = Field(..., description="Unique event identifier.")
+    detected: datetime = Field(..., description="Time event detected.")
+    detected_by: str = Field(..., description="Satellite name that detected the event.")
 
 
-class FireReported(BaseModel):
-    fireId: int = Field(..., description="Unique fire identifier.")
-    reported: datetime = Field(..., description="Time fire reported.")
+class EventReported(BaseModel):
+    eventId: int = Field(..., description="Unique event identifier.")
+    reported: datetime = Field(..., description="Time event reported.")
     reported_by: str = Field(
-        ..., description="Satellite name that sent the fire report."
+        ..., description="Satellite name that sent the event report."
     )
     reported_to: int = Field(
-        ..., description="Station id that received the fire report."
+        ..., description="Station id that received the event report."
+    )
+
+
+class EventFinished(BaseModel):
+    eventId: int = Field(..., description="Unique event identifier.")
+    finish: Optional[datetime] = Field(description="Time event started.")
+    latitude: Optional[confloat(ge=-90, le=90)] = Field(
+        description="Latitude (deg) of event location."
+    )
+    longitude: Optional[confloat(ge=-180, le=180)] = Field(
+        description="Longitude (deg) of event location."
     )
 
 

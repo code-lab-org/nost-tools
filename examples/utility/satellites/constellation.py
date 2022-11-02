@@ -1,49 +1,22 @@
-# -*- coding: utf-8 -*-
-"""
-    *This application demonstrates a constellation of satellites for monitoring fires propagated from Two-Line Elements (TLEs)*
-    
-    The application contains one :obj:`Constellation` (:obj:`Entity`) object class, one :obj:`PositionPublisher` (:obj:`WallclockTimeIntervalPublisher`), and two :obj:`Observer` object classes to monitor for :obj:`FireDetected` and :obj:`FireReported` events, respectively. The application also contains several methods outside of these classes, which contain standardized calculations sourced from Ch. 5 of *Space Mission Analysis and Design* by Wertz and Larson.
-
-"""
-
 import logging
-from datetime import datetime, timezone, timedelta
-from dotenv import dotenv_values
 import numpy as np
 import pandas as pd
 import copy
-# import matplotlib.pyplot as plt
-# import matplotlib.patches as mpatches
-# import seaborn as sns
-
-# from scipy import stats
-
-# import time
-
-from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
-from nost_tools.entity import Entity
-from nost_tools.observer import Observer
-from nost_tools.managed_application import ManagedApplication
-from nost_tools.publisher import WallclockTimeIntervalPublisher
 
 from skyfield.api import load, wgs84, EarthSatellite
+from nost_tools.entity import Entity
+from nost_tools.observer import Observer
+from nost_tools.publisher import WallclockTimeIntervalPublisher
 
-from Capella_config_files.schemas import (
-    FireStarted,
-    FireDetected,
-    FireReported,
+from satellite_config_files.schemas import (
+    EventState,
+    EventStarted,
+    EventDetected,
+    EventReported,
     SatelliteStatus,
     GroundLocation,
 )
-from Capella_config_files.config import (
-    PREFIX,
-    NAME,
-    SCALE,
-    TLES,
-    FIELD_OF_REGARD,
-)
 
-logging.basicConfig(level=logging.INFO)
 
 def compute_min_elevation(altitude, field_of_regard):
     """
@@ -133,8 +106,8 @@ def check_in_view(t, satellite, topos, min_elevation):
             True/False indicating visibility of ground location to satellite
     """
     isInView = False
-    elevationFromFire = get_elevation_angle(t, satellite, topos)
-    if elevationFromFire >= min_elevation:
+    elevationFromEvent = get_elevation_angle(t, satellite, topos)
+    if elevationFromEvent >= min_elevation:
         isInView = True
     return isInView
 
@@ -182,30 +155,32 @@ class Constellation(Entity):
         tles (list): Optional list of Two-Line Element *str* to be converted into :obj:`EarthSatellite` objects and included in the simulation
         
     Attributes:
-        fires (list): List of fires with unique fireId (*int*), ignition (:obj:`datetime`), and latitude-longitude location (:obj:`GeographicPosition`) - *NOTE:* initialized as [ ]
+        events (list): List of events with unique eventId (*int*), ignition (:obj:`datetime`), and latitude-longitude location (:obj:`GeographicPosition`) - *NOTE:* initialized as [ ]
         grounds (:obj:`DataFrame`): Dataframe containing information about ground stations with unique groundId (*int*), latitude-longitude location (:obj:`GeographicPosition`), min_elevation (*float*) angle constraints, and operational status (*bool*) - *NOTE:* initialized as **None**
         satellites (list): List of :obj:`EarthSatellite` objects included in the constellation - *NOTE:* must be same length as **id**
-        detect (list): List of detected fires with unique fireId (*int*), detected :obj:`datetime`, and name (*str*) of detecting satellite - *NOTE:* initialized as [ ]
-        report (list): List of reported fires with unique fireId (*int*), reported :obj:`datetime`, name (*str*) of reporting satellite, and groundId (*int*) of ground station reported to - *NOTE:* initialized as [ ]
+        detect (list): List of detected events with unique eventId (*int*), detected :obj:`datetime`, and name (*str*) of detecting satellite - *NOTE:* initialized as [ ]
+        report (list): List of reported events with unique eventId (*int*), reported :obj:`datetime`, name (*str*) of reporting satellite, and groundId (*int*) of ground station reported to - *NOTE:* initialized as [ ]
         positions (list): List of current latitude-longitude-altitude locations (:obj:`GeographicPosition`) of each satellite in the constellation - *NOTE:* must be same length as **id**
         next_positions (list): List of next latitude-longitude-altitude locations (:obj:`GeographicPosition`) of each satellite in the constellation - *NOTE:* must be same length as **id**
-        min_elevations_fire (list): List of *floats* indicating current elevation angle (degrees) constraint for visibility by each satellite - *NOTE:* must be same length as **id**, updates every time step
+        min_elevations_event (list): List of *floats* indicating current elevation angle (degrees) constraint for visibility by each satellite - *NOTE:* must be same length as **id**, updates every time step
         
     """
 
     ts = load.timescale()
-    PROPERTY_FIRE_REPORTED = "reported"
-    PROPERTY_FIRE_DETECTED = "detected"
+    PROPERTY_EVENT_REPORTED = "reported"
+    PROPERTY_EVENT_DETECTED = "detected"
     PROPERTY_POSITION = "position"
 
-    def __init__(self, cName, app, id, names, ES=None, tles=None):
+
+    def __init__(self, cName, app, id, names, field_of_regard, ES=None, tles=None):
         super().__init__(cName)
         self.app = app
         self.id = id
         self.names = names
-        self.fires = []
+        self.events = []
         self.grounds = None
         self.satellites = []
+        self.field_of_regard = field_of_regard
         if ES is not None:
             for satellite in ES:
                 self.satellites.append(satellite)
@@ -214,19 +189,22 @@ class Constellation(Entity):
                 self.satellites.append(
                     EarthSatellite(tle[0], tle[1], self.names[i], self.ts)
                 )
-        self.detect = []
-        self.report = []
+
+        self.sat_data = {sat.name: [] for sat in ES}
+        self.new_detect = []
+        self.new_report = []
         self.positions = self.next_positions = [None for satellite in self.satellites]
-        self.min_elevations_fire = [
+        self.min_elevations_event = [
             compute_min_elevation(
                 wgs84.subpoint(satellite.at(satellite.epoch)).elevation.m,
-                FIELD_OF_REGARD[i],
+                self.field_of_regard[i],
             )
             for i, satellite in enumerate(self.satellites)
         ]
         # # Two print lines below can be used as sanity check that SMAD Ch. 5 equations implemented properly
         # print("\nInitial elevation angles:\n")
-        # print(self.min_elevations_fire)
+        # print(self.min_elevations_event)
+
 
     def initialize(self, init_time):
         """
@@ -250,6 +228,7 @@ class Constellation(Entity):
             for satellite in self.satellites
         ]
 
+
     def tick(self, time_step):
         """
         Computes the next :obj:`Constellation` state after the specified scenario duration and the next simulation scenario time
@@ -257,7 +236,7 @@ class Constellation(Entity):
         Args:
             time_step (:obj:`timedelta`): Duration between current and next simulation scenario time
         """
-        # tik = time.time()
+
         super().tick(time_step)
         self.next_positions = [
             wgs84.subpoint(
@@ -265,78 +244,83 @@ class Constellation(Entity):
             )
             for satellite in self.satellites
         ]
+
         for i, satellite in enumerate(self.satellites):
             then = self.ts.from_datetime(self.get_time() + time_step)
-            self.min_elevations_fire[i] = compute_min_elevation(
-                float(self.next_positions[i].elevation.m), FIELD_OF_REGARD[i]
+            now = self.ts.from_datetime(self.get_time())
+
+            self.min_elevations_event[i] = compute_min_elevation(
+                float(self.next_positions[i].elevation.m), self.field_of_regard[i]
             )
-            for j, fire in enumerate(self.fires):
-                if self.detect[j][self.names[i]] is None:
-                    topos = wgs84.latlon(fire["latitude"], fire["longitude"])
-                    isInView = check_in_view(
-                        then, satellite, topos, self.min_elevations_fire[i]
-                    )
-                    if isInView:
-                        self.detect[j][self.names[i]] = (
-                            self.get_time() + time_step
-                        )  # TODO could use event times
-                        if self.detect[j]["firstDetector"] is None:
-                            self.detect[j]["firstDetect"] = True
-                            self.detect[j]["firstDetector"] = self.names[i]
-                if (self.detect[j][self.names[i]] is not None) and (
-                    self.report[j][self.names[i]] is None
-                ):
-                    isInRange, groundId = check_in_range(then, satellite, self.grounds)
-                    if isInRange:
-                        self.report[j][self.names[i]] = self.get_time() + time_step
-                        if self.report[j]["firstReporter"] is None:
-                            self.report[j]["firstReport"] = True
-                            self.report[j]["firstReporter"] = self.names[i]
-                            self.report[j]["firstReportedTo"] = groundId
-        # tok = time.time() - tik
-        # print(f"The tick took {tok} seconds to filter \n")
+            isInRange, groundId = check_in_range(then, satellite, self.grounds)
+
+            for j, event in enumerate(self.events):
+                topos = wgs84.latlon(event["latitude"], event["longitude"])
+                isInViewCurr = check_in_view(now, satellite, topos, self.min_elevations_event[i-1])
+                isInViewNext = check_in_view(then, satellite, topos, self.min_elevations_event[i])
+
+                if isInViewNext and not isInViewCurr:
+                    event_change = {}
+                    event_change["eventId"]=event["eventId"]
+                    event_change["detected"]=self.get_time() + time_step
+                    event_change["detected_by"]=satellite.name
+                    self.new_detect.append(event_change)
+                    self.sat_data[satellite.name].append(event["eventId"])
+
+            if (isInRange and self.sat_data[satellite.name]):
+                for id in self.sat_data[satellite.name]:
+                    event_change = {}
+                    event_change["eventId"]=id
+                    event_change["reported"]=self.get_time() + time_step
+                    event_change["reported_by"]=satellite.name
+                    event_change["reprted_to"]=groundId
+                    self.new_report.append(event_change)
+                self.sat_data[satellite.name] = []
+
 
     def tock(self):
         """
         Commits the next :obj:`Constellation` state and advances simulation scenario time
         
         """
-        # tik = time.time()
+
+        # Advances positions
         self.positions = self.next_positions
-        for i, newly_detected_fire in enumerate(self.detect):
-            if newly_detected_fire["firstDetect"]:
-                detector = newly_detected_fire["firstDetector"]
-                self.notify_observers(
-                    self.PROPERTY_FIRE_DETECTED,
-                    None,
-                    {
-                        "fireId": newly_detected_fire["fireId"],
-                        "detected": newly_detected_fire[detector],
-                        "detected_by": detector,
-                    },
-                )
-                self.detect[i]["firstDetect"] = False
-        for i, newly_reported_fire in enumerate(self.report):
-            if newly_reported_fire["firstReport"]:
-                reporter = newly_reported_fire["firstReporter"]
-                self.notify_observers(
-                    self.PROPERTY_FIRE_REPORTED,
-                    None,
-                    {
-                        "fireId": newly_reported_fire["fireId"],
-                        "reported": newly_reported_fire[reporter],
-                        "reported_by": reporter,
-                        "reported_to": newly_reported_fire["firstReportedTo"],
-                    },
-                )
-            self.report[i]["firstReport"] = False
-        # tok = time.time() - tik
-        # print(f"The tock took {tok} seconds \n")
+        
+        # Notifies observers of each newly detected event
+        for event_change in self.new_detect:
+            self.notify_observers(
+                self.PROPERTY_EVENT_DETECTED,
+                None,
+                {
+                    "eventId": event_change["eventId"],
+                    "detected": event_change["detected"],
+                    "detected_by": event_change["detected_by"]
+                }
+            )
+
+        # Notifies observers of each newly detected event
+        for event_change in self.new_report:
+            self.notify_observers(
+                self.PROPERTY_EVENT_REPORTED,
+                None,
+                {
+                    "eventId": event_change["eventId"],
+                    "reported": event_change["reported"],
+                    "reported_by": event_change["reported_by"],
+                    "reported_to": event_change["reported_to"]
+                }
+            )
+        
+        self.new_detect = []
+        self.new_report = []
+
         super().tock()
 
-    def on_fire(self, client, userdata, message):
+
+    def on_event(self, client, userdata, message):
         """
-        Callback function appends a dictionary of information for a new fire to fires :obj:`list` when message detected on the *PREFIX/fires/location* topic
+        Callback function appends a dictionary of information for a new event to events :obj:`list` when message detected on the *PREFIX/events/location* topic
         
         Args:
             client (:obj:`MQTT Client`): Client that connects application to the event broker using the MQTT protocol. Includes user credentials, tls certificates, and host server-port information.
@@ -344,32 +328,16 @@ class Constellation(Entity):
             message (:obj:`message`): Contains *topic* the client subscribed to and *payload* message content as attributes 
             
         """
-        started = FireStarted.parse_raw(message.payload)
-        self.fires.append(
+        started = EventStarted.parse_raw(message.payload)
+        self.events.append(
             {
-                "fireId": started.fireId,
+                "eventId": started.eventId,
                 "start": started.start,
                 "latitude": started.latitude,
                 "longitude": started.longitude,
-            },
+            }
         )
-        satelliteDictionary = dict.fromkeys(
-            self.names
-        )  # Creates dictionary where keys are satellite names and values are defaulted to NoneType
-        satelliteDictionary[
-            "fireId"
-        ] = (
-            started.fireId
-        )  # Adds fireId to dictionary, which will coordinate with position of dictionary in list of dictionaries
-        detectDictionary = copy.deepcopy(satelliteDictionary)
-        detectDictionary["firstDetect"] = False
-        detectDictionary["firstDetector"] = None
-        self.detect.append(detectDictionary)
-        reportDictionary = copy.deepcopy(satelliteDictionary)
-        reportDictionary["firstReport"] = False
-        reportDictionary["firstReporter"] = None
-        reportDictionary["firstReportedTo"] = None
-        self.report.append(reportDictionary)
+
 
     def on_ground(self, client, userdata, message):
         """
@@ -431,7 +399,7 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
         super().__init__(app, time_status_step, time_status_init)
         self.constellation = constellation
         self.isInRange = [
-            False for i, satellite in enumerate(self.constellation.satellites)
+            False for _ in self.constellation.satellites
         ]
 
     def publish_message(self):
@@ -450,16 +418,16 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
 
         """
         for i, satellite in enumerate(self.constellation.satellites):
-            next_time = constellation.ts.from_datetime(
-                constellation.get_time() + 60 * self.time_status_step
+            next_time = self.constellation.ts.from_datetime(
+                self.constellation.get_time() + 60 * self.time_status_step
             )
             satSpaceTime = satellite.at(next_time)
             subpoint = wgs84.subpoint(satSpaceTime)
             sensorRadius = compute_sensor_radius(
-                subpoint.elevation.m, constellation.min_elevations_fire[i]
+                subpoint.elevation.m, self.constellation.min_elevations_event[i]
             )
             self.isInRange[i], groundId = check_in_range(
-                next_time, satellite, constellation.grounds
+                next_time, satellite, self.constellation.grounds
             )
             self.app.send_message(
                 "location",
@@ -471,13 +439,13 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
                     altitude=subpoint.elevation.m,
                     radius=sensorRadius,
                     commRange=self.isInRange[i],
-                    time=constellation.get_time(),
+                    time=self.constellation.get_time(),
                 ).json(),
             )
 
 
-# define an observer to send fire detection events
-class FireDetectedObserver(Observer):
+# define an observer to send event detection events
+class EventDetectedObserver(Observer):
     """
     *This object class inherits properties from the Observer object class from the observer template in the NOS-T tools library*
 
@@ -493,22 +461,22 @@ class FireDetectedObserver(Observer):
         """
         *Standard on_change callback function format inherited from Observer object class in NOS-T tools library*
 
-        In this instance, the callback function checks for notification of the "detected" property and publishes :obj:`FireDetected` message to *PREFIX/constellation/detected* topic:
+        In this instance, the callback function checks for notification of the "detected" property and publishes :obj:`EventDetected` message to *PREFIX/constellation/detected* topic:
 
         """
-        if property_name == Constellation.PROPERTY_FIRE_DETECTED:
+        if property_name == Constellation.PROPERTY_EVENT_DETECTED:
             self.app.send_message(
                 "detected",
-                FireDetected(
-                    fireId=new_value["fireId"],
+                EventDetected(
+                    eventId=new_value["eventId"],
                     detected=new_value["detected"],
                     detected_by=new_value["detected_by"],
                 ).json(),
             )
 
 
-# define an observer to send fire reporting events
-class FireReportedObserver(Observer):
+# define an observer to send event reporting events
+class EventReportedObserver(Observer):
     """
     *This object class inherits properties from the Observer object class from the observer template in the NOS-T tools library*
 
@@ -524,104 +492,16 @@ class FireReportedObserver(Observer):
         """
         *Standard on_change callback function format inherited from Observer object class in NOS-T tools library*
 
-        In this instance, the callback function checks for notification of the "reported" property and publishes :obj:`FireReported` message to *PREFIX/constellation/reported* topic:
+        In this instance, the callback function checks for notification of the "reported" property and publishes :obj:`EventReported` message to *PREFIX/constellation/reported* topic:
 
         """
-        if property_name == Constellation.PROPERTY_FIRE_REPORTED:
+        if property_name == Constellation.PROPERTY_EVENT_REPORTED:
             self.app.send_message(
                 "reported",
-                FireReported(
-                    fireId=new_value["fireId"],
+                EventReported(
+                    eventId=new_value["eventId"],
                     reported=new_value["reported"],
                     reported_by=new_value["reported_by"],
                     reported_to=new_value["reported_to"],
                 ).json(),
             )
-
-
-# name guard used to ensure script only executes if it is run as the __main__
-if __name__ == "__main__":
-    # Note that these are loaded from a .env file in current working directory
-    credentials = dotenv_values(".env")
-    HOST, PORT = credentials["SMCE_HOST"], int(credentials["SMCE_PORT"])
-    USERNAME, PASSWORD = credentials["SMCE_USERNAME"], credentials["SMCE_PASSWORD"]
-    
-    # set the client credentials
-    config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, True)
-
-    # create the managed application
-    app = ManagedApplication(NAME)
-
-    # load current TLEs for active satellites from Celestrak (NOTE: User has option to specify their own TLE instead)
-    activesats_url = "https://celestrak.com/NORAD/elements/active.txt"
-    activesats = load.tle_file(activesats_url, reload=True)
-    by_name = {sat.name: sat for sat in activesats}
-    # keys for CelesTrak TLEs used in this example (indexes often change over time)
-    # CAP1_DENALI, Index 1585
-    # CAP2_SEQUOIA, Index 2594
-    # CAP3_WHITNEY, Index 3186
-    # CAP4_WHITNEY, Index 3178
-    # CAP5_WHITNEY, Index 4188
-    # CAP6_WHITNEY, Index 4022
-    # CAP7_WHITNEY, Index 4865
-    # CAP8_WHITNEY, Index 4864
-    # names = ["CAP1_DENALI","CAP2_SEQUOIA","CAP3_WHITNEY","CAP4_WHITNEY","CAP5_WHITNEY","CAP6_WHITNEY","CAP7_WHITNEY","CAP8_WHITNEY"]
-    names = ["CAPELLA-1-DENALI", \
-            "CAPELLA-2-SEQUOIA", \
-            "CAPELLA-3-WHITNEY", \
-            "CAPELLA-4-WHITNEY", \
-            "CAPELLA-5-WHITNEY", \
-            "CAPELLA-6-WHITNEY", \
-            "CAPELLA-7-WHITNEY", \
-            "CAPELLA-8-WHITNEY"]
-    ES = []
-    indices = []
-    for name_i, name in enumerate(names):
-        ES.append(by_name[name])
-        indices.append(name_i)
-    
-    # CAP1_DENALI = activesats[1585]
-    # CAP2_SEQUOIA = activesats[2594]
-    # CAP3_WHITNEY = activesats[3186]
-    # CAP4_WHITNEY = activesats[3178]
-    # CAP5_WHITNEY = activesats[4188]
-    # CAP6_WHITNEY= activesats[4022]
-    # CAP7_WHITNEY= activesats[4865]
-    # CAP8_WHITNEY= activesats[4864]
-    # ES = [CAP1_DENALI,CAP2_SEQUOIA,CAP3_WHITNEY,CAP4_WHITNEY,CAP5_WHITNEY,CAP6_WHITNEY,CAP7_WHITNEY,CAP8_WHITNEY]
-    
-    # initialize the Constellation object class (in this example from EarthSatellite type)
-    # constellation = Constellation("capella", app, [0, 1, 2, 3, 4, 5, 6, 7], names, ES)
-    constellation = Constellation('capella', app, indices, names, ES)
-
-    # add observer classes to the Constellation object class
-    constellation.add_observer(FireDetectedObserver(app))
-    constellation.add_observer(FireReportedObserver(app))
-
-    # add the Constellation entity to the application's simulator
-    app.simulator.add_entity(constellation)
-
-    # add a shutdown observer to shut down after a single test case
-    app.simulator.add_observer(ShutDownObserver(app))
-
-    # add a position publisher to update satellite state every 5 seconds of wallclock time
-    app.simulator.add_observer(
-        PositionPublisher(app, constellation, timedelta(seconds=1))
-    )
-
-    # start up the application on PREFIX, publish time status every 10 seconds of wallclock time
-    app.start_up(
-        PREFIX,
-        config,
-        True,
-        time_status_step=timedelta(seconds=10) * SCALE,
-        time_status_init=datetime(2022, 10, 3, 7, 20, tzinfo=timezone.utc),
-        time_step=timedelta(seconds=2) * SCALE,
-    )
-
-    # add message callbacks
-    app.add_message_callback("fire", "location", constellation.on_fire)
-    app.add_message_callback("ground", "location", constellation.on_ground)
-
-    while True:
-        pass

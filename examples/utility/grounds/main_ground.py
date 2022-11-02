@@ -6,6 +6,7 @@
 
 """
 
+import time
 import logging
 from datetime import datetime, timezone, timedelta
 from dotenv import dotenv_values
@@ -87,6 +88,10 @@ if __name__ == "__main__":
         config,
         True,
         time_status_step=timedelta(seconds=10) * SCALE,
-        time_status_init=datetime(2020, 1, 1, 7, 20, tzinfo=timezone.utc),
-        time_step=timedelta(seconds=1) * SCALE,
+        time_status_init=datetime(2022, 10, 3, 7, 20, 0, tzinfo=timezone.utc),
+        time_step=timedelta(seconds=2) * SCALE,
     )
+
+    # Ensures the application hangs until the simulation is terminated, to allow background threads to run
+    while not app.simulator.get_mode() == Mode.TERMINATED:
+        time.sleep(1)

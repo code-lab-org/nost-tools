@@ -1,3 +1,4 @@
+# from asyncio.windows_events import NULL
 import random
 import os
 
@@ -8,5 +9,8 @@ HEADER = {
     "name": NAME,
     "description": "Publishes historical fire data from the VIIRS instrument.",
 }
-SCALE = 60.0
-EVENT_COUNT = 1000
+SCALE = 60
+SEED = 0
+EVENT_COUNT = 500
+EVENT_LENGTH = 12*60
+EVENT_TIMESPAN = 12*60
