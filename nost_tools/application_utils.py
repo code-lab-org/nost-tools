@@ -24,8 +24,8 @@ class ConnectionConfig(object):
     Attributes:
         username (str): The client username, provided by NOS-T operator
         password (str): The client password, provided by NOS-T operator
-        host (str): The server hostname.
-        port (int): The server port number.
+        host (str): The server hostname
+        port (int): The server port number
         is_tls (bool): True, if the connection uses TLS (Transport Layer Security)
     """
 
@@ -55,10 +55,10 @@ class ShutDownObserver(Observer):
         value before the change, and the value after the change.
 
         Args:
-            source (:obj:`Observable`): The observervable that triggered the change.
-            property_name (str): The name of property that is changing.
-            old_value (obj): The old value of the named property.
-            new_value (obj): The new value of the named property.
+            source (:obj:`Observable`): The observervable that triggered the change
+            property_name (str): The name of property that is changing
+            old_value (obj): The old value of the named property
+            new_value (obj): The new value of the named property
         """
         if property_name == Simulator.PROPERTY_MODE and new_value == Mode.TERMINATED:
             self.app.shut_down()

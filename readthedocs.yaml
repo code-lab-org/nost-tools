@@ -1,10 +1,10 @@
 version: 2
 
 sphinx:
-   configuration: docs/conf.py
+   configuration: docs/source/conf.py
 
 python:
    install:
     - method: pip
       path: .
-    - requirements: docs/realtime-requirements.txt
+    - requirements: docs/requirements.txt

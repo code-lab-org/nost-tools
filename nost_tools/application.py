@@ -19,13 +19,13 @@ class Application(object):
     object that can be modified for user needs.
 
     Attributes:
-        prefix (str) : The test run namespace (prefix).
-        simulator (:obj:`Simulator`): Application simulator -- calls on the simulator.py class for functionality.
-        client (:obj:`Client`): Application MQTT client.
-        app_name (str): Test run application name.
-        app_description (str): Test run application description (optional).
-        time_status_step (:obj:`timedelta`): Scenario duration between time status messages.
-        time_status_init (:obj:`datetime`): Scenario time of first time status message.
+        prefix (str) : The test run namespace (prefix)\n
+        simulator (:obj:`Simulator`): Application simulator -- calls on the simulator.py class for functionality
+        client (:obj:`Client`): Application MQTT client
+        app_name (str): Test run application name
+        app_description (str): Test run application description (optional)\n
+        time_status_step (:obj:`timedelta`): Scenario duration between time status messages
+        time_status_init (:obj:`datetime`): Scenario time of first time status message
     """
 
     def __init__(self, app_name, app_description=None):
@@ -71,12 +71,12 @@ class Application(object):
         the connection configuration, and the intervals for publishing time status messages.
 
         Args:
-            prefix (str) : The test run namespace (prefix).
-            config (:obj:`ConnectionConfig`) : The connection configuration.
-            set_offset (bool) : True, if the system clock offset shall be set.
-            time_status_step (:obj:`timedelta`): Scenario duration between time status messages.
-            time_status_init (:obj:`datetime`): Scenario time for first time status message.
-            shut_down_when_terminated (bool) : True, if the application should shut down when the simulation is terminated.
+            prefix (str) : The test run namespace (prefix)\n
+            config (:obj:`ConnectionConfig`) : The connection configuration
+            set_offset (bool) : True, if the system clock offset shall be set
+            time_status_step (:obj:`timedelta`): Scenario duration between time status messages
+            time_status_init (:obj:`datetime`): Scenario time for first time status message
+            shut_down_when_terminated (bool) : True, if the application should shut down when the simulation is terminated
         """
         # maybe configure wallclock offset
         if set_offset:
@@ -105,8 +105,8 @@ class Application(object):
         time status for the reference application ('self') if the arguments are provided.
 
         Args:
-            time_status_step (:obj:`timedelta`): Scenario duration between time status messages.
-            time_status_init (:obj:`datetime`): Scenario time for first time status message.
+            time_status_step (:obj:`timedelta`): Scenario duration between time status messages
+            time_status_init (:obj:`datetime`): Scenario time for first time status message
         """
         if time_status_step is not None:
             if self._time_status_publisher is not None:
@@ -139,7 +139,7 @@ class Application(object):
     def shut_down(self):
         """
         shut_down shuts down the application by stopping the background event loop, and also disconnects
-        the application from the message broker
+        the application from the message broker.
         """
         if self._time_status_publisher is not None:
             # remove the time status observer
@@ -159,8 +159,8 @@ class Application(object):
         a message with payload `payload` to the topic `prefix/app_name/app_topic`.
 
         Args:
-            app_topic (str) : The application-specific topic.
-            payload (str) : The message payload (JSON-encoded string).
+            app_topic (str) : The application-specific topic
+            payload (str) : The message payload (JSON-encoded string)
 
         """
         topic = f"{self.prefix}/{self.app_name}/{app_topic}"
@@ -173,9 +173,9 @@ class Application(object):
         to a message topic in the format `prefix/app_name/app_topic`.
 
         Args:
-            app_name (str) : The application name.
-            app_topic (str) : The application topic.
-            callback (fun) : The callback function.
+            app_name (str) : The application name
+            app_topic (str) : The application topic
+            callback (fun) : The callback function
         """
         topic = f"{self.prefix}/{app_name}/{app_topic}"
         logger.debug(f"Subscribing and adding callback to topic: {topic}")
@@ -188,8 +188,8 @@ class Application(object):
         from a message topic in the format `prefix/app_name/app_topic`.
 
         Args:
-            app_name (str) : The application name.
-            app_topic (str) : The application topic.
+            app_name (str) : The application name
+            app_topic (str) : The application topic
         """
         topic = f"{self.prefix}/{app_name}/{app_topic}"
         logger.debug(f"Removing callback from topic: {topic}")
@@ -201,9 +201,9 @@ class Application(object):
         saves the offset value to account for time differences between applications for synchronization.
 
         Args:
-            host (str) : The NTP host (default: 'pool.ntp.org').
-            retry_delay_s (int) : The number of seconds to wait before retrying.
-            max_retry (int) : The maximum number of retries allowed.
+            host (str) : The NTP host (default: 'pool.ntp.org')\n
+            retry_delay_s (int) : The number of seconds to wait before retrying
+            max_retry (int) : The maximum number of retries allowed
         """
         for i in range(max_retry):
             try:

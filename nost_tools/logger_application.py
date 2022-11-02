@@ -16,15 +16,15 @@ class LoggerApplication(Application):
     that subscribes to a specified topic and logs all messages to file.
 
     Attributes:
-        prefix (str) : The test run namespace (prefix).
+        prefix (str) : The test run namespace (prefix)\n
         simulator (:obj:`Simulator`): Application simulator defined in the *Simulator* class
-        client (:obj:`Client`): Application MQTT client.
-        app_name (str): Logger application name (default: logger).
-        app_description (str): Logger application description (optional).
-        log_app (str): Application name to be logged (default: "+").
-        log_topic (str): Topic to be logged (default: "#").
-        log_dir (str): Directory to write log files (default: ".").
-        log_file (:obj:`File`): Current log file.
+        client (:obj:`Client`): Application MQTT client
+        app_name (str): Logger application name (default: logger)\n
+        app_description (str): Logger application description (optional)\n
+        log_app (str): Application name to be logged (default: "+")\n
+        log_topic (str): Topic to be logged (default: "#")\n
+        log_dir (str): Directory to write log files (default: ".")\n
+        log_file (:obj:`File`): Current log file
     """
 
     def __init__(self, app_name="logger", app_description=None):
@@ -43,9 +43,9 @@ class LoggerApplication(Application):
         registering callback functions.
 
         Args:
-            prefix (str): The test run namespace (prefix).
-            config (:obj:`ConnectionConfig`): The connection configuration.
-            set_offset (bool): True, if the system clock offset shall be set.
+            prefix (str): The test run namespace (prefix)\n
+            config (:obj:`ConnectionConfig`): The connection configuration
+            set_offset (bool): True, if the system clock offset shall be set
         """
         self.log_app = log_app
         self.log_topic = log_topic
@@ -73,10 +73,10 @@ class LoggerApplication(Application):
         the MQTT client connects to the broker.
 
         Args:
-            client (:obj:`Client`): The client instance for this callback.
-            userdata (obj): The private user data as set in the client.
-            flags (dict): Response flags sent by the broker.
-            rc (int): The connection result.
+            client (:obj:`Client`): The client instance for this callback
+            userdata (obj): The private user data as set in the client
+            flags (dict): Response flags sent by the broker
+            rc (int): The connection result
         """
         if self.log_file is not None:
             self.log_file().close()
@@ -94,9 +94,9 @@ class LoggerApplication(Application):
         the MQTT client disconnects from the broker.
 
         Args:
-            client (:obj:`Client`): The client instance for this callback.
-            userdata (obj): The private user data as set in the client.
-            rc (int): The connection result.
+            client (:obj:`Client`): The client instance for this callback
+            userdata (obj): The private user data as set in the client
+            rc (int): The connection result
         """
         if self.log_file is not None:
             self.log_file.close()
@@ -109,9 +109,9 @@ class LoggerApplication(Application):
         the logger application.
 
         Args:
-            client (:obj:`Client`): The client instance for this callback.
-            userdata (obj): The private user data as set in the client.
-            message (:obj:`MQTTMessage`): The MQTT message.
+            client (:obj:`Client`): The client instance for this callback
+            userdata (obj): The private user data as set in the client
+            message (:obj:`MQTTMessage`): The MQTT message
         """
         if self.log_file is not None:
             logger.debug(f"Logger {self.app_name} logging message {message.payload}.")

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
     *This application demonstrates a network of ground stations given geospatial locations, minimum elevation angle constraints, and operational status*
-    
+
     The application contains one class, the :obj:`Environment` class, which waits for a message from the manager that indicates the beginning of the simulation execution. The application publishes all of the ground station information once, at the beginning of the simulation.
 
 """
@@ -43,8 +43,8 @@ class Environment(Observer):
         *Standard on_change callback function format inherited from Observer object class*
 
         In this instance, the callback function checks when the **PROPERTY_MODE** switches to **EXECUTING** to send a :obj:`GroundLocation` message to the *PREFIX/ground/location* topic:
-            
-            .. literalinclude:: /../examples/firesat/grounds/main_ground.py
+
+            .. literalinclude:: /../../examples/firesat/grounds/main_ground.py
                 :lines: 51-62
 
         """
@@ -68,7 +68,7 @@ if __name__ == "__main__":
     credentials = dotenv_values(".env")
     HOST, PORT = credentials["SMCE_HOST"], int(credentials["SMCE_PORT"])
     USERNAME, PASSWORD = credentials["SMCE_USERNAME"], credentials["SMCE_PASSWORD"]
-    
+
     # set the client credentials
     config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, True)
 

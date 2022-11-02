@@ -9,8 +9,8 @@ file, the dash figure is updated.
 """
 
 import dash
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import dcc  # need to upgrade to python 3.8 if this throws a warning
+from dash import html
 from dash.dependencies import Input, Output
 import plotly.express as px
 import pandas as pd

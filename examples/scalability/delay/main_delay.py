@@ -60,8 +60,8 @@ def post_processing(names,msg_dictionaries,msg_periodicity=None, msg_size=None, 
     At end of simulation, calculates time difference between reported wallclock publish :obj:`datetime` and system wallclock receipt :obj:`datetime` (with wallclock_offset from NTP server accounted for) in microseconds for *each* time status message. Converts final :obj:`list` of these measured time delays into a :obj:`DataFrame` and calculates summary statistics for mean, median, mode, standard deviation, and skew of time delay distributions.
 
     Args:
-        names (:obj:`list`): list of names (*str*) of applications that were monitored for delays
-        msg_dictionaries (:obj:`list`): list of dictionaries with common keys representing each messages time delay information
+        names (list): list of names (*str*) of applications that were monitored for delays
+        msg_dictionaries (list): list of dictionaries with common keys representing each messages time delay information
         msg_periodicity (float): duration between successive time status messages (typically reported by application at beginning of simulation)
         msg_size (int): number of characters in the message where one *char* equals one byte (typically reported by application at beginning of simulation)
         wallclock_offset (:obj:`timedelta`): recorded system offset as determined from request to NTP server
@@ -111,7 +111,7 @@ class HeartbeatDelayRecorder():
     Records delays in time_status messages between published timestamp and system clock receipt time for subscribed message from event broker
     
     Args:
-        names (:obj:`list`): list of names (*str*) for each application to be monitored
+        names (list): list of names (*str*) for each application to be monitored
         
     Attributes:
         msg_dictionaries (:obj:`dict`): initialized dictionary with keys corresponding to ``names`` and empty lists for values

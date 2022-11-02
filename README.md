@@ -1,13 +1,15 @@
-# NOS-T Tools
+# New Observing Strategies Testbed (NOS-T)
 
-A collection of tools for the New Observing Strategies Testbed (NOS-T).
+The New Observing Strategies Testbed (NOS-T) is a computational testbed for
+maturing technologies related to the NASA New Observing Strategies thrust.
 
 Documentation: https://nost-tools.readthedocs.io
 
-## Installation
+## NOS-T Tools Installation
 
-To install `nost-tools` as an editable Python library, run the following command
-from the project root directory:
+NOS-T tools is a collection of tools for the New Observing Strategies Testbed
+(NOS-T). To install `nost-tools` as an editable Python library, run the
+following command from the project root directory:
 
 ```
 pip install -e .
@@ -33,6 +35,7 @@ Current project team:
  * Brian Chell
  * Matthew LeVine
  * Leigha Capra
+ * Theodore Sherman
 
 Project alumni:
  * Hayden Daly

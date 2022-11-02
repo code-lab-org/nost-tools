@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-    *An application that gets stream data and publishes it to NOS-T.*
-
     This application subscribes to the *userPrefix/streamGauge/flowrate* topic and
     uses a callback function to collect the time and flow rate data every time
     stream_gauge.py publishes. This data is then saved to a .csv file for the
