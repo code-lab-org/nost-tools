@@ -26,10 +26,10 @@ def on_message(mqttc, obj, msg):
 
 def update_fig(n):
     df["siteName"] = gageHeightMessage["siteName"]
-    df["gageHeight"] = gageHeightMessage["gageHeight"]
     df["requestTime"] = datetime.strptime(gageHeightMessage["requestTime"]['value'],"%Y-%m-%dT%H:%M:%S.%fZ")
+    df["gageHeight"] = gageHeightMessage["gageHeight"]
 
-    fig = px.line(df, x='requestTime', y='gageHeight', color='siteName', markers=True,
+    fig = px.line(df, x='requestTime', y='gageHeight', color='Index', markers=True,
                       labels={"requestTime":"Request Time", "gageHeight":"Gage Height (ft)"},
                       title='NWIS Gage Heights')
     return fig
