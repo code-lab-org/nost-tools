@@ -20,12 +20,14 @@ def on_message(mqttc, obj, msg):
     """ Callback to process an incoming message."""
     # setting up list of dictionaries
     gageHeightMessage = json.loads(msg.payload.decode("utf-8"))
-    gageLOD.append(gageHeightMessage)
+    #gageLOD.append(gageHeightMessage)
     update_fig(n)
 
 
 def update_fig(n):
-    df = pd.DataFrame(gageLOD)
+    df["siteName"] = gageHeightMessage["siteName"]
+    df["gageHeight"] = gageHeightMessage["gageHeight"]
+    df["requestTime"] = datetime.strptime(gageHeightMessage["requestTime"]['value'],"%Y-%m-%dT%H:%M:%S.%fZ")
 
     fig = px.line(df, x='requestTime', y='gageHeight', color='siteName', markers=True,
                       labels={"requestTime":"Request Time", "gageHeight":"Gage Height (ft)"},
@@ -55,20 +57,25 @@ if __name__ == "__main__":
     client.loop_start()
 
     # initialize df
-    df0 = pd.DataFrame()
-    df0["requestTime"] = 0
-    df0['siteName'] = "nan"
-    df0['dataTime'] = 0
-    df0['gageHeight'] = 0
-    df0['latitude'] = 0
-    df0['longitude'] = 0
+    columns = {
+        "requestTime": pd.Series([], dtype="datetime64[ns, utc]"),
+        "siteName": pd.Series([], dtype="str"),
+        "dataTime": pd.Series([], dtype="datetime64[ns, utc]"),
+        "gageHeight": pd.Series([], dtype="float"),
+        "latitude": pd.Series([], dtype="float"),
+        "longitude": pd.Series([], dtype="float"),
+    }
+    
+    df = pd.DataFrame(columns)
+    
+    
     n=0
-    gageLOD = []
+    gageHeightMessage = []
 
     app = dash.Dash(__name__)
 
     # for dashboard plot
-    fig = px.line(df0, x='requestTime', y='gageHeight', color='siteName', markers=True,
+    fig = px.line(df, x='requestTime', y='gageHeight', color='siteName', markers=True,
                       labels={"requestTime":"Request Time", "gageHeight":"Gage Height (ft)"},
                       title='NWIS Gage Heights')
 

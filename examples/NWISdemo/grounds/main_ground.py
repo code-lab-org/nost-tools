@@ -19,10 +19,6 @@ from nost_tools.managed_application import ManagedApplication
 from ground_config_files.schemas import GroundLocation
 from ground_config_files.config import (
     PREFIX,
-    HOST,
-    PORT,
-    USERNAME,
-    PASSWORD,
     SCALE,
     GROUND,
 )
@@ -69,6 +65,10 @@ class Environment(Observer):
 
 # name guard used to ensure script only executes if it is run as the __main__
 if __name__ == "__main__":
+    # Note that these are loaded from a .env file in current working directory
+    credentials = dotenv_values(".env")
+    HOST, PORT = credentials["SMCE_HOST"], int(credentials["SMCE_PORT"])
+    USERNAME, PASSWORD = credentials["SMCE_USERNAME"], credentials["SMCE_PASSWORD"]
     # set the client credentials
     config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, True)
 
