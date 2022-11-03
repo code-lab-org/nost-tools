@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
     *Common script between applications for standardizing object schemas for the FireSat+ test suite*
-    
+
     Standardized schemas for messages are useful to ensure published message content matches the subscribing applications' expected information and data formats.
 
 """
@@ -16,7 +16,7 @@ class FireState(str, Enum):
     """
     *Enumeration used to classify the current state of the fire:*
 
-    .. literalinclude:: /../../../nost-tools/examples/firesat/fires/fire_config_files/schemas.py
+    .. literalinclude:: /../../examples/firesat/fires/fire_config_files/schemas.py
         :lines: 15,24-27
 
     """
@@ -30,10 +30,10 @@ class FireState(str, Enum):
 class FireStarted(BaseModel):
     """
     *Message schema object class with properties inherited from the pydantic library's BaseModel*
-    
+
     Standardized message for fire ignition includes fireId (*int*), ignition start (:obj:`datetime`), and latitude-longitude location (:obj:`GeographicPosition`)
 
-    .. literalinclude:: /../../../nost-tools/examples/firesat/fires/fire_config_files/schemas.py
+    .. literalinclude:: /../../examples/firesat/fires/fire_config_files/schemas.py
         :lines: 30,41-44
 
     """
@@ -47,10 +47,10 @@ class FireStarted(BaseModel):
 class FireDetected(BaseModel):
     """
     *Message schema object class with properties inherited from the pydantic library's BaseModel*
-    
+
     Standardized message for fire detection includes fireId (*int*), time of detection (:obj:`datetime`), and name (*str*) of detecting satellite
 
-    .. literalinclude:: /../../../nost-tools/examples/firesat/fires/fire_config_files/schemas.py
+    .. literalinclude:: /../../examples/firesat/fires/fire_config_files/schemas.py
         :lines: 47,58-60
 
     """
@@ -63,10 +63,10 @@ class FireDetected(BaseModel):
 class FireReported(BaseModel):
     """
     *Message schema object class with properties inherited from the pydantic library's BaseModel*
-    
+
     Standardized message for fire report includes fireId (*int*), time of report (:obj:`datetime`), name (*str*) of reporting satellite, and groundId (*int*) of ground station receiving report
 
-    .. literalinclude:: /../../../nost-tools/examples/firesat/fires/fire_config_files/schemas.py
+    .. literalinclude:: /../../examples/firesat/fires/fire_config_files/schemas.py
         :lines: 63,74-77
 
     """
@@ -80,10 +80,10 @@ class FireReported(BaseModel):
 class SatelliteStatus(BaseModel):
     """
     *Message schema object class with properties inherited from the pydantic library's BaseModel*
-    
+
     Standardized message for satellite position publisher includes satellite id (*int*), name (*str*), latitude-longitude-altitude location (:obj:`GeographicPosition`), sensor view radius (*float*), indication of whether comms in range of ground station (*bool*), and current scenario time (:obj:`datetime`)
 
-    .. literalinclude:: /../../../nost-tools/examples/firesat/fires/fire_config_files/schemas.py
+    .. literalinclude:: /../../examples/firesat/fires/fire_config_files/schemas.py
         :lines: 80,91-98
 
     """
@@ -101,10 +101,10 @@ class SatelliteStatus(BaseModel):
 class GroundLocation(BaseModel):
     """
     *Message schema object class with properties inherited from the pydantic library's BaseModel*
-    
+
     Standardized message for ground station information includes groundId (*int*), latitude-longitude location (:obj:`GeographicPosition`), min elevation angle constraint (*float*), and operational status (*bool*)
 
-    .. literalinclude:: /../../../nost-tools/examples/firesat/fires/fire_config_files/schemas.py
+    .. literalinclude:: /../../examples/firesat/fires/fire_config_files/schemas.py
         :lines: 101,112-116
 
     """

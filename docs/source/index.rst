@@ -3,28 +3,26 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to NOS-T's documentation!
-=================================
+NOS-T Documentation
+===================
 
 The New Observing Strategies Testbed (NOS-T) is a digital engineering environment for testing
-distributed space mission concepts. Please look at the high-level description, the getting started
-guide, or go to the rest of the contents.
+distributed space mission concepts.
 
-.. image:: ../../images/graphicalConcept.jpg
+.. image:: media/graphicalConcept.png
    :width: 600
    :align: center
 
 NOS-T Graphical Concept
 
-
 .. toctree::
    :maxdepth: 1
    :caption: Contents:
 
+   documents
    nost_tools
-   ICD
    examples
-
+   publications
 
 
 Indices and tables

@@ -6,9 +6,10 @@ Example Test Suites
 .. toctree::
    :maxdepth: 2
 
-   firesat/api/modules
-   realtime/api/modules
-   scalability/api/modules
+   examples/firesat/api/modules
+   examples/realtime/api/modules
+   examples/scalability/api/modules
+   examples/scienceDash/api/modules
 
 Indices and tables
 ==================
