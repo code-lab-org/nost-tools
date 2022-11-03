@@ -10,17 +10,22 @@ import time
 import json
 from datetime import datetime, timedelta
 from numpy import random
+from dotenv import dotenv_values
 
 if __name__ == "__main__":
-
+    
+    # Note that these are loaded from a .env file in current working directory
+    credentials = dotenv_values(".env")
+    HOST, PORT = credentials["SMCE_HOST"], int(credentials["SMCE_PORT"])
+    USERNAME, PASSWORD = credentials["SMCE_USERNAME"], credentials["SMCE_PASSWORD"]
     # build the MQTT client
     client = mqtt.Client()
     # set client username and password
-    client.username_pw_set(username="bchell", password="cT8T1pd62KnZ")
+    client.username_pw_set(username=USERNAME, password=PASSWORD)
     # set tls certificate
     client.tls_set()
     # connect to MQTT server on port 8883
-    client.connect("testbed.mysmce.com", 8883)
+    client.connect(HOST, PORT)
     # start a background thread to let MQTT do things
     client.loop_start()
 

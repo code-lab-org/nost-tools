@@ -13,10 +13,6 @@ HEADER = {
     "name": NAME,
     "description": "Satellites broadcast location on BCtest/satellite/location, image taken and image downlinked events on BCtest/constellation/imageTaken and BCtest/constellation/imageDownlinked. Subscribes to BCtest/streamGauge/floodWarning.",
 }
-HOST, PORT = "testbed.mysmce.com", 8883
-USERNAME, PASSWORD = "bchell", "cT8T1pd62KnZ"
-
-
 
 FIELD_OF_REGARD = float(
     os.getenv("FIELD_OF_REGARD", 112) # 22.5 half angle?
