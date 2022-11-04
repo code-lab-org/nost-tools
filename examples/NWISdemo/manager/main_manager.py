@@ -11,17 +11,13 @@
 
 from datetime import datetime, timedelta, timezone
 import logging
+from dotenv import dotenv_values
 
 from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
 from nost_tools.manager import Manager
 
-# client credentials should be saved to config.py file in manager_config_files directory
 from manager_config_files.config import (
     PREFIX,
-    USERNAME,
-    PASSWORD,
-    HOST,
-    PORT,
     SCALE,
     UPDATE,
 )
@@ -30,6 +26,10 @@ logging.basicConfig(level=logging.INFO)
 
 # name guard used to ensure script only executes if it is run as the __main__
 if __name__ == "__main__":
+    # Note that these are loaded from a .env file in current working directory
+    credentials = dotenv_values(".env")
+    HOST, PORT = credentials["SMCE_HOST"], int(credentials["SMCE_PORT"])
+    USERNAME, PASSWORD = credentials["SMCE_USERNAME"], credentials["SMCE_PASSWORD"]
     # set the client credentials from the config file
     config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, True)
 

@@ -8,8 +8,6 @@ HEADER = {
     "name": NAME,
     "description": f'Broadcasts it\'s location to the testbed on the "{PREFIX}/ground/location" topic.',
 }
-HOST, PORT = "testbed.mysmce.com", 8883
-USERNAME, PASSWORD = "bchell", "cT8T1pd62KnZ"
 
 # Default location is Svalbard Satellite Station
 LAT = float(os.getenv("LAT", 78.229772))

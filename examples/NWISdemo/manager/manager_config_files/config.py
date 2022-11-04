@@ -9,8 +9,7 @@ HEADER = {
     "name": NAME,
     "description": f'Synchronizes a test case on the testbed on the "{PREFIX}/#" topic.',
 }
-HOST, PORT = "testbed.mysmce.com", 8883
-USERNAME, PASSWORD = "bchell", "cT8T1pd62KnZ"
+
 SCALE = 60
 UPDATE = [
     # TimeScaleUpdate(120.0, datetime(2020, 1, 1, 9, 40, 0, tzinfo=timezone.utc)),
