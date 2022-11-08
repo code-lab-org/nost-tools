@@ -65,24 +65,24 @@
 					var topic = message.destinationName;
 					// try to parse and stringify a JSON string
 					try {
-						if(topic=="downlink/manager/init") {
+						if(topic=="downlinkBC/manager/init") {
 							payload = JSON.parse(message.payloadString);
 							viewer.clockViewModel.currentTime = Cesium.JulianDate.fromIso8601(payload.taskingParameters.simStartTime);
 							viewer.clockViewModel.startTime = Cesium.JulianDate.fromIso8601(payload.taskingParameters.simStartTime);
 							viewer.clockViewModel.stopTime = Cesium.JulianDate.fromIso8601(payload.taskingParameters.simStopTime);
 							viewer.clockViewModel.clockRange = Cesium.ClockRange.CLAMPED;
 							viewer.timeline.zoomTo(viewer.clockViewModel.startTime,viewer.clockViewModel.stopTime);
-						} else if(topic=="downlink/manager/start") {
+						} else if(topic=="downlinkBC/manager/start") {
 							payload = JSON.parse(message.payloadString);
 							viewer.clockViewModel.multiplier = payload.taskingParameters.timeScalingFactor;
-						} else if(topic=="downlink/manager/time" || topic=="downlink/manager/status/time") {
+						} else if(topic=="downlinkBC/manager/time" || topic=="downlinkBC/manager/status/time") {
 							payload = JSON.parse(message.payloadString);
 							viewer.clockViewModel.currentTime = Cesium.JulianDate.fromIso8601(payload.properties.simTime);
 							viewer.timeline.updateFromClock();
-        				} else if(topic=="downlink/manager/update"){
+        				} else if(topic=="downlinkBC/manager/update"){
 							payload = JSON.parse(message.payloadString);
 							viewer.clockViewModel.multiplier = payload.taskingParameters.timeScalingFactor;
-						} else if(topic=="downlink/constellation/location") {
+						} else if(topic=="downlinkBC/constellation/location") {
 							payload = JSON.parse(message.payloadString);
 							commRange = payload.commRange;
 							if (commRange){
@@ -150,7 +150,7 @@
 									}
 								});
 		  					}
-						} else if(topic=="downlink/ground/location"){
+						} else if(topic=="downlinkBC/ground/location"){
 							payload = JSON.parse(message.payloadString);
 							activeCheck = payload.operational;
 							if (activeCheck){
@@ -201,7 +201,7 @@
 					"password": BROKER_CLIENT_PASSWORD,
 					"useSSL": true,
 					"onSuccess": function() {
-						client.subscribe("downlink/#", {
+						client.subscribe("downlinkBC/#", {
 							"onFailure": function() {
 								alert("Error subscribing to topic.");
 							},

@@ -15,95 +15,81 @@ Interface Control Document
 
 **TABLE OF CONTENTS**
 
-`1 Preface <#preface>`__ `3 <#preface>`__
+`1 Preface <#preface>`__
 
 `1.1 NOS-T Introduction <#nos-t-introduction>`__
-`3 <#nos-t-introduction>`__
+
 
 `1.2 Purpose of this Document <#purpose-of-this-document>`__
-`4 <#purpose-of-this-document>`__
+
 
 `1.3 Conventions used in this
 Document <#conventions-used-in-this-document>`__
-`4 <#conventions-used-in-this-document>`__
+
 
 `1.4 Definitions and Glossary of
 Terms <#definitions-and-glossary-of-terms>`__
-`5 <#definitions-and-glossary-of-terms>`__
+
 
 `1.5 Obtaining Documentation, Tools,
 and Information <#obtaining-documentation-tools-and-information>`__
-`6 <#obtaining-documentation-tools-and-information>`__
 
-`1.6 Disclaimers <#disclaimers>`__ `6 <#disclaimers>`__
 
-`2 Quickstart Guide <#overview-guide>`__ `8 <#overview-guide>`__
+`1.6 Disclaimers <#disclaimers>`__
+
+`2 Quickstart Guide <#overview-guide>`__
 
 `2.1 Investigator Journey <#investigator-journey>`__
-`8 <#investigator-journey>`__
 
 `2.2 Test Campaign Checklist <#test-campaign-checklist>`__
-`9 <#test-campaign-checklist>`__
 
-`3 NOS-T Description <#nos-t-description>`__ `10 <#nos-t-description>`__
+`3 NOS-T Description <#nos-t-description>`__
 
-`3.1 System Architecture <#_Toc90894809>`__ `10 <#_Toc90894809>`__
+`3.1 System Architecture <#_Toc90894809>`__
 
-`3.2 System Interface <#system-interface>`__ `11 <#system-interface>`__
+`3.2 System Interface <#system-interface>`__
 
 `3.2.1 Message Protocol <#message-protocol>`__
-`11 <#message-protocol>`__
 
-`3.2.2 Message Format <#message-format>`__ `13 <#message-format>`__
+`3.2.2 Message Format <#message-format>`__
 
 `3.2.3 Example MQTT Messaging Client <#example-mqtt-messaging-client>`__
-`13 <#example-mqtt-messaging-client>`__
 
-`3.3 Manager Events <#manager-events>`__ `14 <#manager-events>`__
+`3.3 Manager Events <#manager-events>`__
 
-`3.3.1 Control Events <#control-events>`__ `14 <#control-events>`__
+`3.3.1 Control Events <#control-events>`__
 
-`3.3.2 Status Events <#status-events>`__ `17 <#status-events>`__
+`3.3.2 Status Events <#status-events>`__
 
-`4 NOS-T Interface <#nos-t-interface>`__ `19 <#nos-t-interface>`__
+`4 NOS-T Interface <#nos-t-interface>`__
 
 `4.1 Unmanaged Use Case <#unmanaged-use-case>`__
-`20 <#unmanaged-use-case>`__
 
-`4.2 Managed Use Case <#managed-use-case>`__ `21 <#managed-use-case>`__
+`4.2 Managed Use Case <#managed-use-case>`__
 
 `4.3 Interface Requirements <#interface-requirements>`__
-`23 <#interface-requirements>`__
 
 `4.4 Test Case-Specific Execution
 Requirements <#test-case-specific-execution-requirements>`__
-`25 <#test-case-specific-execution-requirements>`__
 
 `4.5 Interface Compliance Verification <#_Toc90894822>`__
-`26 <#_Toc90894822>`__
 
 `5 Detailed User’s Guide <#detailed-users-guide>`__
-`27 <#detailed-users-guide>`__
 
 `5.1 Defining Test Campaigns <#defining-test-campaigns>`__
-`27 <#defining-test-campaigns>`__
 
 `5.2 Developing Applications <#developing-applications>`__
-`30 <#developing-applications>`__
 
 `5.3 Tools, Templates, and
 Techniques <#tools-templates-and-techniques>`__
-`30 <#tools-templates-and-techniques>`__
 
 `5.4 Ensuring NOS-T Compatibility <#ensuring-nos-t-compatibility>`__
-`31 <#ensuring-nos-t-compatibility>`__
 
 `5.5 Executing Test Campaigns <#executing-test-campaigns>`__
-`32 <#executing-test-campaigns>`__
 
-`6 References <#references>`__ `34 <#references>`__
+`6 References <#references>`__
 
-`7 Appendices <#appendices>`__ `35 <#appendices>`__
+`7 Appendices <#appendices>`__
 
 Preface
 -------

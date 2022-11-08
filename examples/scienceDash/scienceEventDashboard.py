@@ -27,7 +27,7 @@ def on_message(mqttc, obj, msg):
     update_fig(n)
     
 def update_fig(n):
-    df = pd.DataFrame(eventLOD)
+    df = pd.DataFrame(data=eventLOD)
     fig = px.line(df, x='time', y='utility', color='location', markers=True,
                           labels={"time":"time", "utility":"utility (n.d.)"},
                           title="Science Event Utility")
