@@ -3,15 +3,17 @@ Technical Brief
 
 **Research Team:**
 
-| Paul Grogan, Jerry Sellers
-| Matthew Brand, Hayden Daly
+Paul Grogan (PI), Matthew LeVine, Brian Chell, Leigha Capra,
+Theodore Sherman, Alex Castaneda
+
+Project Alumni: Jerry Sellers, Matthew Brand, Hayden Daly
 
 *Stevens Institute of Technology*
 
 **Research Sponsor**:
 
-| Earth Science Technology Office
-| National Aeronautics and Space Administration
+Earth Science Technology Office
+National Aeronautics and Space Administration
 
 Copyright © 2021 Stevens Institute of Technology, Systems Engineering
 Research Center
@@ -29,7 +31,7 @@ Aeronautics and Space Administration's Earth Science Technology Office.
 Any views, opinions, findings and conclusions or recommendations
 expressed in this material are those of the author(s) and do not
 necessarily reflect the views of the United States Department of
-Defense, ASD(R&E), or National Aeronautics and Space Administration.
+Defense, (ASD(R&E)), or National Aeronautics and Space Administration.
 
 No Warranty.
 
@@ -447,13 +449,13 @@ a test run starts.
 
 .. table:: Table 2. Initialize Control Event Properties
 
-+-----------------+---------------------------+-----------------------------------------------------------------------------+
-| Property        | Type                      | Description                                                                 |
-+=================+===========================+=============================================================================+
-| *simStartTime*  | ISO-8601 datetime string  | The earliest possible scenario start time.                                  |
-+-----------------+---------------------------+-----------------------------------------------------------------------------+
-| *simStopTime*   | ISO-8601 datetime string  | The latest possible scenario end time (shall be later than simStartTime).   |
-+-----------------+---------------------------+-----------------------------------------------------------------------------+
+  +-----------------+---------------------------+-----------------------------------------------------------------------------+
+  | Property        | Type                      | Description                                                                 |
+  +=================+===========================+=============================================================================+
+  | *simStartTime*  | ISO-8601 datetime string  | The earliest possible scenario start time.                                  |
+  +-----------------+---------------------------+-----------------------------------------------------------------------------+
+  | *simStopTime*   | ISO-8601 datetime string  | The latest possible scenario end time (shall be later than simStartTime).   |
+  +-----------------+---------------------------+-----------------------------------------------------------------------------+
 
 Start Control Event
 ^^^^^^^^^^^^^^^^^^^
@@ -775,31 +777,21 @@ payload for a *Fire Status* event in the FireSat application case
 (published by the *Environment* application and subscribed to by the
 *FireSat* application) can be structured as:
 
-{
+.. code-block:: JSON
 
-"name": "fire",
-
-"description": "Models the spread of a fire.",
-
-"properties": {
-
-"timestamp": "2019-03-13T04:11:40+00:00",
-
-"intensity": 35398693.13517181,
-
-"latitude": 42.49602475523592,
-
-"longitude": -103.69767511612058,
-
-"windSpeed": 5,
-
-"growRate": 1.705270367448615,
-
-"fireStart": "2019-03-13T00:00:00+00:00"
-
-}
-
-}
+  {
+    "name": "fire",
+    "description": "Models the spread of a fire.",
+    "properties": {
+      "timestamp": "2019-03-13T04:11:40+00:00",
+        "intensity": 35398693.13517181,
+        "latitude": 42.49602475523592,
+        "longitude": -103.69767511612058,
+        "windSpeed": 5,
+        "growRate": 1.705270367448615,
+        "fireStart": "2019-03-13T00:00:00+00:00"
+    }
+  }
 
 Some test cases may require alternate communication protocols to
 overcome broker limitations. For example, some test cases may consider
@@ -811,58 +803,70 @@ simply send an URI to the data in the message payload.
 References
 ----------
 
-1.  Jacqueline Le Moigne, Michael M. Little, Marjorie C. Cole (2019).
-    "New Observing Strategy (NOS) for Future Earth Science Missions,"
-    2019 IEEE Geoscience and Remote Sensing Symposium, Yokohama, Japan,
-    July 28-August 2. doi: 10.1109/IGARSS.2019.8898096
-
-2.  Mark W. Maier (1998). "Architecting Principles for
-    Systems-of-Systems," *Systems Engineering* 1(4):267-284. doi:
-    10.1002/(SICI)1520-6858(1998)1:4<267::AID-SYS3>3.0.CO;2-D
-
-3.  IEEE (2012). “IEEE Standard for Distributed Interactive Simulation –
-    Application Protocols. IEEE Std. 1278-2012.
-
-4.  IEEE (2010). “IEEE Standard for Modeling and Simulation (M&S) High
-    Level Architecture (HLA) – Framework and Rules. IEEE Std. 1516-2010.
-
-5.  Solace Corporation (2021). " PubSub+ Event Broker: Software," URL:
-    https://solace.com/products/event-broker/software/. Accessed
-    2021-04-07.
-
-6.  NASA Center for Climate Simulation, (2021). "SMCE System Overview."
-    URL: https://www.nccs.nasa.gov/systems/SMCE. Accessed 2021-04-07.
-
-7.  Solace Corporation (2021). "Solace Messaging APIs," URL:
-    https://docs.solace.com/Solace-PubSub-Messaging-APIs/Solace-APIs-Overview.htm.
-    Accessed 2021-04-07.
-
-8.  Solace Corporation (2021). "Open APIs & Protocols," URL:
-    https://docs.solace.com/Open-APIs-Protocols/Open-APIs-Protocols.htm.
-    Accessed 2021-04-07.
-
-9.  OGC (2016). "SensorThings API Part 1: Sensing," Version 1.0, Open
-    Geospatial Consortium. URL:
-    http://www.opengis.net/doc/is/sensorthings/1.0
-
-10. OGC (2019). "SensorThings API Part 2: Tasking Core," Version 1.0,
-    Open Geospatial Consortium. URL:
-    http://www.opengis.net/doc/IS/sensorthings-part2-TaskingCore/1.0
-
-11. Eclipse Foundation (2020). "Eclipse Pago MQTT Python client
-    library," Version 1.5.1, Eclipse Foundation. URL:
-    https://pypi.org/project/paho-mqtt
-
-12. Paul T. Grogan, Hayden C. Daly, Matthew S. Brand, and Jerry J.
-    Sellers (2021). "New Observing Strategies Testbed (NOS-T)
-    Architecture: Evaluating Dynamic Response to Emergent Events," *IEEE
-    International Geoscience and Remote Sensing Symposium*, Virtual,
-    Online. (Accepted)
-
 .. [1]
    Solace PubSub+ is used for large-scale real-time information systems
    including the Federal Aviation Administration's System-wide
    Information Management (SWIM) Cloud Distribution Service (SCDS).
+
+.. [2]
+   Jacqueline Le Moigne, Michael M. Little, Marjorie C. Cole (2019).
+   "New Observing Strategy (NOS) for Future Earth Science Missions,"
+   2019 IEEE Geoscience and Remote Sensing Symposium, Yokohama, Japan,
+   July 28-August 2. doi: 10.1109/IGARSS.2019.8898096
+
+.. [3]
+   Mark W. Maier (1998). "Architecting Principles for
+   Systems-of-Systems," *Systems Engineering* 1(4):267-284. doi:
+   10.1002/(SICI)1520-6858(1998)1:4<267::AID-SYS3>3.0.CO;2-D
+
+.. [4]
+   IEEE (2012). “IEEE Standard for Distributed Interactive Simulation –
+   Application Protocols. IEEE Std. 1278-2012.
+
+.. [5]
+   IEEE (2010). “IEEE Standard for Modeling and Simulation (M&S) High
+   Level Architecture (HLA) – Framework and Rules. IEEE Std. 1516-2010.
+
+.. [6]
+   Solace Corporation (2021). " PubSub+ Event Broker: Software," URL:
+   https://solace.com/products/event-broker/software/. Accessed
+   2021-04-07.
+
+.. [7]
+   NASA Center for Climate Simulation, (2021). "SMCE System Overview."
+   URL: https://www.nccs.nasa.gov/systems/SMCE. Accessed 2021-04-07.
+
+.. [8]
+   Solace Corporation (2021). "Solace Messaging APIs," URL:
+   https://docs.solace.com/Solace-PubSub-Messaging-APIs/Solace-APIs-Overview.htm.
+   Accessed 2021-04-07.
+
+.. [9]
+   Solace Corporation (2021). "Open APIs & Protocols," URL:
+   https://docs.solace.com/Open-APIs-Protocols/Open-APIs-Protocols.htm.
+   Accessed 2021-04-07.
+
+.. [10]
+   OGC (2016). "SensorThings API Part 1: Sensing," Version 1.0, Open
+   Geospatial Consortium. URL:
+   http://www.opengis.net/doc/is/sensorthings/1.0
+
+.. [11]
+   OGC (2019). "SensorThings API Part 2: Tasking Core," Version 1.0,
+   Open Geospatial Consortium. URL:
+   http://www.opengis.net/doc/IS/sensorthings-part2-TaskingCore/1.0
+
+.. [12]
+   Eclipse Foundation (2020). "Eclipse Pago MQTT Python client
+   library," Version 1.5.1, Eclipse Foundation. URL:
+   https://pypi.org/project/paho-mqtt
+
+.. [13]
+   Paul T. Grogan, Hayden C. Daly, Matthew S. Brand, and Jerry J.
+   Sellers (2021). "New Observing Strategies Testbed (NOS-T)
+   Architecture: Evaluating Dynamic Response to Emergent Events," *IEEE
+   International Geoscience and Remote Sensing Symposium*, Virtual,
+   Online. (Accepted)
 
 .. |image1| image:: media/image1.png
    :width: 6.28333in
@@ -874,5 +878,3 @@ References
    :width: 6.28333in
    :height: 2.40208in
 .. |image4| image:: media/image4.png
-  :width: 6.28333in
-  :height: 2.40208in
