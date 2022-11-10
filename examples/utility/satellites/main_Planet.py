@@ -82,6 +82,7 @@ if __name__ == "__main__":
                     TLES[row.strip(" \n")].append(f[i+1])
                     TLES[row.strip(" \n")].append(f[i+2])
 
+    print(TLES)
     # initialize the Constellation object class (in this example from EarthSatellite type)
     constellation = Constellation('planet', app, indices, names, FIELD_OF_REGARD["Planet"], tles=TLES)
 
@@ -118,4 +119,6 @@ if __name__ == "__main__":
 
     # Ensures the application hangs until the simulation is terminated, to allow background threads to run
     while not app.simulator.get_mode() == Mode.TERMINATED:
-        time.sleep(1)
+        time.sleep(0.2)
+
+    print(constellation.events)

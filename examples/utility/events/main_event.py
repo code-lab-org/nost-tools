@@ -65,22 +65,24 @@ class Environment(Observer):
 
         # Creates random values for event start times and locations, creates finish times at a fixed interval after start
         for event in range(0, self.event_count):
-            eventStart = self.scenario_start + datetime.timedelta(minutes=random.randrange(0, self.event_start_range*60))
+            eventStart = self.scenario_start + datetime.timedelta(minutes=random.randrange(self.event_start_range[0]*60, self.event_start_range[1]*60))
             eventStarts.append(eventStart)
-            eventFinishes.append(eventStart + datetime.timedelta(minutes=self.event_length*60))
-            eventLats.append(random.randrange(-90, 90))
+            eventFinishes.append(eventStart + datetime.timedelta(hours=self.event_length))
+            eventLats.append(random.randrange(-60, 60))
             eventLongs.append(random.randrange(-180, 180))
         
         # Read the csv file and convert to a DataFrame with initial column defining the index
         events = pd.DataFrame(
             data={
                 "eventId": eventIds,
+                "started": [False for _ in eventIds],
                 "start": eventStarts,
                 "finish": eventFinishes,
                 "latitude": eventLats,
                 "longitude": eventLongs,
             }
         )
+        events.set_index("eventId", inplace=True)
 
         return events
 
@@ -94,16 +96,16 @@ class Environment(Observer):
 
         """
         if property_name == "time":
-            if property_name == "time":
-                new_events = self.events[
-                    (self.events.start <= new_value) & (self.events.start > old_value)
-                ]
-            for index, event in new_events.iterrows():
+            new_events = self.events[
+                (self.events.start <= new_value) & (self.events.started == False)
+            ]
+            for i, event in new_events.iterrows():
                 # print(f"eventId: {event.eventId}")
+                self.events["started"][i] = True
                 self.app.send_message(
                     "start",
                     EventStarted(
-                        eventId=event.eventId,
+                        eventId=i,
                         start=event.start,
                         latitude=event.latitude,
                         longitude=event.longitude,
@@ -114,12 +116,12 @@ class Environment(Observer):
                 (self.events.finish <= new_value) & (self.events.finish > old_value)
             ]
 
-            for index, event in finished_events.iterrows():
+            for i, event in finished_events.iterrows():
                 # print(f"eventId: {event.eventId}")
                 self.app.send_message(
                     "finish",
                     EventFinished(
-                        eventId=event.eventId,
+                        eventId=i
                     ).json(),
                 )
 
@@ -159,3 +161,5 @@ if __name__ == "__main__":
     # Ensures the application hangs until the simulation is terminated, to allow background threads to run
     while not app.simulator.get_mode() == Mode.TERMINATED:
         time.sleep(1)
+
+    print(environment.events)
