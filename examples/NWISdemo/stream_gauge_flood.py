@@ -19,8 +19,6 @@ import requests
 from datetime import datetime, timedelta
 import pandas as pd
 from numpy import random
-# import csv
-# from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
 
 # initialize dicts
 siteName = {}

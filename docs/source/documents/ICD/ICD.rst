@@ -1573,7 +1573,6 @@ required include:
    -  *Publish:* Change application’s MODE from INITIALIZED to EXECUTING
       and begin to publish periodic heartbeat messages to topic
       “{prefix}/{app}/status/time”
-
 3. Update
 
    -  *Subscribe:* Update command from the manager on topic
@@ -1583,7 +1582,6 @@ required include:
       simulation time specified by the manager and accordingly update
       the frequency of periodic heartbeat messages to topic
       “{prefix}/{app}/status/time”
-
 4. Stop
 
    -  *Subscribe:* Stop command from the manager on topic
@@ -1605,37 +1603,54 @@ should orchestrate various test campaigns to verify compliance with the
 NOS-T ICD and verify proper operation. The following timeline describes
 a notional “day in the life” example for executing a test campaign.
 
--  Write test script in compliance with user request. Check for:
+1. Write test script in compliance with user request. Check for:
 
-   -  Init time (UTC) (if requested differently than start time)
+   - Init time (UTC) (if requested differently than start time)
 
-   -  Start time (UTC)
+   - Start time (UTC)
 
-   -  Stop time (UTC)
+   - Stop time (UTC)
 
-   -  Time publish step (in seconds)
+   - Time publish step (in seconds)
 
-   -  Time scale rate
+   - Time scale rate
 
--  Use prewritten test script to ensure manager functionality on a
+Use prewritten test script to ensure manager functionality on a
    testing topic (i.e., lc-testing)
 
--  Before simulation start, make sure manager is logged in and connected
+*  Before simulation start, make sure manager is logged in and connected
    to the user-requested topic
 
--  Send out prewritten script several minutes before start time,
+*  Send out prewritten script several minutes before start time,
    allowing all applications to receive the command – simulation will
    begin at the indicated start time
 
--  Ensure on manager dashboard that messages are being received and
+*  Ensure on manager dashboard that messages are being received and
    simulation clock has begun.
 
--  Keep close watch on user requests – a need to stop/restart the
+*  Keep close watch on user requests – a need to stop/restart the
    simulation may be sent at any time, as well as debugging help
 
-   -  To stop simulation immediately, enter a time in the past (UTC)
+   *  To stop simulation immediately, enter a time in the past (UTC)
 
-   -  To restart simulation, use same script with adjusted start time
+   *  To restart simulation, use same script with adjusted start time
+
+- This is the first bullet list item.  The blank line above the
+  first list item is required; blank lines between list items
+  (such as below this paragraph) are optional.
+
+- This is the first paragraph in the second item in the list.
+
+ This is the second paragraph in the second item in the list.
+ The blank line above this paragraph is required.  The left edge
+ of this paragraph lines up with the paragraph above, both
+ indented relative to the bullet.
+
+ - This is a sublist.  The bullet lines up with the left edge of
+   the text blocks above.  A sublist is a new list so requires a
+   blank line above and below.
+
+- This is the third item of the main list.
 
 References
 ----------

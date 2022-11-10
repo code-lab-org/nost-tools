@@ -8,19 +8,16 @@ import json
 import dash
 from dash import dcc
 from dash import html
+from dash.dependencies import Input, Output, State
 import plotly.express as px
 import pandas as pd
+from datetime import datetime, timedelta
+import json
 import csv
 
 
 def on_message(mqttc, obj, msg):
     """ Callback to process an incoming message."""
-    # setting up list of dictionaries
-    # gageHeightMessage = json.loads(msg.payload.decode("utf-8"))
-    # df = pd.DataFrame({'siteName':gageHeightMessage["siteName"]})
-    # df["requestTime"] = (datetime.strptime(gageHeightMessage["requestTime"]['value'],"%Y-%m-%dT%H:%M:%S.%fZ"))
-    # df["gageHeight"] = (gageHeightMessage["gageHeight"])
-    # gageLOD.append(gageHeightMessage)
     
     dataIn = json.loads(msg.payload.decode("utf-8"))
     requestTime = dataIn["requestTime"]["value"]
@@ -40,23 +37,6 @@ def on_message(mqttc, obj, msg):
 
     
 def update_fig(n):
-    #df2 = pd.DataFrame(gageLOD)
-    # print(df)
-    #df.to_csv(index=False)
-
-    # df["siteName"] = pd.DataFrame(gageLOD[0]["siteName"]["value"])
-    # df["requestTime"] = pd.DataFrame(datetime.strptime(gageLOD[0]["requestTime"]['value'],"%Y-%m-%dT%H:%M:%S.%fZ"))
-    # df["gageHeight"] = pd.DataFrame(gageLOD[0]["gageHeight"])
-
-    
-    # df4 = pd.DataFrame({'siteName':gageLOD[0]["siteName"]})
-    # df4["requestTime"] = (datetime.strptime(gageLOD[0]["requestTime"]['value'],"%Y-%m-%dT%H:%M:%S.%fZ"))
-    # df4["gageHeight"] = (gageLOD[0]["gageHeight"])
-    
-    # with open('gageLOD', 'w') as fout:
-    #     json.dump(gageLOD, fout)
-
-    # df.append(df)
     
     plotData = pd.read_csv(filename)
     dffig = pd.DataFrame(data=plotData)
@@ -84,26 +64,7 @@ if __name__ == "__main__":
     # start a background thread to let MQTT do things
     client.loop_start()
 
-    # initialize df
-    columns = {
-        "requestTime": pd.Series([], dtype="datetime64[ns, utc]"),
-        "siteName": pd.Series([], dtype="object"),
-        #"dataTime": pd.Series([], dtype="datetime64[ns, utc]"),
-        "gageHeight": pd.Series([], dtype="float"),
-        #"latitude": pd.Series([], dtype="float"),
-        #"longitude": pd.Series([], dtype="float"),
-    }
-    
-    df = pd.DataFrame(columns, index=[0])
-    
-    # initialize df   
-    # df = pd.DataFrame()
-    # df["requestTime"] = 0
-    # df['siteName'] = "nan"
-    # df['dataTime'] = 0
-    # df['gageHeight'] = 0
-    # df['latitude'] = 0
-    # df['longitude'] = 0
+    df=[]   
     n=0
     fields = ['siteName','requestTime','dataTime','gageHeight','latitude','longitude']
     # name of output file
