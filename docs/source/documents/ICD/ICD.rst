@@ -19,21 +19,16 @@ Interface Control Document
 
 `1.1 NOS-T Introduction <#nos-t-introduction>`__
 
-
 `1.2 Purpose of this Document <#purpose-of-this-document>`__
-
 
 `1.3 Conventions used in this
 Document <#conventions-used-in-this-document>`__
 
-
 `1.4 Definitions and Glossary of
 Terms <#definitions-and-glossary-of-terms>`__
 
-
 `1.5 Obtaining Documentation, Tools,
 and Information <#obtaining-documentation-tools-and-information>`__
-
 
 `1.6 Disclaimers <#disclaimers>`__
 
@@ -369,8 +364,34 @@ essentially limitless. However, because of the flexible NOS-T interface
 architecture, the basic approach to leveraging the capabilities of NOS-T
 to execute the campaign are virtually identical.
 
-.. image:: media/checklistFigure.png
-   :alt: Graphical user interface Description automatically generated
+* Pre-Campaign Preparation (see Section 5.1)
+
+  * Define investigation hypothesis(es)
+  * Develop test campaign architecture
+
+    * Test campaign(s) to answer broadly-scoped research questions
+    * Test suites to answer narrowly-scoped research questions
+    * Test cases to evaluate specific configurations
+
+  * Create test campaign plan
+  * Develop test campaign application(s)
+  * Define test campaign application-to-application interfaces (what data and how)
+  * Verify and validate test campaign applications in stand-alone operations
+  * Perform pre-campaign NOS-T-to-test campaign application “fit check”
+
+* Test Campaign
+
+  * Set up test campaign environment
+  * Perform check-out run
+  * Execute test campaign plan
+  * Collect test campaign data (test cases and test suite(s))
+
+* Post-Test Campaign
+
+  * Analyze data
+  * Publish results with respect to original hypotheses
+  * Review test campaign for lessons learned
+  * Improve NOS-T process and revise test campaigns as necessary
 
 NOS-T Description
 -----------------
@@ -1112,6 +1133,7 @@ Figure 13. Basic interface between NOS-T system and User Applications.
 .. list-table:: Table 11. User Application Interface Requirements
   :widths: 10 20 20 50
   :header-rows: 1
+  :align: left
 
   * - Number
     - Name
@@ -1173,116 +1195,6 @@ Figure 13. Basic interface between NOS-T system and User Applications.
     - Encryption
     - User application messages shall use TLS encryption technique.
     - Encryption protects the contents of messages during transport from the client to the server.
-
-.. table:: Table 11. User Application Interface Requirements
-
-   +-------+-------------+--------------------+---------------------------+
-   | **Num | **Name**    | **Description**    | **Rationale**             |
-   | ber** |             |                    |                           |
-   +=======+=============+====================+===========================+
-   | I     | Pub/Sub     | User applications  | User apps must be able to |
-   | R.1.0 | Messages    | shall              | receive and send manager  |
-   |       |             | publish/subscribe  | messages a test campaign  |
-   |       |             | to the following   | to be orchestrated.       |
-   |       |             | NOS-T Manager      |                           |
-   |       |             | messages.          |                           |
-   +-------+-------------+--------------------+---------------------------+
-   | I     | Sub         | User applications  | User apps must be able to |
-   | R.1.1 | Messages    | shall subscribe to | receive manager messages  |
-   |       |             | the following      | a test campaign to be     |
-   |       |             | NOS-T Manager      | orchestrated.             |
-   |       |             | messages.          |                           |
-   +-------+-------------+--------------------+---------------------------+
-   | IR.   | INITIALIZE  | User applications  | The INITIALIZE message    |
-   | 1.1.1 | Message     | shall subscribe to | tells user application to |
-   |       |             | the manager        | prepare for the test case |
-   |       |             | INITIALIZE         |                           |
-   |       |             | message.           |                           |
-   +-------+-------------+--------------------+---------------------------+
-   | IR.   | STOP        | User applications  | The START message tells   |
-   | 1.1.2 | Message     | shall subscribe to | user application to       |
-   |       |             | the manager START  | prepare for the test case |
-   |       |             | message.           |                           |
-   +-------+-------------+--------------------+---------------------------+
-   | IR.   | STOP        | User applications  | The STOP message tells    |
-   | 1.2.3 | Message     | shall subscribe to | user application to       |
-   |       |             | the manager STOP   | prepare for the test case |
-   |       |             | message.           |                           |
-   +-------+-------------+--------------------+---------------------------+
-   | I     | Pub         | User applications  | User apps must be able to |
-   | R.1.2 | Messages    | shall publish the  | receive manager messages  |
-   |       |             | following messages | a test campaign to be     |
-   |       |             | to the NOS-T       | orchestrated.             |
-   |       |             | system.            |                           |
-   +-------+-------------+--------------------+---------------------------+
-   | IR.   | I           | User applications  | The INITIAILIZING message |
-   | 1.2.1 | NITIALIZING | shall publish an   | tells the manager that an |
-   |       | Message     | INITIALIZING       | application has received  |
-   |       |             | message to         | the INITIALIZE message    |
-   |       |             | indicate           | and is preparing for      |
-   |       |             | application are    | execution.                |
-   |       |             | preparing to       |                           |
-   |       |             | execute.           |                           |
-   +-------+-------------+--------------------+---------------------------+
-   | IR.   | INITIALIZED | User applications  | The INITIAILIZED message  |
-   | 1.2.2 | Message     | shall publish an   | tells the manager that an |
-   |       |             | INITIALIZED        | application ready for     |
-   |       |             | message to         | execution.                |
-   |       |             | indicate           |                           |
-   |       |             | application are    |                           |
-   |       |             | ready to execute.  |                           |
-   +-------+-------------+--------------------+---------------------------+
-   | IR.   | EXECUTING   | User applications  | The EXECUTING message     |
-   | 1.2.3 | Message     | shall publish an   | tells the manager that an |
-   |       |             | EXECUTING message  | application executing the |
-   |       |             | to indicate        | test case.                |
-   |       |             | application have   |                           |
-   |       |             | started to execute |                           |
-   |       |             | the test case.     |                           |
-   +-------+-------------+--------------------+---------------------------+
-   | IR.   | TERMINATING | User applications  | The TERMINATING message   |
-   | 1.2.4 | Message     | shall publish a    | tells the manager that it |
-   |       |             | TERMINATING        | has received the STOP     |
-   |       |             | message to         | message and is preparing  |
-   |       |             | indicate           | to terminate the test     |
-   |       |             | application is     | case.                     |
-   |       |             | preparing to       |                           |
-   |       |             | terminate the test |                           |
-   |       |             | case.              |                           |
-   +-------+-------------+--------------------+---------------------------+
-   | IR.   | TERMINATED  | User applications  | The TERMINATED message    |
-   | 1.2.4 | Message     | shall publish a    | tells the manager that it |
-   |       |             | TERMINATED message | has ended the test case   |
-   |       |             | to indicate        | execution.                |
-   |       |             | application has    |                           |
-   |       |             | ended the test     |                           |
-   |       |             | case execution.    |                           |
-   +-------+-------------+--------------------+---------------------------+
-   | I     | Message     | User application   | Standard protocols and    |
-   | R.2.0 | protocols   | messages shall     | encoding ensure           |
-   |       |             | comply with        | interoperability with the |
-   |       |             | standardized       | NOS-T System and other    |
-   |       |             | protocols.         | user applications.        |
-   +-------+-------------+--------------------+---------------------------+
-   | I     | MQTT        | User application   | The event broker users    |
-   | R.2.1 |             | messages shall use | the MQTT messaging        |
-   |       |             | MQTT communication | protocol to publish and   |
-   |       |             | protocol with the  | subscribe to event        |
-   |       |             | pattern:           | topics.                   |
-   |       |             | prefix/app/event   |                           |
-   |       |             | (TBC)              |                           |
-   +-------+-------------+--------------------+---------------------------+
-   | I     | JSON        | User application   | The JSON encoding format  |
-   | R.2.2 |             | messages shall use | is human-readable and     |
-   |       |             | JSON formatting    | easily serialized and     |
-   |       |             | for payload        | de-serialized.            |
-   |       |             | information.       |                           |
-   +-------+-------------+--------------------+---------------------------+
-   | I     | Encryption  | User application   | Encryption protects the   |
-   | R.2.3 |             | messages shall use | contents of messages      |
-   |       |             | TLS encryption     | during transport from the |
-   |       |             | technique.         | client to the server.     |
-   +-------+-------------+--------------------+---------------------------+
 
 Test Case-Specific Execution Requirements
 -----------------------------------------
@@ -1465,6 +1377,7 @@ found in each .py file.
 .. list-table:: Table 16. NOS-T Templates for Developing User Applications
   :widths: 15 15 70
   :header-rows: 1
+  :align: left
 
   * - Property
     - Description
@@ -1603,54 +1516,27 @@ should orchestrate various test campaigns to verify compliance with the
 NOS-T ICD and verify proper operation. The following timeline describes
 a notional “day in the life” example for executing a test campaign.
 
-1. Write test script in compliance with user request. Check for:
+* Write test script in compliance with user request. Check for:
 
-   - Init time (UTC) (if requested differently than start time)
+  * Init time (UTC) (if requested differently than start time)
+  * Start time (UTC)
+  * Stop time (UTC)
+  * Time publish step (in seconds)
+  * Time scale rate
+* Use prewritten test script to ensure manager functionality on a testing
+  topic (i.e., lc-testing)
+* Before simulation start, make sure manager is logged in and connected
+  to the user-requested topic
+* Send out prewritten script several minutes before start time,
+  allowing all applications to receive the command – simulation will
+  begin at the indicated start time
+* Ensure on manager dashboard that messages are being received and
+  simulation clock has begun.
+* Keep close watch on user requests – a need to stop/restart the
+  simulation may be sent at any time, as well as debugging help
 
-   - Start time (UTC)
-
-   - Stop time (UTC)
-
-   - Time publish step (in seconds)
-
-   - Time scale rate
-
-Use prewritten test script to ensure manager functionality on a
-   testing topic (i.e., lc-testing)
-
-*  Before simulation start, make sure manager is logged in and connected
-   to the user-requested topic
-
-*  Send out prewritten script several minutes before start time,
-   allowing all applications to receive the command – simulation will
-   begin at the indicated start time
-
-*  Ensure on manager dashboard that messages are being received and
-   simulation clock has begun.
-
-*  Keep close watch on user requests – a need to stop/restart the
-   simulation may be sent at any time, as well as debugging help
-
-   *  To stop simulation immediately, enter a time in the past (UTC)
-
-   *  To restart simulation, use same script with adjusted start time
-
-- This is the first bullet list item.  The blank line above the
-  first list item is required; blank lines between list items
-  (such as below this paragraph) are optional.
-
-- This is the first paragraph in the second item in the list.
-
- This is the second paragraph in the second item in the list.
- The blank line above this paragraph is required.  The left edge
- of this paragraph lines up with the paragraph above, both
- indented relative to the bullet.
-
- - This is a sublist.  The bullet lines up with the left edge of
-   the text blocks above.  A sublist is a new list so requires a
-   blank line above and below.
-
-- This is the third item of the main list.
+  *  To stop simulation immediately, enter a time in the past (UTC)
+  *  To restart simulation, use same script with adjusted start time
 
 References
 ----------

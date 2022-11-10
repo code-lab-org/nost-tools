@@ -601,13 +601,9 @@ an alternative to time events for member applications to trigger
 activities. Manager modes include:
 
 -  INITIALIZING: started a test run initialization procedure
-
 -  INITIALIZED: completed a test run initialization procedure
-
 -  EXECUTING: started a test run execution
-
 -  TERMINATING: started a test run termination procedure
-
 -  TERMINATED: completed a test run termination procedure
 
 .. table:: Table 8. Mode Status Event Properties
@@ -667,10 +663,8 @@ implementation for user applications:
 
 -  **Event-driven**: user application responds to events from other user
    applications.
-
 -  **Time-evoked**: user application responds to periodic manager time
    status events.
-
 -  **Time-managed**: user application maintains a local scenario clock
    for event timing.
 
