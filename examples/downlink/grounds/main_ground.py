@@ -87,6 +87,7 @@ class GroundNetwork(Observable,Observer):
     def all_ready(self, client, userdata, message):
         self.groundTimes = {j:[] for j in self.satelliteNames}
         self.satView = {k:{"on":False,"linkCount":0} for k in self.satelliteNames}
+        self.cumulativeCostbySat = {l:0.00 for l in self.satelliteNames}
 
     def on_commRange(self, client, userdata, message):
         satInView = SatelliteStatus.parse_raw(message.payload)
@@ -97,6 +98,10 @@ class GroundNetwork(Observable,Observer):
                      - self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["start"]).total_seconds()
                 self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["dataOffload"] = self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["duration"]*self.grounds["downlinkRate"][self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["groundId"]]
                 self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["downlinkCost"] = self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["duration"]*self.grounds["costPerSecond"][self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["groundId"]]
+                if self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["dataOffload"] > self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["initialData"]:
+                    self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["dataOffload"] = self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["initialData"]
+                    self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["downlinkCost"] = (self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["dataOffload"]/self.grounds["downlinkRate"][self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["groundId"]])*self.grounds["costPerSecond"][self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["groundId"]]
+                self.cumulativeCostbySat[satInView.name] = self.cumulativeCostbySat[satInView.name]+self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["downlinkCost"]
                 self.cumulativeCosts = self.cumulativeCosts + self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["downlinkCost"]
                 self.notify_observers(
                         self.PROPERTY_OUT_OF_RANGE,
@@ -110,6 +115,7 @@ class GroundNetwork(Observable,Observer):
                             "duration":self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["duration"],
                             "dataOffload":self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["dataOffload"],
                             "downlinkCost":self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["downlinkCost"],
+                            "cumulativeCostbySat":self.cumulativeCostbySat[satInView.name],
                             "cumulativeCosts":self.cumulativeCosts
                         },
                     )
@@ -126,7 +132,7 @@ class GroundNetwork(Observable,Observer):
                     "start":satInView.time,
                     "end":None,
                     "duration":None,
-                    "initialData": satInView.capacity_used*self.ssrCapacity[satInView.id],
+                    "initialData": satInView.capacity_used,
                     "dataOffload":None,
                     "downlinkCost":None
                 },
@@ -208,6 +214,7 @@ class LinkEndObserver(Observer):
                         duration = new_value["duration"],
                         dataOffload = new_value["dataOffload"],
                         downlinkCost = new_value["downlinkCost"],
+                        cumulativeCostbySat = new_value["cumulativeCostbySat"],
                         cumulativeCosts = new_value["cumulativeCosts"]
                     ).json()
                 )
@@ -281,7 +288,7 @@ if __name__ == "__main__":
         config,
         True,
         time_status_step=timedelta(seconds=10) * SCALE,
-        time_status_init=datetime(2020, 10, 24, 7, 20, tzinfo=timezone.utc),
+        time_status_init=datetime(2022, 11, 10, 7, 20, tzinfo=timezone.utc),
         time_step=timedelta(seconds=1) * SCALE,
     )
 

@@ -37,7 +37,7 @@ class SatelliteStatus(BaseModel):
     )
     capacity_used: float = Field(
         ..., 
-        description="Fraction of solid state recorder capacity used"
+        description="GB of solid state recorder capacity used"
     )
     commRange: bool = Field(
         False, description="Boolean for if satellite is in ground stations view"
@@ -104,6 +104,9 @@ class LinkCharge(BaseModel):
     )
     downlinkCost: float = Field(
         ..., description="Cost of data downlink based on per-second cost rates unique to each ground station"
+    )
+    cumulativeCostbySat: float = Field(
+        ..., description="Running total of downlink costs per Satellite in the Test Case"
     )
     cumulativeCosts: float = Field(
         ..., description="Running total of ALL downlink costs for the entirety of the Test Case"

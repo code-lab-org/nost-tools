@@ -7,6 +7,9 @@
 	  <meta name="viewport" content="width=device-width, initial-scale=1">
 	  <link href="https://cesium.com/downloads/cesiumjs/releases/1.85/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
 	  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+		<script type="text/javascript"
+			src="env.js">
+		</script>
 	</head>
 
 	<body>
@@ -18,12 +21,13 @@
 		<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
 		<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
 		<script>
-			var CESIUM_ACCESS_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlMGE4YTEyMi0wNzllLTRjYmItYTY3Ny1kOTA3YzEwNzk3ZDEiLCJpZCI6MTYyNzcsInNjb3BlcyI6WyJhc3IiLCJnYyJdLCJpYXQiOjE1NzAwNjA5MzF9.NgsS6QgAqCD3SkBP23vtQro_QWUDVgUnEEOW-UQ2ypQ';
-			var BROKER_HOST = 'testbed.mysmce.com';
-			var BROKER_PORT = 8443;
-			var BROKER_CLIENT_USERNAME = 'mlevine4';
-			var BROKER_CLIENT_PASSWORD = 'w6A1lKFiLT0K';
-	  
+			var CESIUM_ACCESS_TOKEN = TOKEN;
+			var BROKER_HOST = HOST;
+			var BROKER_PORT = PORT;
+			var BROKER_CLIENT_USERNAME = USERNAME;
+			var BROKER_CLIENT_PASSWORD = PASSWORD;
+			var PREFIX = PREFIX;
+
 			$(document).ready(function(){
 				Cesium.Ion.defaultAccessToken = CESIUM_ACCESS_TOKEN;
 				var clock = new Cesium.Clock({
@@ -54,7 +58,7 @@
 				var commsCones = {}; <!-- Views from ground station FOR comms -->
 				var commsRange = false; <!-- Initialize this commsRange boolean as false, but will update based on satellite subscription -->
 				var satColor = Cesium.Color.BLUE; <!-- Initialize satColor as Cesium's default BLUE, which is color when commsRange is false -->
-				var fires = viewer.scene.primitives.add(new Cesium.PointPrimitiveCollection()); <!-- Initialize fires as primitive points since there will be so many -->
+				<!-- var fires = viewer.scene.primitives.add(new Cesium.PointPrimitiveCollection()); <!-- Initialize fires as primitive points since there will be so many --> -->
 				var grounds = {}; <!-- Surface position of ground stations as PINK points -->
 				var updates = {};
 
@@ -65,24 +69,24 @@
 					var topic = message.destinationName;
 					// try to parse and stringify a JSON string
 					try {
-						if(topic=="downlink/manager/init") {
+						if(topic==`${PREFIX}/manager/init`) {
 							payload = JSON.parse(message.payloadString);
 							viewer.clockViewModel.currentTime = Cesium.JulianDate.fromIso8601(payload.taskingParameters.simStartTime);
 							viewer.clockViewModel.startTime = Cesium.JulianDate.fromIso8601(payload.taskingParameters.simStartTime);
 							viewer.clockViewModel.stopTime = Cesium.JulianDate.fromIso8601(payload.taskingParameters.simStopTime);
 							viewer.clockViewModel.clockRange = Cesium.ClockRange.CLAMPED;
 							viewer.timeline.zoomTo(viewer.clockViewModel.startTime,viewer.clockViewModel.stopTime);
-						} else if(topic=="downlink/manager/start") {
+						} else if(topic==`${PREFIX}/manager/start`) {
 							payload = JSON.parse(message.payloadString);
 							viewer.clockViewModel.multiplier = payload.taskingParameters.timeScalingFactor;
-						} else if(topic=="downlink/manager/time" || topic=="downlink/manager/status/time") {
+						} else if(topic==`${PREFIX}/manager/time` || topic==`${PREFIX}/manager/status/time`) {
 							payload = JSON.parse(message.payloadString);
 							viewer.clockViewModel.currentTime = Cesium.JulianDate.fromIso8601(payload.properties.simTime);
 							viewer.timeline.updateFromClock();
-        				} else if(topic=="downlink/manager/update"){
+        				} else if(topic==`${PREFIX}/manager/update`){
 							payload = JSON.parse(message.payloadString);
 							viewer.clockViewModel.multiplier = payload.taskingParameters.timeScalingFactor;
-						} else if(topic=="downlink/constellation/location") {
+						} else if(topic==`${PREFIX}/constellation/location`) {
 							payload = JSON.parse(message.payloadString);
 							commRange = payload.commRange;
 							if (commRange){
@@ -150,25 +154,7 @@
 									}
 								});
 		  					}
-						} else if(topic=="downlink/fire/location") {
-          					<!-- Cesium suggests using PointPrimitives when have large collection of points, applies to fires -->
-		  					payload = JSON.parse(message.payloadString);
-		  					fires.add({
-								position : new Cesium.Cartesian3.fromDegrees(
-									payload.longitude,
-									payload.latitude
-								),
-								pixelSize: 8,
-								color : Cesium.Color.RED,
-								show: true
-							});
-						} else if(topic=="downlink/constellation/detected"){
-							payload = JSON.parse(message.payloadString);
-							fires.get(payload.fireId).color = Cesium.Color.DARKORANGE
-						} else if(topic=="downlink/constellation/reported"){
-							payload = JSON.parse(message.payloadString);
-							fires.get(payload.fireId).color = Cesium.Color.YELLOW
-						} else if(topic=="downlink/ground/location"){
+						} else if(topic==`${PREFIX}/ground/location`){
 							payload = JSON.parse(message.payloadString);
 							activeCheck = payload.operational;
 							if (activeCheck){
@@ -196,11 +182,11 @@
 									position: Cesium.Cartesian3.fromDegrees(
 										payload.longitude,
 										payload.latitude,
-										100000.0
+										0.0
 									),
 									cylinder: {
-										length: 200000.0,
-										topRadius: 200000.0*Math.tan((90-payload.elevAngle)*Math.PI/180),
+										length: 800000.0,
+										topRadius: 800000.0*Math.tan((90-payload.elevAngle)*Math.PI/180),
 										bottomRadius: 0.0,
 										material: groundMaterial,
 										outline: true,
@@ -219,7 +205,7 @@
 					"password": BROKER_CLIENT_PASSWORD,
 					"useSSL": true,
 					"onSuccess": function() {
-						client.subscribe("downlink/#", {
+						client.subscribe(`${PREFIX}/#`, {
 							"onFailure": function() {
 								alert("Error subscribing to topic.");
 							},

@@ -213,11 +213,13 @@ class Constellation(Entity):
                     EarthSatellite(tle[0], tle[1], self.names[i], self.ts)
                 )
         self.positions = self.next_positions = [None for satellite in self.satellites]
-        self.ssr_capacity = SSR_CAPACITY
-        self.capacity_used = CAPACITY_USED
-        self.instrument_rates = INSTRUMENT_RATES
+        self.ssr_capacity = SSR_CAPACITY # in Gigabytes
+        self.capacity_used = CAPACITY_USED # fraction from 0 to 1
+        self.instrument_rates = INSTRUMENT_RATES # in Gigabytes/second
         self.linkCounts = [0 for satellite in self.satellites]
         self.linkStatus = [False for satellite in self.satellites]
+        self.cumulativeCostbySat = {l:0.00 for l in self.names}
+        self.cumulativeCosts = 0.00
 
     def initialize(self, init_time):
         """
@@ -274,6 +276,8 @@ class Constellation(Entity):
             then = self.ts.from_datetime(self.get_time() + time_step)
             isInRange, groundId = check_in_range(then, satellite, self.grounds)
             self.capacity_used[i] = self.capacity_used[i] + ((self.instrument_rates[i]*time_step.total_seconds())/self.ssr_capacity[i])
+            self.cumulativeCostbySat[self.names[i]] = self.cumulativeCostbySat[self.names[i]] + 0.09*time_step.total_seconds()
+            self.cumulativeCosts = self.cumulativeCosts + 0.09*time_step.total_seconds()
             if isInRange:
                 if not self.linkStatus[i]:
                     self.linkStatus[i] = True
@@ -290,6 +294,22 @@ class Constellation(Entity):
         # tik = time.time()
         self.positions = self.next_positions
         super().tock()
+        for i, satellite in enumerate(self.satellites):
+            self.app.send_message(
+                    "linkCharge",
+                    LinkCharge(
+                        groundId = 0,
+                        satId = self.id[i],
+                        satName = self.names[i],
+                        linkId = self.linkCounts[i],
+                        end = self.get_time(),
+                        duration = 0,
+                        dataOffload = 0,
+                        downlinkCost = 0,
+                        cumulativeCostbySat = self.cumulativeCostbySat[self.names[i]],
+                        cumulativeCosts = 0
+                    ).json()
+            )
 
     def on_ground(self, client, userdata, message):
         """
@@ -440,7 +460,7 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
                     latitude=subpoint.latitude.degrees,
                     longitude=subpoint.longitude.degrees,
                     altitude=subpoint.elevation.m,
-                    capacity_used=self.constellation.capacity_used[i],
+                    capacity_used=self.constellation.capacity_used[i]*self.constellation.ssr_capacity[i],
                     commRange=self.isInRange[i],
                     groundId=groundId,
                     totalLinkCount=self.constellation.linkCounts[i],
@@ -496,7 +516,7 @@ if __name__ == "__main__":
         config,
         True,
         time_status_step=timedelta(seconds=10) * SCALE,
-        time_status_init=datetime(2020, 10, 24, 7, 20, tzinfo=timezone.utc),
+        time_status_init=datetime(2022, 11, 10, 7, 20, tzinfo=timezone.utc),
         time_step=timedelta(seconds=1) * SCALE,
     )
 
