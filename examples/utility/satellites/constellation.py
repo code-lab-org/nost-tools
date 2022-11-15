@@ -2,6 +2,7 @@ import logging
 import numpy as np
 import pandas as pd
 import copy
+import datetime
 
 from skyfield.api import load, wgs84, EarthSatellite
 from skyfield import almanac
@@ -184,7 +185,9 @@ class Constellation(Entity):
             data={
                 "eventId": [],
                 "latitude": [],
-                "longitude": []
+                "longitude": [],
+                "sunriseSunset": [],
+                "isDay": [],
             }
         )
         self.events.set_index("eventId", inplace=True)
@@ -257,6 +260,25 @@ class Constellation(Entity):
             for satellite in self.satellites
         ]
 
+        for i, event in self.events.iterrows():
+            print(event["isDay"])
+            if event["isDay"] == None and event["sunriseSunset"][1][0] == 1:
+                self.events["isDay"][i] = False
+
+            elif event["isDay"] == None and event["sunriseSunset"][1][0] == 0:
+                self.events["isDay"][i] = True
+            
+            else:
+                for j, time in enumerate(event["sunriseSunset"][0]):
+                    dt_time = datetime.datetime.strptime(time, '%Y-%m-%dT%H:%M:%S.%f%z')
+                    if dt_time > self.get_time() and (dt_time < self.get_time() + time_step):
+                        if event["sunriseSunset"][1][j] == 1:
+                            self.events["isDay"][i] = True
+                            print("sunrise")
+                        else: 
+                            print("sunset")
+                            self.events["isDay"][i] = False
+
         for i, satellite in enumerate(self.satellites):
             then = self.ts.from_datetime(self.get_time() + time_step)
             now = self.ts.from_datetime(self.get_time())
@@ -266,17 +288,19 @@ class Constellation(Entity):
             )
             isInRange, groundId = check_in_range(then, satellite, self.grounds)
             for j, event in self.events.iterrows():
-                topos = wgs84.latlon(event["latitude"], event["longitude"])
-                isInViewCurr = check_in_view(now, satellite, topos, self.min_elevations_event[i-1])
-                isInViewNext = check_in_view(then, satellite, topos, self.min_elevations_event[i])
 
-                if isInViewNext and not isInViewCurr:
-                    event_change = {}
-                    event_change["eventId"]=j
-                    event_change["detected"]=self.get_time() + time_step
-                    event_change["detected_by"]=satellite.name
-                    self.new_detect.append(event_change)
-                    self.sat_data[satellite.name].append(j)
+                if self.night_sight == True or event["isDay"] == True:
+                    topos = wgs84.latlon(event["latitude"], event["longitude"])
+                    isInViewCurr = check_in_view(now, satellite, topos, self.min_elevations_event[i-1])
+                    isInViewNext = check_in_view(then, satellite, topos, self.min_elevations_event[i])
+
+                    if isInViewNext and not isInViewCurr:
+                        event_change = {}
+                        event_change["eventId"]=j
+                        event_change["detected"]=self.get_time() + time_step
+                        event_change["detected_by"]=satellite.name
+                        self.new_detect.append(event_change)
+                        self.sat_data[satellite.name].append(j)
 
             if (isInRange and self.sat_data[satellite.name]):
                 for j in self.sat_data[satellite.name]:
@@ -329,7 +353,7 @@ class Constellation(Entity):
         super().tock()
 
 
-    def on_manager_stop(self, client, userdata, message):
+    def on_manager_init(self, client, userdata, message):
         print(self.tles.to_string())
         self.app.send_message("tles", self.tles.to_string())
 
@@ -347,7 +371,9 @@ class Constellation(Entity):
         started = EventStarted.parse_raw(message.payload)
         self.events.loc[started.eventId] = {
             "latitude": started.latitude,
-            "longitude": started.longitude
+            "longitude": started.longitude,
+            "sunriseSunset": started.sunriseSunset,
+            "isDay": None
         }
 
     def on_event_finish(self, client, userdata, message):

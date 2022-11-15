@@ -28,6 +28,7 @@ class EventStarted(BaseModel):
     longitude: Optional[confloat(ge=-180, le=180)] = Field(
         description="Longitude (deg) of event location."
     )
+    sunriseSunset: Optional[list] = Field()
 
 
 class EventDetected(BaseModel):

@@ -9,7 +9,7 @@ from nost_tools.observer import Observer
 from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
 from nost_tools.managed_application import ManagedApplication
 
-from examples.utility.config import PREFIX, SCALE, SCENARIO_START, SCENARIO_END, SIM_NAME, SEED, EVENT_COUNT, EVENT_LENGTH, EVENT_START_RANGE
+from examples.utility.config import PARAMETERS
 from examples.utility.schemas import EventStarted, EventDetected, EventReported
 
 logging.basicConfig(level=logging.INFO)
@@ -20,28 +20,19 @@ class Recorder(Observer):
 
     def __init__(self, app):
         self.app = app
-        self.parameters = pd.Series(
-            data={"SCENARIO_START": SCENARIO_START,
-                "SCENARIO_END": SCENARIO_END,
-                "EVENT_COUNT": EVENT_COUNT,
-                "EVENT_LENGTH": EVENT_LENGTH,
-                "EVENT_START_RANGE": EVENT_START_RANGE,
-                "SEED": SEED,
-                "TLES": []
-            }
-        )
+        self.parameters = PARAMETERS
         self.events = pd.DataFrame(
             data={
-                "eventId": [i for i in range(EVENT_COUNT)],
-                "start": [None for _ in range(EVENT_COUNT)],
-                "finish": [None for _ in range(EVENT_COUNT)],
-                "detected": [[] for _ in range(EVENT_COUNT)],
-                "detected_by": [[] for _ in range(EVENT_COUNT)],
-                "reported": [[] for _ in range(EVENT_COUNT)],
-                "reported_by": [[] for _ in range(EVENT_COUNT)],
-                "reported_to": [[] for _ in range(EVENT_COUNT)],
-                "latitude": [None for _ in range(EVENT_COUNT)],
-                "longitude": [None for _ in range(EVENT_COUNT)],
+                "eventId": [i for i in range(PARAMETERS["EVENT_COUNT"])],
+                "start": [None for _ in range(PARAMETERS["EVENT_COUNT"])],
+                "finish": [None for _ in range(PARAMETERS["EVENT_COUNT"])],
+                "detected": [[] for _ in range(PARAMETERS["EVENT_COUNT"])],
+                "detected_by": [[] for _ in range(PARAMETERS["EVENT_COUNT"])],
+                "reported": [[] for _ in range(PARAMETERS["EVENT_COUNT"])],
+                "reported_by": [[] for _ in range(PARAMETERS["EVENT_COUNT"])],
+                "reported_to": [[] for _ in range(PARAMETERS["EVENT_COUNT"])],
+                "latitude": [None for _ in range(PARAMETERS["EVENT_COUNT"])],
+                "longitude": [None for _ in range(PARAMETERS["EVENT_COUNT"])],
             }
         )
         self.events.set_index("eventId", inplace=True)
@@ -51,15 +42,26 @@ class Recorder(Observer):
         pass
 
 
-    def on_tles(self, client, userdata, message):
+    def on_capella_tles(self, client, userdata, message):
         tles=message.payload
-        self.parameters["TLES"].append(tles)
+        print(self.parameters["TLES"])
 
+        if self.parameters["TLES"] == {}:
+            self.parameters["TLES"]["capella"] = tles
+            print(tles)
+            print("cum")
+    
+    def on_planet_tles(self, client, userdata, message):
+        tles=message.payload
+        print("PLANET TLES")
+        if self.parameters["TLES"] == {}:
+            self.parameters["TLES"]["planet"] = tles
+            print(tles)
 
     def on_event_start(self, client, userdata, message):
         start = EventStarted.parse_raw(message.payload)
         self.events["start"][start.eventId] = start.start
-        self.events["finish"][start.eventId] = start.start + datetime.timedelta(hours=EVENT_LENGTH)
+        self.events["finish"][start.eventId] = start.start + datetime.timedelta(hours=PARAMETERS["EVENT_LENGTH"])
         self.events["latitude"][start.eventId] = start.latitude
         self.events["longitude"][start.eventId] = start.longitude
 
@@ -95,30 +97,28 @@ if __name__ == "__main__":
     app.simulator.add_observer(ShutDownObserver(app))
 
     app.start_up(
-        PREFIX,
+        PARAMETERS["PREFIX"],
         config,
         True,
-        time_status_step=datetime.timedelta(seconds=10) * SCALE,
-        time_status_init=SCENARIO_START,
-        time_step=datetime.timedelta(seconds=0.5) * SCALE,
+        time_status_step=datetime.timedelta(seconds=10) * PARAMETERS["SCALE"],
+        time_status_init=PARAMETERS["SCENARIO_START"],
+        time_step=datetime.timedelta(seconds=0.5) * PARAMETERS["SCALE"],
     )
 
-
     app.add_message_callback("event", "start", recorder.on_event_start)
-    app.add_message_callback("capella", "tles", recorder.on_tles)
+    app.add_message_callback("capella", "tles", recorder.on_capella_tles)
     app.add_message_callback("capella", "detected", recorder.on_detected)
     app.add_message_callback("capella", "reported", recorder.on_reported)
-    app.add_message_callback("planet", "tles", recorder.on_tles)
+    app.add_message_callback("planet", "tles", recorder.on_planet_tles)
     app.add_message_callback("planet", "detected", recorder.on_detected)
     app.add_message_callback("planet", "reported", recorder.on_reported)
 
     while not app.simulator.get_mode() == Mode.TERMINATED:
         time.sleep(1)
 
-    print(recorder.parameters)
-    recorder.parameters.to_csv(f"outputs/{SIM_NAME}.csv", mode="w")
+    time.sleep(5)
+    recorder.parameters.to_csv(f"outputs/{PARAMETERS['SIM_NAME']}.csv", mode="w")
 
-    with open(f"outputs/{SIM_NAME}.csv", "a") as f: f.write("\n\n\n")
+    with open(f"outputs/{PARAMETERS['SIM_NAME']}.csv", "a") as f: f.write("\n\n\n")
 
-    print(recorder.events)
-    recorder.events.to_csv(f"outputs/{SIM_NAME}.csv", mode="a")
+    recorder.events.to_csv(f"outputs/{PARAMETERS['SIM_NAME']}.csv", mode="a")

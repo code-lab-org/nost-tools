@@ -18,13 +18,7 @@ from nost_tools.managed_application import ManagedApplication
 
 from constellation import *
 
-from examples.utility.config import (
-    PREFIX,
-    SCALE,
-    SCENARIO_START,
-    FIELD_OF_REGARD,
-    TLES
-)
+from examples.utility.config import PARAMETERS
 
 logging.basicConfig(level=logging.INFO)
 
@@ -54,12 +48,14 @@ if __name__ == "__main__":
     
     indices = [i for i in range(len(names))]
     
+    field_of_regard = [80.0 for _ in names]
+
     # Checks if the TLES parameter is given and if not pulls the most recent ones from Celestrak
-    if TLES == None:
+    if PARAMETERS['TLES'] == {}:
         # load current TLEs for active satellites from Celestrak (NOTE: User has option to specify their own TLE instead)
-        load.download("https://celestrak.com/NORAD/elements/active.txt")
+        # load.download("https://celestrak.com/NORAD/elements/active.txt")
         TLES = pd.Series(
-            data=[[] for _ in range(len(names))],
+            data=[[] for _ in names],
             index=names
         )
         with open("active.txt", "r") as f:
@@ -70,7 +66,7 @@ if __name__ == "__main__":
                     TLES[row.strip(' \n')].append(f[i+2])
 
     # initialize the Constellation object class from TLEs    
-    constellation = Constellation('capella', app, indices, names, FIELD_OF_REGARD["Capella"], tles=TLES)
+    constellation = Constellation('capella', app, indices, names, field_of_regard, tles=TLES)
 
     # add observer classes to the Constellation object class
     constellation.add_observer(EventDetectedObserver(app))
@@ -89,23 +85,21 @@ if __name__ == "__main__":
 
     # start up the application on PREFIX, publish time status every 10 seconds of wallclock time
     app.start_up(
-        PREFIX,
+        PARAMETERS['PREFIX'],
         config,
         True,
-        time_status_step=timedelta(seconds=10) * SCALE,
-        time_status_init=SCENARIO_START,
-        time_step=timedelta(seconds=0.5) * SCALE,
+        time_status_step=timedelta(seconds=10) * PARAMETERS['SCALE'],
+        time_status_init=PARAMETERS['SCENARIO_START'],
+        time_step=timedelta(seconds=2) * PARAMETERS['SCALE'],
     )
 
     # add message callbacks
-    app.add_message_callback("event", "start", constellation.on_event_start)
     app.add_message_callback("ground", "location", constellation.on_ground)
-    app.add_message_callback("manager", "stop", constellation.on_manager_stop)
+    app.add_message_callback("event", "start", constellation.on_event_start)
     app.add_message_callback("event", "finish", constellation.on_event_finish)
+    app.add_message_callback("manager", "init", constellation.on_manager_init)
 
     # Ensures the application hangs until the simulation is terminated, to allow background threads to run
     while not app.simulator.get_mode() == Mode.TERMINATED:
         time.sleep(0.2)
         print(app.simulator.get_mode())
-
-    print(constellation.events)

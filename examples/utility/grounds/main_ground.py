@@ -17,12 +17,7 @@ from nost_tools.observer import Observer
 from nost_tools.managed_application import ManagedApplication
 
 from examples.utility.schemas import GroundLocation
-from examples.utility.config import (
-    PREFIX,
-    SCALE,
-    SCENARIO_START,
-    GROUND,
-)
+from examples.utility.config import PARAMETERS
 
 logging.basicConfig(level=logging.INFO)
 
@@ -78,19 +73,19 @@ if __name__ == "__main__":
     app = ManagedApplication("ground")
 
     # add the environment observer to monitor simulation for switch to EXECUTING mode
-    app.simulator.add_observer(Environment(app, GROUND))
+    app.simulator.add_observer(Environment(app, PARAMETERS['GROUND']))
 
     # add a shutdown observer to shut down after a single test case
     app.simulator.add_observer(ShutDownObserver(app))
 
     # start up the application on PREFIX, publish time status every 10 seconds of wallclock time
     app.start_up(
-        PREFIX,
+        PARAMETERS['PREFIX'],
         config,
         True,
-        time_status_step=timedelta(seconds=10) * SCALE,
-        time_status_init=SCENARIO_START,
-        time_step=timedelta(seconds=2) * SCALE,
+        time_status_step=timedelta(seconds=10) * PARAMETERS['SCALE'],
+        time_status_init=PARAMETERS['SCENARIO_START'],
+        time_step=timedelta(seconds=2) * PARAMETERS['SCALE'],
     )
 
     # Ensures the application hangs until the simulation is terminated, to allow background threads to run

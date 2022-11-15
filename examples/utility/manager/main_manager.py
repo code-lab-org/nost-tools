@@ -17,13 +17,7 @@ from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
 from nost_tools.manager import Manager
 
 # client credentials should be saved to config.py file in manager_config_files directory
-from examples.utility.config import (
-    PREFIX,
-    SCALE,
-    SCENARIO_START,
-    SCENARIO_END,
-    UPDATE,
-)
+from examples.utility.config import PARAMETERS
 
 logging.basicConfig(level=logging.INFO)
 
@@ -45,20 +39,20 @@ if __name__ == "__main__":
     manager.simulator.add_observer(ShutDownObserver(manager))
 
     # start up the manager on PREFIX from config file
-    manager.start_up(PREFIX, config, True)
+    manager.start_up(PARAMETERS['PREFIX'], config, True)
 
     # execute a test plan
     manager.execute_test_plan(
-        SCENARIO_START,                                         # scenario start datetime
-        SCENARIO_END,                                           # scenario end datetime
+        PARAMETERS['SCENARIO_START'],                                         # scenario start datetime
+        PARAMETERS['SCENARIO_START'] + timedelta(hours=PARAMETERS['SCENARIO_LENGTH']),                                           # scenario end datetime
         start_time=None,                                        # optionally specify a wallclock start datetime for synchronization
         time_step=timedelta(seconds=1),                         # wallclock time resolution for simulation
-        time_scale_factor=SCALE,                                # initial scale between wallclock and scenario clock (e.g. if SCALE = 60.0 then  1 wallclock second = 1 scenario minute)
-        time_scale_updates=UPDATE,                              # optionally schedule changes to the time_scale_factor at a specified scenario time
+        time_scale_factor=PARAMETERS['SCALE'],                                # initial scale between wallclock and scenario clock (e.g. if SCALE = 60.0 then  1 wallclock second = 1 scenario minute)
+        time_scale_updates=PARAMETERS['UPDATE'],                              # optionally schedule changes to the time_scale_factor at a specified scenario time
         time_status_step=timedelta(seconds=5)
-        * SCALE,                                                # optional duration between time status 'heartbeat' messages
+        * PARAMETERS['SCALE'],                                                # optional duration between time status 'heartbeat' messages
         time_status_init=
-            SCENARIO_START + timedelta(minutes=1),                                                      # optional initial scenario datetime to start publishing time status 'heartbeat' messages
+            PARAMETERS['SCENARIO_START'] + timedelta(minutes=1),                                                      # optional initial scenario datetime to start publishing time status 'heartbeat' messages
         command_lead=timedelta(
             seconds=5
         ),                                                      # lead time before a scheduled update or stop command
