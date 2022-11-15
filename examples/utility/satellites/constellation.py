@@ -330,6 +330,7 @@ class Constellation(Entity):
 
 
     def on_manager_stop(self, client, userdata, message):
+        print(self.tles.to_string())
         self.app.send_message("tles", self.tles.to_string())
 
 

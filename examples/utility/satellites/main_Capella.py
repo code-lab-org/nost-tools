@@ -105,4 +105,7 @@ if __name__ == "__main__":
 
     # Ensures the application hangs until the simulation is terminated, to allow background threads to run
     while not app.simulator.get_mode() == Mode.TERMINATED:
-        time.sleep(1)
+        time.sleep(0.2)
+        print(app.simulator.get_mode())
+
+    print(constellation.events)

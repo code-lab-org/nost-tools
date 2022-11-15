@@ -116,9 +116,9 @@ if __name__ == "__main__":
         time.sleep(1)
 
     print(recorder.parameters)
-    recorder.parameters.to_csv(f"{SIM_NAME}.csv", mode="w")
+    recorder.parameters.to_csv(f"outputs/{SIM_NAME}.csv", mode="w")
 
-    with open(f"{SIM_NAME}.csv", "a") as f: f.write("\n\n\n")
+    with open(f"outputs/{SIM_NAME}.csv", "a") as f: f.write("\n\n\n")
 
     print(recorder.events)
-    recorder.events.to_csv(f"{SIM_NAME}.csv", mode="a")
+    recorder.events.to_csv(f"outputs/{SIM_NAME}.csv", mode="a")
