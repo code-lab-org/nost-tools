@@ -183,11 +183,11 @@
 									position: Cesium.Cartesian3.fromDegrees(
 										payload.longitude,
 										payload.latitude,
-										100000.0
+										250000.0
 									),
 									cylinder: {
-										length: 800000.0,
-										topRadius: 800000.0*Math.tan((90-payload.elevAngle)*Math.PI/180),
+										length: 500000.0,
+										topRadius: 500000.0*Math.tan((90-payload.elevAngle)*Math.PI/180),
 										bottomRadius: 0.0,
 										material: groundMaterial,
 										outline: true,

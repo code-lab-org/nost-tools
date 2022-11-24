@@ -45,6 +45,12 @@ class SatelliteStatus(BaseModel):
     groundId: Optional[int] = Field(
         ..., description="Ground Station id in view (None if not in view)"
     )
+    totalLinkCount: Optional[int] = Field(
+        ..., description="Running count of downlink opportunity per satellite"    
+    )
+    cumulativeCostBySat: float = Field(
+        ..., description="Cumulative cost of downlinks and/or fixed cost contracts per satellite"    
+    )
     time: datetime = Field(
         ..., description="Time in satellite reference frame"
     )
@@ -69,6 +75,9 @@ class GroundLocation(BaseModel):
     )
     costPerSecond: float = Field(
         ..., description="Cost in $ per second for downlinks"
+    )
+    costMode: str = Field(
+        "discrete", description="Could be a boolean, options are discrete or fixed, default to discrete"    
     )
     
 class LinkStart(BaseModel):
@@ -105,8 +114,8 @@ class LinkCharge(BaseModel):
     downlinkCost: float = Field(
         ..., description="Cost of data downlink based on per-second cost rates unique to each ground station"
     )
-    cumulativeCostbySat: float = Field(
-        ..., description="Running total of downlink costs per Satellite in the Test Case"
+    cumulativeCostBySat: float = Field(
+        ..., description="Dictionary of running totals for downlink costs per satellite"
     )
     cumulativeCosts: float = Field(
         ..., description="Running total of ALL downlink costs for the entirety of the Test Case"

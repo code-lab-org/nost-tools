@@ -169,7 +169,8 @@
 								grounds[payload.groundId] = viewer.entities.add({
 									position: Cesium.Cartesian3.fromDegrees(
 										payload.longitude,
-										payload.latitude
+										payload.latitude,
+										0.0
 									),
 									point: {
 										pixelSize: 8,
@@ -182,11 +183,11 @@
 									position: Cesium.Cartesian3.fromDegrees(
 										payload.longitude,
 										payload.latitude,
-										0.0
+										500000.0
 									),
 									cylinder: {
-										length: 800000.0,
-										topRadius: 800000.0*Math.tan((90-payload.elevAngle)*Math.PI/180),
+										length: 1000000.0,
+										topRadius: 1000000.0*Math.tan((90-payload.elevAngle)*Math.PI/180),
 										bottomRadius: 0.0,
 										material: groundMaterial,
 										outline: true,

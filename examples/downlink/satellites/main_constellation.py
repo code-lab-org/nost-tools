@@ -43,63 +43,12 @@ from constellation_config_files.config import (
     # TLES,
     SSR_CAPACITY,
     CAPACITY_USED,
-    INSTRUMENT_RATES
+    INSTRUMENT_RATES,
+    COST_MODE,
+    FIXED_RATES
 )
 
 logging.basicConfig(level=logging.INFO)
-
-# def compute_min_elevation(altitude, field_of_regard):
-#     """
-#     Computes the minimum elevation angle required for a satellite to observe a point from current location.
-
-#     Args:
-#         altitude (float): Altitude (meters) above surface of the observation.
-#         field_of_regard (float): Angular width (degrees) of observation.
-
-#     Returns:
-#         float : min_elevation
-#             The minimum elevation angle (degrees) for observation.
-#     """
-#     earth_equatorial_radius = 6378137.000000000
-#     earth_polar_radius = 6356752.314245179
-#     earth_mean_radius = (2 * earth_equatorial_radius + earth_polar_radius) / 3
-
-#     # eta is the angular radius of the region viewable by the satellite
-#     sin_eta = np.sin(np.radians(field_of_regard / 2))
-#     # rho is the angular radius of the earth viewed by the satellite
-#     sin_rho = earth_mean_radius / (earth_mean_radius + altitude)
-#     # epsilon is the min satellite elevation for obs (grazing angle)
-#     cos_epsilon = sin_eta / sin_rho
-#     if cos_epsilon > 1:
-#         return 0.0
-#     return np.degrees(np.arccos(cos_epsilon))
-
-
-# def compute_sensor_radius(altitude, min_elevation):
-#     """
-#     Computes the sensor radius for a satellite at current altitude given minimum elevation constraints.
-
-#     Args:
-#         altitude (float): Altitude (meters) above surface of the observation.
-#         min_elevation (float): Minimum angle (degrees) with horizon for visibility.
-
-#     Returns:
-#         float : sensor_radius
-#             The radius (meters) of the nadir pointing sensors circular view of observation.
-#     """
-#     earth_equatorial_radius = 6378137.0
-#     earth_polar_radius = 6356752.314245179
-#     earth_mean_radius = (2 * earth_equatorial_radius + earth_polar_radius) / 3
-#     # rho is the angular radius of the earth viewed by the satellite
-#     sin_rho = earth_mean_radius / (earth_mean_radius + altitude)
-#     # eta is the nadir angle between the sub-satellite direction and the target location on the surface
-#     eta = np.degrees(np.arcsin(np.cos(np.radians(min_elevation)) * sin_rho))
-#     # calculate swath width half angle from trigonometry
-#     sw_HalfAngle = 90 - eta - min_elevation
-#     if sw_HalfAngle < 0.0:
-#         return 0.0
-#     return earth_mean_radius * np.radians(sw_HalfAngle)
-
 
 def get_elevation_angle(t, sat, loc):
     """
@@ -119,28 +68,6 @@ def get_elevation_angle(t, sat, loc):
     # NOTE: Topos uses term altitude for what we are referring to as elevation
     alt, az, distance = topocentric.altaz()
     return alt.degrees
-
-
-# def check_in_view(t, satellite, topos, min_elevation):
-#     """
-#     Checks if the elevation angle of the satellite with respect to the ground location is greater than the minimum elevation angle constraint
-
-#     Args:
-#         t (:obj:`Time`): Time object of skyfield.timelib module
-#         satellite (:obj:`EarthSatellite`): Skyview EarthSatellite object from skyfield.sgp4lib module
-#         topos (:obj:`GeographicPosition`): Geographic location on surface specified by latitude-longitude from skyfield.toposlib module
-#         min_elevation (float): Minimum elevation angle (degrees) for ground to be in view of satellite, as calculated by compute_min_elevation
-
-#     Returns:
-#         bool : isInView
-#             True/False indicating visibility of ground location to satellite
-#     """
-#     isInView = False
-#     elevationFromFire = get_elevation_angle(t, satellite, topos)
-#     if elevationFromFire >= min_elevation:
-#         isInView = True
-#     return isInView
-
 
 def check_in_range(t, satellite, grounds):
     """
@@ -216,9 +143,11 @@ class Constellation(Entity):
         self.ssr_capacity = SSR_CAPACITY # in Gigabytes
         self.capacity_used = CAPACITY_USED # fraction from 0 to 1
         self.instrument_rates = INSTRUMENT_RATES # in Gigabytes/second
+        self.cost_mode = COST_MODE
+        self.fixed_rates = FIXED_RATES
         self.linkCounts = [0 for satellite in self.satellites]
         self.linkStatus = [False for satellite in self.satellites]
-        self.cumulativeCostbySat = {l:0.00 for l in self.names}
+        self.cumulativeCostBySat = {l:0.00 for l in self.names}
         self.cumulativeCosts = 0.00
 
     def initialize(self, init_time):
@@ -237,7 +166,8 @@ class Constellation(Entity):
                 "elevAngle": pd.Series([], dtype="float"),
                 "operational": pd.Series([], dtype="bool"),
                 "downlinkRate": pd.Series([], dtype="float"),
-                "costPerSecond": pd.Series([], dtype="float")
+                "costPerSecond": pd.Series([], dtype="float"),
+                "costMode": pd.Series([], dtype="str")
             }
         )
         self.positions = self.next_positions = [
@@ -276,8 +206,9 @@ class Constellation(Entity):
             then = self.ts.from_datetime(self.get_time() + time_step)
             isInRange, groundId = check_in_range(then, satellite, self.grounds)
             self.capacity_used[i] = self.capacity_used[i] + ((self.instrument_rates[i]*time_step.total_seconds())/self.ssr_capacity[i])
-            self.cumulativeCostbySat[self.names[i]] = self.cumulativeCostbySat[self.names[i]] + 0.09*time_step.total_seconds()
-            self.cumulativeCosts = self.cumulativeCosts + 0.09*time_step.total_seconds()
+            if self.cost_mode[i] == "continuous" or self.cost_mode[i] == "both":
+                self.cumulativeCostBySat[self.names[i]] = self.cumulativeCostBySat[self.names[i]] + self.fixed_rates[i]*time_step.total_seconds()
+                self.cumulativeCosts = self.cumulativeCosts + self.fixed_rates[i]*time_step.total_seconds()
             if isInRange:
                 if not self.linkStatus[i]:
                     self.linkStatus[i] = True
@@ -295,21 +226,22 @@ class Constellation(Entity):
         self.positions = self.next_positions
         super().tock()
         for i, satellite in enumerate(self.satellites):
-            self.app.send_message(
-                    "linkCharge",
-                    LinkCharge(
-                        groundId = 0,
-                        satId = self.id[i],
-                        satName = self.names[i],
-                        linkId = self.linkCounts[i],
-                        end = self.get_time(),
-                        duration = 0,
-                        dataOffload = 0,
-                        downlinkCost = 0,
-                        cumulativeCostbySat = self.cumulativeCostbySat[self.names[i]],
-                        cumulativeCosts = 0
-                    ).json()
-            )
+            if self.cost_mode[i] == "continuous" or self.cost_mode[i] == "both":
+                self.app.send_message(
+                        "linkCharge",
+                        LinkCharge(
+                            groundId = 100,
+                            satId = self.id[i],
+                            satName = self.names[i],
+                            linkId = 0,
+                            end = self.get_time(),
+                            duration = 0,
+                            dataOffload = 0,
+                            downlinkCost = 0,
+                            cumulativeCostBySat = self.cumulativeCostBySat[self.names[i]],
+                            cumulativeCosts = self.cumulativeCosts
+                            ).json()
+                        )
 
     def on_ground(self, client, userdata, message):
         """
@@ -351,7 +283,8 @@ class Constellation(Entity):
                     "elevAngle": location.elevAngle,
                     "operational": location.operational,
                     "downlinkRate": location.downlinkRate,
-                    "costPerSecond": location.costPerSecond
+                    "costPerSecond": location.costPerSecond,
+                    "costMode": location.costMode
                 },
                 ignore_index=True,
             )
@@ -369,20 +302,21 @@ class Constellation(Entity):
         """
         downlinkStart = LinkStart.parse_raw(message.payload)
         print(downlinkStart)
-        self.groundTimes[downlinkStart.satName].append(
-            {
-                "groundId":downlinkStart.groundId,
-                "satId":downlinkStart.satId,
-                "satName":downlinkStart.satName,
-                "linkId":downlinkStart.linkId,
-                "start":downlinkStart.start,
-                "end":None,
-                "duration":None,
-                "initialData": downlinkStart.data,
-                "dataOffload":None,
-                "downlinkCost":None
-            },
-        )
+        if downlinkStart.groundId != -1:
+            self.groundTimes[downlinkStart.satName].append(
+                {
+                    "groundId":downlinkStart.groundId,
+                    "satId":downlinkStart.satId,
+                    "satName":downlinkStart.satName,
+                    "linkId":downlinkStart.linkId,
+                    "start":downlinkStart.start,
+                    "end":None,
+                    "duration":None,
+                    "initialData": downlinkStart.data,
+                    "dataOffload":None,
+                    "downlinkCost":None
+                    },
+            )
 
     def on_linkCharge(self, client, userdata, message):
        """
@@ -395,14 +329,18 @@ class Constellation(Entity):
 
        """
        downlinkCharge = LinkCharge.parse_raw(message.payload)
-       self.groundTimes[downlinkCharge.satName][downlinkCharge.linkId]["end"] = downlinkCharge.end
-       self.groundTimes[downlinkCharge.satName][downlinkCharge.linkId]["duration"] = downlinkCharge.duration
-       self.groundTimes[downlinkCharge.satName][downlinkCharge.linkId]["dataOffload"] = downlinkCharge.dataOffload
-       self.groundTimes[downlinkCharge.satName][downlinkCharge.linkId]["downlinkCost"] = downlinkCharge.downlinkCost
-       self.capacity_used[downlinkCharge.satId] = self.capacity_used[downlinkCharge.satId] - (downlinkCharge.dataOffload / self.ssr_capacity[downlinkCharge.satId])
-       if self.capacity_used[downlinkCharge.satId] < 0:
-           self.capacity_used[downlinkCharge.satId] = 0
-
+       print(downlinkCharge)
+       if downlinkCharge.groundId != -1:
+           self.groundTimes[downlinkCharge.satName][downlinkCharge.linkId]["end"] = downlinkCharge.end
+           self.groundTimes[downlinkCharge.satName][downlinkCharge.linkId]["duration"] = downlinkCharge.duration
+           self.groundTimes[downlinkCharge.satName][downlinkCharge.linkId]["dataOffload"] = downlinkCharge.dataOffload
+           self.groundTimes[downlinkCharge.satName][downlinkCharge.linkId]["downlinkCost"] = downlinkCharge.downlinkCost
+           self.capacity_used[downlinkCharge.satId] = self.capacity_used[downlinkCharge.satId] - (downlinkCharge.dataOffload / self.ssr_capacity[downlinkCharge.satId])
+           if self.capacity_used[downlinkCharge.satId] < 0:
+               self.capacity_used[downlinkCharge.satId] = 0
+           self.cumulativeCostBySat[downlinkCharge.satName] = self.cumulativeCostBySat[downlinkCharge.satName] + downlinkCharge.downlinkCost
+           self.cumulativeCosts = self.cumulativeCosts + downlinkCharge.downlinkCost
+               
 
 # define a publisher to report satellite status
 class PositionPublisher(WallclockTimeIntervalPublisher):
@@ -464,6 +402,7 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
                     commRange=self.isInRange[i],
                     groundId=groundId,
                     totalLinkCount=self.constellation.linkCounts[i],
+                    cumulativeCostBySat=self.constellation.cumulativeCostBySat[self.constellation.names[i]],
                     time=constellation.get_time(),
                 ).json(),
             )
@@ -488,8 +427,8 @@ if __name__ == "__main__":
 
     # keys for CelesTrak TLEs used in this example, but indexes often change over time)
     names = ["SUOMI NPP (VIIRS)", "NOAA 20 (VIIRS)"]
-    NPP = activesats[541]
-    NOAA20 = activesats[1293]
+    NPP = activesats[539]
+    NOAA20 = activesats[1291]
     ES = [NPP, NOAA20]
 
 
@@ -516,7 +455,7 @@ if __name__ == "__main__":
         config,
         True,
         time_status_step=timedelta(seconds=10) * SCALE,
-        time_status_init=datetime(2022, 11, 10, 7, 20, tzinfo=timezone.utc),
+        time_status_init=datetime(2022, 11, 21, 7, 20, tzinfo=timezone.utc),
         time_step=timedelta(seconds=1) * SCALE,
     )
 
