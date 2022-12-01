@@ -20,7 +20,7 @@ from constellation import *
 
 from examples.utility.config import PARAMETERS
 
-# logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO)
 
 
 # name guard used to ensure script only executes if it is run as the __main__
@@ -110,6 +110,7 @@ if __name__ == "__main__":
     # add message callbacks
     app.add_message_callback("ground", "location", constellation.on_ground)
     app.add_message_callback("event", "start", constellation.on_event_start)
+    app.add_message_callback("event", "dayChange", constellation.on_event_day_change)
     app.add_message_callback("event", "finish", constellation.on_event_finish)
     app.add_message_callback("manager", "init", constellation.on_manager_init)
 

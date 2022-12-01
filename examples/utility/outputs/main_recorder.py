@@ -117,8 +117,8 @@ if __name__ == "__main__":
         time.sleep(1)
 
     time.sleep(5)
-    recorder.parameters.to_csv(f"outputs/{PARAMETERS['SIM_NAME']}.csv", mode="w")
+    recorder.parameters.to_json(f"outputs/{PARAMETERS['SIM_NAME']}.json", orient='index')
 
-    with open(f"outputs/{PARAMETERS['SIM_NAME']}.csv", "a") as f: f.write("\n\n\n")
+    # with open(f"outputs/{PARAMETERS['SIM_NAME']}.csv", "a") as f: f.write("\n\n\n")
 
-    recorder.events.to_csv(f"outputs/{PARAMETERS['SIM_NAME']}.csv", mode="a")
+    recorder.events.to_csv(f"outputs/{PARAMETERS['SIM_NAME']}.csv", mode="w")

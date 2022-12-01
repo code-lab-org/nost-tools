@@ -10,15 +10,7 @@ from nost_tools.entity import Entity
 from nost_tools.observer import Observer
 from nost_tools.publisher import WallclockTimeIntervalPublisher
 
-from examples.utility.schemas import (
-    EventState,
-    EventStarted,
-    EventDetected,
-    EventReported,
-    EventFinished,
-    SatelliteStatus,
-    GroundLocation,
-)
+from examples.utility.schemas import *
 
 
 def compute_min_elevation(altitude, field_of_regard):
@@ -186,7 +178,6 @@ class Constellation(Entity):
                 "eventId": [],
                 "latitude": [],
                 "longitude": [],
-                "sunriseSunset": [],
                 "isDay": [],
             }
         )
@@ -260,24 +251,25 @@ class Constellation(Entity):
             for satellite in self.satellites
         ]
 
-        for i, event in self.events.iterrows():
-            print(event["isDay"])
-            if event["isDay"] == None and event["sunriseSunset"][1][0] == 1:
-                self.events["isDay"][i] = False
+        # for i, event in self.events.iterrows():
+        #     print(event["isDay"])
+        #     if event["isDay"] == None and event["sunriseSunset"][1][0] == 1:
+        #         self.events["isDay"][i] = False
 
-            elif event["isDay"] == None and event["sunriseSunset"][1][0] == 0:
-                self.events["isDay"][i] = True
+        #     elif event["isDay"] == None and event["sunriseSunset"][1][0] == 0:
+        #         self.events["isDay"][i] = True
             
-            else:
-                for j, time in enumerate(event["sunriseSunset"][0]):
-                    dt_time = datetime.datetime.strptime(time, '%Y-%m-%dT%H:%M:%S.%f%z')
-                    if dt_time > self.get_time() and (dt_time < self.get_time() + time_step):
-                        if event["sunriseSunset"][1][j] == 1:
-                            self.events["isDay"][i] = True
-                            print("sunrise")
-                        else: 
-                            print("sunset")
-                            self.events["isDay"][i] = False
+        #     else:
+        #         for j, time in enumerate(event["sunriseSunset"][0]):
+        #             dt_time = datetime.datetime.strptime(time, '%Y-%m-%dT%H:%M:%S.%f%z')
+        #             if dt_time > self.get_time() and (dt_time < self.get_time() + time_step):
+        #                 if event["sunriseSunset"][1][j] == 1:
+        #                     self.events["isDay"][i] = True
+        #                     print("sunrise")
+        #                 else: 
+        #                     print("sunset")
+        #                     self.events["isDay"][i] = False
+
 
         for i, satellite in enumerate(self.satellites):
             then = self.ts.from_datetime(self.get_time() + time_step)
@@ -289,7 +281,7 @@ class Constellation(Entity):
             isInRange, groundId = check_in_range(then, satellite, self.grounds)
             for j, event in self.events.iterrows():
 
-                if self.night_sight == True or event["isDay"] == True:
+                if self.night_sight == True or event["isDay"] == 1:
                     topos = wgs84.latlon(event["latitude"], event["longitude"])
                     isInViewCurr = check_in_view(now, satellite, topos, self.min_elevations_event[i-1])
                     isInViewNext = check_in_view(then, satellite, topos, self.min_elevations_event[i])
@@ -372,9 +364,12 @@ class Constellation(Entity):
         self.events.loc[started.eventId] = {
             "latitude": started.latitude,
             "longitude": started.longitude,
-            "sunriseSunset": started.sunriseSunset,
-            "isDay": None
+            "isDay": started.isDay
         }
+
+    def on_event_day_change(self, client, userdata, message):
+        change = EventDayChange.parse_raw(message.payload)
+        self.events["isDay"][change.eventId] = change.isDay
 
     def on_event_finish(self, client, userdata, message):
         finished = EventFinished.parse_raw(message.payload)

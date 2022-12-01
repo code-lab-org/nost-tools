@@ -21,14 +21,13 @@ class EventState(str, Enum):
 class EventStarted(BaseModel):
     eventId: int = Field(..., description="Unique event identifier.")
     start: Optional[datetime] = Field(description="Time event started.")
-    finish: Optional[datetime] = Field(description="Time event finished.")
     latitude: Optional[confloat(ge=-90, le=90)] = Field(
         description="Latitude (deg) of event location."
     )
     longitude: Optional[confloat(ge=-180, le=180)] = Field(
         description="Longitude (deg) of event location."
     )
-    sunriseSunset: Optional[list] = Field()
+    isDay: Optional[int] = Field()
 
 
 class EventDetected(BaseModel):
@@ -46,6 +45,11 @@ class EventReported(BaseModel):
     reported_to: int = Field(
         ..., description="Station id that received the event report."
     )
+
+
+class EventDayChange(BaseModel):
+    eventId: int = Field(..., description="Unique event identifier.")
+    isDay: int = Field(..., description="True if sunrise, false if sunset.")
 
 
 class EventFinished(BaseModel):

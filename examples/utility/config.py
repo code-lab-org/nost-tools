@@ -4,7 +4,7 @@ from datetime import datetime, timezone, timedelta
 
 import pandas as pd
 
-sim_name = "dayNightTest"
+sim_name = "threeDayNightSightTest"
 param_file = None
 
 if param_file == None:
@@ -15,14 +15,15 @@ if param_file == None:
             "PREFIX": "utility",
             "SCALE": 60,
             "SCENARIO_START": datetime(2022, 11, 1, 7, 0, 0, tzinfo=timezone.utc),
-            "SCENARIO_LENGTH": 3,
+            "SCENARIO_LENGTH": 3*24,
             "SIM_NAME": sim_name,
 
             # Event parameters
             "SEED": str(datetime.now()),
-            "EVENT_COUNT": 100,
-            "EVENT_LENGTH": 2,
-            "EVENT_START_RANGE": (-1, 1),
+            # "SEED": "123testdaynightseed",
+            "EVENT_COUNT": 50,
+            "EVENT_LENGTH": 2*24,
+            "EVENT_START_RANGE": (-1*24, 1*24),
 
             # Ground parameters
             "GROUND": pd.DataFrame(

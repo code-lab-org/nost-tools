@@ -24,7 +24,7 @@ from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
 from nost_tools.observer import Observer
 from nost_tools.managed_application import ManagedApplication
 
-from examples.utility.schemas import EventState, EventStarted, EventDetected, EventReported, EventFinished
+from examples.utility.schemas import EventState, EventStarted, EventDetected, EventReported, EventDayChange, EventFinished
 from examples.utility.config import PARAMETERS
 
 
@@ -52,7 +52,6 @@ class Environment(Observer):
 
         self.events = self.generate_events()
 
-
     def generate_events(self):
 
         ts = load.timescale()
@@ -69,10 +68,11 @@ class Environment(Observer):
         eventFinishes = []
         eventLats = []
         eventLongs = []
-        event_sunrise_sunsets = []
+        eventSunriseSunsets = []
+        eventIsDays = []
 
         # Creates random values for event start times and locations, creates finish times at a fixed interval after start
-        for i in eventIds:
+        for eventId in eventIds:
             eventStart = self.scenario_start + datetime.timedelta(minutes=random.randrange(self.event_start_range[0]*60, self.event_start_range[1]*60))
             eventStarts.append(eventStart)
 
@@ -84,11 +84,37 @@ class Environment(Observer):
             eventLong = random.randrange(-180, 180)
             eventLongs.append(eventLong)
 
-            t, y = almanac.find_discrete(ts.from_datetime(eventStart), ts.from_datetime(eventStart+datetime.timedelta(hours=self.event_length)), almanac.sunrise_sunset(eph, wgs84.latlon(eventLat, eventLong)) )
-            event_sunrise_sunsets.append([list(t.utc_datetime()), [int(num) for num in y]])
+            day_change_range_start = max(
+                    PARAMETERS["SCENARIO_START"], 
+                    eventStart
+                )
+            
+            day_change_range_end = min(
+                    PARAMETERS["SCENARIO_START"]+datetime.timedelta(hours=PARAMETERS["SCENARIO_LENGTH"]), 
+                    eventStart + datetime.timedelta(hours=self.event_length))
 
-        print(event_sunrise_sunsets)
-        # Read the csv file and convert to a DataFrame with initial column defining the index
+            print(f'{eventId}: day_change_range_start: {day_change_range_start} day_change_range_end: {day_change_range_end}')
+
+            t0, y0 = almanac.find_discrete(
+                ts.from_datetime(day_change_range_start - datetime.timedelta(hours=24)),
+                ts.from_datetime(day_change_range_start),
+                almanac.sunrise_sunset(eph, wgs84.latlon(eventLat, eventLong)
+                )
+            )
+
+            t, y = almanac.find_discrete(
+                ts.from_datetime(day_change_range_start),
+                ts.from_datetime(day_change_range_end),
+                almanac.sunrise_sunset(eph, wgs84.latlon(eventLat, eventLong)
+                )
+            )
+
+            eventSunriseSunset = [list(t.utc_datetime()), [int(y0[-1])] + [int(num) for num in y]]
+            print(eventSunriseSunset)
+            eventIsDay = eventSunriseSunset[1].pop(0)
+            eventIsDays.append(eventIsDay)
+            eventSunriseSunsets.append(eventSunriseSunset)
+
         events = pd.DataFrame(
             data={
                 "eventId": eventIds,
@@ -97,7 +123,8 @@ class Environment(Observer):
                 "finish": eventFinishes,
                 "latitude": eventLats,
                 "longitude": eventLongs,
-                "sunriseSunset": event_sunrise_sunsets
+                "sunriseSunset": eventSunriseSunsets,
+                "isDay": eventIsDays
             }
         )
         events.set_index("eventId", inplace=True)
@@ -114,33 +141,47 @@ class Environment(Observer):
 
         """
         if property_name == "time":
-            new_events = self.events[
-                (self.events.start <= new_value) & (self.events.started == False)
-            ]
-            for i, event in new_events.iterrows():
-                self.events["started"][i] = True
-                self.app.send_message(
-                    "start",
-                    EventStarted(
-                        eventId=i,
-                        start=event.start,
-                        latitude=event.latitude,
-                        longitude=event.longitude,
-                        sunriseSunset=event.sunriseSunset
-                    ).json(),
-                )
+            for eventId, event in self.events.iterrows():
+                print(eventId, ':', event["sunriseSunset"])
+                if event["start"] <= new_value and event["started"] == False:
+                    self.events["started"][eventId] = True
+                    self.app.send_message(
+                        "start",
+                        EventStarted(
+                            eventId=eventId,
+                            start=event["start"],
+                            latitude=event['latitude'],
+                            longitude=event['longitude'],
+                            isDay=event['isDay']
+                        ).json(),
+                    )
 
-            finished_events = self.events[
-                (self.events.finish <= new_value) & (self.events.finish > old_value)
-            ]
+                try:
+                    if event["sunriseSunset"][0][0] <= new_value:
+                        print(f"pop: {self.events['sunriseSunset'][eventId][0][0]}")   
+                        self.events["sunriseSunset"][eventId][0].pop(0)
+                        isDay = self.events["sunriseSunset"][eventId][1].pop(0)
+                        print(f"pop: {isDay}")  
+                        self.events["isDay"][eventId] = int(isDay)
 
-            for i, event in finished_events.iterrows():
-                self.app.send_message(
-                    "finish",
-                    EventFinished(
-                        eventId=i
-                    ).json(),
-                )
+                        self.app.send_message(
+                            "dayChange",
+                            EventDayChange(
+                                eventId=eventId,
+                                isDay=int(isDay)
+                            ).json(),
+                        )
+                except:
+                    pass
+
+                if event["finish"] <= new_value and event["finish"] > old_value:
+                    print("finish")
+                    self.app.send_message(
+                        "finish",
+                        EventFinished(
+                            eventId=eventId
+                        ).json(),
+                    )
 
 
 if __name__ == "__main__":
@@ -185,4 +226,4 @@ if __name__ == "__main__":
     while not app.simulator.get_mode() == Mode.TERMINATED:
         time.sleep(1)
 
-    print(environment.events)
+    print(environment.events.to_string())

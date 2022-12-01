@@ -53,7 +53,7 @@ if __name__ == "__main__":
     # Checks if the TLES parameter is given and if not pulls the most recent ones from Celestrak
     if PARAMETERS['TLES'] == {}:
         # load current TLEs for active satellites from Celestrak (NOTE: User has option to specify their own TLE instead)
-        # load.download("https://celestrak.com/NORAD/elements/active.txt")
+        load.download("https://celestrak.com/NORAD/elements/active.txt")
         TLES = pd.Series(
             data=[[] for _ in names],
             index=names
@@ -96,10 +96,11 @@ if __name__ == "__main__":
     # add message callbacks
     app.add_message_callback("ground", "location", constellation.on_ground)
     app.add_message_callback("event", "start", constellation.on_event_start)
+    app.add_message_callback("event", "dayChange", constellation.on_event_day_change)
     app.add_message_callback("event", "finish", constellation.on_event_finish)
     app.add_message_callback("manager", "init", constellation.on_manager_init)
 
     # Ensures the application hangs until the simulation is terminated, to allow background threads to run
     while not app.simulator.get_mode() == Mode.TERMINATED:
         time.sleep(0.2)
-        print(app.simulator.get_mode())
+        # print(app.simulator.get_mode())
