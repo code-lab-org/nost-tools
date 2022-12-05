@@ -30,9 +30,9 @@ TLES = [[TLE1_SC1,TLE2_SC1],[TLE1_SC2,TLE2_SC2]]
 # )  # degrees (comms more forgiving than sensor, not currently used)
 # MIN_INTENSITY = float(os.getenv("MIN_INTENSITY", 10.0))  # square meters
 
-SSR_CAPACITY = [280,343] # Capacity of onboard Solid State Recorder in Gigabytes
+SSR_CAPACITY = [280,343] # Capacity of onboard Solid State Recorder in Gigabits
 CAPACITY_USED = [0.30, 0.25] # Fractional value from 0 (empty) to 1 (full). Arbitrarily starting with SSR half full, but will offload at first pass
-INSTRUMENT_RATES = [.0125, .0125] # Rate of data collection for all instruments in Gigabytes/second
+INSTRUMENT_RATES = [.0125, .0125] # Rate of data collection for all instruments in Gigabits/second
 COST_MODE = ["discrete","discrete"] # Options per satellite are "discrete" (per downlink), "continuous" (fixed contract), or "both"
 FIXED_RATES = [0.09, 0.09] # Only used if "continuous" or "both" are the cost mode, otherwise costs reported by ground for "discrete"
 SCALE = 60							

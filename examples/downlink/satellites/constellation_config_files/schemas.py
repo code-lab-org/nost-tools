@@ -6,7 +6,7 @@ Example script to specify object schemas for the AWS Downlink test case.
 
 from pydantic import BaseModel, Field, confloat
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 class SatelliteReady(BaseModel):
@@ -119,4 +119,22 @@ class LinkCharge(BaseModel):
     )
     cumulativeCosts: float = Field(
         ..., description="Running total of ALL downlink costs for the entirety of the Test Case"
+    )
+    
+class OutageReport(BaseModel):
+    groundId: int = Field(..., description="Unique ground station identifier experiencing outage")
+    outageStart: datetime = Field(
+        ..., description="Initial time of outage report"
+    )
+    outageDuration: timedelta = Field(
+        ..., description="Duration of the reported outage"
+    )
+    outageEnd: datetime = Field(
+        ..., description="outageStart + outageDuration"
+    )
+    
+class OutageRestore(BaseModel):
+    groundId: int = Field(..., description="Unique ground station identifier")
+    outageEnd: datetime = Field(
+        ..., description = "outageStart + outageDuration"
     )

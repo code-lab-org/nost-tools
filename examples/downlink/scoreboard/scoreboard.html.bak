@@ -183,11 +183,11 @@
 									position: Cesium.Cartesian3.fromDegrees(
 										payload.longitude,
 										payload.latitude,
-										500000.0
+										250000.0
 									),
 									cylinder: {
-										length: 1000000.0,
-										topRadius: 1000000.0*Math.tan((90-payload.elevAngle)*Math.PI/180),
+										length: 500000.0,
+										topRadius: 500000.0*Math.tan((90-payload.elevAngle)*Math.PI/180),
 										bottomRadius: 0.0,
 										material: groundMaterial,
 										outline: true,
@@ -195,6 +195,17 @@
 									}
 								});
 							}
+						} else if(topic==`${PREFIX}/outage/report` || topic==`${PREFIX}/outage/restore){
+							payload = JSON.parse(message.payloadString);
+							if (grounds.get(payload.groundId).color == Cesium.Color.PINK){
+								groundColor = Cesium.Color.LIGHTGRAY
+								groundMaterial = Cesium.Color.LIGHTGRAY.withAlpha(0.1)
+							} else {
+								groundColor = Cesium.Color.PINK
+								groundMaterial = Cesium.Color.PINK.withAlpha(0.1)
+							}
+							grounds.get(payload.groundId).color = groundColor
+							commsCones.get(payload.groundId).material = groundMaterial
 						}
 					} catch(err) {
 						console.log('An error was caught somewhere...')

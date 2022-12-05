@@ -195,6 +195,17 @@
 									}
 								});
 							}
+						} else if(topic==`${PREFIX}/outage/report` || topic==`${PREFIX}/outage/restore`){
+							payload = JSON.parse(message.payloadString);
+							if (topic==`${PREFIX}/outage/report`){
+								groundColor = Cesium.Color.LIGHTGRAY
+								groundMaterial = Cesium.Color.LIGHTGRAY.withAlpha(0.1)
+							} else {
+								groundColor = Cesium.Color.PINK
+								groundMaterial = Cesium.Color.PINK.withAlpha(0.1)
+							}
+							grounds.get(payload.groundId).color = groundColor
+							commsCones.get(payload.groundId).material = groundMaterial
 						}
 					} catch(err) {
 						console.log('An error was caught somewhere...')

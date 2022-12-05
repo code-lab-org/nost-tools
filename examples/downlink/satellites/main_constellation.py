@@ -34,7 +34,9 @@ from constellation_config_files.schemas import (
     SatelliteStatus,
     GroundLocation,
     LinkStart,
-    LinkCharge
+    LinkCharge,
+    OutageReport,
+    OutageRestore
 )
 from constellation_config_files.config import (
     PREFIX,
@@ -340,6 +342,24 @@ class Constellation(Entity):
                self.capacity_used[downlinkCharge.satId] = 0
            self.cumulativeCostBySat[downlinkCharge.satName] = self.cumulativeCostBySat[downlinkCharge.satName] + downlinkCharge.downlinkCost
            self.cumulativeCosts = self.cumulativeCosts + downlinkCharge.downlinkCost
+           
+    def on_outage(self, client, userdata, message):
+        """
+        """
+        outageReport = OutageReport.parse_raw(message.payload)
+        self.grounds["operational"][outageReport.groundId] = False
+        if outageReport.groundId == 11:
+            for c, mode in enumerate(self.cost_mode):
+                self.cost_mode[c] = "discrete"
+        
+    def on_restore(self, client, userdata, message):
+        """
+        """
+        outageRestore = OutageRestore.parse_raw(message.payload)
+        self.grounds["operational"][outageRestore.groundId] = True
+        if outageRestore.groundId == 11:
+            for c, mode in enumerate(self.cost_mode):
+                self.cost_mode[c] = "both"
                
 
 # define a publisher to report satellite status
@@ -427,16 +447,12 @@ if __name__ == "__main__":
 
     # keys for CelesTrak TLEs used in this example, but indexes often change over time)
     names = ["SUOMI NPP (VIIRS)", "NOAA 20 (VIIRS)"]
-    NPP = activesats[539]
-    NOAA20 = activesats[1291]
+    NPP = activesats[537]
+    NOAA20 = activesats[1285]
     ES = [NPP, NOAA20]
-
 
     # initialize the Constellation object class (in this example from EarthSatellite type)
     constellation = Constellation("constellation", app, [0, 1], names, ES)
-
-    # add observer classes to the Constellation object class
-    # constellation.add_observer(FireReportedObserver(app))
 
     # add the Constellation entity to the application's simulator
     app.simulator.add_entity(constellation)
@@ -455,7 +471,7 @@ if __name__ == "__main__":
         config,
         True,
         time_status_step=timedelta(seconds=10) * SCALE,
-        time_status_init=datetime(2022, 11, 21, 7, 20, tzinfo=timezone.utc),
+        time_status_init=datetime(2022, 11, 30, 7, 20, tzinfo=timezone.utc),
         time_step=timedelta(seconds=1) * SCALE,
     )
 
@@ -463,3 +479,5 @@ if __name__ == "__main__":
     app.add_message_callback("ground", "location", constellation.on_ground)
     app.add_message_callback("ground", "linkStart", constellation.on_linkStart)
     app.add_message_callback("ground", "linkCharge", constellation.on_linkCharge)
+    app.add_message_callback("outage", "report", constellation.on_outage)
+    app.add_message_callback("outage", "restore", constellation.on_restore)

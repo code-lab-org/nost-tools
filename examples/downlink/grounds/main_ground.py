@@ -20,7 +20,9 @@ from ground_config_files.schemas import (
     SatelliteStatus,
     GroundLocation,
     LinkStart,
-    LinkCharge
+    LinkCharge,
+    OutageReport,
+    OutageRestore
 )
 from ground_config_files.config import (
     PREFIX,
@@ -51,6 +53,8 @@ class GroundNetwork(Observable,Observer):
         self.satelliteIds = []
         self.satelliteNames = []
         self.ssrCapacity = []
+        self.outages = []
+        self.restores = []
         self.cumulativeCosts = 0.00
 
     def on_change(self, source, property_name, old_value, new_value):
@@ -181,10 +185,35 @@ class GroundNetwork(Observable,Observer):
                     },
                 )
             
+    def on_outage(self, client, userdata, message):
+        outageReport = OutageReport.parse_raw(message.payload)
+        self.grounds["operational"][outageReport.groundId] = False
+        self.outages.append(
+            {
+             "groundId":outageReport.groundId,
+             "outageStart":outageReport.outageStart,
+             "outageDuration":outageReport.outageDuration,
+             "outageEnd":outageReport.outageEnd
+            },
+        )
+        
+    def on_restore(self, client, userdata, message):
+        outageRestore = OutageRestore.parse_raw(message.payload)
+        print(outageRestore)
+        self.grounds["operational"][outageRestore.groundId] = True
+        self.restores.append(
+            {
+                "groundId":outageRestore.groundId,
+                "outageEnd":outageRestore.outageEnd
+            },
+        )
+        
+    
     def fixedCost(self, client, userdata, message):
         fixedCharge = LinkCharge.parse_raw(message.payload)
         self.cumulativeCostBySat[fixedCharge.satName] = fixedCharge.cumulativeCostBySat
         self.cumulativeCosts = fixedCharge.cumulativeCosts
+        
 
 class LinkStartObserver(Observer):
     """
@@ -287,7 +316,7 @@ if __name__ == "__main__":
         config,
         True,
         time_status_step=timedelta(seconds=10) * SCALE,
-        time_status_init=datetime(2022, 11, 21, 7, 20, tzinfo=timezone.utc),
+        time_status_init=datetime(2022, 11, 30, 8, 20, tzinfo=timezone.utc),
         time_step=timedelta(seconds=1) * SCALE,
     )
 
@@ -296,3 +325,5 @@ if __name__ == "__main__":
     app.add_message_callback("constellation","allReady", groundNetwork.all_ready)
     app.add_message_callback("constellation", "location", groundNetwork.on_commRange)
     app.add_message_callback("constellation","linkCharge",groundNetwork.fixedCost)
+    app.add_message_callback("outage", "report", groundNetwork.on_outage)
+    app.add_message_callback("outage","restore", groundNetwork.on_restore)
