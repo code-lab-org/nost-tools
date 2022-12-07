@@ -247,39 +247,11 @@ var CESIUM_ACCESS_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlMGE4
 						} else if(topic=="utility/event/finish") {
 							try {
 								payload = JSON.parse(message.payloadString);
-								events.get(eventsById[payload.eventId]).show = false;
+								events.get(eventsById[payload.eventId].id).show = false;
 							} catch {
 								console.log("Error: utility/event/finish");
 							}
 							
-						} else if(topic=="utility/capella/detected"){
-							try {
-								payload = JSON.parse(message.payloadString);
-								events.get(eventsById[payload.eventId].id).color = Cesium.Color.DARKORANGE.withAlpha(alphasById[payload.eventId]);
-							} catch {
-								console.log("Error: utility/capella/detected");
-							}
-						} else if(topic=="utility/capella/reported"){
-							try {
-								payload = JSON.parse(message.payloadString);
-								events.get(eventsById[payload.eventId].id).color = Cesium.Color.YELLOW.withAlpha(alphasById[payload.eventId]);
-							} catch {
-								console.log("Error: utility/capella/reported");
-							}
-						} else if(topic=="utility/planet/detected"){
-							try {
-								payload = JSON.parse(message.payloadString);
-								events.get(eventsById[payload.eventId].id).color = Cesium.Color.DARKORANGE.withAlpha(alphasById[payload.eventId]);
-							} catch {
-								console.log("Error: utility/planet/detected");
-							}
-						} else if(topic=="utility/planet/reported"){
-							try {
-								payload = JSON.parse(message.payloadString);
-								events.get(eventsById[payload.eventId].id).color = Cesium.Color.YELLOW.withAlpha(alphasById[payload.eventId]);
-							} catch {
-								console.log("Error: utility/planet/reported");
-							}
 						} else if(topic=="utility/ground/location"){
 							try {
 								payload = JSON.parse(message.payloadString);
