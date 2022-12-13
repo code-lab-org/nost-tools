@@ -1567,6 +1567,8 @@ References
 Appendices
 ----------
 
+.. _ICDfireSat:
+
 Sample test campaign – Firesat+ - Objective 1
 ---------------------------------------------
 

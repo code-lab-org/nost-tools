@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
     This application demonstrates how to create a simple dashboard for
-    visualizing NOS-T data in real time. It subscribes to the 
+    visualizing NOS-T data in real time. It subscribes to the
     scienceEventPublisher.py application and displays the science utility
     separated by location.
 """
@@ -15,6 +15,7 @@ from dash.dependencies import Input, Output, State
 import plotly.express as px
 import pandas as pd
 from datetime import datetime, timedelta
+from dotenv import dotenv_values
 
 
 
@@ -25,7 +26,7 @@ def on_message(mqttc, obj, msg):
     eventMessage["location"] = eventMessage["latitude"], eventMessage["longitude"]
     eventLOD.append(eventMessage)
     update_fig(n)
-    
+
 def update_fig(n):
     df = pd.DataFrame(data=eventLOD)
     fig = px.line(df, x='time', y='utility', color='location', markers=True,
@@ -39,14 +40,18 @@ def update_fig(n):
 # name guard
 if __name__ == "__main__":
 
+    # Note that these are loaded from a .env file in current working directory
+    credentials = dotenv_values(".env")
+    HOST, PORT = credentials["HOST"], int(credentials["PORT"])
+    USERNAME, PASSWORD = credentials["USERNAME"], credentials["PASSWORD"]
     # build the MQTT client
     client = mqtt.Client()
     # set client username and password
-    client.username_pw_set(username="bchell", password="cT8T1pd62KnZ")
+    client.username_pw_set(username=USERNAME, password=PASSWORD)
     # set tls certificate
     client.tls_set()
     # connect to MQTT server on port 8883
-    client.connect("testbed.mysmce.com", 8883)
+    client.connect(HOST, PORT)
     # subscribe to science event topics
     client.subscribe("BCtest/AIAA/eventUtility",0)
     # bind the message handler
@@ -65,7 +70,7 @@ if __name__ == "__main__":
     df0["location"] = (latitude, longitude)
     n=0
     eventLOD = []
-    
+
     app = dash.Dash(__name__)
 
     # for dashboard plot

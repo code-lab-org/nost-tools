@@ -11,9 +11,4 @@ Example Test Suites
    examples/scalability/api/modules
    examples/scienceDash/api/modules
 
-Indices and tables
-==================
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

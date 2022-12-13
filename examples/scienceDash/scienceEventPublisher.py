@@ -10,17 +10,23 @@ import time
 import json
 from datetime import datetime, timedelta
 from numpy import random
+from dotenv import dotenv_values
+
 
 if __name__ == "__main__":
 
+    # Note that these are loaded from a .env file in current working directory
+    credentials = dotenv_values(".env")
+    HOST, PORT = credentials["HOST"], int(credentials["PORT"])
+    USERNAME, PASSWORD = credentials["USERNAME"], credentials["PASSWORD"]
     # build the MQTT client
     client = mqtt.Client()
     # set client username and password
-    client.username_pw_set(username="bchell", password="cT8T1pd62KnZ")
+    client.username_pw_set(username=USERNAME, password=PASSWORD)
     # set tls certificate
     client.tls_set()
     # connect to MQTT server on port 8883
-    client.connect("testbed.mysmce.com", 8883)
+    client.connect(HOST, PORT)
     # start a background thread to let MQTT do things
     client.loop_start()
 
@@ -49,10 +55,10 @@ if __name__ == "__main__":
                                 "utility":utility}
                 client.publish("BCtest/AIAA/eventUtility", payload=json.dumps(eventMessage))
                 print(eventMessage)
-                
+
                 #wait for next utility step
-                time.sleep(1)                    
-                
+                time.sleep(1)
+
         # time step between possible events
         next_step = datetime.now() + timedelta(seconds=1)
 

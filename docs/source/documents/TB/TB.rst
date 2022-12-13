@@ -66,8 +66,7 @@ Table of Contents
 
 `3.2 NOS-T Execution Requirements <#nos-t-execution-requirements>`__
 
-`3.3 Test Case-Specific Execution
-Requirements <#test-case-specific-execution-requirements>`__
+`3.3 Test Case-Specific Execution Requirements <#test-case-specific-execution-requirements>`__
 
 `4 References <#references>`__
 
@@ -88,8 +87,8 @@ The New Observing Strategies Testbed (NOS-T) is a computational environment to
 develop, test, mature, and socialize new operating concepts and technology for
 NOS. NOS-T provides infrastructure to integrate and orchestrate user-contributed
 applications for system-of-systems test cases with true distributed
-control over constituent systems. The overall concept, illustrated in
-Figure 1, interconnects individual user applications and a NOS-T manager
+control over constituent systems. The overall concept, illustrated below, 
+interconnects individual user applications and a NOS-T manager
 application via common information system infrastructure to coordinate
 the execution of virtual Earth science missions. NOS-T enables principal
 investigators to conduct test runs in the same environment,

@@ -11,6 +11,7 @@ from dash import html
 import plotly.express as px
 import pandas as pd
 import csv
+from dash.dependencies import Input, Output, State
 
 
 def on_message(mqttc, obj, msg):

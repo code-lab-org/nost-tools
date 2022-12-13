@@ -1,3 +1,5 @@
+.. _nostTools:
+
 NOS-T Tools
 ===========
 This page contains descriptions of the nost_tools library features, and

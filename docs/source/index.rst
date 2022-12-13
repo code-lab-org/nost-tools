@@ -19,20 +19,12 @@ NOS-T Graphical Concept
    :maxdepth: 1
    :caption: Contents:
 
-   documents
+   
+   getStarted
    nost_tools
    examples
+   documents
    publications
-
-
-Indices and tables
-==================
 
 * :ref:`genindex`
 * :ref:`modindex`
-* :ref:`search`
-
-Contents
---------
-
-.. toctree::
