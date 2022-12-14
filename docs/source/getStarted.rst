@@ -15,10 +15,13 @@ Finally, the FireSat+ test suite is based on the familiar FireSat, which
 is a running example throughout the classic space systems text, *Space Mission Analysis and Design*. FireSat+ uses 
 the NOS-T Tools Library and is a good entry point for more-capable experiments.
 
-* The most basic instructions for running FireSat+ are found here: :ref:`instructionsFireSat`. 
-* A deeper dive into the applications and code is here: :ref:`fireSatExampleTop`.
-* The Interface Control Document has a high-level description of FireSat+ here: :ref:`ICDfireSat`.
-* The NOS-T Tools documentation is here: :ref:`nostTools`.
+The most basic instructions for running FireSat+ are found here: :ref:`instructionsFireSat`. 
+
+A deeper dive into the applications and code is here: :ref:`fireSatExampleTop`.
+
+The Interface Control Document has a high-level description of FireSat+ here: :ref:`ICDfireSat`.
+
+The NOS-T Tools documentation is here: :ref:`nostTools`.
 
 .. toctree::
    :maxdepth: 1
