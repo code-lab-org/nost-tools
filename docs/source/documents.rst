@@ -1,9 +1,7 @@
-
-
 Release Documents
 =================
 
-The links below will lead you to some official release documents. 
+The links below will lead you to some NOS-T official release documents. 
 The Interface Control Document (ICD) is an in-depth look at the NOS-T
 system architecture, the MQTT message protocol, unmanaged/managed
 use cases, and a detailed starting guide.

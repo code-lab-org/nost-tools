@@ -19,7 +19,6 @@ NOS-T Graphical Concept
    :maxdepth: 1
    :caption: Contents:
 
-   
    getStarted
    nost_tools
    examples
