@@ -20,7 +20,7 @@ the NOS-T Tools Library and is a good entry point for more-capable experiments:
 * The NOS-T Tools documentation is here: :ref:`nostTools`.
 
 .. toctree::
-   :maxdepth: 1
+   :hidden:
 
    documents/getStarted/instructionsScienceDash
    documents/getStarted/instructionsFireSat
