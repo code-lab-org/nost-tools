@@ -5,9 +5,9 @@ Getting Started with NOS-T
 
 This section contains instructions on how to get started with running
 tests over the NOS-T infrastructure. Having a message broker is a basic requirement and
-instructions for setting one up can be found here: :(COMING SOON!)
+instructions for setting one up can be found here: (COMING SOON!)
 
-The "Science Event Dashboard" is a simple test case which publishes 
+The Science Event Dashboard is a simple test case which publishes 
 utility scores to a dashboard. It is comprised of just two applications
 and is a good place to start. For documentation, please see: :ref:`instructionsScienceDash`.
 

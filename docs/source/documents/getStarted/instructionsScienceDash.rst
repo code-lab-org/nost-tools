@@ -8,7 +8,9 @@ capabilities. It does not require the use of the NOS-T tools library.
 It contains two applications, a Science Event Publisher which regularly publishes
 the utility score and random location for science events distributed globally.
 The second application is a basic dashboard which publishes the utility and 
-location with the Python Dash library.
+location with the Python Dash library. The development team has found visualization
+tools like this dashboard to be very helpful to ensure that test behavior is
+as expected.
 
 In order to run the Science Event test case you first need to get the two
 applications which comprise this test suite from the project git at
