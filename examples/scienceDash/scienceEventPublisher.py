@@ -25,7 +25,7 @@ if __name__ == "__main__":
     client.username_pw_set(username=USERNAME, password=PASSWORD)
     # set tls certificate
     client.tls_set()
-    # connect to MQTT server on port 8883
+    # connect to MQTT server
     client.connect(HOST, PORT)
     # start a background thread to let MQTT do things
     client.loop_start()

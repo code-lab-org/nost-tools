@@ -9,6 +9,7 @@ from dotenv import dotenv_values
 import paho.mqtt.client as mqtt
 import csv
 import json
+
 def on_message(mqttc, obj, msg):
     """ Callback to process an incoming message."""
     # setting up DataFrame for plot

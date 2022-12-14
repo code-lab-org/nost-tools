@@ -76,15 +76,15 @@ order you start the other applications. All of the .py applications will give an
 they are waiting for the test case to start up. The scoreboard.html application should
 be opened in a web browser.
 
-If everything is running correctly, the Scoreboard app should show an image similar
-to below.
-
 .. image:: media/fireSatScoreboard.png
    :width: 600
    :align: center
 
-A graphical representation of the FireSat+ workflow is shown below.
+If everything is running correctly, the Scoreboard app should show an image similar
+to above.
 
 .. image:: media/fireSatWorkflow.png
    :width: 600
    :align: center
+
+A graphical representation of the FireSat+ messages and their payloads is shown here.

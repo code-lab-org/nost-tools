@@ -17,25 +17,20 @@ import pandas as pd
 from datetime import datetime, timedelta
 from dotenv import dotenv_values
 
-
-
 def on_message(mqttc, obj, msg):
-    """ Callback to process an incoming message."""
-    # setting up list of dictionaries
+    """ Callback to process an incoming message and then run the update_fig function."""
     eventMessage = json.loads(msg.payload.decode("utf-8"))
     eventMessage["location"] = eventMessage["latitude"], eventMessage["longitude"]
     eventLOD.append(eventMessage)
     update_fig(n)
 
 def update_fig(n):
+    """ Updates the dashboard when new data is received."""
     df = pd.DataFrame(data=eventLOD)
     fig = px.line(df, x='time', y='utility', color='location', markers=True,
                           labels={"time":"time", "utility":"utility (n.d.)"},
                           title="Science Event Utility")
     return fig
-
-
-
 
 # name guard
 if __name__ == "__main__":
@@ -50,7 +45,7 @@ if __name__ == "__main__":
     client.username_pw_set(username=USERNAME, password=PASSWORD)
     # set tls certificate
     client.tls_set()
-    # connect to MQTT server on port 8883
+    # connect to MQTT server
     client.connect(HOST, PORT)
     # subscribe to science event topics
     client.subscribe("BCtest/AIAA/eventUtility",0)

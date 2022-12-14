@@ -936,6 +936,11 @@ application.
 
 Figure 7. Event Interface between Manager and Managed User Applications.
 
+.. _ICDfireSat:
+
+FireSat+ Example
+----------------
+
 To avoid only describing an abstract interface, we will use a specific
 example of a managed use case throughout this section. The example is
 based on the canonical FireSat mission, a fire-detecting spacecraft
@@ -974,9 +979,7 @@ Figure 8.
 
 .. image:: media/image44.png
    :alt: Diagram Description automatically generated
-   :width: 3.48958in
-   :height: 2.71897in
-
+   
 Figure 8. FireSat+ Test Case Event Publishers/Subscribers
 
 Unmanaged Use Case
@@ -1006,8 +1009,6 @@ command, NOT a manager-issued STOP command.
 
 .. image:: media/image45.png
    :alt: Diagram Description automatically generated
-   :width: 5in
-   :height: 2.13542in
 
 Figure 9. Behavior of Unmanaged User Applications.
 
@@ -1033,7 +1034,7 @@ time stamp before publishing a new *Fire Status* event.
    :width: 5.35046in
    :height: 2.16685in
 
-**Figure 10. Basic Event Message Flow of Managed User Applications.**
+Figure 10. Basic Event Message Flow of Managed User Applications.
 
 Figure 11 provides an overview of the types of messages that pass
 between the manager and managed user applications.
@@ -1566,8 +1567,6 @@ References
 
 Appendices
 ----------
-
-.. _ICDfireSat:
 
 Sample test campaign – Firesat+ - Objective 1
 ---------------------------------------------

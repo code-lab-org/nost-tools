@@ -1,3 +1,5 @@
+.. _scienceDashEX:
+
 NOS-T Science Event Test Suite
 ==============================
 
