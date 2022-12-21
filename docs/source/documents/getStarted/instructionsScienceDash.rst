@@ -21,8 +21,9 @@ More in-depth descriptions of what the code is doing can be found here: :ref:`sc
 Initial requirements
 --------------------
 
-This test suite assumes that you have first followed the installation
-instructions.
+This test suite assumes that you have first downloaded the constituent applications.
+It is also necessary to install several python packages as found in the `requirements document <https://github.com/code-lab-org/nost-tools/blob/main/docs/requirements.txt>`_.
+However, this is an unmanaged NOS-T test suite and it is not necessary to have installed the tools library.
 
 
 Setting up environment files
@@ -52,7 +53,7 @@ Running a test case
 Next, run each application on separate computers or consoles. Wherever the
 dashboard application is running, you should be able to see the utility scores
 from a web browser (default address:  http://127.0.0.1:8050/). If everything is
-running properly it will look like below:
+running properly the dashboard will look like the figure below:
 
 .. image:: media/scienceDash.png
    :width: 600

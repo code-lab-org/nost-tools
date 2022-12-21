@@ -1,3 +1,5 @@
+.. _ICD:
+
 Interface Control Document
 ==========================
 

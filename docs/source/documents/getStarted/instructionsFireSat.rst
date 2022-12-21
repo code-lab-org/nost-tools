@@ -17,14 +17,22 @@ NOS-T Tools Installation
 ------------------------
 
 In order to run a FireSat+ test case you first need to install the NOS-T
-tools by cloning the repository from the following link:
+tools library by first cloning the repository from the following link:
 
 https://github.com/code-lab-org/nost-tools
+
+Then, from a command prompt,  navigate to the root directory 
+(where you cloned the library) and install by running the following command:
+
+:: 
+  
+  pip install -e .
 
 Cesium Access Token and Assets
 ------------------------------
 
-Next, the Scoreboard application uses the Cesium geospatial visualization tool.
+The FireSat+ Scoreboard application is a great way to visualize what is happening during a test.
+It uses the Cesium geospatial visualization tool which requires getting an access token.
 You will get an access token by signing in at the following link:
 
 https://cesium.com/ion/signin/tokens

@@ -77,11 +77,11 @@ The New Observing Strategies (NOS) initiative within the NASA Earth
 Science Technology Office (ESTO) Advanced Information Systems Technology
 (AIST) program envisions future Earth science missions with distributed
 sensors (nodes) interconnected by a communications fabric that enables
-dynamic and intelligent operations [1]_. Some NOS concepts resemble
+dynamic and intelligent operations [2]_. Some NOS concepts resemble
 systems-of-systems or collaborative systems where operational authority
 is distributed among multiple systems, necessitating new methods for
 systems engineering and design to cope with more decentralized control
-over constituent systems [2]_.
+over constituent systems [3]_.
 
 The New Observing Strategies Testbed (NOS-T) is a computational environment to
 develop, test, mature, and socialize new operating concepts and technology for
@@ -132,8 +132,8 @@ The NOS-T design and development follows several guiding principles:
 
 As a result of these guiding principles, NOS-T adopts a simpler software
 architecture than existing distributed simulation standards like
-Distributed Interactive Simulation (DIS, IEEE Std. 1278) [3]_ and High
-Level Architecture (HLA, IEEE Std. 1516) [4]_. Most frequently used in
+Distributed Interactive Simulation (DIS, IEEE Std. 1278) [4]_ and High
+Level Architecture (HLA, IEEE Std. 1516) [5]_. Most frequently used in
 defense applications, DIS and HLA provide comprehensive distributed
 simulation capabilities but also require substantial resources to learn,
 develop, and execute compliant applications. Initial NOS-T capabilities
@@ -171,12 +171,12 @@ the communication structure because each member application (client)
 only directly connects to the broker, rather than requiring each
 application to directly connect to every other application. While there
 are many alternative broker implementation options available, NOS-T
-adopts the Solace PubSub+ Standard Edition event broker [5]_, a
+adopts the Solace PubSub+ Standard Edition event broker [6]_, a
 proprietary but freely available commercial product supporting up to
 1000 concurrent connections and 10,000 messages per second [1]_. NOS-T
 hosts an instance of PubSub+ on a server in the Science Managed Cloud
 Environment (SMCE), a managed cloud infrastructure for ESTO projects
-[6]. PubSub+ uses a publish-subscribe messaging pattern which designates
+[7]_. PubSub+ uses a publish-subscribe messaging pattern which designates
 applications (clients) as publishers (producers of events) and
 subscribers (consumers of events). Each application can publish or
 subscribe to multiple types of events.
@@ -225,9 +225,9 @@ Message Protocol
 All NOS-T events are communicated by sending or receiving messages using
 standard network messaging protocols. The Solace PubSub+ event broker
 supports and interoperates among several protocols including its own
-Solace Message Format (SMF) [7]_ and several open protocols including
+Solace Message Format (SMF) [8]_ and several open protocols including
 Message Queuing Telemetry Transport (MQTT), Advanced Message Queuing
-Protocol (AMQP), and Representational State Transfer (REST) [8]_. All
+Protocol (AMQP), and Representational State Transfer (REST) [9]_. All
 protocols share similar messaging constructs but exhibit some minor
 differences in implementation and library availability.
 
@@ -301,7 +301,7 @@ semantically readable data. While the object schemas (specification of
 required key names and expected value types) to structure JSON message
 payloads for new events depend on each application case, the NOS-T
 manager messages are loosely based on standardized object schemas for
-the SensorThings Sensing [9]_ and Tasking [10]_ APIs. The start event
+the SensorThings Sensing [10]_ and Tasking [1]_ APIs. The start event
 above is based on the SensorThings *Task* entity with task-specific
 parameters (*startTime*, *simStartTime*, etc.) contained within the
 *taskingParameters* dictionary.
@@ -313,7 +313,7 @@ MQTT is a good messaging protocol choice for new user applications
 because of its simplicity and broad support including high-quality
 open-source libraries for most languages. For example, the Eclipse Paho
 library (*paho-mqtt*) is publicly available under an open-source license
-for the Python language [11]_.
+for the Python language [12]_.
 
 A simple example below connects a client to the broker (using
 placeholders for client username and password and the broker host
@@ -625,7 +625,7 @@ evaluated in a NOS-T test case. User applications must meet generic
 NOS-T execution requirements as well as test case-specific requirements.
 As an example, a FireSat application use case demonstrates how user
 applications can model parts of a fire observation remote sensing system
-[12]_. A simplified description includes interactions between three user
+[13]_. A simplified description includes interactions between three user
 applications and the NOS-T manager application Figure 5.
 
 1. **Environment application:** models fire ignition and growth.

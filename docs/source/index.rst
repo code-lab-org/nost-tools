@@ -1,19 +1,13 @@
-.. NOS-T documentation master file, created by
-   sphinx-quickstart on Fri Jul  1 13:20:28 2022.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+
 
 NOS-T Documentation
 ===================
 
-The New Observing Strategies Testbed (NOS-T) is a digital engineering environment for testing
-distributed space mission concepts.
+The New Observing Strategies Testbed (NOS-T) is a digital engineering environment
+to develop, test, mature, and socialize new operating concepts and technology for
+NASA's New Observing Strategies initiative. 
 
-.. image:: media/graphicalConcept.png
-   :width: 600
-   :align: center
-
-NOS-T Graphical Concept
+The links below will bring you to a getting started guide, a desc
 
 .. toctree::
    :maxdepth: 1
@@ -24,6 +18,12 @@ NOS-T Graphical Concept
    examples
    documents
    publications
+
+.. image:: media/graphicalConcept.png
+   :width: 600
+   :align: center
+
+NOS-T Graphical Concept
    
 * :ref:`genindex`
 * :ref:`modindex`
