@@ -1,29 +1,35 @@
 import os
-import csv
+import json
+import string
+import random
 from datetime import datetime, timezone, timedelta
 
 import pandas as pd
 
-sim_name = "threeDayNightSightTest"
-param_file = None
+# Name of next simulation run
+sim_name = "seedTest2"
+
+# Name of simulation file to pull parameters from. if None, use below parameters
+param_file = "seedTest"
 
 if param_file == None:
-    
+    seed = random.randint(0, 1000000000000)
+
     PARAMETERS = pd.Series(
         data={
             # Global parameters
             "PREFIX": "utility",
             "SCALE": 60,
-            "SCENARIO_START": datetime(2022, 11, 1, 7, 0, 0, tzinfo=timezone.utc),
-            "SCENARIO_LENGTH": 3*24,
+            "SCENARIO_START": datetime(2022, 11, 1, 7, 0, 0, tzinfo=timezone.utc).timestamp(),
+            "SCENARIO_LENGTH": 1,
             "SIM_NAME": sim_name,
 
             # Event parameters
-            "SEED": str(datetime.now()),
+            "SEED": seed,
             # "SEED": "123testdaynightseed",
             "EVENT_COUNT": 50,
-            "EVENT_LENGTH": 2*24,
-            "EVENT_START_RANGE": (-1*24, 1*24),
+            "EVENT_LENGTH": 2,
+            "EVENT_START_RANGE": (-1, 1),
 
             # Ground parameters
             "GROUND": pd.DataFrame(
@@ -45,8 +51,12 @@ if param_file == None:
     )
    
 else:
-    PARAMETERS = pd.read_csv(f"outputs/{param_file}.csv", on_bad_lines="skip", header=0, index_col=0).squeeze()
-    # # PARAMETERS = pd.Series(str(f).split("\n\n\n")[0])
-    # PARAMETERS["SIM_NAME"] = sim_name
+    # Read parameters from sim output file
+    with open(f"outputs/{param_file}.json") as json_data:
+        PARAMETERS = json.load(json_data)
 
-    print(type(PARAMETERS["EVENT_START_RANGE"]))
+    PARAMETERS = pd.Series(PARAMETERS)
+    PARAMETERS["SIM_NAME"] = sim_name
+
+    # DataFrame object gets lost when written to file, need to rebuild it
+    PARAMETERS["GROUND"] = pd.DataFrame(PARAMETERS["GROUND"]).transpose()

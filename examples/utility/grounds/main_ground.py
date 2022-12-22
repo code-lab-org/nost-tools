@@ -47,6 +47,7 @@ class Environment(Observer):
         """
         if property_name == Simulator.PROPERTY_MODE and new_value == Mode.EXECUTING:
             for index, ground in self.grounds.iterrows():
+                print(self.grounds)
                 self.app.send_message(
                     "location",
                     GroundLocation(
@@ -84,7 +85,7 @@ if __name__ == "__main__":
         config,
         True,
         time_status_step=timedelta(seconds=10) * PARAMETERS['SCALE'],
-        time_status_init=PARAMETERS['SCENARIO_START'],
+        time_status_init=datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=timezone.utc) + timedelta(minutes=1),
         time_step=timedelta(seconds=2) * PARAMETERS['SCALE'],
     )
 

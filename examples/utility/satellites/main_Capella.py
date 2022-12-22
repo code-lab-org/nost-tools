@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-    *This application demonstrates a constellation of satellites for monitoring events propagated from Two-Line Elements (TLEs)*
-    
-    The application contains one :obj:`Constellation` (:obj:`Entity`) object class, one :obj:`PositionPublisher` (:obj:`WallclockTimeIntervalPublisher`), and two :obj:`Observer` object classes to monitor for :obj:`EventDetected` and :obj:`EventReported` events, respectively. The application also contains several methods outside of these classes, which contain standardized calculations sourced from Ch. 5 of *Space Mission Analysis and Design* by Wertz and Larson.
-
+    *This application demonstrates a constellation of Capella satellites for 
+    monitoring events propagated from Two-Line Elements (TLEs)*
 """
 
 import time
 import logging
+import json
 from datetime import datetime, timezone, timedelta
 from dotenv import dotenv_values
 
-from skyfield.api import load
+from skyfield.api import load, utc
 from nost_tools.simulator import Mode
 from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
 from nost_tools.managed_application import ManagedApplication
@@ -46,8 +45,6 @@ if __name__ == "__main__":
             "CAPELLA-7-WHITNEY", \
             "CAPELLA-8-WHITNEY"]
     
-    indices = [i for i in range(len(names))]
-    
     field_of_regard = [80.0 for _ in names]
 
     # Checks if the TLES parameter is given and if not pulls the most recent ones from Celestrak
@@ -64,9 +61,13 @@ if __name__ == "__main__":
                 if i % 3 == 0 and row.strip(' \n') in names:
                     TLES[row.strip(' \n')].append(f[i+1])
                     TLES[row.strip(' \n')].append(f[i+2])
+    else: 
+        TLES = pd.Series(json.loads(PARAMETERS["TLES"]["capella"]))
 
+    
+    print(TLES)
     # initialize the Constellation object class from TLEs    
-    constellation = Constellation('capella', app, indices, names, field_of_regard, tles=TLES)
+    constellation = Constellation('capella', app, field_of_regard, tles=TLES)
 
     # add observer classes to the Constellation object class
     constellation.add_observer(EventDetectedObserver(app))
@@ -89,7 +90,7 @@ if __name__ == "__main__":
         config,
         True,
         time_status_step=timedelta(seconds=10) * PARAMETERS['SCALE'],
-        time_status_init=PARAMETERS['SCENARIO_START'],
+        time_status_init=datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=timezone.utc),
         time_step=timedelta(seconds=2) * PARAMETERS['SCALE'],
     )
 
@@ -103,4 +104,3 @@ if __name__ == "__main__":
     # Ensures the application hangs until the simulation is terminated, to allow background threads to run
     while not app.simulator.get_mode() == Mode.TERMINATED:
         time.sleep(0.2)
-        # print(app.simulator.get_mode())

@@ -142,37 +142,38 @@ class Constellation(Entity):
     *This object class inherits properties from the Entity object class in the NOS-T tools library*
 
     Args:
-        cName (str): A string containing the name for the constellation application
+        cName (:obj:`str`): A string containing the name for the constellation application
         app (:obj:`ManagedApplication`): An application containing a test-run namespace, a name and description for the app, client credentials, and simulation timing instructions
-        id (list): List of unique *int* ids for each satellite in the constellation
-        names (list): List of unique *str* for each satellite in the constellation (must be same length as **id**)\n
+        field_of_regard (:obj:`List`): A list of the fields of regard for each satellite in the constellation
+        night_sight (:obj:`bool`): A boolean value specifying whether or not the constellation can observe events at night. default=True
         ES (list): Optional list of :obj:`EarthSatellite` objects to be included in the constellation (NOTE: at least one of **ES** or **tles** MUST be specified, or an exception will be thrown)\n
         tles (list): Optional list of Two-Line Element *str* to be converted into :obj:`EarthSatellite` objects and included in the simulation
         
     Attributes:
-        events (list): List of events with unique eventId (*int*), ignition (:obj:`datetime`), and latitude-longitude location (:obj:`GeographicPosition`) - *NOTE:* initialized as [ ]
+        events (:obj:`DataFrame`): Events with unique eventId (:obj:`int`), latitude (:obj:`float`), longitude (:obj:`float`) and day/night status (:obj:`bool`) - *NOTE:* initialized as empty :obj:`DataFrame`
         grounds (:obj:`DataFrame`): Dataframe containing information about ground stations with unique groundId (*int*), latitude-longitude location (:obj:`GeographicPosition`), min_elevation (*float*) angle constraints, and operational status (*bool*) - *NOTE:* initialized as **None**
-        satellites (list): List of :obj:`EarthSatellite` objects included in the constellation - *NOTE:* must be same length as **id**
-        detect (list): List of detected events with unique eventId (*int*), detected :obj:`datetime`, and name (*str*) of detecting satellite - *NOTE:* initialized as [ ]
-        report (list): List of reported events with unique eventId (*int*), reported :obj:`datetime`, name (*str*) of reporting satellite, and groundId (*int*) of ground station reported to - *NOTE:* initialized as [ ]
-        positions (list): List of current latitude-longitude-altitude locations (:obj:`GeographicPosition`) of each satellite in the constellation - *NOTE:* must be same length as **id**
-        next_positions (list): List of next latitude-longitude-altitude locations (:obj:`GeographicPosition`) of each satellite in the constellation - *NOTE:* must be same length as **id**
-        min_elevations_event (list): List of *floats* indicating current elevation angle (degrees) constraint for visibility by each satellite - *NOTE:* must be same length as **id**, updates every time step
-        
+        satellites (:obj:`list`): List of :obj:`EarthSatellite` objects included in the constellation
+        sat_data (:obj:`list`): List of the ids of detected events not yet reported. Is set to [ ] when events are reported to groundstation
+        new_detect (:obj:`list`): List of events detected at the current timestep with unique eventId (*int*), detected :obj:`datetime`, and name (*str*) of detecting satellite - *NOTE:* initialized as [ ]
+        new_report (:obj:`list`): List of events reported at the current timestep with unique eventId (*int*), reported :obj:`datetime`, name (*str*) of reporting satellite, and groundId (*int*) of ground station reported to - *NOTE:* initialized as [ ]
+        positions (:obj:`list`): List of current latitude-longitude-altitude locations (:obj:`GeographicPosition`) of each satellite in the constellation
+        next_positions (:obj:`list`): List of next latitude-longitude-altitude locations (:obj:`GeographicPosition`) of each satellite in the constellation
+        min_elevations_event (:obj:`list`): List of :obj:`float` indicating current elevation angle (degrees) constraint for visibility by each satellite
     """
 
+    # Parameters used for internal Skyfield calculations
     ts = load.timescale()
     eph = load('de421.bsp')
-    PROPERTY_EVENT_REPORTED = "reported"
-    PROPERTY_EVENT_DETECTED = "detected"
-    PROPERTY_POSITION = "position"
 
 
-    def __init__(self, cName, app, id, names, field_of_regard, night_sight=True, ES=None, tles=None):
+    def __init__(self, cName, app, field_of_regard, night_sight=True, ES=None, tles=None):
         super().__init__(cName)
         self.app = app
-        self.id = id
-        self.names = names
+        self.tles=tles
+        self.field_of_regard = field_of_regard
+        self.night_sight = night_sight
+
+        # Initalize empty event DataFrame
         self.events = pd.DataFrame(
             data={
                 "eventId": [],
@@ -181,12 +182,12 @@ class Constellation(Entity):
                 "isDay": [],
             }
         )
+        # Set DataFrame index to eventId column
         self.events.set_index("eventId", inplace=True)
         self.grounds = None
-        self.tles = tles
+
+        # Checks whether tles or EarthSatellite objects were provided, and builds self.satellites from either
         self.satellites = []
-        self.field_of_regard = field_of_regard
-        self.night_sight = night_sight
         if ES is not None:
             for satellite in ES:
                 self.satellites.append(satellite)
@@ -195,11 +196,12 @@ class Constellation(Entity):
                 self.satellites.append(
                     EarthSatellite(self.tles[name][0], self.tles[name][1], name, self.ts)
                 )
-
+        print(self.tles)
+        print(self.satellites)
         self.sat_data = {sat.name: [] for sat in self.satellites}
         self.new_detect = []
         self.new_report = []
-        self.positions = self.next_positions = [None for satellite in self.satellites]
+        self.positions = self.next_positions = [None for _ in self.satellites]
         self.min_elevations_event = [
             compute_min_elevation(
                 wgs84.subpoint(satellite.at(satellite.epoch)).elevation.m,
@@ -244,6 +246,8 @@ class Constellation(Entity):
         """
 
         super().tick(time_step)
+
+        # Calculate all satellite positions at the following timestep
         self.next_positions = [
             wgs84.subpoint(
                 satellite.at(self.ts.from_datetime(self.get_time() + time_step))
@@ -251,49 +255,40 @@ class Constellation(Entity):
             for satellite in self.satellites
         ]
 
-        # for i, event in self.events.iterrows():
-        #     print(event["isDay"])
-        #     if event["isDay"] == None and event["sunriseSunset"][1][0] == 1:
-        #         self.events["isDay"][i] = False
-
-        #     elif event["isDay"] == None and event["sunriseSunset"][1][0] == 0:
-        #         self.events["isDay"][i] = True
-            
-        #     else:
-        #         for j, time in enumerate(event["sunriseSunset"][0]):
-        #             dt_time = datetime.datetime.strptime(time, '%Y-%m-%dT%H:%M:%S.%f%z')
-        #             if dt_time > self.get_time() and (dt_time < self.get_time() + time_step):
-        #                 if event["sunriseSunset"][1][j] == 1:
-        #                     self.events["isDay"][i] = True
-        #                     print("sunrise")
-        #                 else: 
-        #                     print("sunset")
-        #                     self.events["isDay"][i] = False
-
-
+        # Loop over satellites
         for i, satellite in enumerate(self.satellites):
             then = self.ts.from_datetime(self.get_time() + time_step)
             now = self.ts.from_datetime(self.get_time())
 
+            # Compute elevation angle required for satellite to be able to observe an event
             self.min_elevations_event[i] = compute_min_elevation(
                 float(self.next_positions[i].elevation.m), self.field_of_regard[i]
             )
-            isInRange, groundId = check_in_range(then, satellite, self.grounds)
-            for j, event in self.events.iterrows():
 
+            # Checks if satellite is in range of any ground stations
+            isInRange, groundId = check_in_range(then, satellite, self.grounds)
+
+            # Loop over events
+            for eventId, event in self.events.iterrows():
+
+                # Checks if events can be observed based on night sight and time of day
                 if self.night_sight == True or event["isDay"] == 1:
+
+                    # Calculates whether event is in view of satellite at current and next timestep
                     topos = wgs84.latlon(event["latitude"], event["longitude"])
                     isInViewCurr = check_in_view(now, satellite, topos, self.min_elevations_event[i-1])
                     isInViewNext = check_in_view(then, satellite, topos, self.min_elevations_event[i])
 
+                    # If event is not in view currently but will be the next timestep, log detection of event
                     if isInViewNext and not isInViewCurr:
                         event_change = {}
-                        event_change["eventId"]=j
+                        event_change["eventId"]=eventId
                         event_change["detected"]=self.get_time() + time_step
                         event_change["detected_by"]=satellite.name
                         self.new_detect.append(event_change)
-                        self.sat_data[satellite.name].append(j)
+                        self.sat_data[satellite.name].append(eventId)
 
+            # If satellite is in range of a ground station and has data to downlink, log the reported data 
             if (isInRange and self.sat_data[satellite.name]):
                 for j in self.sat_data[satellite.name]:
                     event_change = {}
@@ -307,7 +302,7 @@ class Constellation(Entity):
 
     def tock(self):
         """
-        Commits the next :obj:`Constellation` state and advances simulation scenario time
+            Publishes new detections and reports and advances simulation scenario time
         
         """
 
@@ -317,7 +312,7 @@ class Constellation(Entity):
         # Notifies observers of each newly detected event
         for event_change in self.new_detect:
             self.notify_observers(
-                self.PROPERTY_EVENT_DETECTED,
+                'detected',
                 None,
                 {
                     "eventId": event_change["eventId"],
@@ -329,7 +324,7 @@ class Constellation(Entity):
         # Notifies observers of each newly detected event
         for event_change in self.new_report:
             self.notify_observers(
-                self.PROPERTY_EVENT_REPORTED,
+                "reported",
                 None,
                 {
                     "eventId": event_change["eventId"],
@@ -339,6 +334,7 @@ class Constellation(Entity):
                 }
             )
         
+        # Reset detection and report lists for next timestep
         self.new_detect = []
         self.new_report = []
 
@@ -346,13 +342,19 @@ class Constellation(Entity):
 
 
     def on_manager_init(self, client, userdata, message):
-        print(self.tles.to_string())
-        self.app.send_message("tles", self.tles.to_string())
-
+        """
+            *PREFIX/manager/init* callback to publish constellation Two-Line Elements to be recorded for repeatability in future simulations
+            
+            Args:
+                client (:obj:`MQTT Client`): Client that connects application to the event broker using the MQTT protocol. Includes user credentials, tls certificates, and host server-port information.
+                userdata: User defined data of any type (not currently used)
+                message (:obj:`message`): Contains *topic* the client subscribed to and *payload* message content as attributes 
+        """
+        self.app.send_message("tles", self.tles.to_json())
 
     def on_event_start(self, client, userdata, message):
         """
-        Callback function appends a dictionary of information for a new event to events :obj:`list` when message detected on the *PREFIX/events/location* topic
+        *PREFIX/events/start* callback function appends a dictionary of information for a new event to events :obj:`DataFrame`
         
         Args:
             client (:obj:`MQTT Client`): Client that connects application to the event broker using the MQTT protocol. Includes user credentials, tls certificates, and host server-port information.
@@ -368,22 +370,38 @@ class Constellation(Entity):
         }
 
     def on_event_day_change(self, client, userdata, message):
+        """
+            *PREFIX/event/dayChange* callback to update event day/night status
+
+            Args:
+                client (:obj:`MQTT Client`): Client that connects application to the event broker using the MQTT protocol. Includes user credentials, tls certificates, and host server-port information.
+                userdata: User defined data of any type (not currently used)
+                message (:obj:`message`): Contains *topic* the client subscribed to and *payload* message content as attributes 
+        """
         change = EventDayChange.parse_raw(message.payload)
         self.events["isDay"][change.eventId] = change.isDay
 
     def on_event_finish(self, client, userdata, message):
+        """
+            *PREFIX/event/finish* callback to remove finished events from events :obj:`DataFrame`
+
+            Args:
+                client (:obj:`MQTT Client`): Client that connects application to the event broker using the MQTT protocol. Includes user credentials, tls certificates, and host server-port information.
+                userdata: User defined data of any type (not currently used)
+                message (:obj:`message`): Contains *topic* the client subscribed to and *payload* message content as attributes 
+        """
         finished = EventFinished.parse_raw(message.payload)
         self.events.drop(finished.eventId)
 
 
     def on_ground(self, client, userdata, message):
         """
-        Callback function appends a dictionary of information for a new ground station to grounds :obj:`list` when message detected on the *PREFIX/ground/location* topic. Ground station information is published at beginning of simulation, and the :obj:`list` is converted to a :obj:`DataFrame` when the Constellation is initialized.
+            *PREFIX/ground/location* callback function appends a dictionary of information for a new ground station to grounds :obj:`list`. Ground station information is published at beginning of simulation, and the :obj:`list` is converted to a :obj:`DataFrame` when the Constellation is initialized.
         
-        Args:
-            client (:obj:`MQTT Client`): Client that connects application to the event broker using the MQTT protocol. Includes user credentials, tls certificates, and host server-port information.
-            userdata: User defined data of any type (not currently used)
-            message (:obj:`message`): Contains *topic* the client subscribed to and *payload* message content as attributes 
+            Args:
+                client (:obj:`MQTT Client`): Client that connects application to the event broker using the MQTT protocol. Includes user credentials, tls certificates, and host server-port information.
+                userdata: User defined data of any type (not currently used)
+                message (:obj:`message`): Contains *topic* the client subscribed to and *payload* message content as attributes 
             
         """
         location = GroundLocation.parse_raw(message.payload)
@@ -400,7 +418,6 @@ class Constellation(Entity):
             self.grounds[
                 self.grounds.groundId == location.groundId
             ].operational = location.operational
-            print(f"Station {location.groundId} updated at time {self.get_time()}.")
         else:
             self.grounds = self.grounds.append(
                 {
@@ -412,7 +429,6 @@ class Constellation(Entity):
                 },
                 ignore_index=True,
             )
-            print(f"Station {location.groundId} registered at time {self.get_time()}.")
 
 
 # define a publisher to report satellite status
@@ -501,7 +517,7 @@ class EventDetectedObserver(Observer):
         In this instance, the callback function checks for notification of the "detected" property and publishes :obj:`EventDetected` message to *PREFIX/constellation/detected* topic:
 
         """
-        if property_name == Constellation.PROPERTY_EVENT_DETECTED:
+        if property_name == "detected":
             self.app.send_message(
                 "detected",
                 EventDetected(
@@ -532,7 +548,7 @@ class EventReportedObserver(Observer):
         In this instance, the callback function checks for notification of the "reported" property and publishes :obj:`EventReported` message to *PREFIX/constellation/reported* topic:
 
         """
-        if property_name == Constellation.PROPERTY_EVENT_REPORTED:
+        if property_name == "reported":
             self.app.send_message(
                 "reported",
                 EventReported(
