@@ -1,8 +1,8 @@
 var CESIUM_ACCESS_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlMGE4YTEyMi0wNzllLTRjYmItYTY3Ny1kOTA3YzEwNzk3ZDEiLCJpZCI6MTYyNzcsInNjb3BlcyI6WyJhc3IiLCJnYyJdLCJpYXQiOjE1NzAwNjA5MzF9.NgsS6QgAqCD3SkBP23vtQro_QWUDVgUnEEOW-UQ2ypQ';
 			var BROKER_HOST = 'testbed.mysmce.com';
 			var BROKER_PORT = 8443;
-			var BROKER_CLIENT_USERNAME = 'mlevine4';
-			var BROKER_CLIENT_PASSWORD = 'w6A1lKFiLT0K';
+			var BROKER_CLIENT_USERNAME = 'tsherman';
+			var BROKER_CLIENT_PASSWORD = 'u3AtMZcfsWz3tq';
 	  
 			$(document).ready(function(){
 				Cesium.Ion.defaultAccessToken = CESIUM_ACCESS_TOKEN;
@@ -38,9 +38,11 @@ var CESIUM_ACCESS_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlMGE4
 				var satColor = Cesium.Color.BLUE; //<!-- Initialize satColor as Cesium's default BLUE, which is color when commsRange is false -->
 				var events = viewer.scene.primitives.add(new Cesium.PointPrimitiveCollection()); //<!-- Initialize events as primitive points since there will be so many -->
 				var eventsById = {};
+				var alphasById = {};
 				var grounds = {}; //<!-- Surface position of ground stations as PINK points -->
 				var updates = {};
 				var eventIndex = 0;
+				var nightAlpha = 0.25;
 
 				function handleMessage(message) {
 					// get the message payload as a string
@@ -206,6 +208,12 @@ var CESIUM_ACCESS_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlMGE4
 							//<!-- Cesium suggests using PointPrimitives when have large collection of points, applies to events -->
 							try {
 								payload = JSON.parse(message.payloadString);
+								if (payload.isDay==1) {
+									alphasById[payload.eventId] = 1;
+								} else {
+									alphasById[payload.eventId] = nightAlpha;
+								}
+
 								eventsById[payload.eventId] = events.add({
 									id: eventIndex,
 									position: new Cesium.Cartesian3.fromDegrees(
@@ -213,48 +221,37 @@ var CESIUM_ACCESS_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlMGE4
 										payload.latitude
 									),
 									pixelSize: 8,
-									color: Cesium.Color.RED,
+									color: Cesium.Color.RED.withAlpha(alphasById[payload.eventId]),
 									show: true});
 								eventIndex = eventIndex + 1;
 							} catch {
 								console.log("Error: utility/event/start");
 							}
+						} else if(topic=="utility/event/dayChange") {
+							try {
+								payload = JSON.parse(message.payloadString);
+								if (payload.isDay==1) {
+									alphasById[payload.eventId] = 1;
+								} else {
+									alphasById[payload.eventId] = nightAlpha;
+								}
+							} catch {
+								console.log("Error: First half utility/event/dayChange")
+							} try {
+								currColor = events.get(eventsById[payload.eventId].id).color;
+								events.get(eventsById[payload.eventId].id).color = currColor.withAlpha(alphasById[payload.eventId]);
+							} catch {
+								console.log("Error: Second half utility/event/dayChange")
+							}
+			
 						} else if(topic=="utility/event/finish") {
 							try {
 								payload = JSON.parse(message.payloadString);
-								events.remove(eventsById[payload.eventId])
+								events.get(eventsById[payload.eventId].id).show = false;
 							} catch {
 								console.log("Error: utility/event/finish");
 							}
 							
-						} else if(topic=="utility/capella/detected"){
-							try {
-								payload = JSON.parse(message.payloadString);
-								events.get(eventsById[payload.eventId].id).color = Cesium.Color.DARKORANGE
-							} catch {
-								console.log("Error: utility/capella/detected");
-							}
-						} else if(topic=="utility/capella/reported"){
-							try {
-								payload = JSON.parse(message.payloadString);
-								events.get(eventsById[payload.eventId].id).color = Cesium.Color.YELLOW
-							} catch {
-								console.log("Error: utility/capella/reported");
-							}
-						} else if(topic=="utility/planet/detected"){
-							try {
-								payload = JSON.parse(message.payloadString);
-								events.get(eventsById[payload.eventId].id).color = Cesium.Color.DARKORANGE
-							} catch {
-								console.log("Error: utility/planet/detected");
-							}
-						} else if(topic=="utility/planet/reported"){
-							try {
-								payload = JSON.parse(message.payloadString);
-								events.get(eventsById[payload.eventId].id).color = Cesium.Color.YELLOW
-							} catch {
-								console.log("Error: utility/planet/reported");
-							}
 						} else if(topic=="utility/ground/location"){
 							try {
 								payload = JSON.parse(message.payloadString);

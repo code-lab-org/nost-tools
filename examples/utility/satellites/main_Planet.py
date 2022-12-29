@@ -1,17 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-    *This application demonstrates a constellation of satellites for monitoring events propagated from Two-Line Elements (TLEs)*
-    
-    The application contains one :obj:`Constellation` (:obj:`Entity`) object class, one :obj:`PositionPublisher` (:obj:`WallclockTimeIntervalPublisher`), and two :obj:`Observer` object classes to monitor for :obj:`EventDetected` and :obj:`EventReported` events, respectively. The application also contains several methods outside of these classes, which contain standardized calculations sourced from Ch. 5 of *Space Mission Analysis and Design* by Wertz and Larson.
-
+    *This application demonstrates a constellation of Planet satellites for monitoring events propagated from Two-Line Elements (TLEs)*
 """
 
 import time
 import logging
+import json
 from datetime import datetime, timezone, timedelta
 from dotenv import dotenv_values
 
-from skyfield.api import load
 from nost_tools.simulator import Mode
 from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
 from nost_tools.managed_application import ManagedApplication
@@ -20,7 +17,7 @@ from constellation import *
 
 from examples.utility.config import PARAMETERS
 
-# logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO)
 
 
 # name guard used to ensure script only executes if it is run as the __main__
@@ -58,8 +55,6 @@ if __name__ == "__main__":
                 "SKYSAT-C17", \
                 "SKYSAT-C18", \
                 "SKYSAT-C19"]
-                
-    indices = [i for i in range(len(names))]
 
     # Gives each satellite a field of regard of 50.0 degrees
     field_of_regard = [50.0 for _ in names]
@@ -78,9 +73,11 @@ if __name__ == "__main__":
                 if i%3 == 0 and row.strip(' \n') in names:
                     TLES[row.strip(" \n")].append(f[i+1])
                     TLES[row.strip(" \n")].append(f[i+2])
+    else:
+        TLES = pd.Series(json.loads(PARAMETERS["TLES"]["planet"]))
 
     # initialize the Constellation object class (in this example from EarthSatellite type)
-    constellation = Constellation('planet', app, indices, names, field_of_regard, night_sight=False, tles=TLES)
+    constellation = Constellation('planet', app, field_of_regard, night_sight=False, tles=TLES)
 
     # add observer classes to the Constellation object class
     constellation.add_observer(EventDetectedObserver(app))
@@ -103,17 +100,17 @@ if __name__ == "__main__":
         config,
         True,
         time_status_step=timedelta(seconds=10) * PARAMETERS['SCALE'],
-        time_status_init=PARAMETERS['SCENARIO_START'],
+        time_status_init=datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=timezone.utc),
         time_step=timedelta(seconds=2) * PARAMETERS['SCALE'],
     )
 
     # add message callbacks
     app.add_message_callback("ground", "location", constellation.on_ground)
     app.add_message_callback("event", "start", constellation.on_event_start)
+    app.add_message_callback("event", "dayChange", constellation.on_event_day_change)
     app.add_message_callback("event", "finish", constellation.on_event_finish)
     app.add_message_callback("manager", "init", constellation.on_manager_init)
 
     # Ensures the application hangs until the simulation is terminated, to allow background threads to run
     while not app.simulator.get_mode() == Mode.TERMINATED:
         time.sleep(0.2)
-        # print(app.simulator.get_mode())
