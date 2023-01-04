@@ -13,8 +13,7 @@ tools like this dashboard to be very helpful to ensure that test behavior is
 as expected.
 
 In order to run the Science Event test case you first need to get the two
-applications which comprise this test suite from the project git at
-`[this link] <https://github.com/code-lab-org/nost-tools/tree/main/examples/scienceDash>`_
+applications which comprise this test suite from the project `GitHub repository directory <https://github.com/code-lab-org/nost-tools/tree/main/examples/scienceDash>`__
 
 More in-depth descriptions of what the code is doing can be found here: :ref:`scienceDashEX`.
 
@@ -22,7 +21,7 @@ Initial requirements
 --------------------
 
 This test suite assumes that you have first downloaded the constituent applications.
-It is also necessary to install several python packages as found in the `requirements document <https://github.com/code-lab-org/nost-tools/blob/main/docs/requirements.txt>`_.
+It is also necessary to install several python packages as found in the `requirements file <https://github.com/code-lab-org/nost-tools/blob/main/docs/requirements.txt>`__.
 However, this is an unmanaged NOS-T test suite and it is not necessary to have installed the tools library.
 
 
