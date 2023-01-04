@@ -41,7 +41,7 @@ After creating an account, you *must* add the Asset “Blue Marble Next Generati
 July, 2004” from the Asset Depot (ID 3845) to the account assets to enable
 visualization.
 
-Setting up environment files
+Setting Up Environment Files
 ----------------------------
 
 In order to protect your (and our) information, these applications all use
