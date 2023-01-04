@@ -36,7 +36,9 @@ Current project team:
  * Matthew LeVine
  * Leigha Capra
  * Theodore Sherman
+ * Alex Yucra Castaneda
 
 Project alumni:
  * Hayden Daly
  * Matthew Brand
+ * Jerry Sellers
