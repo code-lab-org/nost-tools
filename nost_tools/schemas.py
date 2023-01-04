@@ -6,6 +6,9 @@ from .simulator import Mode
 
 
 class InitTaskingParameters(BaseModel):
+    """
+    Tasking parameters to initialize an execution.
+    """
     sim_start_time: datetime = Field(
         ..., description="Earliest possible scenario start time.", alias="simStartTime"
     )
@@ -18,6 +21,9 @@ class InitTaskingParameters(BaseModel):
 
 
 class InitCommand(BaseModel):
+    """
+    Command message to initialize an execution.
+    """
     tasking_parameters: InitTaskingParameters = Field(
         ...,
         description="Tasking parameters for the initialize command.",
@@ -26,6 +32,9 @@ class InitCommand(BaseModel):
 
 
 class StartTaskingParameters(BaseModel):
+    """
+    Tasking parameters to start an execution.
+    """
     start_time: Optional[datetime] = Field(
         None,
         description="Wallclock time at which to start execution.",
@@ -49,6 +58,9 @@ class StartTaskingParameters(BaseModel):
 
 
 class StartCommand(BaseModel):
+    """
+    Command message to start an execution.
+    """
     tasking_parameters: StartTaskingParameters = Field(
         ...,
         description="Tasking parameters for the start command.",
@@ -57,6 +69,9 @@ class StartCommand(BaseModel):
 
 
 class StopTaskingParameters(BaseModel):
+    """
+    Tasking parameters to stop an execution.
+    """
     sim_stop_time: datetime = Field(
         ...,
         description="Scenario time at which to stop execution.",
@@ -65,6 +80,9 @@ class StopTaskingParameters(BaseModel):
 
 
 class StopCommand(BaseModel):
+    """
+    Command message to stop an execution.
+    """
     tasking_parameters: StopTaskingParameters = Field(
         ...,
         description="Tasking parameters for the stop command.",
@@ -73,6 +91,9 @@ class StopCommand(BaseModel):
 
 
 class UpdateTaskingParameters(BaseModel):
+    """
+    Tasking parameters to update an execution.
+    """
     time_scaling_factor: confloat(gt=0) = Field(
         ...,
         description="Time scaling factor (scenario seconds per wallclock second).",
@@ -86,6 +107,9 @@ class UpdateTaskingParameters(BaseModel):
 
 
 class UpdateCommand(BaseModel):
+    """
+    Command message to update an execution.
+    """
     tasking_parameters: UpdateTaskingParameters = Field(
         ...,
         description="Tasking parameters for the stop command.",
@@ -94,6 +118,9 @@ class UpdateCommand(BaseModel):
 
 
 class TimeStatusProperties(BaseModel):
+    """
+    Properties to report time status.
+    """
     sim_time: datetime = Field(
         ..., description="Current scenario time.", alias="simTime"
     )
@@ -101,6 +128,9 @@ class TimeStatusProperties(BaseModel):
 
 
 class TimeStatus(BaseModel):
+    """
+    Message to report time status.
+    """
     name: str = Field(
         ..., description="Name of the application providing a time status."
     )
@@ -113,10 +143,16 @@ class TimeStatus(BaseModel):
 
 
 class ModeStatusProperties(BaseModel):
+    """
+    Properties to report mode status.
+    """
     mode: Mode = Field(..., description="Current execution mode.")
 
 
 class ModeStatus(BaseModel):
+    """
+    Message to report mode status.
+    """
     name: str = Field(
         ..., description="Name of the application providing a mode status."
     )
@@ -129,10 +165,16 @@ class ModeStatus(BaseModel):
 
 
 class ReadyStatusProperties(BaseModel):
+    """
+    Properties to report ready status.
+    """
     ready: bool = Field(True, description="True, if this application is ready.")
 
 
 class ReadyStatus(BaseModel):
+    """
+    Message to report ready status.
+    """
     name: str = Field(
         ..., description="Name of the application providing a ready status."
     )

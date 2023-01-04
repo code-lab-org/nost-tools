@@ -1,9 +1,15 @@
-from datetime import timedelta
+"""
+Provides a base application that manages communication between a simulator and broker.
+"""
+
+from datetime import datetime, timedelta
 import logging
+from paho.mqtt.client import Client, MQTTMessage
 import threading
 import traceback
 
 from .application import Application
+from .application_utils import ConnectionConfig
 from .schemas import InitCommand, StartCommand, StopCommand, UpdateCommand
 
 logger = logging.getLogger(__name__)
@@ -17,17 +23,24 @@ class ManagedApplication(Application):
     that utilizes an external Manager to command simulator execution.
 
     Attributes:
-        prefix (str) : The test run namespace (prefix)
-        simulator (:obj:`Simulator`): Application simulator defined in the *Simulator* class
-        client (:obj:`Client`): Application MQTT client
-        app_name (str): Test run application name
-        app_description (str): Test run application description (optional)
-        time_status_step (:obj:`timedelta`): Scenario duration between time status messages
-        time_status_init (:obj:`datetime`): Scenario time of first time status message
-        time_step (:obj:`timedelta`): Scenario time step used in execution
+        prefix (str): execution namespace (prefix)
+        simulator (:obj:`Simulator`): simulator
+        client (:obj:`Client`): MQTT client
+        app_name (str): application name
+        app_description (str): application description
+        time_status_step (:obj:`timedelta`): scenario duration between time status messages
+        time_status_init (:obj:`datetime`): scenario time of first time status message
+        time_step (:obj:`timedelta`): scenario time step used in execution
     """
 
-    def __init__(self, app_name, app_description=None):
+    def __init__(self, app_name: str, app_description: str = None):
+        """
+        Initializes a new managed application.
+
+        Args:
+            app_name (str): application name
+            app_description (str): application description
+        """
         super().__init__(app_name, app_description)
         self.time_step = None
         self._sim_start_time = None
@@ -35,28 +48,28 @@ class ManagedApplication(Application):
 
     def start_up(
         self,
-        prefix,
-        config,
-        set_offset=True,
-        time_status_step=None,
-        time_status_init=None,
-        shut_down_when_terminated=False,
-        time_step=timedelta(seconds=1),
-        manager_app_name="manager",
-    ):
+        prefix: str,
+        config: ConnectionConfig,
+        set_offset: bool = True,
+        time_status_step: timedelta = None,
+        time_status_init: datetime = None,
+        shut_down_when_terminated: bool = False,
+        time_step: timedelta = timedelta(seconds=1),
+        manager_app_name: str = "manager",
+    ) -> None:
         """
         Starts up the application by connecting to message broker, starting a background event loop,
         subscribing to manager events, and registering callback functions.
 
         Args:
-            prefix (str): The test run namespace (prefix)
-            config (:obj:`ConnectionConfig`): The connection configuration
-            set_offset (bool): True, if the system clock offset shall be set
-            time_status_step (:obj:`timedelta`): Scenario duration between time status messages
-            time_status_init (:obj:`datetime`): Scenario time for first time status message
-            shut_down_when_terminated (bool) : True, if the application should shut down when the simulation is terminated
-            time_step (:obj:`timedelta`): Scenario time step used in execution
-            manager_app_name (str): Name of the manager application (Default: manager)
+            prefix (str): execution namespace (prefix)
+            config (:obj:`ConnectionConfig`): connection configuration
+            set_offset (bool): True, if the system clock offset shall be set using a NTP request prior to execution
+            time_status_step (:obj:`timedelta`): scenario duration between time status messages
+            time_status_init (:obj:`datetime`): scenario time for first time status message
+            shut_down_when_terminated (bool): True, if the application should shut down when the simulation is terminated
+            time_step (:obj:`timedelta`): scenario time step used in execution (Default: 1 second)
+            manager_app_name (str): manager application name (Default: manager)
         """
         # start up base application
         super().start_up(
@@ -88,10 +101,10 @@ class ManagedApplication(Application):
             f"{self.prefix}/{self.manager_app_name}/update", self.on_manager_update
         )
 
-    def shut_down(self):
+    def shut_down(self) -> None:
         """
-            shut_down shuts down the application by stopping the background event loop, and also disconnects
-            the application from the message broker
+            Shuts down the application by stopping the background event loop and disconnecting
+            the application from the broker.
         """
         # unregister callback functions
         self.client.message_callback_remove(
@@ -109,16 +122,15 @@ class ManagedApplication(Application):
         # shut down base application
         super().shut_down()
 
-    def on_manager_init(self, client, userdata, message):
+    def on_manager_init(self, client: Client, userdata: object, message: MQTTMessage) -> None:
         """
-        on_manager_init is a callback function for the referenced application ('self') to
-        respond to an initilize command sent from the manager. It will parse the payload to extract sim_start_time
-        and sim_stop_time to determine application initilize time within the simulation.
+        Callback function for the managed application to respond to an initilize command sent from the manager.
+        Parses the scenario start/end times and signals ready.
 
         Args:
-            client (:obj:`Client`): The client instance for this callback
-            userdata (obj): The private user data as set in the client
-            message (:obj:`MQTTMessage`): The MQTT message
+            client (:obj:`paho.mqtt.client.Client`): client instance for this callback
+            userdata (object):  private user data as set in the client
+            message (:obj:`paho.mqtt.client.MQTTMessage`): MQTT message
         """
         try:
             # parse message payload
@@ -133,17 +145,16 @@ class ManagedApplication(Application):
             )
             print(traceback.format_exc())
 
-    def on_manager_start(self, client, userdata, message):
+    def on_manager_start(self, client: Client, userdata: object, message: MQTTMessage) -> None:
         """
-        on_manager_start is a callback function for the referenced application ('self') to
-        respond to a start command sent from the manager. It will parse the payload to extract sim_start_time
-        and sim_stop_time for the beginning of the simulation, and will determine the duration of the simulation, the
-        timedelta for the time_step, the wallclock_epoch, and the time_scale_factor responsbible for the speed of the simulation.
+        Callback function for the managed application to respond to a start command sent from the manager. 
+        Parses the scenario start/end time, wallclock epoch, and time scale factor and executes 
+        the simulator in a background thread.
 
         Args:
-            client (:obj:`Client`): The client instance for this callback
-            userdata (obj): The private user data as set in the client
-            message (:obj:`MQTTMessage`): The MQTT message
+            client (:obj:`paho.mqtt.client.Client`): client instance for this callback
+            userdata (object): private user data as set in the client
+            message (:obj:`paho.mqtt.client.MQTTMessage`): MQTT message
         """
         try:
             # parse message payload
@@ -172,15 +183,15 @@ class ManagedApplication(Application):
             )
             print(traceback.format_exc())
 
-    def on_manager_stop(self, client, userdata, message):
+    def on_manager_stop(self, client: Client, userdata: object, message: MQTTMessage) -> None:
         """
-        on_manager_stop is a callback function for the referenced application ('self') to
-        respond to a stop command sent from the manager. It will parse the payload to extract the new sim_stop_time.
+        Callback function for the managed application ('self') to respond to a stop command sent from the manager.
+        Parses the end time and updates the simulator.
 
         Args:
-            client (:obj:`Client`): The client instance for this callback
-            userdata (obj): The private user data as set in the client
-            message (:obj:`MQTTMessage`): The MQTT message
+            client (:obj:`paho.mqtt.client.Client`): client instance for this callback
+            userdata (object): private user data as set in the client
+            message (:obj:`paho.mqtt.client.MQTTMessage`): MQTT message
         """
         try:
             # parse message payload
@@ -194,16 +205,15 @@ class ManagedApplication(Application):
             )
             print(traceback.format_exc())
 
-    def on_manager_update(self, client, userdata, message):
+    def on_manager_update(self, client: Client, userdata: object, message: MQTTMessage) -> None:
         """
-        on_manager_update is a callback function for the referenced application ('self') to
-        respond to an update command sent from the manager, intended to update the time_scale_factor.
-        It will parse the payload to extract the new time_scale_factor.
+        Callback function for the managed application ('self') to respond to an update command sent from the manager.
+        Parses the time scaling factor and scenario update time and updates the simulator.
 
         Args:
-            client (:obj:`Client`): The client instance for this callback
-            userdata (obj): The private user data as set in the client
-            message (:obj:`MQTTMessage`): The MQTT message
+            client (:obj:`paho.mqtt.client.Client`): client instance for this callback
+            userdata (object): private user data as set in the client
+            message (:obj:`paho.mqtt.client.MQTTMessage`): MQTT message
         """
         try:
             # parse message payload
