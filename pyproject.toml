@@ -1,6 +1,32 @@
 [build-system]
 requires = [
-"setuptools >= 57.0.0",
-"wheel"
+    "setuptools >= 57.0.0",
+    "wheel"
 ]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "nost_tools"
+description = "Tools for New Observing Strategies Testbed (NOS-T) Applications"
+authors = [
+    {"name" = "Paul T. Grogan", "email" = "pgrogan@stevens.edu"}
+]
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "BSD 3-Clause License"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent"
+]
+dependencies = [
+    "numpy >= 1.24.1",
+    "pandas >= 1.5.2",
+    "python-dateutil >= 2.8.2",
+    "ntplib >= 0.4.0",
+    "paho-mqtt >= 1.6.1",
+    "pydantic >= 1.10.4"
+]
+dynamic = ["version"]
+
+[tool.setuptools.dynamic]
+version = {attr = "nost_tools.__version__"}
