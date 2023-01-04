@@ -1,7 +1,7 @@
 
 
-NOS-T Documentation
-===================
+NOS Testbed (NOS-T) Documentation
+=================================
 
 The New Observing Strategies Testbed (NOS-T) is a digital engineering environment
 to develop, test, mature, and socialize new operating concepts and technology for
@@ -16,7 +16,7 @@ release documents, and publications that have been based on or used the testbed.
    :caption: Contents:
 
    getStarted
-   nost_tools
+   nost_tools_api/index
    examples
    documents
    publications
