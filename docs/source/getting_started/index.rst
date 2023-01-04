@@ -22,9 +22,9 @@ the NOS-T Tools Library and is a good entry point for more-capable experiments:
 * The NOS-T Tools documentation is here: :ref:`nostTools`.
 
 .. toctree::
-   :hidden:
+   :maxdepth: 1
 
-   documents/getStarted/instructionsScienceDash
-   documents/getStarted/instructionsFireSat
+   science_dash
+   fire_sat
 
 

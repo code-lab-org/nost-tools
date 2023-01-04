@@ -16,9 +16,6 @@ loads of varying frequency and size.
 .. toctree::
    :maxdepth: 2
 
-   examples/scienceDash/api/modules
-   examples/firesat/api/modules
-   examples/scalability/api/modules
-   
-
-
+   scienceDash/api/modules
+   firesat/api/modules
+   scalability/api/modules

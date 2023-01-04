@@ -16,5 +16,5 @@ can be found here :ref:`getStarted`
 .. toctree::
    :maxdepth: 1
 
-   documents/TB/TB
-   documents/ICD/ICD
+   tech_brief/index
+   icd/index

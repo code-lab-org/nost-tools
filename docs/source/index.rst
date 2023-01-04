@@ -15,10 +15,10 @@ release documents, and publications that have been based on or used the testbed.
    :maxdepth: 1
    :caption: Contents:
 
-   getStarted
+   getting_started/index
    nost_tools_api/index
-   examples
-   documents
+   examples/index
+   documents/index
    publications
 
 .. image:: media/graphicalConcept.png

@@ -1,7 +1,7 @@
 .. _instructionsFireSat:
 
-FireSat+ Step-by-Step Instructions
-==================================
+FireSat+
+========
 
 This guide contains step-by-step instructions for running the FireSat+ test
 suite. This is based on the FireSat mission seen in *Space Mission

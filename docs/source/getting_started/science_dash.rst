@@ -1,7 +1,7 @@
 .. _instructionsScienceDash:
 
-Science Event Dashboard Step-by-Step Instructions
-=================================================
+Science Event Dashboard
+=======================
 
 The Science Event Dashboard Test Suite is a simple example of NOS-T
 capabilities. It does not require the use of the NOS-T tools library.
@@ -17,7 +17,7 @@ applications which comprise this test suite from the project `GitHub repository 
 
 More in-depth descriptions of what the code is doing can be found here: :ref:`scienceDashEX`.
 
-Initial requirements
+Initial Requirements
 --------------------
 
 This test suite assumes that you have first downloaded the constituent applications.
@@ -25,7 +25,7 @@ It is also necessary to install several python packages as found in the `require
 However, this is an unmanaged NOS-T test suite and it is not necessary to have installed the tools library.
 
 
-Setting up environment files
+Setting Up Environment Files
 ----------------------------
 
 In order to protect your (and our) information, these applications use an
@@ -46,7 +46,7 @@ name ".env" containing the following text. Make sure that you "Save as type"
 Each application must have this file in the home path. If they're both in the
 same folder then just one is sufficient.
 
-Running a test case
+Running a Test Case
 -------------------
 
 Next, run each application on separate computers or consoles. Wherever the
