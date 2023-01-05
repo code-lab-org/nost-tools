@@ -3,15 +3,17 @@ Technical Brief
 
 **Research Team:**
 
-| Paul Grogan, Jerry Sellers
-| Matthew Brand, Hayden Daly
+Paul Grogan (PI), Matthew LeVine, Brian Chell, Leigha Capra,
+Theodore Sherman, Alex Castaneda
+
+Project Alumni: Jerry Sellers, Matthew Brand, Hayden Daly
 
 *Stevens Institute of Technology*
 
 **Research Sponsor**:
 
-| Earth Science Technology Office
-| National Aeronautics and Space Administration
+Earth Science Technology Office
+National Aeronautics and Space Administration
 
 Copyright © 2021 Stevens Institute of Technology, Systems Engineering
 Research Center
@@ -29,7 +31,7 @@ Aeronautics and Space Administration's Earth Science Technology Office.
 Any views, opinions, findings and conclusions or recommendations
 expressed in this material are those of the author(s) and do not
 necessarily reflect the views of the United States Department of
-Defense, ASD(R&E), or National Aeronautics and Space Administration.
+Defense, (ASD(R&E)), or National Aeronautics and Space Administration.
 
 No Warranty.
 
@@ -48,32 +50,25 @@ distribution.
 Table of Contents
 -----------------
 
-`1 Introduction <#introduction>`__ `3 <#introduction>`__
+`1 Introduction <#introduction>`__
 
-`2 NOS-T Overview <#nos-t-overview>`__ `4 <#nos-t-overview>`__
+`2 NOS-T Overview <#nos-t-overview>`__
 
 `2.1 System Architecture <#system-architecture>`__
-`4 <#system-architecture>`__
 
 `2.2 Interface Protocol <#interface-protocol>`__
-`5 <#interface-protocol>`__
 
-`2.3 Manager Events <#manager-events>`__ `8 <#manager-events>`__
+`2.3 Manager Events <#manager-events>`__
 
 `3 User Application Requirements <#user-application-requirements>`__
-`11 <#user-application-requirements>`__
 
 `3.1 Example Test Case Context <#example-test-case-context>`__
-`11 <#example-test-case-context>`__
 
 `3.2 NOS-T Execution Requirements <#nos-t-execution-requirements>`__
-`11 <#nos-t-execution-requirements>`__
 
-`3.3 Test Case-Specific Execution
-Requirements <#test-case-specific-execution-requirements>`__
-`13 <#test-case-specific-execution-requirements>`__
+`3.3 Test Case-Specific Execution Requirements <#test-case-specific-execution-requirements>`__
 
-`4 References <#references>`__ `15 <#references>`__
+`4 References <#references>`__
 
 Introduction
 ------------
@@ -82,19 +77,18 @@ The New Observing Strategies (NOS) initiative within the NASA Earth
 Science Technology Office (ESTO) Advanced Information Systems Technology
 (AIST) program envisions future Earth science missions with distributed
 sensors (nodes) interconnected by a communications fabric that enables
-dynamic and intelligent operations [1]. Some NOS concepts resemble
+dynamic and intelligent operations [2]_. Some NOS concepts resemble
 systems-of-systems or collaborative systems where operational authority
 is distributed among multiple systems, necessitating new methods for
 systems engineering and design to cope with more decentralized control
-over constituent systems [2].
+over constituent systems [3]_.
 
-The New Observing Strategies Testbed (NOS-T, verbalized as "en oh es
-tee") is a computational environment to develop, test, mature, and
-socialize new operating concepts and technology for NOS. NOS-T provides
-infrastructure to integrate and orchestrate user-contributed
+The New Observing Strategies Testbed (NOS-T) is a computational environment to
+develop, test, mature, and socialize new operating concepts and technology for
+NOS. NOS-T provides infrastructure to integrate and orchestrate user-contributed
 applications for system-of-systems test cases with true distributed
-control over constituent systems. The overall concept, illustrated in
-Figure 1, interconnects individual user applications and a NOS-T manager
+control over constituent systems. The overall concept, illustrated below, 
+interconnects individual user applications and a NOS-T manager
 application via common information system infrastructure to coordinate
 the execution of virtual Earth science missions. NOS-T enables principal
 investigators to conduct test runs in the same environment,
@@ -138,8 +132,8 @@ The NOS-T design and development follows several guiding principles:
 
 As a result of these guiding principles, NOS-T adopts a simpler software
 architecture than existing distributed simulation standards like
-Distributed Interactive Simulation (DIS, IEEE Std. 1278) [3] and High
-Level Architecture (HLA, IEEE Std. 1516) [4]. Most frequently used in
+Distributed Interactive Simulation (DIS, IEEE Std. 1278) [4]_ and High
+Level Architecture (HLA, IEEE Std. 1516) [5]_. Most frequently used in
 defense applications, DIS and HLA provide comprehensive distributed
 simulation capabilities but also require substantial resources to learn,
 develop, and execute compliant applications. Initial NOS-T capabilities
@@ -177,12 +171,12 @@ the communication structure because each member application (client)
 only directly connects to the broker, rather than requiring each
 application to directly connect to every other application. While there
 are many alternative broker implementation options available, NOS-T
-adopts the Solace PubSub+ Standard Edition event broker [5], a
+adopts the Solace PubSub+ Standard Edition event broker [6]_, a
 proprietary but freely available commercial product supporting up to
 1000 concurrent connections and 10,000 messages per second [1]_. NOS-T
 hosts an instance of PubSub+ on a server in the Science Managed Cloud
 Environment (SMCE), a managed cloud infrastructure for ESTO projects
-[6]. PubSub+ uses a publish-subscribe messaging pattern which designates
+[7]_. PubSub+ uses a publish-subscribe messaging pattern which designates
 applications (clients) as publishers (producers of events) and
 subscribers (consumers of events). Each application can publish or
 subscribe to multiple types of events.
@@ -231,9 +225,9 @@ Message Protocol
 All NOS-T events are communicated by sending or receiving messages using
 standard network messaging protocols. The Solace PubSub+ event broker
 supports and interoperates among several protocols including its own
-Solace Message Format (SMF) [7] and several open protocols including
+Solace Message Format (SMF) [8]_ and several open protocols including
 Message Queuing Telemetry Transport (MQTT), Advanced Message Queuing
-Protocol (AMQP), and Representational State Transfer (REST) [8]. All
+Protocol (AMQP), and Representational State Transfer (REST) [9]_. All
 protocols share similar messaging constructs but exhibit some minor
 differences in implementation and library availability.
 
@@ -290,21 +284,16 @@ more complex data types, like timestamps, using standards like ISO-8601.
 For example, the manager-issued start event has the following JSON
 structure:
 
-{
+.. code-block:: json
 
-"taskingParameters": {
-
-"startTime": "2021-04-15T12:00:00+00:00",
-
-"simStartTime": "2019-03-15T00:00:00+00:00",
-
-"simStopTime": "2019-03-19T00:00:00+00:00",
-
-"timeScalingFactor": 60
-
-}
-
-}
+  {
+    "taskingParameters": {
+      "startTime": "2021-04-15T12:00:00+00:00",
+      "simStartTime": "2019-03-15T00:00:00+00:00",
+      "simStopTime": "2019-03-19T00:00:00+00:00",
+      "timeScalingFactor": 60
+      }
+  }
 
 Using JSON to encode payload strings is optional but recommended for
 user-defined event messages because it allows for simple parsing and
@@ -312,7 +301,7 @@ semantically readable data. While the object schemas (specification of
 required key names and expected value types) to structure JSON message
 payloads for new events depend on each application case, the NOS-T
 manager messages are loosely based on standardized object schemas for
-the SensorThings Sensing [9] and Tasking [10] APIs. The start event
+the SensorThings Sensing [10]_ and Tasking [1]_ APIs. The start event
 above is based on the SensorThings *Task* entity with task-specific
 parameters (*startTime*, *simStartTime*, etc.) contained within the
 *taskingParameters* dictionary.
@@ -324,7 +313,7 @@ MQTT is a good messaging protocol choice for new user applications
 because of its simplicity and broad support including high-quality
 open-source libraries for most languages. For example, the Eclipse Paho
 library (*paho-mqtt*) is publicly available under an open-source license
-for the Python language [11].
+for the Python language [12]_.
 
 A simple example below connects a client to the broker (using
 placeholders for client username and password and the broker host
@@ -333,51 +322,37 @@ sends a plain text message to the topic *nost/example/hello* every
 second (receiving messages while calling the *loop()* function), and
 prints out received messages to console using a callback function.
 
-#!/usr/bin/env python3
+.. code-block:: python3
 
-import paho.mqtt.client as mqtt
+  #!/usr/bin/env python3
 
-import time
+  import paho.mqtt.client as mqtt
+  import time
 
-# callback to run when a message is received
+  # callback to run when a message is received
+  def on_message(client, userdata, msg):
+    print(msg.topic + " " + str(msg.payload))
 
-def on_message(client, userdata, msg):
+  # instantiate a new client and bind the callback
+  client = mqtt.Client()
+  client.on_message = on_message
 
-print(msg.topic + " " + str(msg.payload))
+  # connect to the broker and subscribe to a topic
+  client.username_pw_set(CLIENT_USERNAME, CLIENT_PASSWORD)
+  client.tls_set()
+  client.connect(BROKER_ADDR, BROKER_PORT)
+  client.subscribe("nost/manager/#")
 
-# instantiate a new client and bind the callback
+  # main execution loop
+  for i in range(10):
+    # publish message to a topic
+    client.publish("nost/example/hello", f"Hello {i}")
+    # process message events for 1 second
+    t = time.time()
+    while time.time() - t < 1.0:
+      client.loop()
 
-client = mqtt.Client()
-
-client.on_message = on_message
-
-# connect to the broker and subscribe to a topic
-
-client.username_pw_set(CLIENT_USERNAME, CLIENT_PASSWORD)
-
-client.tls_set()
-
-client.connect(BROKER_ADDR, BROKER_PORT)
-
-client.subscribe("nost/manager/#")
-
-# main execution loop
-
-for i in range(10):
-
-# publish message to a topic
-
-client.publish("nost/example/hello", f"Hello {i}")
-
-# process message events for 1 second
-
-t = time.time()
-
-while time.time() - t < 1.0:
-
-client.loop()
-
-Additional Eclipse Paho features described in the documentation [11]
+Additional Eclipse Paho features described in the documentation [11]_
 include background threads to process message events (rather than
 calling the *loop()* function directly), per-topic callback functions to
 simplify event handling, and additional configuration options to manage
@@ -408,75 +383,59 @@ The test run execution lifecycle follows the activity diagram in Figure
 Figure 4. Typical Test Run Execution Lifecycle.
 
 The control event message payload builds on the *Task* entity object
-schema in the Sensor Things Tasking API [10] with a top-level key
+schema in the Sensor Things Tasking API [10]_ with a top-level key
 *taskingParameters* to group event-specific parameters. Table 1 lists
 the four manager control event types described in the following
 sections.
 
-.. table:: Table 1. List of NOS-T Manager Control Events
+.. list-table:: Table 2. List of NOS-T Manager Control Events
+  :widths: 25 25 50
+  :header-rows: 1
 
-   +------+--------------------+-----------------------------------------+
-   |      | **Message Topic**  | **Example Message Payload (JSON)**      |
-   | Eve  |                    |                                         |
-   | nt   |                    |                                         |
-   +======+====================+=========================================+
-   | In   | $P                 | {                                       |
-   | itia | REFIX/manager/init |                                         |
-   | lize |                    | "taskingParameters": {                  |
-   |      |                    |                                         |
-   |      |                    | "simStartTime":                         |
-   |      |                    | "2019-03-15T00:00:00+00:00",            |
-   |      |                    |                                         |
-   |      |                    | "simStopTime":                          |
-   |      |                    | "2019-03-21T00:00:00+00:00"             |
-   |      |                    |                                         |
-   |      |                    | }                                       |
-   |      |                    |                                         |
-   |      |                    | }                                       |
-   +------+--------------------+-----------------------------------------+
-   | S    | $PR                | {                                       |
-   | tart | EFIX/manager/start |                                         |
-   |      |                    | "taskingParameters": {                  |
-   |      |                    |                                         |
-   |      |                    | "startTime":                            |
-   |      |                    | "2021-04-15T12:00:00+00:00",            |
-   |      |                    |                                         |
-   |      |                    | "simStartTime":                         |
-   |      |                    | "2019-03-15T00:00:00+00:00",            |
-   |      |                    |                                         |
-   |      |                    | "simStopTime":                          |
-   |      |                    | "2019-03-21T00:00:00+00:00",            |
-   |      |                    |                                         |
-   |      |                    | "timeScalingFactor": 60                 |
-   |      |                    |                                         |
-   |      |                    | }                                       |
-   |      |                    |                                         |
-   |      |                    | }                                       |
-   +------+--------------------+-----------------------------------------+
-   | Up   | $PRE               | {                                       |
-   | date | FIX/manager/update |                                         |
-   |      |                    | "taskingParameters": {                  |
-   |      |                    |                                         |
-   |      |                    | "simUpdateTime":                        |
-   |      |                    | "2019-03-17T00:00:00+00:00",            |
-   |      |                    |                                         |
-   |      |                    | "timeScalingFactor": 100                |
-   |      |                    |                                         |
-   |      |                    | }                                       |
-   |      |                    |                                         |
-   |      |                    | }                                       |
-   +------+--------------------+-----------------------------------------+
-   | Stop | $P                 | {                                       |
-   |      | REFIX/manager/stop |                                         |
-   |      |                    | "taskingParameters": {                  |
-   |      |                    |                                         |
-   |      |                    | "simStopTime":                          |
-   |      |                    | "2019-03-21T00:00:00+00:00"             |
-   |      |                    |                                         |
-   |      |                    | }                                       |
-   |      |                    |                                         |
-   |      |                    | }                                       |
-   +------+--------------------+-----------------------------------------+
+  * - Event
+    - Message Topic
+    - Example Message Payload (JSON)
+  * - Initialize
+    - $PREFIX/manager/init
+    - .. code-block:: json
+
+        {
+          "taskingParameters": {
+            "simStartTime": "2019-03-15T00:00:00+00:00",
+            "simStopTime": "2019-03-21T00:00:00+00:00"
+            }
+        }
+  * - Start
+    - $PREFIX/manager/start
+    - .. code-block:: json
+
+        {
+          "taskingParameters": {
+            "startTime": "2021-04-15T12:00:00+00:00",
+            "simStartTime": "2019-03-15T00:00:00+00:00",
+            "simStopTime": "2019-03-19T00:00:00+00:00",
+            "timeScalingFactor": 60
+            }
+        }
+  * - Update
+    - $PREFIX/manager/update
+    - .. code-:: json
+
+        {
+          "taskingParameters": {
+            "simUpdateTime": "2019-03-17T00:00:00+00:00",
+            "timeScalingFactor": 100
+            }
+        }
+  * - Stop
+    - $PREFIX/manager/Stop
+    - .. code-block:: json
+
+        {
+          "taskingParameters": {
+            "simStopTime": "2019-03-21T00:00:00+00:00"
+            }
+        }
 
 Initialize Control Event
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -489,18 +448,13 @@ a test run starts.
 
 .. table:: Table 2. Initialize Control Event Properties
 
-   +----------+-----------+----------------------------------------------+
-   | **Pr     | **Type**  | **Description**                              |
-   | operty** |           |                                              |
-   +==========+===========+==============================================+
-   | *simSt   | ISO-8601  | The earliest possible scenario start time.   |
-   | artTime* | datetime  |                                              |
-   |          | string    |                                              |
-   +----------+-----------+----------------------------------------------+
-   | *simS    | ISO-8601  | The latest possible scenario end time (shall |
-   | topTime* | datetime  | be later than *simStartTime*).               |
-   |          | string    |                                              |
-   +----------+-----------+----------------------------------------------+
+  +-----------------+---------------------------+-----------------------------------------------------------------------------+
+  | Property        | Type                      | Description                                                                 |
+  +=================+===========================+=============================================================================+
+  | *simStartTime*  | ISO-8601 datetime string  | The earliest possible scenario start time.                                  |
+  +-----------------+---------------------------+-----------------------------------------------------------------------------+
+  | *simStopTime*   | ISO-8601 datetime string  | The latest possible scenario end time (shall be later than simStartTime).   |
+  +-----------------+---------------------------+-----------------------------------------------------------------------------+
 
 Start Control Event
 ^^^^^^^^^^^^^^^^^^^
@@ -511,30 +465,25 @@ times to a common timing source, the manager synchronizes its system
 clock via a Network Time Protocol (NTP) request before each test run
 execution.
 
-.. table:: Table 3. Start Control Event Properties
+.. list-table:: Table 3. Start Control Event Properties
+  :widths: 15 15 70
+  :header-rows: 1
 
-   +--------------+-----------+------------------------------------------+
-   | **Property** | **Type**  | **Description**                          |
-   +==============+===========+==========================================+
-   | *startTime*  | ISO-8601  | The earliest wallclock (real-world) time |
-   |              | datetime  | at which to start the test run           |
-   |              | string    | execution. A test run execution shall    |
-   |              |           | start immediately if *startTime* is      |
-   |              |           | undefined or in the past.                |
-   +--------------+-----------+------------------------------------------+
-   | *s           | ISO-8601  | The scenario time at which to start the  |
-   | imStartTime* | datetime  | test run execution (shall be within the  |
-   |              | string    | bounds specified in the initialization   |
-   |              |           | event).                                  |
-   +--------------+-----------+------------------------------------------+
-   |              | ISO-8601  | The scenario time at which to end the    |
-   | simStopTime  | datetime  | test run execution (shall be within the  |
-   |              | string    | bounds specified in the initialization   |
-   |              |           | event and later than *simStartTime*).    |
-   +--------------+-----------+------------------------------------------+
-   | *timeSc      | Positive  | The constant factor for units of         |
-   | alingFactor* | integer   | scenario time per wallclock time.        |
-   +--------------+-----------+------------------------------------------+
+  * - Property
+    - Type
+    - Description
+  * - *startTime*
+    - ISO-8601 datetime string
+    - The earliest wallclock (real-world) time at which to start the test case execution. A test case execution shall start immediately if startTime is undefined or in the past.
+  * - *simStartTime*
+    - ISO-8601 datetime string
+    - The scenario time at which to start the test case execution (shall be within the bounds specified in the initialization event).
+  * - *simStopTime*
+    - ISO-8601 datetime string
+    - The scenario time at which to end the test case execution (shall be within the bounds specified in the initialization event and later than simStartTime).
+  * - *timeScalingFactor*
+    - Positive integer
+    - The constant factor for units of scenario time per wallclock time.
 
 Update Control Event
 ^^^^^^^^^^^^^^^^^^^^
@@ -544,19 +493,19 @@ schedule a change in time scaling factor for a test run execution. The
 manager only considers one pending update at a time such that subsequent
 update events override the pending one.
 
-.. table:: Table 4. Update Control Event Properties
+.. list-table:: Table 5. Update Control Event Properties
+  :widths: 15 15 70
+  :header-rows: 1
 
-   +--------------+-----------+------------------------------------------+
-   | **Property** | **Type**  | **Description**                          |
-   +==============+===========+==========================================+
-   | *si          | ISO-8601  | The earliest scenario (simulated) time   |
-   | mUpdateTime* | datetime  | at which to update the time scaling      |
-   |              | string    | factor.                                  |
-   +--------------+-----------+------------------------------------------+
-   | *timeSc      | Positive  | The new time scaling factor representing |
-   | alingFactor* | integer   | the constant factor for units of         |
-   |              |           | scenario time per wallclock time.        |
-   +--------------+-----------+------------------------------------------+
+  * - Property
+    - Type
+    - Description
+  * - *simUpdateTime*
+    - ISO-8601 datetime string
+    - The earliest scenario (simulated) time at which to update the time scaling factor.
+  * - *timeScalingFactor*
+    - Positive integer
+    - The scenario time at which to start the test case execution (shall be within the bounds specified in the initialization event).
 
 Stop Control Event
 ^^^^^^^^^^^^^^^^^^
@@ -565,16 +514,16 @@ The manager publishes a stop event to *$PREFIX/manager/stop* to schedule
 the end of a test run execution. The most recently published stop event
 determines the end of the test run execution.
 
-.. table:: Table 5. Stop Control Event Properties
+.. list-table:: Table 6. Stop Control Event Properties
+  :widths: 15 15 70
+  :header-rows: 1
 
-   +--------------+-----------+------------------------------------------+
-   | **Property** | **Type**  | **Description**                          |
-   +==============+===========+==========================================+
-   |              | ISO-8601  | The earliest scenario time at which to   |
-   | simStopTime  | datetime  | end the test run execution (shall be     |
-   |              | string    | within the bounds specified in the       |
-   |              |           | initialization event).                   |
-   +--------------+-----------+------------------------------------------+
+  * - Property
+    - Type
+    - Description
+  * - *simStopTime*
+    - ISO-8601 datetime string
+    - The earliest scenario time at which to end the test case execution (shall be within the bounds specified in the initialization event).
 
 Status Events
 ~~~~~~~~~~~~~
@@ -582,49 +531,40 @@ Status Events
 The manager issues status events to communicate state changes in its
 local model of the test run execution. The status event message payload
 builds on the *Thing* entity object schema in the Sensor Things Sensing
-API [9] with top-level keys for *name*, *description*, and *properties*
+API [9]_ with top-level keys for *name*, *description*, and *properties*
 to group event-specific parameters. Table 6 lists the two manager status
 event types described in the following sections.
 
-.. table:: Table 6. List of NOS-T Manager Status Events
+.. list-table:: Table 7. List of NOS-T Manager Status Events
+  :widths: 25 25 50
+  :header-rows: 1
 
-   +------+--------------------+-----------------------------------------+
-   |      | **Message Topic**  | **Example Message Payload (JSON)**      |
-   |Event |                    |                                         |
-   |      |                    |                                         |
-   +======+====================+=========================================+
-   | Time | $P                 | {                                       |
-   |      | REFIX/manager/time |                                         |
-   |      |                    | "name": "Manager",                      |
-   |      |                    |                                         |
-   |      |                    | "description": "Manages a test run      |
-   |      |                    | execution",                             |
-   |      |                    |                                         |
-   |      |                    | "properties": {                         |
-   |      |                    |                                         |
-   |      |                    | "simTime": "2019-03-15T00:00:00+00:00", |
-   |      |                    |                                         |
-   |      |                    | "time": "2021-04-15T12:00:00+00:00"     |
-   |      |                    |                                         |
-   |      |                    | }                                       |
-   |      |                    |                                         |
-   |      |                    | }                                       |
-   +------+--------------------+-----------------------------------------+
-   | Mode | $P                 | {                                       |
-   |      | REFIX/manager/mode |                                         |
-   |      |                    | "name": "Manager",                      |
-   |      |                    |                                         |
-   |      |                    | "description": "Manages a test run      |
-   |      |                    | execution",                             |
-   |      |                    |                                         |
-   |      |                    | "properties": {                         |
-   |      |                    |                                         |
-   |      |                    | "mode": "EXECUTING"                     |
-   |      |                    |                                         |
-   |      |                    | }                                       |
-   |      |                    |                                         |
-   |      |                    | }                                       |
-   +------+--------------------+-----------------------------------------+
+  * - Event
+    - Message Topic
+    - Example Message Payload (JSON)
+  * - Time
+    - $PREFIX/manager/time
+    - .. code-block:: json
+
+        {
+          "name": "Manager",
+          "description": "Manages a test case execution",
+          "properties": {
+            "simTime": "2019-03-15T00:00:00+00:00",
+            "time": "2021-04-15T12:00:00+00:00"
+          }
+        }
+  * - Mode
+    - $PREFIX/manager/mode
+    - .. code-block:: json
+
+        {
+          "name": "Manager",
+          "description": "Manages a test case execution",
+          "properties": {
+            "mode": "EXECUTING"
+          }
+        }
 
 Time Status Event
 ^^^^^^^^^^^^^^^^^
@@ -660,22 +600,18 @@ an alternative to time events for member applications to trigger
 activities. Manager modes include:
 
 -  INITIALIZING: started a test run initialization procedure
-
 -  INITIALIZED: completed a test run initialization procedure
-
 -  EXECUTING: started a test run execution
-
 -  TERMINATING: started a test run termination procedure
-
 -  TERMINATED: completed a test run termination procedure
 
 .. table:: Table 8. Mode Status Event Properties
 
-   +--------------+-----------+------------------------------------------+
-   | **Property** | **Type**  | **Description**                          |
-   +==============+===========+==========================================+
-   | *mode*       | String    | The current execution mode.              |
-   +--------------+-----------+------------------------------------------+
+  +--------------+-----------+------------------------------------------+
+  | **Property** | **Type**  | **Description**                          |
+  +==============+===========+==========================================+
+  | *mode*       | String    | The current execution mode.              |
+  +--------------+-----------+------------------------------------------+
 
 User Application Requirements
 -----------------------------
@@ -689,7 +625,7 @@ evaluated in a NOS-T test case. User applications must meet generic
 NOS-T execution requirements as well as test case-specific requirements.
 As an example, a FireSat application use case demonstrates how user
 applications can model parts of a fire observation remote sensing system
-[12]. A simplified description includes interactions between three user
+[13]_. A simplified description includes interactions between three user
 applications and the NOS-T manager application Figure 5.
 
 1. **Environment application:** models fire ignition and growth.
@@ -726,10 +662,8 @@ implementation for user applications:
 
 -  **Event-driven**: user application responds to events from other user
    applications.
-
 -  **Time-evoked**: user application responds to periodic manager time
    status events.
-
 -  **Time-managed**: user application maintains a local scenario clock
    for event timing.
 
@@ -836,31 +770,21 @@ payload for a *Fire Status* event in the FireSat application case
 (published by the *Environment* application and subscribed to by the
 *FireSat* application) can be structured as:
 
-{
+.. code-block:: JSON
 
-"name": "fire",
-
-"description": "Models the spread of a fire.",
-
-"properties": {
-
-"timestamp": "2019-03-13T04:11:40+00:00",
-
-"intensity": 35398693.13517181,
-
-"latitude": 42.49602475523592,
-
-"longitude": -103.69767511612058,
-
-"windSpeed": 5,
-
-"growRate": 1.705270367448615,
-
-"fireStart": "2019-03-13T00:00:00+00:00"
-
-}
-
-}
+  {
+    "name": "fire",
+    "description": "Models the spread of a fire.",
+    "properties": {
+      "timestamp": "2019-03-13T04:11:40+00:00",
+        "intensity": 35398693.13517181,
+        "latitude": 42.49602475523592,
+        "longitude": -103.69767511612058,
+        "windSpeed": 5,
+        "growRate": 1.705270367448615,
+        "fireStart": "2019-03-13T00:00:00+00:00"
+    }
+  }
 
 Some test cases may require alternate communication protocols to
 overcome broker limitations. For example, some test cases may consider
@@ -872,58 +796,70 @@ simply send an URI to the data in the message payload.
 References
 ----------
 
-1.  Jacqueline Le Moigne, Michael M. Little, Marjorie C. Cole (2019).
-    "New Observing Strategy (NOS) for Future Earth Science Missions,"
-    2019 IEEE Geoscience and Remote Sensing Symposium, Yokohama, Japan,
-    July 28-August 2. doi: 10.1109/IGARSS.2019.8898096
-
-2.  Mark W. Maier (1998). "Architecting Principles for
-    Systems-of-Systems," *Systems Engineering* 1(4):267-284. doi:
-    10.1002/(SICI)1520-6858(1998)1:4<267::AID-SYS3>3.0.CO;2-D
-
-3.  IEEE (2012). “IEEE Standard for Distributed Interactive Simulation –
-    Application Protocols. IEEE Std. 1278-2012.
-
-4.  IEEE (2010). “IEEE Standard for Modeling and Simulation (M&S) High
-    Level Architecture (HLA) – Framework and Rules. IEEE Std. 1516-2010.
-
-5.  Solace Corporation (2021). " PubSub+ Event Broker: Software," URL:
-    https://solace.com/products/event-broker/software/. Accessed
-    2021-04-07.
-
-6.  NASA Center for Climate Simulation, (2021). "SMCE System Overview."
-    URL: https://www.nccs.nasa.gov/systems/SMCE. Accessed 2021-04-07.
-
-7.  Solace Corporation (2021). "Solace Messaging APIs," URL:
-    https://docs.solace.com/Solace-PubSub-Messaging-APIs/Solace-APIs-Overview.htm.
-    Accessed 2021-04-07.
-
-8.  Solace Corporation (2021). "Open APIs & Protocols," URL:
-    https://docs.solace.com/Open-APIs-Protocols/Open-APIs-Protocols.htm.
-    Accessed 2021-04-07.
-
-9.  OGC (2016). "SensorThings API Part 1: Sensing," Version 1.0, Open
-    Geospatial Consortium. URL:
-    http://www.opengis.net/doc/is/sensorthings/1.0
-
-10. OGC (2019). "SensorThings API Part 2: Tasking Core," Version 1.0,
-    Open Geospatial Consortium. URL:
-    http://www.opengis.net/doc/IS/sensorthings-part2-TaskingCore/1.0
-
-11. Eclipse Foundation (2020). "Eclipse Pago MQTT Python client
-    library," Version 1.5.1, Eclipse Foundation. URL:
-    https://pypi.org/project/paho-mqtt
-
-12. Paul T. Grogan, Hayden C. Daly, Matthew S. Brand, and Jerry J.
-    Sellers (2021). "New Observing Strategies Testbed (NOS-T)
-    Architecture: Evaluating Dynamic Response to Emergent Events," *IEEE
-    International Geoscience and Remote Sensing Symposium*, Virtual,
-    Online. (Accepted)
-
 .. [1]
    Solace PubSub+ is used for large-scale real-time information systems
    including the Federal Aviation Administration's System-wide
    Information Management (SWIM) Cloud Distribution Service (SCDS).
+
+.. [2]
+   Jacqueline Le Moigne, Michael M. Little, Marjorie C. Cole (2019).
+   "New Observing Strategy (NOS) for Future Earth Science Missions,"
+   2019 IEEE Geoscience and Remote Sensing Symposium, Yokohama, Japan,
+   July 28-August 2. doi: 10.1109/IGARSS.2019.8898096
+
+.. [3]
+   Mark W. Maier (1998). "Architecting Principles for
+   Systems-of-Systems," *Systems Engineering* 1(4):267-284. doi:
+   10.1002/(SICI)1520-6858(1998)1:4<267::AID-SYS3>3.0.CO;2-D
+
+.. [4]
+   IEEE (2012). “IEEE Standard for Distributed Interactive Simulation –
+   Application Protocols. IEEE Std. 1278-2012.
+
+.. [5]
+   IEEE (2010). “IEEE Standard for Modeling and Simulation (M&S) High
+   Level Architecture (HLA) – Framework and Rules. IEEE Std. 1516-2010.
+
+.. [6]
+   Solace Corporation (2021). " PubSub+ Event Broker: Software," URL:
+   https://solace.com/products/event-broker/software/. Accessed
+   2021-04-07.
+
+.. [7]
+   NASA Center for Climate Simulation, (2021). "SMCE System Overview."
+   URL: https://www.nccs.nasa.gov/systems/SMCE. Accessed 2021-04-07.
+
+.. [8]
+   Solace Corporation (2021). "Solace Messaging APIs," URL:
+   https://docs.solace.com/Solace-PubSub-Messaging-APIs/Solace-APIs-Overview.htm.
+   Accessed 2021-04-07.
+
+.. [9]
+   Solace Corporation (2021). "Open APIs & Protocols," URL:
+   https://docs.solace.com/Open-APIs-Protocols/Open-APIs-Protocols.htm.
+   Accessed 2021-04-07.
+
+.. [10]
+   OGC (2016). "SensorThings API Part 1: Sensing," Version 1.0, Open
+   Geospatial Consortium. URL:
+   http://www.opengis.net/doc/is/sensorthings/1.0
+
+.. [11]
+   OGC (2019). "SensorThings API Part 2: Tasking Core," Version 1.0,
+   Open Geospatial Consortium. URL:
+   http://www.opengis.net/doc/IS/sensorthings-part2-TaskingCore/1.0
+
+.. [12]
+   Eclipse Foundation (2020). "Eclipse Pago MQTT Python client
+   library," Version 1.5.1, Eclipse Foundation. URL:
+   https://pypi.org/project/paho-mqtt
+
+.. [13]
+   Paul T. Grogan, Hayden C. Daly, Matthew S. Brand, and Jerry J.
+   Sellers (2021). "New Observing Strategies Testbed (NOS-T)
+   Architecture: Evaluating Dynamic Response to Emergent Events," *IEEE
+   International Geoscience and Remote Sensing Symposium*, Virtual,
+   Online. (Accepted)
 
 .. |image1| image:: media/image1.png
    :width: 6.28333in
@@ -935,5 +871,3 @@ References
    :width: 6.28333in
    :height: 2.40208in
 .. |image4| image:: media/image4.png
-  :width: 6.28333in
-  :height: 2.40208in

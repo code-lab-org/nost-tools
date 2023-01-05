@@ -1,10 +1,10 @@
 Science Event Dashboard
 =======================
 
-scienceEventDashboard.py
-------------------------
-
-*Unmanaged application that subscribes to scienceEventPublisher and records the
-science event utility on a dashboard.*
+This example largely follows the instructions from the `Plotly Dash documentation. <https://dash.plotly.com/basic-callbacks>`_
 
 .. automodule:: scienceDash.scienceEventDashboard
+
+.. automethod:: scienceDash.scienceEventDashboard.on_message
+
+.. automethod:: scienceDash.scienceEventDashboard.update_fig

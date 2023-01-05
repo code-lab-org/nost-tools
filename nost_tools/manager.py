@@ -1,8 +1,14 @@
-from datetime import timedelta
+"""
+Provides a base manager that coordinates a distributed scenario execution.
+"""
+
+from datetime import datetime, timedelta
 import logging
+from paho.mqtt.client import Client, MQTTMessage
 import threading
 import time
 import traceback
+from typing import List
 
 from .application import Application
 from .schemas import (
@@ -24,11 +30,18 @@ class TimeScaleUpdate(object):
     to change the time_scale_factor to the indicated value.
 
     Attributes:
-        time_scale_factor (float): Scenario seconds per wallclock second
-        sim_update_time (:obj:`datetime`): Scenario time that the update will occur
+        time_scale_factor (float): scenario seconds per wallclock second
+        sim_update_time (:obj:`datetime`): scenario time that the update will occur
     """
 
-    def __init__(self, time_scale_factor, sim_update_time):
+    def __init__(self, time_scale_factor: float, sim_update_time: datetime):
+        """
+        Instantiates a new time scale update.
+
+        Args:
+            time_scale_factor (float): scenario seconds per wallclock second
+            sim_update_time (:obj:`datetime`): scenario time that the update will occur
+        """
         self.time_scale_factor = time_scale_factor
         self.sim_update_time = sim_update_time
 
@@ -40,7 +53,7 @@ class Manager(Application):
     This object class defines a manager to orchestrate test run executions.
 
     Attributes:
-        prefix (str) : The test run namespace (prefix)
+        prefix (str): The test run namespace (prefix)
         simulator (:obj:`Simulator`): Application simulator
         client (:obj:`Client`): Application MQTT client
         time_step (:obj:`timedelta`): Scenario time step used in execution
@@ -52,25 +65,28 @@ class Manager(Application):
     """
 
     def __init__(self):
+        """
+        Initializes a new manager.
+        """
         # call super class constructor
         super().__init__("manager")
         self.required_apps_status = {}
 
     def execute_test_plan(
         self,
-        sim_start_time,
-        sim_stop_time,
-        start_time=None,
-        time_step=timedelta(seconds=1),
-        time_scale_factor=1.0,
-        time_scale_updates=[],
-        time_status_step=None,
-        time_status_init=None,
-        command_lead=timedelta(seconds=0),
-        required_apps=[],
-        init_retry_delay_s=5,
-        init_max_retry=5,
-    ):
+        sim_start_time: datetime,
+        sim_stop_time: datetime,
+        start_time: datetime = None,
+        time_step: timedelta = timedelta(seconds=1),
+        time_scale_factor: float = 1.0,
+        time_scale_updates: List[TimeScaleUpdate] = [],
+        time_status_step: timedelta = None,
+        time_status_init: datetime = None,
+        command_lead: timedelta = timedelta(seconds=0),
+        required_apps: List[str] = [],
+        init_retry_delay_s: int = 5,
+        init_max_retry: int = 5,
+    ) -> None:
         """
         A comprehensive command to start a test run execution.
 
@@ -78,18 +94,18 @@ class Manager(Application):
         or consistent test-case runs.
 
         Args:
-            sim_start_time (:obj:`datetime`): Scenario time at which to start execution
-            sim_stop_time (:obj:`datetime`): Scenario time at which to stop execution
-            start_time (:obj:`datetime`): Wallclock time at which to start execution (default: now)
-            time_step (:obj:`timedelta`): Scenario time step used in execution (default: 1 second)
-            time_scale_factor (float): Scenario seconds per wallclock second (default: 1.0)
-            time_scale_updates (list(:obj:`TimeScaleUpdate`)): List of scheduled time scale updates (default: [])
-            time_status_step (:obj:`timedelta`): Scenario duration between time status messages
-            time_status_init (:obj:`datetime`): Scenario time of first time status message
-            command_lead (:obj:`timedelta`): Wallclock lead time between command and action (default: 0 seconds)
-            required_apps (list): List of application names required to continue with the execution
-            init_retry_delay_s (float): Number of seconds to wait between initialization commands while waiting for required applications
-            init_max_retry (int): Number of initialization commands while waiting for required applications before continuing to execution
+            sim_start_time (:obj:`datetime`): scenario time at which to start execution
+            sim_stop_time (:obj:`datetime`): scenario time at which to stop execution
+            start_time (:obj:`datetime`): wallclock time at which to start execution (default: now)
+            time_step (:obj:`timedelta`): scenario time step used in execution (default: 1 second)
+            time_scale_factor (float): scenario seconds per wallclock second (default: 1.0)
+            time_scale_updates (list(:obj:`TimeScaleUpdate`)): list of scheduled time scale updates (default: [])
+            time_status_step (:obj:`timedelta`): scenario duration between time status messages
+            time_status_init (:obj:`datetime`): scenario time of first time status message
+            command_lead (:obj:`timedelta`): wallclock lead time between command and action (default: 0 seconds)
+            required_apps (list(str)): list of application names required to continue with the execution
+            init_retry_delay_s (float): number of seconds to wait between initialization commands while waiting for required applications
+            init_max_retry (int): number of initialization commands while waiting for required applications before continuing to execution
         """
         self.required_apps_status = dict(
             zip(required_apps, [False] * len(required_apps))
@@ -166,7 +182,9 @@ class Manager(Application):
         # issue the stop command
         self.stop(sim_stop_time)
 
-    def on_app_ready_status(self, client, userdata, message):
+    def on_app_ready_status(
+        self, client: Client, userdata: object, message: MQTTMessage
+    ) -> None:
         """
         Callback to handle a message containing an application ready status.
         """
@@ -185,7 +203,9 @@ class Manager(Application):
             )
             print(traceback.format_exc())
 
-    def on_app_time_status(self, client, userdata, message):
+    def on_app_time_status(
+        self, client: Client, userdata: object, message: MQTTMessage
+    ) -> None:
         """
         Callback to handle a message containing an application time status.
         """
@@ -206,7 +226,12 @@ class Manager(Application):
             )
             print(traceback.format_exc())
 
-    def init(self, sim_start_time, sim_stop_time, required_apps=[]):
+    def init(
+        self,
+        sim_start_time: datetime,
+        sim_stop_time: datetime,
+        required_apps: List[str] = [],
+    ) -> None:
         """
         Publishes an initialize command to initialize a test run execution.
 
@@ -232,14 +257,14 @@ class Manager(Application):
 
     def start(
         self,
-        sim_start_time,
-        sim_stop_time,
-        start_time=None,
-        time_step=timedelta(seconds=1),
-        time_scale_factor=1.0,
-        time_status_step=None,
-        time_status_init=None,
-    ):
+        sim_start_time: datetime,
+        sim_stop_time: datetime,
+        start_time: datetime = None,
+        time_step: timedelta = timedelta(seconds=1),
+        time_scale_factor: float = 1.0,
+        time_status_step: timedelta = None,
+        time_status_init: datetime = None,
+    ) -> None:
         """
 
         Command to start a test run execution by starting the simulator execution with all necessary parameters and publishing
@@ -285,7 +310,7 @@ class Manager(Application):
             },
         ).start()
 
-    def stop(self, sim_stop_time):
+    def stop(self, sim_stop_time: datetime) -> None:
         """
         Command to stop a test run execution by updating the execution end time and publishing a stop command.
 
@@ -303,14 +328,14 @@ class Manager(Application):
         # update the execution end time
         self.simulator.set_end_time(sim_stop_time)
 
-    def update(self, time_scale_factor, sim_update_time):
+    def update(self, time_scale_factor: float, sim_update_time: datetime) -> None:
         """
         Command to update the time scaling factor for a test run execution by updating the execution time scale factor,
         and publishing an update command.
 
         Args:
-            time_scale_factor (float): Scenario seconds per wallclock second
-            sim_update_time (:obj:`datetime`): Scenario time at which to update
+            time_scale_factor (float): scenario seconds per wallclock second
+            sim_update_time (:obj:`datetime`): scenario time at which to update
         """
         # publish an update command message
         command = UpdateCommand.parse_obj(

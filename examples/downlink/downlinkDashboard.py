@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    This application demonstrates how to create a simple dashboard for
-    visualizing NOS-T data in real time. It subscribes to the 
-    scienceEventPublisher.py application and displays the science utility
-    separated by location.
+    This application creates a dashboard that displays the amount of data in 
+    each S/C hard drive.
 """
 
 import paho.mqtt.client as mqtt
@@ -24,15 +22,15 @@ def on_message(mqttc, obj, msg):
     # setting up list of dictionaries
     messageIn = json.loads(msg.payload.decode("utf-8"))
     eventLOD.append(messageIn)
-    print(messageIn)
-    # update_fig(n)
+    # print(messageIn)
+    update_fig(n)
     
-# def update_fig(n):
-#     df = pd.DataFrame(eventLOD)
-#     fig = px.line(df, x="time", y='capacity_used', color='name', markers=True,
-#                           labels={"time":"time", "capacity_used":"capacity"},
-#                           title="Spacecraft Data Capacity")
-#     return fig
+def update_fig(n):
+    df = pd.DataFrame(eventLOD)
+    fig = px.line(df, x="time", y='capacity_used', color='name', markers=True,
+                          labels={"time":"time", "capacity_used":"Amount of Data in HD (GB)"},
+                          title="Hard Drive Space Used")
+    return fig
 
 
 
@@ -53,9 +51,10 @@ if __name__ == "__main__":
     # connect to MQTT server on port 8883
     client.connect(HOST, PORT)
     # subscribe to science event topics
-    client.subscribe("downlinkBC/constellation/location",0)
+    client.subscribe("downlink/constellation/location",0)
     # bind the message handler
     client.on_message = on_message
+    client.loop_start()
 
 
     # initialize df
@@ -74,27 +73,26 @@ if __name__ == "__main__":
     n=0
     eventLOD = []
     
-    # start a background thread to let MQTT do things
-    client.loop_forever()
+
     
-    # app = dash.Dash(__name__)
+    app = dash.Dash(__name__)
 
-    # # for dashboard plot
-    # fig = px.line(df0, x="time", y='capacity_used', color='name', markers=True,
-    #                       labels={"time":"time", "capacity_used":"capacity"},
-    #                       title="Spacecraft Data Capacity")
+    # for dashboard plot
+    fig = px.line(df0, x="time", y='capacity_used', color='name', markers=True,
+                          labels={"time":"time", "capacity_used":"Amount of Data in HD (GB)"},
+                          title="Hard Drive Space Used")
 
-    # app.layout = html.Div([
-    #     dcc.Graph(
-    #         id="Utility_Plot", figure=fig
-    #         ),
-    #     dcc.Interval(
-    #         id="interval-component",
-    #         interval=1*1000,
-    #         n_intervals=0
-    #     )
-    # ])
+    app.layout = html.Div([
+        dcc.Graph(
+            id="Utility_Plot", figure=fig
+            ),
+        dcc.Interval(
+            id="interval-component",
+            interval=1*1000,
+            n_intervals=0
+        )
+    ])
 
-    # app.callback(Output("Utility_Plot", 'figure'),Input("interval-component", 'n_intervals'))(update_fig)
+    app.callback(Output("Utility_Plot", 'figure'),Input("interval-component", 'n_intervals'))(update_fig)
 
-    # app.run_server(debug=True)
+    app.run_server(debug=True)

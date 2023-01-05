@@ -1,3 +1,5 @@
+.. _fireSatExampleTop:
+
 FireSat+ Test Suite: Example Applications and Schemas
 =====================================================
 
@@ -12,5 +14,3 @@ FireSat is a classic hypothetical space mission for identifying and monitoring f
   fires
   schemas
   scoreboard
-
-  

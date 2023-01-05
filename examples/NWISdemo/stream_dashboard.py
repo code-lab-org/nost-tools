@@ -8,28 +8,39 @@ import json
 import dash
 from dash import dcc
 from dash import html
-from dash.dependencies import Input, Output, State
 import plotly.express as px
 import pandas as pd
-from datetime import datetime, timedelta
+import csv
+from dash.dependencies import Input, Output, State
 from dotenv import dotenv_values
-
 
 
 def on_message(mqttc, obj, msg):
     """ Callback to process an incoming message."""
-    # setting up list of dictionaries
-    gageHeightMessage = json.loads(msg.payload.decode("utf-8"))
-    #gageLOD.append(gageHeightMessage)
+
+    dataIn = json.loads(msg.payload.decode("utf-8"))
+    requestTime = dataIn["requestTime"]["value"]
+    siteName = dataIn['siteName']
+    dataTime = dataIn['dataTime']
+    gageHeight = dataIn['gageHeight']
+    latitude = dataIn['latitude']
+    longitude = dataIn['longitude']
+
+    # writing .csv for dashboard
+    with open(filename, 'a') as csvfile:
+        for entry in range(len(siteName)):
+            dataOut = [siteName[entry],requestTime,dataTime[entry],gageHeight[entry],latitude[entry],longitude[entry]]
+            csvwriter = csv.writer(csvfile)
+            csvwriter.writerow(dataOut)
     update_fig(n)
 
 
 def update_fig(n):
-    df["siteName"] = gageHeightMessage["siteName"]
-    df["requestTime"] = datetime.strptime(gageHeightMessage["requestTime"]['value'],"%Y-%m-%dT%H:%M:%S.%fZ")
-    df["gageHeight"] = gageHeightMessage["gageHeight"]
 
-    fig = px.line(df, x='requestTime', y='gageHeight', color='Index', markers=True,
+    plotData = pd.read_csv(filename)
+    dffig = pd.DataFrame(data=plotData)
+
+    fig = px.line(dffig, x='requestTime', y='gageHeight', color='siteName', markers=True,
                       labels={"requestTime":"Request Time", "gageHeight":"Gage Height (ft)"},
                       title='NWIS Gage Heights')
     return fig
@@ -39,8 +50,8 @@ if __name__ == "__main__":
 
     # setting credentials from .env file
     credentials = dotenv_values(".env")
-    HOST, PORT = credentials["SMCE_HOST"], int(credentials["SMCE_PORT"])
-    USERNAME, PASSWORD = credentials["SMCE_USERNAME"], credentials["SMCE_PASSWORD"]
+    HOST, PORT = credentials["HOST"], int(credentials["PORT"])
+    USERNAME, PASSWORD = credentials["USERNAME"], credentials["PASSWORD"]
     # build the MQTT client
     client = mqtt.Client()
     # set client username and password
@@ -55,6 +66,17 @@ if __name__ == "__main__":
     client.on_message = on_message
     # start a background thread to let MQTT do things
     client.loop_start()
+    
+    # setting up .csv for dashboard
+    filename = "gageHeight.csv"
+    fields = ['siteName','requestTime','dataTime','gageHeight','latitude','longitude']
+    # name of output file
+    filename = "flow_rate_for_viz.csv"
+    with open(filename, 'w') as csvfile:
+        # creating a csv writer object
+        csvwriter = csv.writer(csvfile)
+        # writing the fields
+        csvwriter.writerow(fields)
 
     # initialize df
     columns = {
@@ -65,10 +87,10 @@ if __name__ == "__main__":
         "latitude": pd.Series([], dtype="float"),
         "longitude": pd.Series([], dtype="float"),
     }
-    
+
     df = pd.DataFrame(columns)
-    
-    
+
+
     n=0
     gageHeightMessage = []
 
