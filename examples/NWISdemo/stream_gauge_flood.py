@@ -19,6 +19,9 @@ import requests
 from datetime import datetime, timedelta
 import pandas as pd
 from numpy import random
+from dotenv import dotenv_values
+# import csv
+# from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
 
 # initialize dicts
 siteName = {}
@@ -29,38 +32,39 @@ latitude = {}
 longitude = {}
 floodId = 0
 
-    
+
 
 if __name__ == "__main__":
 
+    # setting credentials from .env file
+    credentials = dotenv_values(".env")
+    HOST, PORT = credentials["SMCE_HOST"], int(credentials["SMCE_PORT"])
+    USERNAME, PASSWORD = credentials["SMCE_USERNAME"], credentials["SMCE_PASSWORD"]
     # build the MQTT client
     client = mqtt.Client()
-    
     # set client username and password
-    client.username_pw_set(username="bchell", password="cT8T1pd62KnZ")
+    client.username_pw_set(username=USERNAME, password=PASSWORD)
     # set tls certificate
     client.tls_set()
-    # connect to MQTT server on port 8883
-    client.connect("testbed.mysmce.com", 8883)
-    # callback for 
-    #client.on_message = on_data_request
+    # connect to MQTT server
+    client.connect(HOST, PORT)
     # start a background thread to let MQTT do things
     client.loop_start()
 
     while True:
-        
-        # getting stream gauge ID numbers from .csv file and making request url         
-        df = pd.read_csv("siteNumbers.csv")         
+
+        # getting stream gauge ID numbers from .csv file and making request url
+        df = pd.read_csv("siteNumbers.csv")
         siteIds = ",".join([f"{site:08}"for site in df.Site])
         urlBegin = "https://waterservices.usgs.gov/nwis/iv/?format=json&indent=on&sites="
         urlEnd = "&parameterCd=00065&siteStatus=all"
         requestUrl = urlBegin+siteIds+urlEnd
-        
-        
-        # web request to NWIS    
+
+
+        # web request to NWIS
         rawResponse = requests.get(requestUrl)
         response = rawResponse.json()
-        
+
         # NWIS outputs
         requestTime = response['value']['queryInfo']['note'][3]#['value']
         for i, timeSeries in enumerate(response['value']['timeSeries']):
@@ -70,18 +74,18 @@ if __name__ == "__main__":
             latitude[i] = float(timeSeries['sourceInfo']['geoLocation']['geogLocation']['latitude'])
             longitude[i] = float(timeSeries['sourceInfo']['geoLocation']['geogLocation']['longitude'])
         # gaugeList = [siteName, dataTime, gageHeight, latitude, longitude]
-            
+
         # flood trigger
         floodRand = random.randint(100)
         locationRand = random.randint(len(response['value']['timeSeries']))
         if floodRand <= 50:   # percent chance of flood
             gageHeight[locationRand] = gageHeight[locationRand]+10.0
-            
+
             # publish flood warning
             floodWarningMessage = {
                 'siteName':siteName[locationRand],
                 'floodId':floodId,
-                'startTime':str(datetime.now()),#response['value']['queryInfo']['note'][3]['value'], 
+                'startTime':str(datetime.now()),#response['value']['queryInfo']['note'][3]['value'],
                 'latitude':latitude[locationRand],
                 'longitude':longitude[locationRand]
                 }
@@ -90,10 +94,10 @@ if __name__ == "__main__":
             #print(floodWarningMessage)
             if floodId > 33:
                 break
-                        
+
         # advance to next time step
         next_step = datetime.now() + timedelta(seconds=3)
-        
+
         # outputs into message
         gageHeightMessage = {
             "requestTime":requestTime,
@@ -103,7 +107,7 @@ if __name__ == "__main__":
             "latitude":list(latitude.values()),
             "longitude":list(longitude.values())
             }
-        
+
         # publish time and gage height
         client.publish("BCtest/streamGauge/gageHeight", payload=json.dumps(gageHeightMessage))
         print(gageHeightMessage)

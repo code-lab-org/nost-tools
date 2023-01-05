@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
     *This application demonstrates a constellation of satellites for monitoring fires propagated from Two-Line Elements (TLEs)*
-    
+
     The application contains one :obj:`Constellation` (:obj:`Entity`) object class, one :obj:`PositionPublisher` (:obj:`WallclockTimeIntervalPublisher`), and two :obj:`Observer` object classes to monitor for :obj:`FireDetected` and :obj:`FireReported` events, respectively. The application also contains several methods outside of these classes, which contain standardized calculations sourced from Ch. 5 of *Space Mission Analysis and Design* by Wertz and Larson.
 
 """
@@ -183,13 +183,13 @@ class Constellation(Entity):
         names (:obj:`list`): List of unique *str* for each satellite in the constellation (must be same length as **id**)
         ES (:obj:`list`): Optional list of :obj:`EarthSatellite` objects to be included in the constellation (NOTE: at least one of **ES** or **tles** MUST be specified, or an exception will be thrown)
         tles (:obj:`list`): Optional list of Two-Line Element *str* to be converted into :obj:`EarthSatellite` objects and included in the simulation
-        
+
     Attributes:
         grounds (:obj:`DataFrame`): Dataframe containing information about ground stations with unique groundId (*int*), latitude-longitude location (:obj:`GeographicPosition`), min_elevation (*float*) angle constraints, and operational status (*bool*) - *NOTE:* initialized as **None**
         satellites (:obj:`list`): List of :obj:`EarthSatellite` objects included in the constellation - *NOTE:* must be same length as **id**
         positions (:obj:`list`): List of current latitude-longitude-altitude locations (:obj:`GeographicPosition`) of each satellite in the constellation - *NOTE:* must be same length as **id**
         next_positions (:obj:`list`): List of next latitude-longitude-altitude locations (:obj:`GeographicPosition`) of each satellite in the constellation - *NOTE:* must be same length as **id**
-        
+
     """
 
     ts = load.timescale()
@@ -222,7 +222,7 @@ class Constellation(Entity):
     def initialize(self, init_time):
         """
         Activates the :obj:`Constellation` at a specified initial scenario time
-        
+
         Args:
             init_time (:obj:`datetime`): Initial scenario time for simulating propagation of satellites
         """
@@ -242,9 +242,9 @@ class Constellation(Entity):
             wgs84.subpoint(satellite.at(self.ts.from_datetime(init_time)))
             for satellite in self.satellites
         ]
-        
+
         for i, satellite in enumerate(self.satellites):
-            
+
             self.app.send_message(
                 "ready",
                 SatelliteReady(
@@ -258,7 +258,7 @@ class Constellation(Entity):
     def tick(self, time_step):
         """
         Computes the next :obj:`Constellation` state after the specified scenario duration and the next simulation scenario time
-        
+
         Args:
             time_step (:obj:`timedelta`): Duration between current and next simulation scenario time
         """
@@ -285,7 +285,7 @@ class Constellation(Entity):
     def tock(self):
         """
         Commits the next :obj:`Constellation` state and advances simulation scenario time
-        
+
         """
         # tik = time.time()
         self.positions = self.next_positions
@@ -294,12 +294,12 @@ class Constellation(Entity):
     def on_ground(self, client, userdata, message):
         """
         Callback function appends a dictionary of information for a new ground station to grounds :obj:`list` when message detected on the *PREFIX/ground/location* topic. Ground station information is published at beginning of simulation, and the :obj:`list` is converted to a :obj:`DataFrame` when the Constellation is initialized.
-        
+
         Args:
             client (:obj:`MQTT Client`): Client that connects application to the event broker using the MQTT protocol. Includes user credentials, tls certificates, and host server-port information.
             userdata: User defined data of any type (not currently used)
-            message (:obj:`message`): Contains *topic* the client subscribed to and *payload* message content as attributes 
-            
+            message (:obj:`message`): Contains *topic* the client subscribed to and *payload* message content as attributes
+
         """
         location = GroundLocation.parse_raw(message.payload)
         if location.groundId in self.grounds.groundId:
@@ -336,16 +336,16 @@ class Constellation(Entity):
                 ignore_index=True,
             )
             print(f"Station {location.groundId} registered at time {self.get_time()}.")
-            
+
     def on_linkStart(self, client, userdata, message):
         """
         Callback function when message detected on the *PREFIX/ground/linkStart* topic.
-        
+
         Args:
             client (:obj:`MQTT Client`): Client that connects application to the event broker using the MQTT protocol. Includes user credentials, tls certificates, and host server-port information.
             userdata: User defined data of any type (not currently used)
-            message (:obj:`message`): Contains *topic* the client subscribed to and *payload* message content as attributes 
-            
+            message (:obj:`message`): Contains *topic* the client subscribed to and *payload* message content as attributes
+
         """
         downlinkStart = LinkStart.parse_raw(message.payload)
         print(downlinkStart)
@@ -363,16 +363,16 @@ class Constellation(Entity):
                 "downlinkCost":None
             },
         )
-    
+
     def on_linkCharge(self, client, userdata, message):
        """
        Callback function when message detected on the *PREFIX/ground/linkCharge* topic.
-       
+
        Args:
            client (:obj:`MQTT Client`): Client that connects application to the event broker using the MQTT protocol. Includes user credentials, tls certificates, and host server-port information.
            userdata: User defined data of any type (not currently used)
-           message (:obj:`message`): Contains *topic* the client subscribed to and *payload* message content as attributes 
-           
+           message (:obj:`message`): Contains *topic* the client subscribed to and *payload* message content as attributes
+
        """
        downlinkCharge = LinkCharge.parse_raw(message.payload)
        self.groundTimes[downlinkCharge.satName][downlinkCharge.linkId]["end"] = downlinkCharge.end
@@ -388,15 +388,15 @@ class Constellation(Entity):
 class PositionPublisher(WallclockTimeIntervalPublisher):
     """
     *This object class inherits properties from the WallclockTimeIntervalPublisher object class from the publisher template in the NOS-T tools library*
-    
-    The user can optionally specify the wallclock :obj:`timedelta` between message publications and the scenario :obj:`datetime` when the first of these messages should be published. 
+
+    The user can optionally specify the wallclock :obj:`timedelta` between message publications and the scenario :obj:`datetime` when the first of these messages should be published.
 
     Args:
         app (:obj:`ManagedApplication`): An application containing a test-run namespace, a name and description for the app, client credentials, and simulation timing instructions
         constellation (:obj:`Constellation`): Constellation :obj:`Entity` object class
         time_status_step (:obj:`timedelta`): Optional duration between time status 'heartbeat' messages
         time_status_init (:obj:`datetime`): Optional scenario :obj:`datetime` for publishing the first time status 'heartbeat' message
-                
+
     """
 
     def __init__(
@@ -411,9 +411,9 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
     def publish_message(self):
         """
         *Abstract publish_message method inherited from the WallclockTimeIntervalPublisher object class from the publisher template in the NOS-T tools library*
-        
+
         This method sends a message to the *PREFIX/constellation/location* topic for each satellite in the constellation (:obj:`Constellation`), including:
-            
+
         Args:
             id (:obj:`list`): list of unique *int* ids for each satellite in the constellation
             names (:obj:`list`): list of unique *str* for each satellite in the constellation - *NOTE:* must be same length as **id**
@@ -453,9 +453,9 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
 if __name__ == "__main__":
     # Note that these are loaded from a .env file in current working directory
     credentials = dotenv_values(".env")
-    HOST, PORT = "testbed.mysmce.com", 8883
-    USERNAME, PASSWORD = "bchell", "cT8T1pd62KnZ"
-    
+    HOST, PORT = credentials["SMCE_HOST"], int(credentials["SMCE_PORT"])
+    USERNAME, PASSWORD = credentials["SMCE_USERNAME"], credentials["SMCE_PASSWORD"]
+
     # set the client credentials
     config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, True)
 
@@ -471,7 +471,7 @@ if __name__ == "__main__":
     NPP = activesats[541]
     NOAA20 = activesats[1293]
     ES = [NPP, NOAA20]
-    
+
 
     # initialize the Constellation object class (in this example from EarthSatellite type)
     constellation = Constellation("constellation", app, [0, 1], names, ES)

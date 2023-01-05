@@ -17,6 +17,8 @@ import pandas as pd
 from datetime import datetime, timedelta
 from dotenv import dotenv_values
 
+
+
 def on_message(mqttc, obj, msg):
     """ Callback to process an incoming message and then run the update_fig function."""
     eventMessage = json.loads(msg.payload.decode("utf-8"))
