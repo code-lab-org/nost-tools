@@ -1,8 +1,8 @@
 Schemas
 =======
 
-examplse.firesat.satellites.constellation_config_files.schemas.py module
-------------------------------------------------------------------------
+example.firesat.satellites.constellation_config_files.schemas.py module
+-----------------------------------------------------------------------
   
 .. autoclass:: examples.firesat.satellites.constellation_config_files.schemas.FireState
 

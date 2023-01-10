@@ -7,7 +7,6 @@ Example Test Suites
    :maxdepth: 2
 
    examples/firesat/api/modules
-   examples/downlink/api/modules
    examples/realtime/api/modules
    examples/scalability/api/modules
    examples/scienceDash/api/modules

@@ -63,9 +63,6 @@ class GroundNetwork(Observable,Observer):
 
         In this instance, the callback function checks when the **PROPERTY_MODE** switches to **EXECUTING** to send a :obj:`GroundLocation` message to the *PREFIX/ground/location* topic:
 
-            .. literalinclude:: /../../firesat/grounds/main_ground.py
-                :lines: 51-62
-
         """
         if property_name == Simulator.PROPERTY_MODE and new_value == Mode.EXECUTING:
             for index, ground in self.grounds.iterrows():

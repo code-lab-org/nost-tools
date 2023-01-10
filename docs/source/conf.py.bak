@@ -32,7 +32,7 @@ sys.path.insert(0, os.path.abspath("../../examples/realtime"))
 sys.path.insert(0, os.path.abspath("../../examples/scalability"))
 sys.path.insert(0, os.path.abspath("../../examples/scalability/delay"))
 sys.path.insert(0, os.path.abspath("../../examples/scalability/heartbeat"))
-import examples.firesat.fires, examples.firesat.grounds, examples.firesat.satellites, examples.firesat.satellites.constellation_config_files, examples.firesat.scoreboard, examples.firesat.manager, examples.downlink.grounds, examples.downlink.grounds.ground_config_files, examples.downlink.satellites, examples.downlink.scoreboard, examples.realtime, examples.scalability.delay, examples.scalability.heartbeat
+import examples.firesat.fires, examples.firesat.grounds, examples.firesat.satellites, examples.firesat.satellites.constellation_config_files.schemas, examples.firesat.scoreboard, examples.firesat.manager, examples.downlink.grounds.main_ground, examples.downlink.grounds.ground_config_files.schemas, examples.downlink.satellites.main_constellation, examples.downlink.scoreboard, examples.realtime, examples.scalability.delay, examples.scalability.heartbeat
 import sphinx_rtd_theme
 
 

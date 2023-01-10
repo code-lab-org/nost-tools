@@ -1,45 +1,45 @@
 Constellations
 ==============
 
-main_constellation.py module
-----------------------------
+examples.firesat.satellites.main_constellation.py module
+--------------------------------------------------------
 
-.. automodule:: firesat.satellites.main_constellation
+.. automodule:: examples.firesat.satellites.main_constellation
   :members: compute_min_elevation, compute_sensor_radius, get_elevation_angle, check_in_view, check_in_range
   :show-inheritance:
   :member-order: bysource
 
-.. autoclass:: Constellation
+.. autoclass:: examples.firesat.satellites.main_constellation.Constellation
 	:show-inheritance:
 
-.. automethod:: Constellation.initialize
+.. automethod:: examples.firesat.satellites.main_constellation.Constellation.initialize
 
-.. automethod:: Constellation.tick
+.. automethod:: examples.firesat.satellites.main_constellation.Constellation.tick
 
-.. automethod:: Constellation.tock
+.. automethod:: examples.firesat.satellites.main_constellation.Constellation.tock
 
-.. automethod:: Constellation.on_fire
+.. automethod:: examples.firesat.satellites.main_constellation.Constellation.on_fire
 
-.. automethod:: Constellation.on_ground
+.. automethod:: examples.firesat.satellites.main_constellation.Constellation.on_ground
 
-.. autoclass:: PositionPublisher
+.. autoclass:: examples.firesat.satellites.main_constellation.PositionPublisher
 	:show-inheritance:
 
-.. automethod:: PositionPublisher.publish_message
+.. automethod:: examples.firesat.satellites.main_constellation.PositionPublisher.publish_message
 
-.. autoclass:: FireDetectedObserver
+.. autoclass:: examples.firesat.satellites.main_constellation.FireDetectedObserver
 	:show-inheritance:
 
-.. automethod:: FireDetectedObserver.on_change
+.. automethod:: examples.firesat.satellites.main_constellation.FireDetectedObserver.on_change
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
             :lines: 499-507
 
 
-.. autoclass:: FireReportedObserver
+.. autoclass:: examples.firesat.satellites.main_constellation.FireReportedObserver
 	:show-inheritance:
 
-.. automethod:: FireReportedObserver.on_change
+.. automethod:: examples.firesat.satellites.main_constellation.FireReportedObserver.on_change
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
             :lines: 530-539

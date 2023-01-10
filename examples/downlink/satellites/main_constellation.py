@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-    *This application demonstrates a constellation of satellites for monitoring fires propagated from Two-Line Elements (TLEs)*
+    *This application demonstrates a constellation of satellites with continuous data collection and is used to track the state of each satellite's solid-state recorder while its orbital position is propagated from Two-Line Elements (TLEs)*
 
-    The application contains one :obj:`Constellation` (:obj:`Entity`) object class, one :obj:`PositionPublisher` (:obj:`WallclockTimeIntervalPublisher`), and two :obj:`Observer` object classes to monitor for :obj:`FireDetected` and :obj:`FireReported` events, respectively. The application also contains several methods outside of these classes, which contain standardized calculations sourced from Ch. 5 of *Space Mission Analysis and Design* by Wertz and Larson.
+    The application contains one :obj:`Constellation` (:obj:`Entity`) object class, one :obj:`PositionPublisher` (:obj:`WallclockTimeIntervalPublisher`). The application also contains two global methods outside of these classes, which contain standardized calculations sourced from Ch. 5 of *Space Mission Analysis and Design* by Wertz and Larson.
 
 """
 
@@ -114,10 +114,20 @@ class Constellation(Entity):
         tles (:obj:`list`): Optional list of Two-Line Element *str* to be converted into :obj:`EarthSatellite` objects and included in the simulation
 
     Attributes:
+        groundTimes (:obj:`dict`): Dictionary with keys corresponding to unique satellite name and values corresponding to sequential list of ground access opportunities - *NOTE:* each value is initialized as an empty **:obj:`list`** and opportunities are appended chronologically
         grounds (:obj:`DataFrame`): Dataframe containing information about ground stations with unique groundId (*int*), latitude-longitude location (:obj:`GeographicPosition`), min_elevation (*float*) angle constraints, and operational status (*bool*) - *NOTE:* initialized as **None**
         satellites (:obj:`list`): List of :obj:`EarthSatellite` objects included in the constellation - *NOTE:* must be same length as **id**
         positions (:obj:`list`): List of current latitude-longitude-altitude locations (:obj:`GeographicPosition`) of each satellite in the constellation - *NOTE:* must be same length as **id**
         next_positions (:obj:`list`): List of next latitude-longitude-altitude locations (:obj:`GeographicPosition`) of each satellite in the constellation - *NOTE:* must be same length as **id**
+        ssr_capacity (:obj:`list`): List of **fixed** Solid-State Recorder (SSR) capacities in Gigabits (*int*) for each satellite in the constellation - *NOTE:* must be same length as **id**
+        capacity_used (:obj:`list`): list of values (*float*) representing current fraction of SSR capacity used for each satellite in the constellation, continuously updated through simulation - *NOTE:* must be same length as **id**
+        instrument_rates (:obj:`list`): list of **fixed** instrument data collection rates in Gigabits/second (*float*) for each satellite in the constellation - *NOTE:* must be same length as **id**
+        cost_mode (:obj:`list`): list of *str* representing one of three cost modes used to update cumulative costs: :obj:`discrete` (per downlink), :obj:`continuous` (fixed contract), or :obj:`both` - *NOTE:* must be same length as **id**
+        fixed_rates (:obj:`list`): list of **fixed** rates of cost accumulation in dollars/second for :obj:`continuous` cost_mode for each satellite in the constellation - *NOTE:* must be same length as **id**, but ignored of cost_mode for corresponding satellite is :obj:`discrete`
+        linkCounts (:obj:`list`): list of cumulative counts of link opportunies (*int*) for each satellite in the constellation - *NOTE:* must be same length as **id**, initialized as list of zeros
+        linkStatus (:obj:`list`): list of states (*bool*) indicating whether or not each satellite in the constellation is currently in view of an available ground station - *NOTE:* must be same length as **id**, each satellite state initialized as :obj:`False`
+        cumulativeCostBySat (:obj:`dict`): Dictionary with keys corresponding to unique satellite name and values corresponding to current cumulative costs in dollars (*float*) accrued by each satellite in the constellation, continuously updated throughout the simulation - *NOTE:* must be same length as **id**, each satellite cost initialized as zero dollars
+        cumulativeCosts (float): Sum of values in cumulativeCostBySat in dollars, continuously updated throughout the simulation
 
     """
 
@@ -142,9 +152,9 @@ class Constellation(Entity):
                     EarthSatellite(tle[0], tle[1], self.names[i], self.ts)
                 )
         self.positions = self.next_positions = [None for satellite in self.satellites]
-        self.ssr_capacity = SSR_CAPACITY # in Gigabytes
+        self.ssr_capacity = SSR_CAPACITY # in Gigabits
         self.capacity_used = CAPACITY_USED # fraction from 0 to 1
-        self.instrument_rates = INSTRUMENT_RATES # in Gigabytes/second
+        self.instrument_rates = INSTRUMENT_RATES # in Gigabits/second
         self.cost_mode = COST_MODE
         self.fixed_rates = FIXED_RATES
         self.linkCounts = [0 for satellite in self.satellites]
