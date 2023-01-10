@@ -1,34 +1,50 @@
-from datetime import timedelta
+"""
+Provides a base application that publishes messages from a simulator to a broker.
+"""
+
+from datetime import datetime, timedelta
 import logging
 import ntplib
 import paho.mqtt.client as mqtt
 import time
+from typing import Callable
 
 from .schemas import ReadyStatus
 from .simulator import Simulator
-from .application_utils import TimeStatusPublisher, ModeStatusObserver, ShutDownObserver
+from .application_utils import (
+    ConnectionConfig,
+    TimeStatusPublisher,
+    ModeStatusObserver,
+    ShutDownObserver,
+)
 
 logger = logging.getLogger(__name__)
 
 
 class Application(object):
     """
-    A template of an NOS-T Application.
+    Base class for a member application.
 
-    This object class defines the main functionality of a NOS-T application. The attributes of this class create a replicable
-    object that can be modified for user needs.
+    This object class defines the main functionality of a NOS-T application which can be modified for user needs.
 
     Attributes:
-        prefix (str) : The test run namespace (prefix)\n
+        prefix (str): The test run namespace (prefix)
         simulator (:obj:`Simulator`): Application simulator -- calls on the simulator.py class for functionality
         client (:obj:`Client`): Application MQTT client
         app_name (str): Test run application name
-        app_description (str): Test run application description (optional)\n
+        app_description (str): Test run application description (optional)
         time_status_step (:obj:`timedelta`): Scenario duration between time status messages
         time_status_init (:obj:`datetime`): Scenario time of first time status message
     """
 
-    def __init__(self, app_name, app_description=None):
+    def __init__(self, app_name: str, app_description: str = None):
+        """
+        Initializes a new application.
+
+        Args:
+            app_name (str): application name
+            app_description (str): application description (optional)
+        """
         self.simulator = Simulator()
         self.client = mqtt.Client()
         self.prefix = None
@@ -38,10 +54,10 @@ class Application(object):
         self._mode_status_observer = None
         self._shut_down_observer = None
 
-    def ready(self):
+    def ready(self) -> None:
         """
-        ready function defines the application's readiness upon connection. It sends the ready
-        status message indicating this application is prepared to enter the simulation.
+        Signals the application is ready to initialize scenario execution.
+        Publishes a :obj:`ReadyStatus` message to the topic `prefix/app_name/status/ready`.
         """
         # publish ready status message
         status = ReadyStatus.parse_obj(
@@ -58,25 +74,25 @@ class Application(object):
 
     def start_up(
         self,
-        prefix,
-        config,
-        set_offset=True,
-        time_status_step=None,
-        time_status_init=None,
-        shut_down_when_terminated=False,
-    ):
+        prefix: str,
+        config: ConnectionConfig,
+        set_offset: bool = True,
+        time_status_step: timedelta = None,
+        time_status_init: datetime = None,
+        shut_down_when_terminated: bool = False,
+    ) -> None:
         """
-        start_up starts up the application to prepare it for entering the simulation.
+        Starts up the application to prepare for scenario execution.
         Connects to the message broker and starts a background event loop by establishing the simulation prefix,
         the connection configuration, and the intervals for publishing time status messages.
 
         Args:
-            prefix (str) : The test run namespace (prefix)\n
-            config (:obj:`ConnectionConfig`) : The connection configuration
-            set_offset (bool) : True, if the system clock offset shall be set
-            time_status_step (:obj:`timedelta`): Scenario duration between time status messages
-            time_status_init (:obj:`datetime`): Scenario time for first time status message
-            shut_down_when_terminated (bool) : True, if the application should shut down when the simulation is terminated
+            prefix (str): messaging namespace (prefix)
+            config (:obj:`ConnectionConfig`): connection configuration
+            set_offset (bool): True, if the system clock offset shall be set using a NTP request prior to execution
+            time_status_step (:obj:`timedelta`): scenario duration between time status messages
+            time_status_init (:obj:`datetime`): scenario time for first time status message
+            shut_down_when_terminated (bool): True, if the application should shut down when the simulation is terminated
         """
         # maybe configure wallclock offset
         if set_offset:
@@ -99,14 +115,15 @@ class Application(object):
         self.client.loop_start()
         logger.info(f"Application {self.app_name} successfully started up.")
 
-    def _create_time_status_publisher(self, time_status_step, time_status_init):
+    def _create_time_status_publisher(
+        self, time_status_step: timedelta, time_status_init: datetime
+    ) -> None:
         """
-        _create_time_status_publisher creates a new time status publisher, using the publisher class to publish the
-        time status for the reference application ('self') if the arguments are provided.
+        Creates a new time status publisher to publish the time status when it changes.
 
         Args:
-            time_status_step (:obj:`timedelta`): Scenario duration between time status messages
-            time_status_init (:obj:`datetime`): Scenario time for first time status message
+            time_status_step (:obj:`timedelta`): scenario duration between time status messages
+            time_status_init (:obj:`datetime`): scenario time for first time status message
         """
         if time_status_step is not None:
             if self._time_status_publisher is not None:
@@ -116,30 +133,27 @@ class Application(object):
             )
             self.simulator.add_observer(self._time_status_publisher)
 
-    def _create_mode_status_observer(self):
+    def _create_mode_status_observer(self) -> None:
         """
-        _create_mode_status_observer creates a new mode status observer to publish the
-        mode status for the reference application ('self').
+        Creates a mode status observer to publish the mode status when it changes.
         """
         if self._mode_status_observer is not None:
             self.simulator.remove_observer(self._mode_status_observer)
         self._mode_status_observer = ModeStatusObserver(self)
         self.simulator.add_observer(self._mode_status_observer)
 
-    def _create_shut_down_observer(self):
+    def _create_shut_down_observer(self) -> None:
         """
-        _create_shut_down_observer creates a new observer to shut down the
-        application when the simulation is terminated.
+        Creates an observer to shut down the application when the simulation is terminated.
         """
         if self._shut_down_observer is not None:
             self.simulator.remove_observer(self._shut_down_observer)
         self._shut_down_observer = ShutDownObserver(self)
         self.simulator.add_observer(self._shut_down_observer)
 
-    def shut_down(self):
+    def shut_down(self) -> None:
         """
-        shut_down shuts down the application by stopping the background event loop, and also disconnects
-        the application from the message broker.
+        Shuts down the application by stopping the background event loop and disconnecting from the broker.
         """
         if self._time_status_publisher is not None:
             # remove the time status observer
@@ -153,57 +167,57 @@ class Application(object):
         self.prefix = None
         logger.info(f"Application {self.app_name} successfully shut down.")
 
-    def send_message(self, app_topic, payload):
+    def send_message(self, app_topic: str, payload: str) -> None:
         """
-        send_message sends a message. Helper function to publish
-        a message with payload `payload` to the topic `prefix/app_name/app_topic`.
+        Sends a message with payload `payload` to the topic `prefix/app_name/app_topic`.
 
         Args:
-            app_topic (str) : The application-specific topic
-            payload (str) : The message payload (JSON-encoded string)
+            app_topic (str): application topic
+            payload (str): message payload (JSON-encoded string)
 
         """
         topic = f"{self.prefix}/{self.app_name}/{app_topic}"
-        logger.info(f"Publishing to topic {topic} : {payload}")
+        logger.info(f"Publishing to topic {topic}: {payload}")
         self.client.publish(topic, payload)
 
-    def add_message_callback(self, app_name, app_topic, callback):
+    def add_message_callback(
+        self, app_name: str, app_topic: str, callback: Callable
+    ) -> None:
         """
-        add_message_callback adds a message callback. Helper function to add a callback
-        to a message topic in the format `prefix/app_name/app_topic`.
+        Adds a message callback bound to an application name and topic `prefix/app_name/app_topic`.
 
         Args:
-            app_name (str) : The application name
-            app_topic (str) : The application topic
-            callback (fun) : The callback function
+            app_name (str): application name
+            app_topic (str): application topic
+            callback (Callable): callback function
         """
         topic = f"{self.prefix}/{app_name}/{app_topic}"
         logger.debug(f"Subscribing and adding callback to topic: {topic}")
         self.client.subscribe(topic)
         self.client.message_callback_add(topic, callback)
 
-    def remove_message_callback(self, app_name, app_topic):
+    def remove_message_callback(self, app_name: str, app_topic: str) -> None:
         """
-        remove_message_callback removes a message callback. Helper function to remove a callback
-        from a message topic in the format `prefix/app_name/app_topic`.
+        Removes a message callback for application name and topic `prefix/app_name/app_topic`.
 
         Args:
-            app_name (str) : The application name
-            app_topic (str) : The application topic
+            app_name (str): The application name
+            app_topic (str): The application topic
         """
         topic = f"{self.prefix}/{app_name}/{app_topic}"
         logger.debug(f"Removing callback from topic: {topic}")
         self.client.message_callback_remove(topic)
 
-    def set_wallclock_offset(self, host="pool.ntp.org", retry_delay_s=5, max_retry=5):
+    def set_wallclock_offset(
+        self, host="pool.ntp.org", retry_delay_s: int = 5, max_retry: int = 5
+    ) -> None:
         """
-        set_wallclock_offset contacts an NTP server to determine the system clock offset. If optional set_offset included in start_up function call,
-        saves the offset value to account for time differences between applications for synchronization.
+        Issues a Network Time Protocol (NTP) request to determine the system clock offset.
 
         Args:
-            host (str) : The NTP host (default: 'pool.ntp.org')\n
-            retry_delay_s (int) : The number of seconds to wait before retrying
-            max_retry (int) : The maximum number of retries allowed
+            host (str): NTP host (default: 'pool.ntp.org')
+            retry_delay_s (int): number of seconds to wait before retrying
+            max_retry (int): maximum number of retries allowed
         """
         for i in range(max_retry):
             try:

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
     This application demonstrates how to create a simple dashboard for
-    visualizing NOS-T data in real time. It subscribes to the 
+    visualizing NOS-T data in real time. It subscribes to the
     scienceEventPublisher.py application and displays the science utility
     separated by location.
 """
@@ -20,30 +20,27 @@ from dotenv import dotenv_values
 
 
 def on_message(mqttc, obj, msg):
-    """ Callback to process an incoming message."""
-    # setting up list of dictionaries
+    """ Callback to process an incoming message and then run the update_fig function."""
     eventMessage = json.loads(msg.payload.decode("utf-8"))
     eventMessage["location"] = eventMessage["latitude"], eventMessage["longitude"]
     eventLOD.append(eventMessage)
     update_fig(n)
-    
+
 def update_fig(n):
-    df = pd.DataFrame(eventLOD)
+    """ Updates the dashboard when new data is received."""
+    df = pd.DataFrame(data=eventLOD)
     fig = px.line(df, x='time', y='utility', color='location', markers=True,
                           labels={"time":"time", "utility":"utility (n.d.)"},
                           title="Science Event Utility")
     return fig
 
-
-
-
 # name guard
 if __name__ == "__main__":
-    
+
     # Note that these are loaded from a .env file in current working directory
     credentials = dotenv_values(".env")
-    HOST, PORT = credentials["SMCE_HOST"], int(credentials["SMCE_PORT"])
-    USERNAME, PASSWORD = credentials["SMCE_USERNAME"], credentials["SMCE_PASSWORD"]
+    HOST, PORT = credentials["HOST"], int(credentials["PORT"])
+    USERNAME, PASSWORD = credentials["USERNAME"], credentials["PASSWORD"]
     # build the MQTT client
     client = mqtt.Client()
     # set client username and password
@@ -70,7 +67,7 @@ if __name__ == "__main__":
     df0["location"] = (latitude, longitude)
     n=0
     eventLOD = []
-    
+
     app = dash.Dash(__name__)
 
     # for dashboard plot

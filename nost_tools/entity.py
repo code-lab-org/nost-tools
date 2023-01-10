@@ -1,3 +1,8 @@
+"""
+Provides a base class to maintain state variables during scenario execution.
+"""
+
+from datetime import datetime, timedelta
 import logging
 
 from .observer import Observable
@@ -7,8 +12,10 @@ logger = logging.getLogger(__name__)
 
 class Entity(Observable):
     """
-    Entity is a class that defines a default simulation entity. A basic simulation entity
-    defined through this class can maintain its own scenario clock (time).
+    A base entity that maintains its own clock (time) during scenario execution.
+
+    Notifies observers of changes to one observable property
+     * `time`: current scenario time
 
     Attributes:
         name (str): The entity name (optional)
@@ -16,35 +23,38 @@ class Entity(Observable):
 
     PROPERTY_TIME = "time"
 
-    def __init__(self, name=None):
+    def __init__(self, name: str = None):
+        """
+        Initializes a new entity.
+
+        Args:
+            name (str): name of the entity (default: None)
+        """
         super().__init__()
         self.name = name
         self._init_time = self._time = self._next_time = None
 
-    def initialize(self, init_time):
+    def initialize(self, init_time: datetime) -> None:
         """
-        initialize is a function that activates the entity ('self') at a time of initialization provided by
-        the scenario input.
+        Initializes the entity at a designated initial scenario time.
 
         Args:
-            init_time (:obj:`datetime`) : The time of simulation initialization provided by the input scenario
+            init_time (:obj:`datetime`): initial scenario time
         """
         self._init_time = self._time = self._next_time = init_time
 
-    def tick(self, time_step):
+    def tick(self, time_step: timedelta) -> None:
         """
-        tick computes the new entity state after an elapsed scenario duration. It is responsible for changing
-        the simulation time by the indicated timestep.
+        Computes the next state transition following an elapsed scenario duration (time step).
 
         Args:
-            time_step (:obj:`timedelta`) : The timedelta that will advance the simulation time (the difference between the current time and the next simulation time)
+            time_step (:obj:`timedelta`): elapsed scenario duration
         """
         self._next_time = self._time + time_step
 
-    def tock(self):
+    def tock(self) -> None:
         """
-        tock operates along with tick by commiting the new entity state. It changes the simulation time of the
-        referenced entity ('self') to the time defined in tick.
+        Commits the state transition pre-computed in `tick` and notifies observers of changes.
         """
         # update the time
         if self._time != self._next_time:
@@ -53,11 +63,11 @@ class Entity(Observable):
             logger.debug(f"Entity {self.name} updated time to {self._time}.")
             self.notify_observers(self.PROPERTY_TIME, prev_time, self._time)
 
-    def get_time(self):
+    def get_time(self) -> datetime:
         """
-        get_time computes the new entity state after an elapsed scenario duration for the calling entity ('self').
+        Retrieves the current scenario time.
 
         Returns:
-            :obj:`timedelta`: The current entity time
+            :obj:`datetime`: current scenario time
         """
         return self._time
