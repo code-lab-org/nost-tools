@@ -1659,7 +1659,7 @@ Blank Science Traceability Matrix Template
    :width: 9in
    :height: 5.325in
 
-Download a blank STM :download:`here </documents/ICD/media/blankSTM.xlsx>`
+Download a blank STM :download:`here </documents/icd/media/blankSTM.xlsx>`
 
 
 .. |figure1| image:: media/figure1.png
