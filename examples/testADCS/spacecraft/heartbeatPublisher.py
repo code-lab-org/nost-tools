@@ -35,18 +35,27 @@ if __name__ == "__main__":
     # for message
     t = 0
     i = 0
-    dcm_target = [[ 0.707107, -0, -0.707107],
-                  [0, 1, -0],
-                  [0.707107, 0, 0.707107]]
-    q = np.array([-0.01731244,  0.38229163, -0.04179593, 0.92293363])
+    dcm_target = np.array([[ 0.707107, -0, -0.707107],
+                           [0, 1, -0],
+                           [0.707107, 0, 0.707107]])
+    
+    dcm_target = dcm_target.tolist()
+    
+    w_nominal = [0,0,0.0011313759174069189]
+
+    # q = np.array([-0.01731244,  0.38229163, -0.04179593, 0.92293363])
+    
+    # 25 deg rotation about y
+    #q = np.array([0 , 0.21643961, 0 , 0.97629601])
 
 
     while True:
-
+        
         # publish event utility message
         heartbeat = {"t":t,
                      "i":i,
-                     "dcm_target":dcm_target}
+                     "DCM_target":dcm_target,
+                     "w_nominal":w_nominal}
         client.publish("BCtest/ADCS/heartbeat", payload=json.dumps(heartbeat))
         print(heartbeat)
 
@@ -55,20 +64,32 @@ if __name__ == "__main__":
 
         # time step between heartbeats
 
-        if t == 3000:
-            q_target = quaternion_multiply(
-                np.array(
-                    [0, np.sin(45 * np.pi / 180 / 2), 0,
-                      np.cos(45 * np.pi / 180 / 2)]), q)
-            dcm_target = quaternion_to_dcm(q_target)
-            dcm_target = dcm_target.tolist()
+        # if t == 200:
+            # q_target = quaternion_multiply(
+            #     np.array(
+            #         [0, np.sin(45 * np.pi / 180 / 2), 0,
+            #           np.cos(45 * np.pi / 180 / 2)]), q)
+            # q_target = np.array([0 , 0.21643961, 0 , 0.97629601])
+            
+            # # q target with q multiplication
+            # #q_target = np.array([-8.77668000e-07, -8.90474461e-02, -9.92038819e-01, -8.90474068e-02])
+            
+            # dcm_target = quaternion_to_dcm(q_target)
+            # dcm_target = dcm_target.tolist()
+            # w_nominal = [-0.000386953, 0, -0.00106315]
+
+            # compute the nominal angular velocity required to achieve the reference
+            # attitude; first in inertial coordinates then body
+            # w_nominal_i = 2 * np.pi / period * normalize(cross(r_0, v_0))
+            # w_nominal = np.matmul(dcm_0_nominal, w_nominal_i)
+            
         #next_step = datetime.now() + timedelta(seconds=.5)
         t += 1
         i += 1
         
-        if t == 6001:
+        if t == 1001:
             break
 
         # allows application to be stopped with GUI every second
         #while datetime.now() < next_step:
-        time.sleep(.01)
+        time.sleep(.005)

@@ -147,6 +147,7 @@ def main():
             dcm_nominal = np.matmul(t3_matrix(w_nominal[2] * t), dcm_0_nominal)
         return dcm_nominal, w_nominal
 
+
     # construct three `Spacecraft` objects composed of all relevant spacecraft
     # parameters and objects that resemble subsystems on-board
     # 1st Spacecraft: no controller

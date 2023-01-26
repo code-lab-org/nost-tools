@@ -20,6 +20,7 @@ from controller import PDController
 from math_utils import (quaternion_multiply, t1_matrix, t2_matrix, t3_matrix,
                         dcm_to_quaternion, quaternion_to_dcm, normalize, cross)
 import math
+from scipy.spatial.transform import Rotation as R
 # from simulation import simulate_adcs
 
 # added
@@ -53,7 +54,7 @@ J = 1 / 12 * sc_mass * np.diag([
 
 # Define  `PDController` object
 controller = PDController(
-    k_d=np.diag([.01, .01, .01]), k_p=np.diag([.1, .1, .1]))
+    k_d=np.diag([.1, .1, .1]), k_p=np.diag([.4, .4, .4]))
 
 perfect_gyros = Gyros(bias_stability=0, angular_random_walk=0)
 
@@ -118,12 +119,12 @@ w_nominal = np.matmul(dcm_0_nominal, w_nominal_i)
 
 # provide some initial offset in both the attitude and angular velocity
 q_0 = q_0_nominal
-w_0 = w_nominal
+# w_0 = w_nominal
 # q_0 = quaternion_multiply(
-    # np.array(
-    #     [0, np.sin(45 * np.pi / 180 / 2), 0,
-    #       np.cos(45 * np.pi / 180 / 2)]), q_0_nominal)
-# w_0 = w_nominal + np.array([0.005, 0, 0])
+#     np.array(
+#         [0, np.sin(5 * np.pi / 180 / 2), 0,
+#           np.cos(5 * np.pi / 180 / 2)]), q_0_nominal)
+w_0 = w_nominal + np.array([0.005, 0.005, .005])
 
 # define a function that will model perturbations
 def perturbations_func(satellite):
@@ -285,7 +286,7 @@ def run_adcs(mqttc, obj, msg):
     message = json.loads(msg.payload.decode("utf-8"))
     i = message["i"]
     t = message["t"]
-    dcm_0_nominal = message["dcm_target"]
+    dcm_0_nominal = message["DCM_target"]
     dcm_0_nominal = np.array(dcm_0_nominal)
     
     def desired_state_func(t):
@@ -507,8 +508,8 @@ def run_adcs(mqttc, obj, msg):
         
         plt.figure(7)
         plt.subplot(311)
-        plt.title(r"Actual Angular Velocity over Time {}".format(tag))
-        plt.plot(results["times"], results["w_actual"][:, 0], label="actual")
+        #plt.title(r"Spacecraft Angular Velocity over Time")
+        plt.plot(results["times"], results["w_actual"][:, 0])
         # plt.plot(
         #     results["times"],
         #     results["w_estimated"][:, 0],
@@ -518,18 +519,18 @@ def run_adcs(mqttc, obj, msg):
         plt.ylabel(r"$\omega_x$ (rad/s)")
         plt.legend()
         plt.subplot(312)
-        plt.plot(results["times"], results["w_actual"][:, 1], label="actual")
-        plt.plot(
-            results["times"],
-            results["w_estimated"][:, 1],
-            label="estimated",
-            linestyle="--",
-            color="y")
+        plt.plot(results["times"], results["w_actual"][:, 1])
+        # plt.plot(
+        #     results["times"],
+        #     results["w_estimated"][:, 1],
+        #     label="estimated",
+        #     linestyle="--",
+        #     color="y")
         plt.ylabel(r"$\omega_y$ (rad/s)")
         # plt.legend()
         plt.subplot(313)
-        plt.plot(results["times"], results["w_actual"][:, 2], label="actual")
-        plt.axis([0,6000,-.005,0])
+        plt.plot(results["times"], results["w_actual"][:, 2])
+        # plt.axis([0,6000,-.005,0])
         plt.ylabel(r"$\omega_z$ (rad/s)")
         plt.xlabel(r"Time (s)")
         plt.legend()
@@ -569,22 +570,27 @@ def run_adcs(mqttc, obj, msg):
         plt.subplots_adjust(
             left=0.08, right=0.94, bottom=0.08, top=0.94, hspace=0.3)
         
+        reul = R.from_quat(q_actual)
+        reul = reul[:-2]
+        eulers = reul.as_euler('xyz',degrees=True)
         plt.figure(9)
         plt.subplot(311)
         plt.title(r"Euler Angles over Time")
-        plt.plot(results["times"], results["psix"])
-        plt.ylabel("Radians")
+        plt.plot(results["times"], eulers[:,0])
+        plt.ylabel("Pitch Radians")
         plt.subplot(312)
-        plt.plot(results["times"], results["thetay"])
-        plt.ylabel("Radians")
+        plt.plot(results["times"], eulers[:,1])
+        plt.ylabel("Roll Radians")
         plt.subplot(313)
-        plt.plot(results["times"], results["phiz"])
-        plt.ylabel("Radians")
+        plt.plot(results["times"], eulers[:,2])
+        plt.ylabel("Yaw Radians")
         plt.xlabel(r"Time (s)")
         plt.subplots_adjust(
             left=0.08, right=0.94, bottom=0.08, top=0.94, hspace=0.3)
         
         plt.show()
+        
+
 
 
 # name guard used to ensure script only executes if it is run as the __main__

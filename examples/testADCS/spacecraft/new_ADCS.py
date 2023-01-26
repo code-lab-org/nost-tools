@@ -17,6 +17,7 @@ from spacecraft import Spacecraft
 from actuators import Actuators
 from sensors import Gyros, Magnetometer, EarthHorizonSensor
 from controller import PDController
+from scipy.spatial.transform import Rotation as R
 from math_utils import (quaternion_multiply, t1_matrix, t2_matrix, t3_matrix,
                         dcm_to_quaternion, quaternion_to_dcm, normalize, cross)
 import math
@@ -53,7 +54,7 @@ J = 1 / 12 * sc_mass * np.diag([
 
 # Define  `PDController` object
 controller = PDController(
-    k_d=np.diag([.01, .01, .01]), k_p=np.diag([.1, .1, .1]))
+    k_d=np.diag([.05, .05, .05]), k_p=np.diag([.1, .1, .1]))
 
 perfect_gyros = Gyros(bias_stability=0, angular_random_walk=0)
 
@@ -105,10 +106,7 @@ b_z = cross(b_x, b_y)
 # axes and compute the equivalent quaternion
 
 dcm_0_nominal = np.stack([b_x, b_y, b_z])
-# dcm_0_nominal = np.array([[1,0,0],
-#                          [0,1,0],
-#                          [0,0,1])
-dcm_target = dcm_0_nominal
+DCM_target = dcm_0_nominal ## maybe
 q_0_nominal = dcm_to_quaternion(dcm_0_nominal)
 
 # compute the nominal angular velocity required to achieve the reference
@@ -135,12 +133,12 @@ def perturbations_func(satellite):
 # z axis depending upon which nominal angular velocity term is nonzero)
 def desired_state_func(t):
     if w_nominal[0] != 0:
-        dcm_target = np.matmul(t1_matrix(w_nominal[0] * t), dcm_0_nominal)
+        DCM_target = np.matmul(t1_matrix(w_nominal[0] * t), dcm_0_nominal)
     elif w_nominal[1] != 0:
-        dcm_target = np.matmul(t2_matrix(w_nominal[1] * t), dcm_0_nominal)
+        DCM_target = np.matmul(t2_matrix(w_nominal[1] * t), dcm_0_nominal)
     elif w_nominal[2] != 0:
-        dcm_target = np.matmul(t3_matrix(w_nominal[2] * t), dcm_0_nominal)
-    return dcm_target, w_nominal
+        DCM_target = np.matmul(t3_matrix(w_nominal[2] * t), dcm_0_nominal)
+    return DCM_target, w_nominal
 
 satellite = Spacecraft(
     J=J,
@@ -233,7 +231,7 @@ def simulate_estimation_and_control(t,
             Contains:
                 - DCM_estimated (numpy ndarray): estimated DCM
                 - w_estimated (numpy ndarray): estimated angular velocity
-                - DCM_desired (numpy ndarray): desired DCM
+                - DCM_target (numpy ndarray): desired DCM
                 - w_desired (numpy ndarray): desired angular velocity
                 - attitude_err (numpy ndarray): attitude error
                 - attitude_rate_err (numpy ndarray): attitude rate error
@@ -247,10 +245,10 @@ def simulate_estimation_and_control(t,
     DCM_estimated = satellite.estimate_attitude(t, delta_t)
 
     # compute the desired attitude and angular velocity
-    DCM_desired, w_desired = desired_state_func(t)
+    DCM_target, w_desired = desired_state_func(t)
 
     # calculate the errors between your desired and estimated state
-    attitude_err = calculate_attitude_error(DCM_desired, DCM_estimated)
+    attitude_err = calculate_attitude_error(DCM_target, DCM_estimated)
     attitude_rate_err = calculate_attitude_rate_error(w_desired, w_estimated,
                                                       attitude_err)
 
@@ -266,7 +264,7 @@ def simulate_estimation_and_control(t,
         logged_results = {
             "DCM_estimated": DCM_estimated,
             "w_estimated": w_estimated,
-            "DCM_desired": DCM_desired,
+            "DCM_target": DCM_target,
             "w_desired": w_desired,
             "attitude_err": attitude_err,
             "attitude_rate_err": attitude_rate_err,
@@ -285,17 +283,22 @@ def run_adcs(mqttc, obj, msg):
     message = json.loads(msg.payload.decode("utf-8"))
     i = message["i"]
     t = message["t"]
-    dcm_0_nominal = message["dcm_target"]
+    dcm_0_nominal = message["DCM_target"]
     dcm_0_nominal = np.array(dcm_0_nominal)
+    # w_nominal = message["w_nominal"]
     
+
+    
+    #w_nominal = [0,0,0.0011313759174069189]
+   
     def desired_state_func(t):
         if w_nominal[0] != 0:
-            dcm_target = np.matmul(t1_matrix(w_nominal[0] * t), dcm_0_nominal)
+            DCM_target = np.matmul(t1_matrix(w_nominal[0] * t), dcm_0_nominal)
         elif w_nominal[1] != 0:
-            dcm_target = np.matmul(t2_matrix(w_nominal[1] * t), dcm_0_nominal)
+            DCM_target = np.matmul(t2_matrix(w_nominal[1] * t), dcm_0_nominal)
         elif w_nominal[2] != 0:
-            dcm_target = np.matmul(t3_matrix(w_nominal[2] * t), dcm_0_nominal)
-        return dcm_target, w_nominal
+            DCM_target = np.matmul(t3_matrix(w_nominal[2] * t), dcm_0_nominal)
+        return DCM_target, w_nominal
 
     
     # if verbose:
@@ -313,15 +316,17 @@ def run_adcs(mqttc, obj, msg):
         satellite.w = w
         satellite.r = r
         satellite.v = v
+        
         _, _, log = simulate_estimation_and_control(
             t, satellite, desired_state_func, delta_t, log=True)
         times[i] = t
         q_actual[i] = q
         w_actual[i] = w
+
         w_rxwls[i] = solver.y[7:10]
         DCM_estimated[i] = log["DCM_estimated"]
         w_estimated[i] = log["w_estimated"]
-        DCM_desired[i] = log["DCM_desired"]
+        DCM_target[i] = log["DCM_target"]
         w_desired[i] = log["w_desired"]
         attitude_err[i] = log["attitude_err"]
         attitude_rate_err[i] = log["attitude_rate_err"]
@@ -331,11 +336,15 @@ def run_adcs(mqttc, obj, msg):
         M_perturb[i] = perturbations_func(satellite)
         positions[i] = r
         velocities[i] = v
-        psi[i] = math.atan(DCM_desired[i,0,1]/DCM_desired[i,0,0])
-        theta[i] = math.atan(-DCM_desired[i,0,2]/math.sqrt(1-DCM_desired[i,0,2]**2))
-        phi[i] = math.atan(DCM_desired[i,1,2]/DCM_desired[i,2,2])
+        psi[i] = math.degrees(math.atan(DCM_target[i,0,1]/DCM_target[i,0,0]))
+        theta[i] = math.degrees(math.atan(-DCM_target[i,0,2]/math.sqrt(1-DCM_target[i,0,2]**2)))
+        phi[i] = math.degrees(math.atan(DCM_target[i,1,2]/DCM_target[i,2,2]))
+        bx[i] = -normalize(velocities[i])
+        by[i] = normalize(positions[i])
+        bz[i] = cross(bx[i],by[i])
 
-        # desired_state_func(t)
+
+        desired_state_func(t)
         solver.set_f_params(satellite, desired_state_func, perturbations_func,
                     position_velocity_func, delta_t)
 
@@ -346,7 +355,7 @@ def run_adcs(mqttc, obj, msg):
     
     
     plot = False
-    if plot == True:    
+    if t==stop_time:    
         results = {}
         results["times"] = times[:-2]
         results["q_actual"] = q_actual[:-2]
@@ -354,7 +363,7 @@ def run_adcs(mqttc, obj, msg):
         results["w_rxwls"] = w_rxwls[:-2]
         results["DCM_estimated"] = DCM_estimated[:-2]
         results["w_estimated"] = w_estimated[:-2]
-        results["DCM_desired"] = DCM_desired[:-2]
+        results["DCM_target"] = DCM_target[:-2]
         results["w_desired"] = w_desired[:-2]
         results["attitude_err"] = attitude_err[:-2]
         results["attitude_rate_err"] = attitude_rate_err[:-2]
@@ -366,6 +375,7 @@ def run_adcs(mqttc, obj, msg):
         results["psix"] = psi[:-2]
         results["thetay"] = theta[:-2]
         results["phiz"] = phi[:-2]
+        results["w_nominal"] = w_nominal[:-2]
         #return results
         
         #plot the desired results (logged at each delta_t)
@@ -453,7 +463,7 @@ def run_adcs(mqttc, obj, msg):
             left=0.08, right=0.94, bottom=0.08, top=0.94, hspace=0.3)
         
         plt.figure(5)
-        DCM_actual = np.empty(results["DCM_desired"].shape)
+        DCM_actual = np.empty(results["DCM_target"].shape)
         for i, q in enumerate(results["q_actual"]):
             DCM_actual[i] = quaternion_to_dcm(q)
         
@@ -468,7 +478,7 @@ def run_adcs(mqttc, obj, msg):
                 plt.plot(results["times"], DCM_actual[:, i, j], label="actual")
                 plt.plot(
                     results["times"],
-                    results["DCM_desired"][:, i, j],
+                    results["DCM_target"][:, i, j],
                     label="desired",
                     linestyle="--")
                 element = "T_{" + str(i + 1) + str(j + 1) + "}"
@@ -529,7 +539,7 @@ def run_adcs(mqttc, obj, msg):
         # plt.legend()
         plt.subplot(313)
         plt.plot(results["times"], results["w_actual"][:, 2], label="actual")
-        plt.axis([0,6000,-.005,0])
+        #plt.axis([0,6000,-.005,0])
         plt.ylabel(r"$\omega_z$ (rad/s)")
         plt.xlabel(r"Time (s)")
         plt.legend()
@@ -569,17 +579,20 @@ def run_adcs(mqttc, obj, msg):
         plt.subplots_adjust(
             left=0.08, right=0.94, bottom=0.08, top=0.94, hspace=0.3)
         
+        reul = R.from_quat(q_actual)
+        reul = reul[:-2]
+        eulers = reul.as_euler('xyz',degrees=True)
         plt.figure(9)
         plt.subplot(311)
         plt.title(r"Euler Angles over Time")
-        plt.plot(results["times"], results["psix"])
-        plt.ylabel("Radians")
+        plt.plot(results["times"], eulers[:,0])
+        plt.ylabel("Pitch Radians")
         plt.subplot(312)
-        plt.plot(results["times"], results["thetay"])
-        plt.ylabel("Radians")
+        plt.plot(results["times"], eulers[:,1])
+        plt.ylabel("Roll Radians")
         plt.subplot(313)
-        plt.plot(results["times"], results["phiz"])
-        plt.ylabel("Radians")
+        plt.plot(results["times"], eulers[:,2])
+        plt.ylabel("Yaw Radians")
         plt.xlabel(r"Time (s)")
         plt.subplots_adjust(
             left=0.08, right=0.94, bottom=0.08, top=0.94, hspace=0.3)
@@ -616,10 +629,11 @@ if __name__ == "__main__":
     times = np.empty((length, ))
     q_actual = np.empty((length, 4))
     w_actual = np.empty((length, 3))
+    w_nominal = np.empty((length, 3))
     w_rxwls = np.empty((length, 3))
     DCM_estimated = np.empty((length, 3, 3))
     w_estimated = np.empty((length, 3))
-    DCM_desired = np.empty((length, 3, 3))
+    DCM_target = np.empty((length, 3, 3))
     w_desired = np.empty((length, 3))
     attitude_err = np.empty((length, 3))
     attitude_rate_err = np.empty((length, 3))
@@ -632,6 +646,9 @@ if __name__ == "__main__":
     psi = np.empty((length))
     theta = np.empty((length))
     phi = np.empty((length))
+    bx = np.empty((length, 3))
+    by = np.empty((length, 3))
+    bz = np.empty((length, 3))
 
 
     # Note that these are loaded from a .env file in current working directory
