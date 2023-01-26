@@ -328,10 +328,12 @@ newly proposed observation strategies for Earth science missions. Figure
 proposal, to test campaign to analysis and publication.
 
 .. image:: media/image31.png
+   :width: 600
+   :align: center
    :alt: Graphical user interface Description automatically generated
 
 Figure 2. Investigator Journey Map from Concept through Publication
-illustrating interaction with NOS-T.
+illustrating interaction with NOS-T. (click for zoomed in view)
 
 The three swim lanes correspond to the NOS-T Operator (orange),
 technology PI (teal), and technology PM (green) actors. During the
@@ -1010,6 +1012,8 @@ applications and they will continue executing until a *user*-issued STOP
 command, NOT a manager-issued STOP command.
 
 .. image:: media/image45.png
+   :width: 600
+   :align: center
    :alt: Diagram Description automatically generated
 
 Figure 9. Behavior of Unmanaged User Applications.
@@ -1033,6 +1037,7 @@ time stamp before publishing a new *Fire Status* event.
 
 .. image:: media/image46.png
    :alt: Diagram, shape Description automatically generated
+   :align: center
    :width: 5.35046in
    :height: 2.16685in
 
@@ -1043,6 +1048,7 @@ between the manager and managed user applications.
 
 .. image:: media/image47.png
    :alt: Diagram Description automatically generated
+   :align: center
    :width: 6.44792in
    :height: 2.3105in
 
@@ -1063,6 +1069,7 @@ execution.
 
 .. image:: media/image48.png
    :alt: Table Description automatically generated
+   :align: center
    :width: 6.46875in
    :height: 4.20469in
 
@@ -1129,9 +1136,11 @@ interface requirements. Specific interface requirements with acceptance
 criteria are shown in Table 11.
 
 .. image:: media/image49.png
-   :alt: Basic interface between NOS-T system and User Applications.
+  :align: center
+  :width: 650
+  :alt: Basic interface between NOS-T system and User Applications.
 
-Figure 13. Basic interface between NOS-T system and User Applications.
+Figure 13. Basic interface between NOS-T system and User Applications. (click for larger view)
 
 .. list-table:: Table 11. User Application Interface Requirements
   :widths: 10 20 20 50
@@ -1272,8 +1281,8 @@ rigorous application of Design of Experiments methods.
 
 .. image:: media/image50.png
    :alt: Hierarchical organization of test planning terminology used by NOS-T.
-   :width: 5in
-   :height: 3.22917in
+   :width: 600
+
 
 Figure 14. Hierarchical organization of test planning terminology used by
 NOS-T.
@@ -1297,8 +1306,7 @@ and implementation approach highlighted by this matrix need to be
 defined well in advance of the campaign. A blank template for an STM is
 included in the appendix.
 
-Table 12. NOS-T System Science Traceability Matrix\ |Table Description
-automatically generated|
+Table 12. NOS-T System Science Traceability Matrix. (click for larger view)\ |fireSatSTM|
 
 Each test campaign may comprise multiple test suites, each representing
 a different scenario beyond the designer's control. In this example, the
@@ -1667,6 +1675,6 @@ Download a blank STM :download:`here </documents/ICD/media/blankSTM.xlsx>`
 .. |figure7| image:: media/image47.png
    :width: 6.3249in
    :height: 2.40208in
-.. |Table Description automatically generated| image:: media/image51.png
+.. |fireSatSTM| image:: media/image51.png
    :width: 9in
    :height: 5.17392in
