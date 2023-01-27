@@ -18,7 +18,7 @@ release documents, and publications that have been based on or used the testbed.
    getting_started/index
    nost_tools_api/index
    examples/index
-   documents/index
+   release_docs/index
    publications
 
 .. image:: media/graphicalConcept.png
