@@ -30,7 +30,7 @@ Document <#conventions-used-in-this-document>`__
 Terms <#definitions-and-glossary-of-terms>`__
 
 `1.5 Obtaining Documentation, Tools,
-and Information <#obtaining-documentation-tools-and-information>`__
+and Information <#obtaining-documentation-tools-and-information>`__
 
 `1.6 Disclaimers <#disclaimers>`__
 
@@ -42,7 +42,7 @@ and Information <#obtaining-documentation-tools-and-information>`__
 
 `3 NOS-T Description <#nos-t-description>`__
 
-`3.1 System Architecture <#_Toc90894809>`__
+`3.1 System Architecture <#system-architecture>`__
 
 `3.2 System Interface <#system-interface>`__
 
@@ -69,9 +69,7 @@ and Information <#obtaining-documentation-tools-and-information>`__
 `4.4 Test Case-Specific Execution
 Requirements <#test-case-specific-execution-requirements>`__
 
-`4.5 Interface Compliance Verification <#_Toc90894822>`__
-
-`5 Detailed User’s Guide <#detailed-users-guide>`__
+`5 Detailed User's Guide <#detailed-users-guide>`__
 
 `5.1 Defining Test Campaigns <#defining-test-campaigns>`__
 
@@ -329,9 +327,10 @@ proposal, to test campaign to analysis and publication.
 
 .. image:: media/image31.png
    :alt: Graphical user interface Description automatically generated
-
+   :width: 8 in
+  
 Figure 2. Investigator Journey Map from Concept through Publication
-illustrating interaction with NOS-T.
+illustrating interaction with NOS-T. (click to enlarge)
 
 The three swim lanes correspond to the NOS-T Operator (orange),
 technology PI (teal), and technology PM (green) actors. During the
@@ -424,18 +423,18 @@ to directly connect to every other application.
 
 While there are many alternative broker implementation options
 available, NOS-T adopts the Solace PubSub+ Standard Edition event broker
-[1], a proprietary but freely available commercial product supporting up
+[1]_, a proprietary but freely available commercial product supporting up
 to 1000 concurrent connections and 10,000 messages per second. PubSub+
 supports and interoperates among several protocols and several open
 protocols including Message Queuing Telemetry Transport (MQTT), Advanced
 Message Queuing Protocol (AMQP), and Representational State Transfer
-(REST) [3]. All protocols share similar messaging constructs but exhibit
+(REST) [2]_. All protocols share similar messaging constructs but exhibit
 some minor differences in implementation and library availability. To
 simplify its initial release, NOS-T only uses MQTT.
 
 NOS-T hosts an instance of PubSub+ on a server in the Science Managed
 Cloud Environment (SMCE), a managed cloud infrastructure for ESTO
-projects [2]. SMCE both provides the flexibility of cloud services to
+projects [3]_. SMCE both provides the flexibility of cloud services to
 customize configuration settings outside of a firewalled network and the
 security of required controls for a FISMA Low operating environment. The
 PubSub+ platform uses a publish-subscribe messaging pattern which
@@ -503,8 +502,7 @@ to the server to establish communication.
 
 .. image:: media/image33.jpeg
    :alt: Diagram Description automatically generated
-   :width: 6.0625in
-   :height: 0.8125in
+   :width: 8 in
 
 Figure 4. MQTT Connection Process
 
@@ -542,9 +540,10 @@ operations.
 
 .. image:: media/figure5.png
    :alt: Diagram Description automatically generated
+   :width: 8 in 
 
 Figure 5. Publish-Subscribe Messaging Pattern in (A) Physical Network
-and (B) Event-oriented Diagrams.
+and (B) Event-oriented Diagrams. (click to enlarge)
 
 Message Format
 ~~~~~~~~~~~~~~
@@ -581,7 +580,7 @@ semantically readable data. While the object schemas (specification of
 required key names and expected value types) to structure JSON message
 payloads for new events depend on each application case, the NOS-T
 manager messages are loosely based on standardized object schemas for
-the SensorThings Sensing [4] and Tasking [5] APIs. The start event above
+the SensorThings Sensing [4]_ and Tasking [5]_ APIs. The start event above
 is based on the SensorThings *Task* entity with task-specific parameters
 (*startTime*, *simStartTime*, etc.) contained within the
 *taskingParameters* dictionary.
@@ -593,7 +592,7 @@ MQTT is the selected messaging protocol for new user applications
 because of its simplicity and broad support including high-quality
 open-source libraries for most languages. For example, the Eclipse Paho
 library (paho-mqtt) is publicly available under an open-source license
-for the Python language [6].
+for the Python language [6]_.
 
 A simple example below connects a client to the broker (using
 placeholders for client username and password and the broker host
@@ -662,10 +661,9 @@ The test case execution lifecycle follows the activity diagram in Figure
 
 .. image:: media/image43.png
    :alt: Diagram Description automatically generated
-   :width: 6.5in
-   :height: 1.55486in
+   :width: 8 in
 
-Figure 6. Typical Managed Test Case Execution Lifecycle.
+Figure 6. Typical Managed Test Case Execution Lifecycle. (click to enlarge)
 
 The control event message payload builds on the *Task* entity object
 schema in the Sensor Things Tasking API [5] with a top-level key
@@ -936,7 +934,7 @@ application.
 
 |figure7|\
 
-Figure 7. Event Interface between Manager and Managed User Applications.
+Figure 7. Event Interface between Manager and Managed User Applications. (click to enlarge)
 
 .. _ICDfireSat:
 
@@ -1011,8 +1009,9 @@ command, NOT a manager-issued STOP command.
 
 .. image:: media/image45.png
    :alt: Diagram Description automatically generated
+   :width: 8 in
 
-Figure 9. Behavior of Unmanaged User Applications.
+Figure 9. Behavior of Unmanaged User Applications. (click to enlarge)
 
 Managed Use Case
 ----------------
@@ -1043,10 +1042,9 @@ between the manager and managed user applications.
 
 .. image:: media/image47.png
    :alt: Diagram Description automatically generated
-   :width: 6.44792in
-   :height: 2.3105in
+   :width: 8 in
 
-Figure 11. Simplified Behavior of Managed Application
+Figure 11. Simplified Behavior of Managed Application. (click to enlarge)
 
 All messages between applications in NOS-T go through the message broker
 via a publish/subscribe method. To begin a test case execution,
@@ -1063,10 +1061,9 @@ execution.
 
 .. image:: media/image48.png
    :alt: Table Description automatically generated
-   :width: 6.46875in
-   :height: 4.20469in
+   :width: 8 in
 
-Figure 12. Detailed Message Flow for a Generic Managed Application
+Figure 12. Detailed Message Flow for a Generic Managed Application. (click to enlarge)
 
 Table 10 contains the necessary events, seen in Figure 12, that are
 published for a managed application test case along with their publisher
@@ -1130,8 +1127,9 @@ criteria are shown in Table 11.
 
 .. image:: media/image49.png
    :alt: Basic interface between NOS-T system and User Applications.
+   :width: 8 in
 
-Figure 13. Basic interface between NOS-T system and User Applications.
+Figure 13. Basic interface between NOS-T system and User Applications. (click to enlarge)
 
 .. list-table:: Table 11. User Application Interface Requirements
   :widths: 10 20 20 50
@@ -1252,7 +1250,7 @@ exchange large data products, applications may establish an alternate
 hosting service (e.g., web server, repository, or network drive) and
 simply send an URI to the data in the message payload.
 
-Detailed User’s Guide
+Detailed User's Guide
 ---------------------
 
 Defining Test Campaigns
@@ -1263,7 +1261,7 @@ an organized collection of test suites designed to collect data to
 accept or reject an observation strategy hypothesis (or hypotheses) as
 shown in Figure 14. Test suites are logical collections of test cases
 that differ from each one by ideally no more than one variable. A test
-suite considers different scenarios beyond the designer’s control (such
+suite considers different scenarios beyond the designer's control (such
 as different fire ignition scenarios in the FireSat+ example), whereas
 the test cases each represent distinct design choices for the
 observation strategy in question. We envision that this collection of
@@ -1272,13 +1270,12 @@ rigorous application of Design of Experiments methods.
 
 .. image:: media/image50.png
    :alt: Hierarchical organization of test planning terminology used by NOS-T.
-   :width: 5in
-   :height: 3.22917in
+   :width: 6 in
 
 Figure 14. Hierarchical organization of test planning terminology used by
 NOS-T.
 
-One approach to developing a test matrix for a user’s test campaign is
+One approach to developing a test matrix for a user's test campaign is
 to start by creating a variation of the traditional NASA Science
 Traceability Matrix (STM) that is focused on leveraging the NOS-T system
 to answer specific questions about observation strategies. A
@@ -1297,8 +1294,11 @@ and implementation approach highlighted by this matrix need to be
 defined well in advance of the campaign. A blank template for an STM is
 included in the appendix.
 
-Table 12. NOS-T System Science Traceability Matrix\ |Table Description
-automatically generated|
+Table 12. NOS-T System Science Traceability Matrix (click to enlarge)
+
+.. image:: media/image51.png
+   :width: 9in
+   :height: 5.17392in
 
 Each test campaign may comprise multiple test suites, each representing
 a different scenario beyond the designer's control. In this example, the
@@ -1327,13 +1327,13 @@ the diagonal and interfaces, from and to, are again read clockwise. The
 items in the off-diagonal boxes represent messages being sent between
 user applications and are labeled with the message topics.
 
-.. image:: media/table13.png\
-
 Table 13. NOS-T Design Structure Matrix for FireSat+ Test Campaign User Applications.
 
-.. image:: media/nxn.png\
+.. image:: media/table13.png\
 
 Table 14. NOS-T NxN Matrix for FireSat+ Test Campaign User Applications
+
+.. image:: media/nxn.png\
 
 Developing Applications
 -----------------------
@@ -1544,40 +1544,46 @@ a notional “day in the life” example for executing a test campaign.
 References
 ----------
 
-1. Solace Corporation (2021). " PubSub+ Event Broker: Software," URL:
-   https://solace.com/products/event-broker/software/. Accessed
-   2021-04-07.
+.. [1] 
+  Solace Corporation (2021). " PubSub+ Event Broker: Software," 
+  URL:  https://solace.com/products/event-broker/software/. Accessed
+  2021-04-07.
 
-2. NASA Center for Climate Simulation, (2021). "SMCE System Overview."
+.. [2]
+  Solace Corporation (2021). "Open APIs & Protocols," 
+  URL:  https://docs.solace.com/Open-APIs-Protocols/Open-APIs-Protocols.htm.
+  Accessed 2021-04-07.
+
+.. [3]
+   NASA Center for Climate Simulation, (2021). "SMCE System Overview."
    URL: https://www.nccs.nasa.gov/systems/SMCE. Accessed 2021-04-07.
 
-3. Solace Corporation (2021). "Open APIs & Protocols," URL:
-   https://docs.solace.com/Open-APIs-Protocols/Open-APIs-Protocols.htm.
-   Accessed 2021-04-07.
-
-4. OGC (2016). "SensorThings API Part 1: Sensing," Version 1.0, Open
+.. [4]
+   OGC (2016). "SensorThings API Part 1: Sensing," Version 1.0, Open
    Geospatial Consortium.
-   URL: http://www.opengis.net/doc/is/sensorthings/1.0 
+   URL: http://www.opengis.net/doc/is/sensorthings/1.0
 
-5. OGC (2019). "SensorThings API Part 2: Tasking Core," Version 1.0,
+.. [5]
+   OGC (2019). "SensorThings API Part 2: Tasking Core," Version 1.0,
    Open Geospatial Consortium.
-   URL: http://www.opengis.net/doc/IS/sensorthings-part2-TaskingCore/1.0  
+   URL: http://www.opengis.net/doc/IS/sensorthings-part2-TaskingCore/1.0
 
-6. Eclipse Foundation (2021). "Eclipse Paho Python Client," URL:
+.. [6]
+   Eclipse Foundation (2021). "Eclipse Paho Python Client," URL:
    https://www.eclipse.org/paho/index.php?page=clients/python/index.php.
    Accessed 2021-12-20.
 
 Appendices
 ----------
 
-Sample test campaign – Firesat+ - Objective 1
+Sample test campaign - Firesat+ - Objective 1
 ---------------------------------------------
 
 This test campaign corresponds to Objective 1 in the Science
 Traceability Matrix in Table 12.
 
 For this test campaign, the metric of interest is the time between a
-fire’s ignition and when it is first detected by a satellite in the
+fire's ignition and when it is first detected by a satellite in the
 constellation or reported by that satellite to a ground station.
 Detection and downlink events are assumed to occur instantaneously once
 the satellite is within range. Consideration of data volumes, downlink
@@ -1617,7 +1623,7 @@ instrument view angle constraints.
 
 The four test cases defined in Table 12 were executed in two scenarios.
 The first scenario is limited to the first 100 fires from January 1,
-2020. The second scenario considers a longer duration from January 1 –
+1.    The second scenario considers a longer duration from January 1 –
 5, 2020 that increases the sample size to 298 fires. Summary statistics
 for detect and report times were recorded for both scenarios, with the
 results from the longer scenario displayed in Table 17. Most of the test
@@ -1627,12 +1633,12 @@ a well-defined distribution. Results for the five-day scenario show more
 spread, as can be visually confirmed by *TS.1.2* report time
 distributions plotted in Figure 15 and Figure 16.
 
+Table 17. FireSat+ Summary Statistics: First 5 Days
+
 .. image:: media/image52.png
    :alt: Text, letter Description automatically generated
    :width: 4.62903in
    :height: 1.61678in
-
-Table 17. FireSat+ Summary Statistics: First 5 Days
 
 .. image:: media/image53.png
    :width: 4.91667in
@@ -1665,8 +1671,5 @@ Download a blank STM :download:`here </release_docs/icd/media/blankSTM.xlsx>`
 .. |figure1| image:: media/figure1.png
    :align: middle
 .. |figure7| image:: media/image47.png
-   :width: 6.3249in
-   :height: 2.40208in
-.. |Table Description automatically generated| image:: media/image51.png
-   :width: 9in
-   :height: 5.17392in
+   :width: 8 in
+
