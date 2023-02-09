@@ -326,7 +326,6 @@ newly proposed observation strategies for Earth science missions. Figure
 proposal, to test campaign to analysis and publication.
 
 .. image:: media/image31.png
-   :width: 600
    :align: center
    :alt: Graphical user interface Description automatically generated
    :width: 8 in
@@ -1010,7 +1009,6 @@ applications and they will continue executing until a *user*-issued STOP
 command, NOT a manager-issued STOP command.
 
 .. image:: media/image45.png
-   :width: 600
    :align: center
    :alt: Diagram Description automatically generated
    :width: 8 in
