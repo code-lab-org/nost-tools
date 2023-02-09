@@ -9,7 +9,7 @@ import pandas as pd
 PARAMETERS = pd.Series(
     data={
         # Global parameters
-        "PREFIX": "BCTest",
+        "PREFIX": "BCtest",
         "SCALE": 60,
         "SCENARIO_START": datetime(2022, 11, 1, 7, 0, 0, tzinfo=timezone.utc).timestamp(),
         "SCENARIO_LENGTH": 1,

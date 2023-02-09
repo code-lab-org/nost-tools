@@ -33,14 +33,14 @@ class Satellite(Entity):
         self.vel = self.pos.velocity.m_per_s
 
 
-    def tick(self, time_step):
+    def tick(self, time_step): # computes 
         super().tick(time_step)
 
         self.next_pos = self.ES.at(self.ts.from_datetime(self.get_time()))
         self.next_vel = self.next_pos.velocity
 
     
-    def tock(self):
+    def tock(self):            # saves (overwrites)
         self.pos = self.next_pos
         self.vel = self.next_vel
 
