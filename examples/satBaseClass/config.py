@@ -1,7 +1,7 @@
 import os
 import json
 import string
-import random
+import random   
 from datetime import datetime, timezone, timedelta
 
 import pandas as pd
@@ -11,7 +11,7 @@ PARAMETERS = pd.Series(
         # Global parameters
         "PREFIX": "BCtest",
         "SCALE": 60,
-        "SCENARIO_START": datetime(2022, 11, 1, 7, 0, 0, tzinfo=timezone.utc).timestamp(),
+        "SCENARIO_START": datetime(2023, 1, 1, 7, 0, 0).timestamp(),
         "SCENARIO_LENGTH": 1,
 
         # Ground parameters

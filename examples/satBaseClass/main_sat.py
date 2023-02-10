@@ -12,18 +12,22 @@ from nost_tools.managed_application import ManagedApplication
 from config import PARAMETERS
 from satellite import *
 
-
 logging.basicConfig(level=logging.INFO)
 
 
 # name guard used to ensure script only executes if it is run as the __main__
 if __name__ == "__main__":
 
+    # keycloak_openid = KeycloakOpenID("http://localhost:7777/auth/",
+    #                                 client_id="solace",
+    #                                 realm_name="Master",
+    #                                 )
+
     # Note that these are loaded from a .env file in current working directory
     credentials = dotenv_values(".env")
     HOST, PORT = credentials["HOST"], int(credentials["PORT"])
     USERNAME, PASSWORD = credentials["USERNAME"], credentials["PASSWORD"]
-    
+
     # set the client credentials
     config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, True)
 
@@ -61,7 +65,6 @@ if __name__ == "__main__":
         time_status_init=datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc),
         time_step=timedelta(seconds=1) * PARAMETERS['SCALE'],
     )
-
 
     # Ensures the application hangs until the simulation is terminated, to allow background threads to run
     while not app.simulator.get_mode() == Mode.TERMINATED:
