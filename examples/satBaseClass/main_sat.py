@@ -13,7 +13,6 @@ from nost_tools.managed_application import ManagedApplication
 from config import PARAMETERS
 from satellite import *
 
-
 logging.basicConfig(level=logging.INFO)
 
 
@@ -24,7 +23,6 @@ if __name__ == "__main__":
     #                                 client_id="solace",
     #                                 realm_name="Master",
     #                                 )
-
 
     # Note that these are loaded from a .env file in current working directory
     credentials = dotenv_values(".env")
@@ -68,7 +66,6 @@ if __name__ == "__main__":
         time_status_init=datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc),
         time_step=timedelta(seconds=1) * PARAMETERS['SCALE'],
     )
-
 
     # Ensures the application hangs until the simulation is terminated, to allow background threads to run
     while not app.simulator.get_mode() == Mode.TERMINATED:

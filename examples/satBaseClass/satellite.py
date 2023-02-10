@@ -157,8 +157,6 @@ class Satellite(Entity):
         return isInRange, groundId
 
 
-
-
 # define a publisher to report satellite status
 class StatusPublisher(WallclockTimeIntervalPublisher):
 
