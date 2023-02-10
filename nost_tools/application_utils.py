@@ -1,9 +1,20 @@
+"""
+Provides utility classes to help applications interact with the broker.
+
+@author: Paul T. Grogan <pgrogan@stevens.edu>
+"""
+
+from __future__ import annotations
 import logging
+from typing import TYPE_CHECKING
 
 from .observer import Observer
 from .publisher import ScenarioTimeIntervalPublisher
 from .schemas import ModeStatus, TimeStatus
 from .simulator import Mode, Simulator
+
+if TYPE_CHECKING:
+    from .application import Application
 
 logger = logging.getLogger(__name__)
 
@@ -14,22 +25,27 @@ class ConnectionConfig(object):
     The configuration settings to establish a connection to the broker, including authentication for the
     user and identification of the server.
 
-    Args:
-        username (str): The client username, provided by NOS-T operator
-        password (str): The client password, provided by NOS-T operator
-        host (str): The server hostname
-        port (int): The server port number
-        is_tls (bool): True, if the connection uses TLS (Transport Layer Security)
-
     Attributes:
-        username (str): The client username, provided by NOS-T operator
-        password (str): The client password, provided by NOS-T operator
-        host (str): The server hostname
-        port (int): The server port number
+        username (str): client username, provided by NOS-T operator
+        password (str): client password, provided by NOS-T operator
+        host (str): broker hostname
+        port (int): broker port number
         is_tls (bool): True, if the connection uses TLS (Transport Layer Security)
     """
 
-    def __init__(self, username, password, host, port, is_tls=True):
+    def __init__(
+        self, username: str, password: str, host: str, port: int, is_tls: bool = True
+    ):
+        """
+        Initializes a new connection configuration.
+
+        Args:
+            username (str): client username
+            password (str): client password
+            host (str): broker hostname
+            port (int): broker port number
+            is_tls (bool): True, if the connection uses Transport Layer Security
+        """
         self.username = username
         self.password = password
         self.host = host
@@ -39,26 +55,34 @@ class ConnectionConfig(object):
 
 class ShutDownObserver(Observer):
     """
-    This method shuts down an application after the simulation is terminated.
+    Observer that shuts down an application after scenario termination.
 
     Attributes:
-        app (:obj:`Application`): The application that will be terminated by the simulation
+        app (:obj:`Application`): application to be shut down after termination
     """
 
-    def __init__(self, app):
-        self.app = app
-
-    def on_change(self, source, property_name, old_value, new_value):
+    def __init__(
+        self, app: Application
+    ):
         """
-        on_change creates a callback to the application, essentially creating an alert that one of the application's properties
-        is being changed by another function. It notes the observable that made the change, the name of the changed property, the
-        value before the change, and the value after the change.
+        Initializes a new shut down observer.
 
         Args:
-            source (:obj:`Observable`): The observervable that triggered the change
-            property_name (str): The name of property that is changing
-            old_value (obj): The old value of the named property
-            new_value (obj): The new value of the named property
+            app (:obj:`Application`): application to be shut down after termination
+        """
+        self.app = app
+
+    def on_change(
+        self, source: object, property_name: str, old_value: object, new_value: object
+    ) -> None:
+        """
+        Shuts down the application in response to a transition to the TERMINATED mode.
+
+        Args:
+            source (object): observable that triggered the change
+            property_name (str): name of the changed property
+            old_value (obj): old value of the named property
+            new_value (obj): new value of the named property
         """
         if property_name == Simulator.PROPERTY_MODE and new_value == Mode.TERMINATED:
             self.app.shut_down()
@@ -66,14 +90,16 @@ class ShutDownObserver(Observer):
 
 class TimeStatusPublisher(ScenarioTimeIntervalPublisher):
     """
-    Publishes time status messages at a regular interval (scenario time). The interval is provided by the scenario start message
-    and will begin at the time indicated by the scenario.
+    Publishes time status messages for an application at a regular interval.
 
     Attributes:
-        app (:obj:`Application`): The application that will be publishing time status messages
+        app (:obj:`Application`): application to publish time status messages
     """
 
-    def publish_message(self):
+    def publish_message(self) -> None:
+        """
+        Publishes a time status message.
+        """
         status = TimeStatus.parse_obj(
             {
                 "name": self.app.app_name,
@@ -99,13 +125,29 @@ class ModeStatusObserver(Observer):
     Observer that publishes mode status messages for an application.
 
     Attributes:
-        app (:obj:`Application`): The application that will be publishing mode status messages
+        app (:obj:`Application`): application to publish mode status messages
     """
 
-    def __init__(self, app):
+    def __init__(
+        self, app: Application
+    ):
+        """
+        Initializes a new mode status observer.
+        """
         self.app = app
 
-    def on_change(self, source, property_name, old_value, new_value):
+    def on_change(
+        self, source: object, property_name: str, old_value: object, new_value: object
+    ) -> None:
+        """
+        Publishes a mode status message in response ot a mode transition.
+
+        Args:
+            source (object): observable that triggered the change
+            property_name (str): name of the changed property
+            old_value (obj): old value of the named property
+            new_value (obj): new value of the named property
+        """
         if property_name == Simulator.PROPERTY_MODE:
             status = ModeStatus.parse_obj(
                 {

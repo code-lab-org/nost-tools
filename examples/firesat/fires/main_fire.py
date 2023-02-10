@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
     *This application demonstrates a simulation of a schedule of fires given geospatial locations and specified datetimes (at one minute resolution)*
-    
+
     The application contains a single :obj:`Environment` class which listens to the time status published by the manager application and publishes fire information at the specified ignition :obj:`datetime`. The application also contains callback messages that updates :obj:`datetime` in the fires :obj:`DataFrame` for each of ignition (including latitude-longitude :obj:`GeographicPosition`), detection, and reporting.
 
 """
@@ -44,7 +44,7 @@ class Environment(Observer):
 
         In this instance, the callback function checks the simulation :obj:`datetime` against each scheduled fire ignition :obj:`datetime` for the scenario. If past the scheduled start of a fire, a :obj:`FireStarted` message is sent to *PREFIX/fire/location*:
 
-        .. literalinclude:: /../../../nost-tools/examples/firesat/fires/main_fire.py
+        .. literalinclude:: /../../examples/firesat/fires/main_fire.py
             :lines: 51-66
 
         """
@@ -96,7 +96,7 @@ def on_fire(client, userdata, message):
     """
     *Callback function parses a FireStarted message and switches FireState from "undefined" to "started"*
 
-    .. literalinclude:: /../../../nost-tools/examples/firesat/fires/main_fire.py
+    .. literalinclude:: /../../examples/firesat/fires/main_fire.py
         :lines: 68-73
 
     """
@@ -109,7 +109,7 @@ def on_detected(client, userdata, message):
     """
     *Callback function parses a FireDetected message, switches FireState from "started" to "detected", and records time of first detection and name of satellite detecting the fire*
 
-    .. literalinclude:: /../../../nost-tools/examples/firesat/fires/main_fire.py
+    .. literalinclude:: /../../examples/firesat/fires/main_fire.py
         :lines: 75-82
 
     """
@@ -122,7 +122,7 @@ def on_reported(client, userdata, message):
     """
     *Callback function parses a FireReported message, switches FireState from "detected" to "reported", and records time of first report, name of satellite reporting the fire, and groundId receiving the report*
 
-    .. literalinclude:: /../../../nost-tools/examples/firesat/fires/main_fire.py
+    .. literalinclude:: /../../examples/firesat/fires/main_fire.py
         :lines: 84-92
 
     """
@@ -135,8 +135,8 @@ def on_reported(client, userdata, message):
 if __name__ == "__main__":
     # Note that these are loaded from a .env file in current working directory
     credentials = dotenv_values(".env")
-    HOST, PORT = credentials["SMCE_HOST"], int(credentials["SMCE_PORT"])
-    USERNAME, PASSWORD = credentials["SMCE_USERNAME"], credentials["SMCE_PASSWORD"]
+    HOST, PORT = credentials["HOST"], int(credentials["PORT"])
+    USERNAME, PASSWORD = credentials["USERNAME"], credentials["PASSWORD"]
 
     # set the client credentials
     config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, True)

@@ -557,4 +557,78 @@ class EventReportedObserver(Observer):
                     reported_by=new_value["reported_by"],
                     reported_to=new_value["reported_to"],
                 ).json(),
+<<<<<<< HEAD:examples/utility/satellites/constellation.py
             )
+=======
+            )
+
+
+# name guard used to ensure script only executes if it is run as the __main__
+if __name__ == "__main__":
+    # Note that these are loaded from a .env file in current working directory
+    credentials = dotenv_values(".env")
+    HOST, PORT = credentials["HOST"], int(credentials["PORT"])
+    USERNAME, PASSWORD = credentials["USERNAME"], credentials["PASSWORD"]
+    
+    # set the client credentials
+    config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, True)
+
+    # create the managed application
+    app = ManagedApplication(NAME)
+
+    # load current TLEs for active satellites from Celestrak (NOTE: User has option to specify their own TLE instead)
+    activesats_url = "https://celestrak.com/NORAD/elements/active.txt"
+    activesats = load.tle_file(activesats_url, reload=True)
+
+    # keys for CelesTrak TLEs used in this example (indexes often change over time)
+    # CAP1_DENALI, Index 1585
+    # CAP2_SEQUOIA, Index 2594
+    # CAP3_WHITNEY, Index 3186
+    # CAP4_WHITNEY, Index 3178
+    # CAP5_WHITNEY, Index 4188
+    # CAP6_WHITNEY, Index 4022
+    # CAP7_WHITNEY, Index 4865
+    # CAP8_WHITNEY, Index 4864
+    names = ["CAP1_DENALI","CAP2_SEQUOIA","CAP3_WHITNEY","CAP4_WHITNEY","CAP5_WHITNEY","CAP6_WHITNEY","CAP7_WHITNEY","CAP8_WHITNEY"]
+    CAP1_DENALI = activesats[1585]
+    CAP2_SEQUOIA = activesats[2594]
+    CAP3_WHITNEY = activesats[3186]
+    CAP4_WHITNEY = activesats[3178]
+    CAP5_WHITNEY = activesats[4188]
+    CAP6_WHITNEY= activesats[4022]
+    CAP7_WHITNEY= activesats[4865]
+    CAP8_WHITNEY= activesats[4864]
+    ES = [CAP1_DENALI,CAP2_SEQUOIA,CAP3_WHITNEY,CAP4_WHITNEY,CAP5_WHITNEY,CAP6_WHITNEY,CAP7_WHITNEY,CAP8_WHITNEY]
+    
+    # initialize the Constellation object class (in this example from EarthSatellite type)
+    constellation = Constellation("capella", app, [0, 1, 2, 3, 4, 5, 6, 7], names, ES)
+
+    # add observer classes to the Constellation object class
+    constellation.add_observer(FireDetectedObserver(app))
+    constellation.add_observer(FireReportedObserver(app))
+
+    # add the Constellation entity to the application's simulator
+    app.simulator.add_entity(constellation)
+
+    # add a shutdown observer to shut down after a single test case
+    app.simulator.add_observer(ShutDownObserver(app))
+
+    # add a position publisher to update satellite state every 5 seconds of wallclock time
+    app.simulator.add_observer(
+        PositionPublisher(app, constellation, timedelta(seconds=1))
+    )
+
+    # start up the application on PREFIX, publish time status every 10 seconds of wallclock time
+    app.start_up(
+        PREFIX,
+        config,
+        True,
+        time_status_step=timedelta(seconds=10) * SCALE,
+        time_status_init=datetime(2022, 10, 3, 7, 20, tzinfo=timezone.utc),
+        time_step=timedelta(seconds=2) * SCALE,
+    )
+
+    # add message callbacks
+    app.add_message_callback("fire", "location", constellation.on_fire)
+    app.add_message_callback("ground", "location", constellation.on_ground)
+>>>>>>> main:examples/utility/Capella/main_Capella.py

@@ -1,8 +1,14 @@
+""""
+Provides a base logger application that subscribes and writes all messages to file.
+"""
+
 import logging
 import os
+from paho.mqtt.client import Client, MQTTMessage
 import threading
 
 from .application import Application
+from .application_utils import ConnectionConfig
 from .schemas import InitCommand, StartCommand, StopCommand, UpdateCommand
 
 logger = logging.getLogger(__name__)
@@ -16,18 +22,25 @@ class LoggerApplication(Application):
     that subscribes to a specified topic and logs all messages to file.
 
     Attributes:
-        prefix (str) : The test run namespace (prefix)\n
+        prefix (str): The test run namespace (prefix)
         simulator (:obj:`Simulator`): Application simulator defined in the *Simulator* class
         client (:obj:`Client`): Application MQTT client
-        app_name (str): Logger application name (default: logger)\n
-        app_description (str): Logger application description (optional)\n
-        log_app (str): Application name to be logged (default: "+")\n
-        log_topic (str): Topic to be logged (default: "#")\n
-        log_dir (str): Directory to write log files (default: ".")\n
+        app_name (str): Logger application name (default: logger)
+        app_description (str): Logger application description (optional)
+        log_app (str): Application name to be logged (default: "+")
+        log_topic (str): Topic to be logged (default: "#")
+        log_dir (str): Directory to write log files (default: ".")
         log_file (:obj:`File`): Current log file
     """
 
-    def __init__(self, app_name="logger", app_description=None):
+    def __init__(self, app_name: str = "logger", app_description: str = None):
+        """
+        Initializes a new logging application.
+
+        Args:
+            app_name (str): application name (default: "logger")
+            app_description (str): application description (optional)
+        """
         super().__init__(app_name, app_description)
         self.log_topic = None
         self.log_app = None
@@ -35,8 +48,8 @@ class LoggerApplication(Application):
         self.log_file = None
 
     def start_up(
-        self, prefix, config, set_offset=True, log_app="+", log_topic="#", log_dir=".",
-    ):
+        self, prefix: str, config: ConnectionConfig, set_offset: bool = True, log_app: str = "+", log_topic: str = "#", log_dir: str = ".",
+    ) -> None:
         """
         Starts up the logger application by connecting to message broker,
         starting a background event loop, subscribing to manager events, and
@@ -57,7 +70,7 @@ class LoggerApplication(Application):
         # add callback for specified topic(s)
         self.add_message_callback(self.log_app, self.log_topic, self.on_log_message)
 
-    def shut_down(self):
+    def shut_down(self) -> None:
         """
             Shuts down the application by stopping the background event loop
             and disconnecting from the message broker.
@@ -67,16 +80,15 @@ class LoggerApplication(Application):
         # shut down base application
         super().shut_down()
 
-    def on_log_connect(self, client, userdata, flags, rc):
+    def on_log_connect(self, client: Client, userdata: object, flags: dict, rc: int) -> None:
         """
-        on_log_connect is a callback function that opens the log file when
-        the MQTT client connects to the broker.
+        Callback function that opens the log file when the MQTT client connects to the broker.
 
         Args:
-            client (:obj:`Client`): The client instance for this callback
-            userdata (obj): The private user data as set in the client
-            flags (dict): Response flags sent by the broker
-            rc (int): The connection result
+            client (:obj:`paho.mqtt.client.Client`): client instance for this callback
+            userdata (object): private user data as set in the client
+            flags (dict): response flags sent by the broker
+            rc (int): connection result
         """
         if self.log_file is not None:
             self.log_file().close()
@@ -88,14 +100,13 @@ class LoggerApplication(Application):
         self.log_file.write(f"Timestamp,Topic,Payload\n")
         logger.info(f"Logger {self.app_name} opened file {self.log_file.name}.")
 
-    def on_log_disconnect(self, client, userdata, rc):
+    def on_log_disconnect(self, client: Client, userdata: object, rc: int) -> None:
         """
-        on_log_disconnect is a callback function that closes the log file when
-        the MQTT client disconnects from the broker.
+        Callback function that closes the log file when the MQTT client disconnects from the broker.
 
         Args:
-            client (:obj:`Client`): The client instance for this callback
-            userdata (obj): The private user data as set in the client
+            client (:obj:`paho.mqtt.client.Client`): The client instance for this callback
+            userdata (object): The private user data as set in the client
             rc (int): The connection result
         """
         if self.log_file is not None:
@@ -103,15 +114,14 @@ class LoggerApplication(Application):
             logger.info(f"Logger {self.app_name} closed file {self.log_file.name}.")
             self.log_file = None
 
-    def on_log_message(self, client, userdata, message):
+    def on_log_message(self, client: Client, userdata: object, message: MQTTMessage):
         """
-        on_log_message is a callback function to log a message received by
-        the logger application.
+        Callback function to log a message received by the logger application.
 
         Args:
-            client (:obj:`Client`): The client instance for this callback
-            userdata (obj): The private user data as set in the client
-            message (:obj:`MQTTMessage`): The MQTT message
+            client (:obj:`paho.mqtt.client.Client`): client instance for this callback
+            userdata (object): private user data as set in the client
+            message (:obj:`paho.mqtt.client.MQTTMessage`): MQTT message
         """
         if self.log_file is not None:
             logger.debug(f"Logger {self.app_name} logging message {message.payload}.")
