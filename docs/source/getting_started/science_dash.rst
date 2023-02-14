@@ -5,15 +5,24 @@ Science Event Dashboard
 
 The Science Event Dashboard Test Suite is a simple example of NOS-T
 capabilities. It does not require the use of the NOS-T tools library.
-It contains two applications, a Science Event Publisher which regularly publishes
-the utility score and random location for science events distributed globally.
+It contains two applications, a Science Event Publisher and Dashboard.
+
+The Science Event Publisher regularly publishes a utility score and globally distributed random location.
+The utility scores follow a parabolic curve from the apex down to zero for each time step.
 The second application is a basic dashboard which publishes the utility and 
 location with the Python Dash library. The development team has found visualization
 tools like this dashboard to be very helpful to ensure that test behavior is
-as expected.
+as expected. A basic graphical representation of the data flow is shown below.
+
+.. image:: media/scienceDashWorkflow.png
+   :width: 600
+   :align: center
 
 In order to run the Science Event test case you first need to get the two
-applications which comprise this test suite from the project `GitHub repository directory <https://github.com/code-lab-org/nost-tools/tree/main/examples/scienceDash>`__
+applications which comprise this test suite. The entire set of NOS-T tools and examples
+are available at the `main GitHub page <https://github.com/code-lab-org/nost-tools>`__.
+However, because this example doesn't require the tools api, just the two necessary applications are found
+at the `Science Dashboard GitHub repository <https://github.com/code-lab-org/nost-tools/tree/main/examples/scienceDash>`__.
 
 More in-depth descriptions of what the code is doing can be found here: :ref:`scienceDashEX`.
 
