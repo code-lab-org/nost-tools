@@ -563,14 +563,21 @@ if __name__ == "__main__":
     # NOAA 20 (VIIRS) = ?, Index 1297
     # SENTINEL 2A = ?, Index = 897
     # SENTINEL 2B = ?, Index = 1164
-    names = ["AQUA (MODIS)", "TERRA (MODIS)", "SUOMI NPP (VIIRS)", "NOAA-20 (VIIRS)", "SENTINEL-2A (MSI)", "SENTINEL-2B (MSI)"]
-    AQUA = activesats[149]
-    TERRA = activesats[101]
-    NPP = activesats[544]
-    NOAA20 = activesats[1297]
-    SENTINEL2A = activesats[897]
-    SENTINEL2B = activesats[1164]
-    ES = [AQUA, TERRA, NPP, NOAA20, SENTINEL2A, SENTINEL2B]
+    # names = ["AQUA (MODIS)", "TERRA (MODIS)", "SUOMI NPP (VIIRS)", "NOAA-20 (VIIRS)", "SENTINEL-2A (MSI)", "SENTINEL-2B (MSI)"]
+    # AQUA = activesats[149]
+    # TERRA = activesats[101]
+    # NPP = activesats[544]
+    # NOAA20 = activesats[1297]
+    # SENTINEL2A = activesats[897]
+    # SENTINEL2B = activesats[1164]
+    # ES = [AQUA, TERRA, NPP, NOAA20, SENTINEL2A, SENTINEL2B]
+    names = ["AQUA", "TERRA", "SUOMI NPP", "NOAA 20", "SENTINEL-2A", "SENTINEL-2B"]
+
+    ES = []
+    indices = []
+    for name_i, name in enumerate(names):
+        ES.append(by_name[name])
+        indices.append(name_i)
 
     # initialize the Constellation object class (in this example from EarthSatellite type)
     constellation = Constellation("constellation", app, [0, 1, 2, 3, 4, 5], names, ES)
