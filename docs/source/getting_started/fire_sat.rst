@@ -22,11 +22,14 @@ tools library by first cloning the repository from the following link:
 https://github.com/code-lab-org/nost-tools
 
 Then, from a command prompt,  navigate to the root directory 
-(where you cloned the library) and install by running the following command:
+(the location where you cloned the library) and install by running the following command:
 
 :: 
   
   pip install -e .
+
+NOTE: There are several ways to clone a git repository. `Here <https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository?tool=webui>`__
+is a good description of some of them.
 
 Cesium Access Token and Assets
 ------------------------------
