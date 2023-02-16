@@ -1,3 +1,4 @@
+from scipy.spatial.transform import Rotation as R
 import numpy as np
 
 from skyfield.api import load, wgs84, EarthSatellite
@@ -22,6 +23,7 @@ class Satellite(Entity):
         self.field_of_regard = field_of_regard
         self.pos = self.next_pos = None
         self.vel = self.next_vel = None
+        # self.att = self.next_att = None
 
         self.grounds = grounds
 
@@ -31,6 +33,7 @@ class Satellite(Entity):
         super().initalize(init_time)
         self.pos = self.ES.at(self.ts.from_datetime(init_time)).position.m
         self.vel = self.pos.velocity.m_per_s
+        # self.att = self.att.
 
 
     def tick(self, time_step): # computes 
@@ -38,11 +41,13 @@ class Satellite(Entity):
 
         self.next_pos = self.ES.at(self.ts.from_datetime(self.get_time()))
         self.next_vel = self.next_pos.velocity
+        # self.next_att = self.
 
     
     def tock(self):            # saves (overwrites)
         self.pos = self.next_pos
         self.vel = self.next_vel
+        # self.att = self.next_att
 
         super().tock()
 
@@ -155,6 +160,16 @@ class Satellite(Entity):
                     groundId = k
                     break
         return isInRange, groundId
+    
+    def one_axis_update_attitude(self):
+        """
+        Updates the rotation about one axis the attitude"""
+
+
+
+
+
+
 
 
 # define a publisher to report satellite status
@@ -184,6 +199,7 @@ class StatusPublisher(WallclockTimeIntervalPublisher):
                 name=self.satellite.name,
                 position=list(self.satellite.pos),
                 velocity=list(self.satellite.vel.m_per_s),
+                #attitude=list(self.satellite.att),
                 radius=sensorRadius,
                 commRange=self.isInRange,
                 time=self.satellite.get_time(),

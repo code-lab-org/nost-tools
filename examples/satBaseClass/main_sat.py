@@ -34,7 +34,7 @@ if __name__ == "__main__":
     # create the managed application
     app = ManagedApplication("satellite")
 
-    # Names of Capella satellites used in Celestrak database
+    # Name(s) of satellite(s) used in Celestrak database
     name = "SUOMI NPP"
 
     activesats_url = "https://celestrak.com/NORAD/elements/active.txt"
