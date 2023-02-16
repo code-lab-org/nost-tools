@@ -23,7 +23,7 @@ class Satellite(Entity):
         self.field_of_regard = field_of_regard
         self.pos = self.next_pos = None
         self.vel = self.next_vel = None
-        # self.att = self.next_att = None
+        self.att = self.next_att = None
 
         self.grounds = grounds
 
@@ -33,7 +33,9 @@ class Satellite(Entity):
         super().initalize(init_time)
         self.pos = self.ES.at(self.ts.from_datetime(init_time)).position.m
         self.vel = self.pos.velocity.m_per_s
-        # self.att = self.att.
+        # can't be all zeros - normalize vector?
+        self.att = np.array([0,0,0,0])
+
 
 
     def tick(self, time_step): # computes 
@@ -41,13 +43,14 @@ class Satellite(Entity):
 
         self.next_pos = self.ES.at(self.ts.from_datetime(self.get_time()))
         self.next_vel = self.next_pos.velocity
-        # self.next_att = self.
+        # self.next_att = self. call function below?
+        self.next_att = self.one_axis_control(time_step)
 
     
     def tock(self):            # saves (overwrites)
         self.pos = self.next_pos
         self.vel = self.next_vel
-        # self.att = self.next_att
+        self.att = self.next_att
 
         super().tock()
 
@@ -161,15 +164,15 @@ class Satellite(Entity):
                     break
         return isInRange, groundId
     
-    def one_axis_update_attitude(self):
+    def one_axis_control(self, time_step):  #fn in same class?
         """
         Updates the rotation about one axis the attitude"""
 
+        r = R.from_euler('x', 1, degrees=True)
+        r.as_matrix()
+        r.apply(self.att)
 
-
-
-
-
+        return self.att
 
 
 # define a publisher to report satellite status
@@ -199,7 +202,7 @@ class StatusPublisher(WallclockTimeIntervalPublisher):
                 name=self.satellite.name,
                 position=list(self.satellite.pos),
                 velocity=list(self.satellite.vel.m_per_s),
-                #attitude=list(self.satellite.att),
+                attitude=list(self.satellite.att),
                 radius=sensorRadius,
                 commRange=self.isInRange,
                 time=self.satellite.get_time(),
