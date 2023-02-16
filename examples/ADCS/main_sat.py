@@ -18,11 +18,6 @@ logging.basicConfig(level=logging.INFO)
 # name guard used to ensure script only executes if it is run as the __main__
 if __name__ == "__main__":
 
-    # keycloak_openid = KeycloakOpenID("http://localhost:7777/auth/",
-    #                                 client_id="solace",
-    #                                 realm_name="Master",
-    #                                 )
-
     # Note that these are loaded from a .env file in current working directory
     credentials = dotenv_values(".env")
     HOST, PORT = credentials["HOST"], int(credentials["PORT"])
