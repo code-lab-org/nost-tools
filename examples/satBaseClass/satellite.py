@@ -20,6 +20,8 @@ class Satellite(Entity):
         self.id = id
         self.name = name       
         self.field_of_regard = field_of_regard
+
+        self.geocentric = None
         self.pos = self.next_pos = None
         self.vel = self.next_vel = None
 
@@ -29,18 +31,20 @@ class Satellite(Entity):
     def initalize(self, init_time):
 
         super().initalize(init_time)
-        self.pos = self.ES.at(self.ts.from_datetime(init_time)).position.m
-        self.vel = self.pos.velocity.m_per_s
+        self.geocentric = self.ES.at(self.ts.from_datetime(init_time))
+        self.pos = self.geocentric.position.m
+        self.vel = self.geocentric.velocity.m_per_s
 
 
     def tick(self, time_step):
         super().tick(time_step)
-
-        self.next_pos = self.ES.at(self.ts.from_datetime(self.get_time()))
-        self.next_vel = self.next_pos.velocity
+        self.next_geocentric = self.ES.at(self.ts.from_datetime(self.get_time()))
+        self.next_pos = self.next_geocentric.position.m
+        self.next_vel = self.next_geocentric.velocity.m_per_s
 
     
     def tock(self):
+        self.geocentric = self.next_geocentric
         self.pos = self.next_pos
         self.vel = self.next_vel
 
@@ -62,7 +66,7 @@ class Satellite(Entity):
         # eta is the angular radius of the region viewable by the satellite
         sin_eta = np.sin(np.radians(self.field_of_regard / 2))
         # rho is the angular radius of the earth viewed by the satellite
-        sin_rho = earth_mean_radius / (earth_mean_radius + wgs84.height_of(self.pos).m)
+        sin_rho = earth_mean_radius / (earth_mean_radius + wgs84.height_of(self.geocentric).m)
         # epsilon is the min satellite elevation for obs (grazing angle)
         cos_epsilon = sin_eta / sin_rho
         if cos_epsilon > 1:
@@ -82,8 +86,7 @@ class Satellite(Entity):
         earth_polar_radius = 6356752.314245179
         earth_mean_radius = (2 * earth_equatorial_radius + earth_polar_radius) / 3
         # rho is the angular radius of the earth viewed by the satellite
-        print(type(wgs84.height_of(self.pos)))
-        sin_rho = earth_mean_radius / (earth_mean_radius + wgs84.height_of(self.pos).m)
+        sin_rho = earth_mean_radius / (earth_mean_radius + wgs84.height_of(self.geocentric).m)
         # eta is the nadir angle between the sub-satellite direction and the target location on the surface
         eta = np.degrees(np.arcsin(np.cos(np.radians(self.get_min_elevation())) * sin_rho))
         # calculate swath width half angle from trigonometry
@@ -183,7 +186,7 @@ class StatusPublisher(WallclockTimeIntervalPublisher):
                 id=self.satellite.id,
                 name=self.satellite.name,
                 position=list(self.satellite.pos),
-                velocity=list(self.satellite.vel.m_per_s),
+                velocity=list(self.satellite.vel),
                 radius=sensorRadius,
                 commRange=self.isInRange,
                 time=self.satellite.get_time(),
