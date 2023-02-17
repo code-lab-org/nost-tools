@@ -44,13 +44,13 @@ class Satellite(Entity):
         self.next_pos = self.ES.at(self.ts.from_datetime(self.get_time()))
         self.next_vel = self.next_pos.velocity
         # self.next_att = self. call function below?
-        self.next_att = self.one_axis_control(time_step)
+        # self.next_att = self.one_axis_control(time_step)
 
     
     def tock(self):            # saves (overwrites)
         self.pos = self.next_pos
         self.vel = self.next_vel
-        self.att = self.next_att
+        # self.att = self.next_att
 
         super().tock()
 
@@ -170,7 +170,7 @@ class Satellite(Entity):
 
         r = R.from_euler('x', 1, degrees=True)
         r.as_matrix()
-        r.apply(self.att)
+#        r.apply(self.att)
 
         return self.att
 
@@ -202,7 +202,7 @@ class StatusPublisher(WallclockTimeIntervalPublisher):
                 name=self.satellite.name,
                 position=list(self.satellite.pos),
                 velocity=list(self.satellite.vel.m_per_s),
-                attitude=list(self.satellite.att),
+#                attitude=list(self.satellite.att),
                 radius=sensorRadius,
                 commRange=self.isInRange,
                 time=self.satellite.get_time(),
