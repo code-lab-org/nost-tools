@@ -34,6 +34,7 @@ class Satellite(Entity):
         self.pos = self.ES.at(self.ts.from_datetime(init_time)).position.m
         self.vel = self.pos.velocity.m_per_s
         # can't be all zeros - normalize vector?
+        
         self.att = np.array([0,0,0,0])
 
 
