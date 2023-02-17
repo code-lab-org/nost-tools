@@ -14,13 +14,15 @@ class Satellite(Entity):
         super().__init__(name)
         self.app = app
         self.ts = load.timescale()
- 
+
         if ES is not None: self.ES = ES
         if tle is not None: self.ES = EarthSatellite(tle[0], tle[1], name)
-        
+
         self.id = id
-        self.name = name       
+        self.name = name
         self.field_of_regard = field_of_regard
+
+        self.geocentric = None
         self.pos = self.next_pos = None
         self.vel = self.next_vel = None
         self.att = self.next_att = None
@@ -31,31 +33,28 @@ class Satellite(Entity):
     def initalize(self, init_time):
 
         super().initalize(init_time)
-        self.pos = self.ES.at(self.ts.from_datetime(init_time)).position.m
-        self.vel = self.pos.velocity.m_per_s
-        # can't be all zeros - normalize vector?
-        
-        self.att = np.array([0,0,0,0])
+        self.geocentric = self.ES.at(self.ts.from_datetime(init_time))
+        self.pos = self.geocentric.position.m
+        self.vel = self.geocentric.velocity.m_per_s
 
 
 
-    def tick(self, time_step): # computes 
+    def tick(self, time_step): # computes
         super().tick(time_step)
+        self.next_geocentric = self.ES.at(self.ts.from_datetime(self.get_time()))
+        self.next_pos = self.next_geocentric.position.m
+        self.next_vel = self.next_geocentric.velocity.m_per_s
 
-        self.next_pos = self.ES.at(self.ts.from_datetime(self.get_time()))
-        self.next_vel = self.next_pos.velocity
-        # self.next_att = self. call function below?
-        # self.next_att = self.one_axis_control(time_step)
 
-    
-    def tock(self):            # saves (overwrites)
+    def tock(self):
+        self.geocentric = self.next_geocentric
         self.pos = self.next_pos
         self.vel = self.next_vel
         # self.att = self.next_att
 
         super().tock()
 
-    
+
     def get_min_elevation(self):
         """
         Computes the minimum elevation angle required for the satellite to observe a point from current location.
@@ -71,7 +70,7 @@ class Satellite(Entity):
         # eta is the angular radius of the region viewable by the satellite
         sin_eta = np.sin(np.radians(self.field_of_regard / 2))
         # rho is the angular radius of the earth viewed by the satellite
-        sin_rho = earth_mean_radius / (earth_mean_radius + wgs84.height_of(self.pos).m)
+        sin_rho = earth_mean_radius / (earth_mean_radius + wgs84.height_of(self.geocentric).m)
         # epsilon is the min satellite elevation for obs (grazing angle)
         cos_epsilon = sin_eta / sin_rho
         if cos_epsilon > 1:
@@ -91,8 +90,7 @@ class Satellite(Entity):
         earth_polar_radius = 6356752.314245179
         earth_mean_radius = (2 * earth_equatorial_radius + earth_polar_radius) / 3
         # rho is the angular radius of the earth viewed by the satellite
-        print(type(wgs84.height_of(self.pos)))
-        sin_rho = earth_mean_radius / (earth_mean_radius + wgs84.height_of(self.pos).m)
+        sin_rho = earth_mean_radius / (earth_mean_radius + wgs84.height_of(self.geocentric).m)
         # eta is the nadir angle between the sub-satellite direction and the target location on the surface
         eta = np.degrees(np.arcsin(np.cos(np.radians(self.get_min_elevation())) * sin_rho))
         # calculate swath width half angle from trigonometry
@@ -101,7 +99,7 @@ class Satellite(Entity):
             return 0.0
         return earth_mean_radius * np.radians(sw_HalfAngle)
 
-    
+
     def get_elevation_angle(self, loc):
         """
         Returns the elevation angle (degrees) of satellite with respect to the topocentric horizon.
@@ -138,7 +136,7 @@ class Satellite(Entity):
             isInView = True
         return isInView
 
-    
+
     def check_in_range(self, grounds):
         """
         Checks if the satellite is in range of any of the operational ground stations.
@@ -164,7 +162,7 @@ class Satellite(Entity):
                     groundId = k
                     break
         return isInRange, groundId
-    
+
     def one_axis_control(self, time_step):  #fn in same class?
         """
         Updates the rotation about one axis the attitude"""
@@ -195,15 +193,14 @@ class StatusPublisher(WallclockTimeIntervalPublisher):
         sensorRadius = self.satellite.get_sensor_radius()
 
         self.isInRange, groundId = self.satellite.check_in_range(self.satellite.grounds)
-        
+
         self.app.send_message(
             "location",
             SatelliteStatus(
                 id=self.satellite.id,
                 name=self.satellite.name,
                 position=list(self.satellite.pos),
-                velocity=list(self.satellite.vel.m_per_s),
-#                attitude=list(self.satellite.att),
+                velocity=list(self.satellite.vel),
                 radius=sensorRadius,
                 commRange=self.isInRange,
                 time=self.satellite.get_time(),
