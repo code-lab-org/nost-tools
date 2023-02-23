@@ -26,6 +26,7 @@ class Satellite(Entity):
         self.pos = self.next_pos = None
         self.vel = self.next_vel = None
         self.att = self.next_att = None
+        # print(self.att)
 
         self.grounds = grounds
 
@@ -36,6 +37,18 @@ class Satellite(Entity):
         self.geocentric = self.ES.at(self.ts.from_datetime(init_time))
         self.pos = self.geocentric.position.m
         self.vel = self.geocentric.velocity.m_per_s
+        # print(self.vel)
+        # initial attitude in geo coordinates
+        # x along velocity vector
+        # y normal to orbital plane
+        # z nadir poiting (instrument)
+        # self.att = np.array(self.normalize(self.vel))
+        self.att = np.array([0,0,0])
+        
+        # mag = np.linalg.norm(self.vel)
+        # self.att =  [x/mag for x in self.vel]
+        print(self.att)
+
 
 
 
@@ -44,13 +57,14 @@ class Satellite(Entity):
         self.next_geocentric = self.ES.at(self.ts.from_datetime(self.get_time()))
         self.next_pos = self.next_geocentric.position.m
         self.next_vel = self.next_geocentric.velocity.m_per_s
+        self.next_att = self.att
 
 
     def tock(self):
         self.geocentric = self.next_geocentric
         self.pos = self.next_pos
         self.vel = self.next_vel
-        # self.att = self.next_att
+        self.att = self.next_att
 
         super().tock()
 
@@ -162,6 +176,22 @@ class Satellite(Entity):
                     groundId = k
                     break
         return isInRange, groundId
+    
+    def normalize(self, vector):
+        """Normalizes a vector so that its magnitude is 1
+        
+        Args:
+            vector (numpy ndarray): an Nx1 vector of arbitrary magnitude
+        
+        Returns:
+            numpy ndarray: the normalized vector
+        """
+        mag = np.linalg.norm(vector)
+        if mag < np.finfo(np.float64).eps:
+            return np.zeros(vector.shape)
+        else:
+            self.att = vector/mag
+            return self.att
 
     def one_axis_control(self, time_step):  #fn in same class?
         """
@@ -185,6 +215,8 @@ class StatusPublisher(WallclockTimeIntervalPublisher):
         self.isInRange = False
 
     def publish_message(self):
+        # if self.satellite.att==None:
+        #     return
         next_time = self.satellite.ts.from_datetime(
             self.satellite.get_time() + 60 * self.time_status_step
             )
@@ -193,7 +225,7 @@ class StatusPublisher(WallclockTimeIntervalPublisher):
         sensorRadius = self.satellite.get_sensor_radius()
 
         self.isInRange, groundId = self.satellite.check_in_range(self.satellite.grounds)
-
+        
         self.app.send_message(
             "location",
             SatelliteStatus(
@@ -201,6 +233,7 @@ class StatusPublisher(WallclockTimeIntervalPublisher):
                 name=self.satellite.name,
                 position=list(self.satellite.pos),
                 velocity=list(self.satellite.vel),
+                attitude=list(self.satellite.att) if self.satellite.att!=None else None,
                 radius=sensorRadius,
                 commRange=self.isInRange,
                 time=self.satellite.get_time(),

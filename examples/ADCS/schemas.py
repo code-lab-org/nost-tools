@@ -8,6 +8,7 @@ class SatelliteStatus(BaseModel):
     name: str = Field(..., description="Satellite name for labeling.")
     position: list = Field(...)
     velocity: list = Field(...)
+    attitude: list = Field(...)
     radius: float = Field(..., description="Radius of nadir pointing cone of vision")
     commRange: bool = Field(
         False, description="Boolean for if satellite is in ground stations view"
