@@ -313,7 +313,7 @@ if __name__ == "__main__":
         config,
         True,
         time_status_step=timedelta(seconds=10) * SCALE,
-        time_status_init=datetime(2022, 11, 30, 8, 20, tzinfo=timezone.utc),
+        time_status_init=datetime(2023, 1, 23, 7, 30, tzinfo=timezone.utc),
         time_step=timedelta(seconds=1) * SCALE,
     )
 

@@ -8,6 +8,7 @@ examples.firesat.satellites.main_constellation.py module
   :members: compute_min_elevation, compute_sensor_radius, get_elevation_angle, check_in_view, check_in_range
   :show-inheritance:
   :member-order: bysource
+  :exclude-members: examples.firesat.satellites.main_constellation.Constellation, examples.firesat.satellites.main_constellation.PositionPublisher, examples.firesat.satellites.main_constellation.FireDetectedObserver, examples.firesat.satellites.main_constellation.FireReportedObserver
 
 .. autoclass:: examples.firesat.satellites.main_constellation.Constellation
 	:show-inheritance:
@@ -47,6 +48,6 @@ examples.firesat.satellites.main_constellation.py module
 The following code demonstrates how the constellation application is started up and how the :obj:`Constellation` :obj:`Entity` object class is initialized and added to the simulator:
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-	:lines: 544-
+	:lines: 543-596
 
 In this example, six satellites (AQUA, TERRA, SUOMI NPP, NOAA 20, SENTINEL 2A, SENTINEL 2B) are included in the simulation. CelesTrak is queried for current active TLEs, which returns this information as *list* of :obj:`EarthSatellite` objects. A subset *list* is constructed containing the six satellites of interest.

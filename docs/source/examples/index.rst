@@ -18,4 +18,6 @@ loads of varying frequency and size.
 
    scienceDash/api/modules
    firesat/api/modules
+   downlink/api/modules
    scalability/api/modules
+   

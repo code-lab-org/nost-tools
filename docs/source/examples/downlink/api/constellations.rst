@@ -8,6 +8,7 @@ examples.downlink.satellites.main_constellation.py module
   :members: get_elevation_angle, check_in_range
   :show-inheritance:
   :member-order: bysource
+  :exclude-members: examples.downlink.satellites.main_constellation.Constellation, examples.downlink.satellites.main_constellation.PositionPublisher
 
 .. autoclass:: examples.downlink.satellites.main_constellation.Constellation
 	:show-inheritance:

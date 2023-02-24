@@ -27,14 +27,14 @@ from nost_tools.publisher import WallclockTimeIntervalPublisher
 
 from skyfield.api import load, wgs84, EarthSatellite
 
-from constellation_config_files.schemas import (
+from examples.firesat.satellites.constellation_config_files.schemas import (
     FireStarted,
     FireDetected,
     FireReported,
     SatelliteStatus,
     GroundLocation,
 )
-from constellation_config_files.config import (
+from examples.firesat.satellites.constellation_config_files.config import (
     PREFIX,
     NAME,
     SCALE,
@@ -555,21 +555,6 @@ if __name__ == "__main__":
     activesats_url = "https://celestrak.com/NORAD/elements/active.txt"
     activesats = load.tle_file(activesats_url, reload=True)
     by_name = {sat.name: sat for sat in activesats}
-    # keys for CelesTrak TLEs used in this example (all 6 contained in active.txt, but indexes often change over time)
-    # AQUA (MODIS) = 27424, Index 149
-    # TERRA (MODIS) = 25994, Index 101
-    # SUOMI NPP (VIIRS) = 37849, Index 544
-    # NOAA 20 (VIIRS) = ?, Index 1297
-    # SENTINEL 2A = ?, Index = 897
-    # SENTINEL 2B = ?, Index = 1164
-    # names = ["AQUA (MODIS)", "TERRA (MODIS)", "SUOMI NPP (VIIRS)", "NOAA-20 (VIIRS)", "SENTINEL-2A (MSI)", "SENTINEL-2B (MSI)"]
-    # AQUA = activesats[149]
-    # TERRA = activesats[101]
-    # NPP = activesats[544]
-    # NOAA20 = activesats[1297]
-    # SENTINEL2A = activesats[897]
-    # SENTINEL2B = activesats[1164]
-    # ES = [AQUA, TERRA, NPP, NOAA20, SENTINEL2A, SENTINEL2B]
     names = ["AQUA", "TERRA", "SUOMI NPP", "NOAA 20", "SENTINEL-2A", "SENTINEL-2B"]
 
     ES = []
@@ -579,7 +564,6 @@ if __name__ == "__main__":
         indices.append(name_i)
     
     # initialize the Constellation object class (in this example from EarthSatellite type)
-    # constellation = Constellation("constellation", app, [0, 1, 2, 3, 4, 5], names, ES)
     constellation = Constellation("constellation", app, indices, names, ES)
 
     # add observer classes to the Constellation object class

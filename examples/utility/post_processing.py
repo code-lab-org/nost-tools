@@ -5,7 +5,7 @@ from skyfield.framelib import itrs
 import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
 
-df = pd.read_csv("examples/utility/events.csv", header=2)
+df = pd.read_csv("examples/utility/outputs/outputs/MatthewTest.csv", header=0)
 
 
 theta, phi = np.linspace(0, 2 * np.pi, 13), np.linspace(0, np.pi, 7)

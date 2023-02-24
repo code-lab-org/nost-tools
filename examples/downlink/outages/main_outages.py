@@ -217,7 +217,7 @@ if __name__ == "__main__":
     app.simulator.add_observer(ShutDownObserver(app))
     
     # add a ScenarioTimeIntervalPublisher for publishing random outages
-    app.simulator.add_observer(Randomizer(app, outageScheduler, 0.003, time_status_step=timedelta(seconds=3)*SCALE, time_status_init=datetime(2022, 11, 30, 7, 20, tzinfo=timezone.utc)))
+    app.simulator.add_observer(Randomizer(app, outageScheduler, 0.003, time_status_step=timedelta(seconds=1)*SCALE, time_status_init=datetime(2023, 1, 23, 7, 20, tzinfo=timezone.utc)))
 
     # start up the application on PREFIX, publish time status every 10 seconds of wallclock time
     app.start_up(
@@ -225,7 +225,7 @@ if __name__ == "__main__":
         config,
         True,
         time_status_step=timedelta(seconds=10) * SCALE,
-        time_status_init=datetime(2022, 11, 30, 7, 20, tzinfo=timezone.utc),
+        time_status_init=datetime(2023, 1, 23, 7, 30, tzinfo=timezone.utc),
         time_step=timedelta(seconds=1) * SCALE,
     )
     

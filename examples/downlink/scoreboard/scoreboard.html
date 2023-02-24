@@ -200,12 +200,14 @@
 							if (topic==`${PREFIX}/outage/report`){
 								groundColor = Cesium.Color.LIGHTGRAY
 								groundMaterial = Cesium.Color.LIGHTGRAY.withAlpha(0.1)
+								commsCones[payload.groundId].cylinder.show = false
 							} else {
 								groundColor = Cesium.Color.PINK
 								groundMaterial = Cesium.Color.PINK.withAlpha(0.1)
+								commsCones[payload.groundId].cylinder.show = true
 							}
-							grounds.get(payload.groundId).color = groundColor
-							commsCones.get(payload.groundId).material = groundMaterial
+							grounds[payload.groundId].point.color = groundColor
+							commsCones[payload.groundId].cylinder.material = groundMaterial
 						}
 					} catch(err) {
 						console.log('An error was caught somewhere...')

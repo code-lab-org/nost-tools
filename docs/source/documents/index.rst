@@ -17,4 +17,4 @@ can be found here :ref:`getStarted`
    :maxdepth: 1
 
    tech_brief/index
-   icd/index
+   ICD/index
