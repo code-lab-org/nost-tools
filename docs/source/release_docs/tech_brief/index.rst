@@ -641,6 +641,9 @@ applications and the NOS-T manager application Figure 5.
    Subscribes to fire detection events to receive and process satellite
    observations.
 
+.. image:: media/image5.png
+    :width: 7 in
+
 Figure 5. FireSat Test Case Event Publishers/Subscribers
 
 Generic NOS-T requirements govern the interactions between the manager
@@ -670,6 +673,9 @@ implementation for user applications:
 The following sections describe the execution requirements for each
 level.
 
+.. image:: media/image6.png
+    :width: 8 in
+
 Figure 6. Event Interface between Manager and User Applications.
 
 Event-driven Execution
@@ -688,6 +694,9 @@ behavior during a test run execution. Figure 7 illustrates how the
 initialize command event triggers an initialization activity, the
 EXECUTING mode status event triggers the start of a main execution loop,
 and the TERMINATING mode status event ends an execution run.
+
+.. image:: media/image7.png
+    :width: 8 in
 
 Figure 7. Behavior of Event-driven User Applications.
 
@@ -714,6 +723,9 @@ initialization activity, the EXECUTING mode status event triggers the
 start of a main execution loop, the time status event triggers response
 behavior, and the TERMINATING mode status event ends an execution run.
 
+.. image:: media/image8.png
+    :width: 8 in
+
 Figure 8. Behavior of Time-evoked User Applications.
 
 Time-managed Execution
@@ -737,6 +749,9 @@ illustrates how the initialize event triggers an initialization
 activity, the start event triggers the start of a main execution loop,
 the update event triggers a time update action, and the stop event ends
 an execution run.
+
+.. image:: media/image9.png
+    :width: 8 in
 
 Figure 9. Behavior of Time-managed User Applications.
 
