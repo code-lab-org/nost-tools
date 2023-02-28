@@ -26,30 +26,22 @@ class Satellite(Entity):
         self.pos = self.next_pos = None
         self.vel = self.next_vel = None
         self.att = self.next_att = None
-        # print(self.att)
 
         self.grounds = grounds
 
 
-    def initalize(self, init_time):
+    def initialize(self, init_time):
 
-        super().initalize(init_time)
+        super().initialize(init_time)
         self.geocentric = self.ES.at(self.ts.from_datetime(init_time))
         self.pos = self.geocentric.position.m
         self.vel = self.geocentric.velocity.m_per_s
-        # print(self.vel)
         # initial attitude in geo coordinates
         # x along velocity vector
         # y normal to orbital plane
         # z nadir poiting (instrument)
-        # self.att = np.array(self.normalize(self.vel))
-        self.att = np.array([0,0,0])
-        
-        # mag = np.linalg.norm(self.vel)
-        # self.att =  [x/mag for x in self.vel]
-        print(self.att)
-
-
+        mag = np.linalg.norm(self.vel)
+        self.att =  [x/mag for x in self.vel]
 
 
     def tick(self, time_step): # computes
@@ -233,7 +225,7 @@ class StatusPublisher(WallclockTimeIntervalPublisher):
                 name=self.satellite.name,
                 position=list(self.satellite.pos),
                 velocity=list(self.satellite.vel),
-                attitude=list(self.satellite.att) if self.satellite.att!=None else None,
+                attitude=self.satellite.att, #if self.satellite.att!=None else None,
                 radius=sensorRadius,
                 commRange=self.isInRange,
                 time=self.satellite.get_time(),
