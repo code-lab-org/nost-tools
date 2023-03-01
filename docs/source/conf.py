@@ -48,7 +48,7 @@ extensions = [
     "sphinx.ext.napoleon", 
     "sphinx_rtd_theme",
     "sphinx_search.extension",
-    "sphinxcontrib.autodoc_pydantic",
+    "sphinxcontrib.autodoc_pydantic"
 ]
 
 napoleon_google_docstring = True
@@ -64,6 +64,7 @@ napoleon_use_param = True
 napoleon_use_rtype = True
 autodoc_pydantic_model_show_json = False
 autodoc_pydantic_model_show_config = False
+trim_footnote_reference_space = True
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None)
 }

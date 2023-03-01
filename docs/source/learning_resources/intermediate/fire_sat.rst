@@ -10,14 +10,20 @@ Analysis and Design, Third Edition* by James R. Wertz and Wiley J. Larson
 test suite uses the NOS-T tools library and provides an example for how 
 to create a more capable application case than the Science Event Dashboard.
 
+* The Interface Control Document has a high-level description of FireSat+ here: :ref:`ICDfireSat`.
+* A deeper dive into the applications and code is here: :ref:`fireSatExampleTop`.
+
 The Interface Control Document contains a more in-depth description of 
 FireSat+ here :ref:`ICDfireSat`
 
-NOS-T Tools Installation
-------------------------
+FireSat+ Applications and NOS-T Tools Installation
+--------------------------------------------------
 
-In order to run a FireSat+ test case you first need to install the NOS-T
-tools library by first cloning the repository from the following link:
+In order to run a FireSat+ test case you need to clone the NOS-T git repository
+and install the NOS-T tools library. There are several ways to clone a git repository. `Here <https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository?tool=webui>`__
+is a good description of some of them.
+ 
+First, you need to clone the repository from the following link:
 
 https://github.com/code-lab-org/nost-tools
 
@@ -28,8 +34,7 @@ Then, from a command prompt,  navigate to the root directory
   
   pip install -e .
 
-NOTE: There are several ways to clone a git repository. `Here <https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository?tool=webui>`__
-is a good description of some of them.
+
 
 Cesium Access Token and Assets
 ------------------------------
@@ -87,15 +92,17 @@ order you start the other applications. All of the .py applications will give an
 they are waiting for the test case to start up. The scoreboard.html application should
 be opened in a web browser.
 
+If everything is running correctly, the Scoreboard app should show an image similar
+to below.
+
 .. image:: media/fireSatScoreboard.png
    :width: 600
    :align: center
 
-If everything is running correctly, the Scoreboard app should show an image similar
-to above.
+| 
+| Next is a graphical representation of the FireSat+ message flows and their payloads. 
 
 .. image:: media/fireSatWorkflow.png
    :width: 600
    :align: center
 
-A graphical representation of the FireSat+ messages and their payloads is shown here.
