@@ -326,9 +326,10 @@ newly proposed observation strategies for Earth science missions. Figure
 proposal, to test campaign to analysis and publication.
 
 .. image:: media/image31.png
+   :align: center
    :alt: Graphical user interface Description automatically generated
    :width: 8 in
-  
+
 Figure 2. Investigator Journey Map from Concept through Publication
 illustrating interaction with NOS-T. (click to enlarge)
 
@@ -540,7 +541,7 @@ operations.
 
 .. image:: media/figure5.png
    :alt: Diagram Description automatically generated
-   :width: 8 in 
+   :width: 8 in
 
 Figure 5. Publish-Subscribe Messaging Pattern in (A) Physical Network
 and (B) Event-oriented Diagrams. (click to enlarge)
@@ -979,7 +980,7 @@ Figure 8.
 
 .. image:: media/image44.png
    :alt: Diagram Description automatically generated
-   
+
 Figure 8. FireSat+ Test Case Event Publishers/Subscribers
 
 Unmanaged Use Case
@@ -1008,6 +1009,7 @@ applications and they will continue executing until a *user*-issued STOP
 command, NOT a manager-issued STOP command.
 
 .. image:: media/image45.png
+   :align: center
    :alt: Diagram Description automatically generated
    :width: 8 in
 
@@ -1032,6 +1034,7 @@ time stamp before publishing a new *Fire Status* event.
 
 .. image:: media/image46.png
    :alt: Diagram, shape Description automatically generated
+   :align: center
    :width: 5.35046in
    :height: 2.16685in
 
@@ -1544,13 +1547,13 @@ a notional “day in the life” example for executing a test campaign.
 References
 ----------
 
-.. [1] 
-  Solace Corporation (2021). " PubSub+ Event Broker: Software," 
+.. [1]
+  Solace Corporation (2021). " PubSub+ Event Broker: Software,"
   URL:  https://solace.com/products/event-broker/software/. Accessed
   2021-04-07.
 
 .. [2]
-  Solace Corporation (2021). "Open APIs & Protocols," 
+  Solace Corporation (2021). "Open APIs & Protocols,"
   URL:  https://docs.solace.com/Open-APIs-Protocols/Open-APIs-Protocols.htm.
   Accessed 2021-04-07.
 
@@ -1672,4 +1675,3 @@ Download a blank STM :download:`here </release_docs/icd/media/blankSTM.xlsx>`
    :align: middle
 .. |figure7| image:: media/image47.png
    :width: 8 in
-
