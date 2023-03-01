@@ -28,9 +28,9 @@ class Satellite(Entity):
         self.grounds = grounds
 
 
-    def initalize(self, init_time):
+    def initialize(self, init_time):
 
-        super().initalize(init_time)
+        super().initialize(init_time)
         self.geocentric = self.ES.at(self.ts.from_datetime(init_time))
         self.pos = self.geocentric.position.m
         self.vel = self.geocentric.velocity.m_per_s
