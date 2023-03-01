@@ -36,12 +36,16 @@ class Satellite(Entity):
         self.geocentric = self.ES.at(self.ts.from_datetime(init_time))
         self.pos = self.geocentric.position.m
         self.vel = self.geocentric.velocity.m_per_s
-        # initial attitude in geo coordinates
-        # x along velocity vector
-        # y normal to orbital plane
-        # z nadir poiting (instrument)
-        mag = np.linalg.norm(self.vel)
-        self.att =  [x/mag for x in self.vel]
+        
+        # initial rotation from inertial to body coordinates
+        posMag = np.linalg.norm(self.pos)            # position magnitude
+        velMag = np.linalg.norm(self.vel)            # velocity magnitude  
+        b_x = self.vel/velMag                        # body x-axis along velocity vector
+        b_z = self.pos/posMag                        # body z-axis nadir pointing
+        b_y = np.cross(b_x,b_z)                      # body y-axis normal to orbital plane
+        dcm_0 = np.stack([b_x, b_y, b_z])            # initial dcm from inertial to body coordinates
+        r = R.from_matrix(dcm_0)                     # creating rotation in scipy rotations library
+        self.att = r.as_quat()                # initial quaternion from inertial to body coordinates
 
 
     def tick(self, time_step): # computes
@@ -49,6 +53,7 @@ class Satellite(Entity):
         self.next_geocentric = self.ES.at(self.ts.from_datetime(self.get_time()))
         self.next_pos = self.next_geocentric.position.m
         self.next_vel = self.next_geocentric.velocity.m_per_s
+        self.one_axis_control(time_step)
         self.next_att = self.att
 
 
@@ -168,30 +173,17 @@ class Satellite(Entity):
                     groundId = k
                     break
         return isInRange, groundId
-    
-    def normalize(self, vector):
-        """Normalizes a vector so that its magnitude is 1
-        
-        Args:
-            vector (numpy ndarray): an Nx1 vector of arbitrary magnitude
-        
-        Returns:
-            numpy ndarray: the normalized vector
-        """
-        mag = np.linalg.norm(vector)
-        if mag < np.finfo(np.float64).eps:
-            return np.zeros(vector.shape)
-        else:
-            self.att = vector/mag
-            return self.att
+
 
     def one_axis_control(self, time_step):  #fn in same class?
         """
         Updates the rotation about one axis the attitude"""
 
-        r = R.from_euler('x', 1, degrees=True)
-        r.as_matrix()
-#        r.apply(self.att)
+        roll = R.from_euler('x', 10, degrees=True)
+        roll.as_quat()
+        attitude = R.from_quat(self.att) 
+        combined = roll * attitude
+        self.att = combined.as_quat()
 
         return self.att
 
@@ -225,7 +217,7 @@ class StatusPublisher(WallclockTimeIntervalPublisher):
                 name=self.satellite.name,
                 position=list(self.satellite.pos),
                 velocity=list(self.satellite.vel),
-                attitude=self.satellite.att, #if self.satellite.att!=None else None,
+                attitude=list(self.satellite.att), #if self.satellite.att!=None else None,
                 radius=sensorRadius,
                 commRange=self.isInRange,
                 time=self.satellite.get_time(),
