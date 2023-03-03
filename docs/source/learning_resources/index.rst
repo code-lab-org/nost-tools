@@ -5,23 +5,16 @@ NOS-T Learning Resources
 
 This section contains resources for helping users with NOS-T applications and test suites.
 
-The Science Event Dashboard is a simple test case which publishes 
-utility scores to a dashboard. It is comprised of just two applications
-and is a good place to start. For documentation, please see: :ref:`instructionsScienceDash`.
-
-Finally, the FireSat+ test suite is based on the familiar FireSat, which 
-is a running example throughout the classic space systems text, *Space Mission Analysis and Design*. FireSat+ uses 
-the NOS-T Tools Library and is a good entry point for more-capable experiments. The instructions for
-FireSat+ are found here: :ref:`instructionsFireSat`.
-
-* The applications can be found in `the NOS-T Tools GitHub repository <https://github.com/code-lab-org/nost-tools/tree/main/nost_tools>`__.
-* The most basic instructions for running FireSat+ are found here: :ref:`instructionsFireSat`. 
-* A deeper dive into the applications and code is here: :ref:`fireSatExampleTop`.
-* The Interface Control Document has a high-level description of FireSat+ here: :ref:`ICDfireSat`.
+* Instructions for installing the NOS-T tools library and example codes are here: :ref:`installation`
+* The Getting Started Guide contains instructions for a basic NOS-T test case: :ref:`getStarted`
+* The FireSat+ test suite is a good next step, instructions are found here: :ref:`instructionsFireSat`. 
 * The NOS-T Tools documentation is here: :ref:`nostTools`.
+* A library containing useful resources is here: :ref:`resourceLibrary`
 
 .. toctree::
    :maxdepth: 1
 
+   installation
    getting_started/index
+   getting_started/science_dash
    intermediate/fire_sat
