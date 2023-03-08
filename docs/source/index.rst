@@ -23,6 +23,7 @@ NOS-T Graphical Concept
    nost_tools
    examples
    publications
+   tutorial
 
 
 Indices and tables
