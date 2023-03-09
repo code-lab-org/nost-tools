@@ -58,16 +58,22 @@ to be set in a JavaScript file. To do this create a text file with the name
 Running FireSat+
 ----------------
 
-In order to run FireSat+, you will need to start each application separately. The
-Key main files for each application are named main_XYZ.py for the Python applications
-and scoreboard.html for the data visualization tool. These applications need to be
-logically separated. This can be done by running them on separate computers, or 
-by using separate consoles in Spyder, or terminals with VSCode.
+There are five files you will need to run for FireSat+, four user applications, the NOS-T manager application,
+and the **Scoreboard**, a geospatial data visualization tool. These applications need to be
+logically separated when running. For the python scripts, this can be done by running them on separate computers, 
+by using separate consoles in Spyder, or separate terminals with VSCode. The **Scoreboard** is an .html file
+and can be run in a web browser, double-clicking the file should work.  Each folder in the FireSat+ test suite
+has a code you need to run, they are:
 
-You should start the main_manager.py application last, otherwise it does not matter in which 
+* main_fire.py - The **Fires** app publishes historical fire data.
+* main_ground.py - The **Ground** app models a ground station in Svalbard, Norway.
+* main_constellation.py - The **Satellites** app models the constellation of spacecraft observing and reporting the fires.
+* scoreboard.html - The aforementioned **Scoreboard** gives a view of what's happening during a test run.
+* main_manager.py - The NOS-T **Manager** app orchestrates each test run by starting the other apps at the same time, maintaining a consistent time throughout, and shutting down the apps at the end.
+
+You **must** start the main_manager.py application last, otherwise it does not matter in which 
 order you start the other applications. All of the .py applications will give an output that
-they are waiting for the test case to start up. The scoreboard.html application should
-be opened in a web browser.
+they are waiting for the test case to start up. 
 
 If everything is running correctly, the Scoreboard app should show an image similar
 to below.
