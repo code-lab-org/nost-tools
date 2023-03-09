@@ -57,7 +57,7 @@ Then, from a command prompt,  navigate to the root directory
 
 
 Following the instructions above will automatically install the python packages that NOS-T depends on to run. These can
-otherwise be found in the `requirements file <https://github.com/code-lab-org/nost-tools/blob/main/docs/requirements.txt>`__
+otherwise be found in the `requirements file <https://github.com/code-lab-org/nost-tools/blob/main/docs/requirements.txt>`__.
 
 NOS-T System description
 ------------------------
@@ -83,7 +83,15 @@ Application Build 1
 -------------------
 
 From here, the tutorial will explain important functions using FireSat+, an example NOS-T test suite based on FireSat, the common space systems 
-engineering application case. The **Satellites** application
+engineering application case. For more information on FireSat+, please see the following:
+
+* The Interface Control Document has a high-level description of FireSat+ :ref:`here <ICDfireSat>`.
+* A deeper dive into the applications and code is :ref:`here <fireSatExampleTop>`.
+
+
+The **Satellites** application
+
+
 
 
 Application Build 2
@@ -106,7 +114,61 @@ Remaining Applications
 ~~~~~~~~~~~~~~~~~~~~~~
 
 There are a total of five files you will need to run for FireSat+, four user applications, the NOS-T manager application,
-and the **Scoreboard**, a geospatial data visualization tool. These applications need to be
+and the **Scoreboard**, a geospatial data visualization tool. 
+Managing an NOS-T Test Run
+
+
+Executing the FireSat+ Test Suite
+---------------------------------
+
+There are a few more steps necessary to run FireSat+. You need to create a Cesium token to run the **Scoreboard** and set up
+environment files for each application.
+
+Cesium Access Token and Assets
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The FireSat+ Scoreboard application uses the Cesium geospatial visualization tool which requires getting an access token
+and an 3D Earth map asset. You will get an access token by signing in at the following link:
+
+https://cesium.com/ion/signin/tokens
+
+After creating an account, you *must* add the Asset “Blue Marble Next Generation
+July, 2004” from the `Asset Depot (ID 3845) <https://ion.cesium.com/assetdepot/3845>`__ to your account assets to enable
+visualization.
+
+Setting Up Environment Files
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In order to protect your (and our) information, these applications all use
+environment files for usernames, passwords, event broker host site URLs, and
+port numbers.
+
+For the applications coded in python (.py files) you will need to create a text
+file with the name ".env" containing the following text:
+
+::
+
+  HOST="your event broker host URL"
+  PORT=#### - your connection port
+  USERNAME="your event broker username"
+  PASSWORD="your event broker password"
+
+The Scoreboard application is .html, and therefore the environment needs
+to be set in a JavaScript file. To do this create a text file with the name
+"env.js" containing the following information:
+
+::
+
+  var HOST="your event broker host URL"
+  var PORT=#### - your connection port
+  var USERNAME="your event broker username"
+  var PASSWORD="your event broker password"
+  var TOKEN="your Cesium token (see Cesium installation instructions)"
+
+Executing FireSat+
+~~~~~~~~~~~~~~~~~~
+
+Finally, you need to run the five applications together in order to execute the FireSat+ test suite. These applications need to be
 logically separated when running. For the python scripts, this can be done by running them on separate computers, 
 by using separate consoles in Spyder, or separate terminals with VSCode. The **Scoreboard** is an .html file
 and can be run in a web browser, double-clicking the file should work.  Each folder in the FireSat+ test suite
@@ -118,22 +180,28 @@ has a code you need to run, they are:
 * scoreboard.html - The aforementioned **Scoreboard** gives a view of what's happening during a test run.
 * main_manager.py - The NOS-T **Manager** app orchestrates each test run by starting the other apps at the same time, maintaining a consistent time throughout, and shutting down the apps at the end.
 
-Managing an NOS-T Test Run
---------------------------
+You **must** start the main_manager.py application last, otherwise it does not matter in which 
+order you start the other applications. All of the .py applications will give an output that
+they are waiting for the test case to start up. 
 
-asdf
+If everything is running correctly, the Scoreboard app should show an image similar
+to below.
 
-Executing the FireSat+ Test Suite
----------------------------------
+.. image:: media/fireSatScoreboard.png
+   :width: 600
+   :align: center
 
-asdf
+| 
+| Next is a graphical representation of the FireSat+ message flows and their payloads. 
 
-Environment Files
-~~~~~~~~~~~~~~~~~
-
-asdf
+.. image:: media/fireSatWorkflow.png
+   :width: 600
+   :align: center
 
 Conclusion
 ----------
 
-This tutorial explained how to ...
+This hands-on tutorial was developed to help users get started with NOS-T from a basic level. It began with
+downloading an IDE for interfacing with NOS-T and finished with running the FireSat+ example code. Some good next
+steps for learning other NOS-T functions and developing your own test suites can be found at the following links:
+
