@@ -6,7 +6,19 @@ This tutorial contains information for those who are just starting out and build
 Introduction
 ------------
 
-The New Observing Strategies Testbed (NOS-T)...
+The New Observing Strategies Testbed (NOS-T) is a computational environment to
+develop, test, mature, and socialize new operating concepts and technology for
+NOS. NOS-T provides infrastructure to integrate and orchestrate user-contributed
+applications for system-of-systems test cases with true distributed
+control over constituent systems. The overall concept, illustrated below, 
+interconnects individual user applications and a NOS-T manager
+application via common information system infrastructure to coordinate
+the execution of virtual Earth science missions. NOS-T enables principal
+investigators to conduct test runs in the same environment,
+systematically changing variables to assess the overall efficacy of the
+proposed new observing strategies. Recorded data and outcomes provide
+evidence to advance technology readiness level and improve or innovate
+upon existing Earth science measurement techniques.
 
 Setup
 -----
@@ -43,16 +55,29 @@ Then, from a command prompt,  navigate to the root directory
   
   pip install -e .
 
-Installing Python Packages - necessary?
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Next, you will need to install the python packages that NOS-T depends on to run. This is done by 
-`requirements file <https://github.com/code-lab-org/nost-tools/blob/main/docs/requirements.txt>`__
+Following the instructions above will automatically install the python packages that NOS-T depends on to run. These can
+otherwise be found in the `requirements file <https://github.com/code-lab-org/nost-tools/blob/main/docs/requirements.txt>`__
 
 NOS-T System description
 ------------------------
 
-NOS-T is a digital engineering envrionment for testing and maturing distributed space mission technologies and operations.
+The NOS-T system architecture follows a loosely coupled event-driven
+architecture (EDA) where member applications communicate state changes
+through events that are embodied as notification messages sent over a
+network. EDA provides enhanced scalability and reliability over other
+software architectures by replicating event handling functions across
+infrastructure instances while maintaining modularity between
+applications through a simple event-handling interface. NOS-T can also
+be described as a service-oriented architecture (SOA) as applications
+trigger services in response to events.
+
+The NOS-T architecture relies on a centralized infrastructure component
+called an event broker (synonymous with message broker) to exchange
+event notifications between applications. A broker simplifies the
+communication structure because each member application (client) only
+directly connects to the broker, rather than requiring each application
+to directly connect to every other application.
 
 Application Build 1
 -------------------
@@ -80,7 +105,7 @@ asdf
 Remaining Applications
 ~~~~~~~~~~~~~~~~~~~~~~
 
-There are five files you will need to run for FireSat+, four user applications, the NOS-T manager application,
+There are a total of five files you will need to run for FireSat+, four user applications, the NOS-T manager application,
 and the **Scoreboard**, a geospatial data visualization tool. These applications need to be
 logically separated when running. For the python scripts, this can be done by running them on separate computers, 
 by using separate consoles in Spyder, or separate terminals with VSCode. The **Scoreboard** is an .html file
