@@ -18,4 +18,5 @@ This section contains resources for helping users with NOS-T applications and te
    installation
    getting_started/index
    getting_started/science_dash
+   intermediate/index
    intermediate/fire_sat

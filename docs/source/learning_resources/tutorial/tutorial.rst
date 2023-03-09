@@ -56,7 +56,7 @@ Then, from a command prompt,  navigate to the root directory
   pip install -e .
 
 
-Following the instructions above will automatically install the python packages that NOS-T depends on to run. These can
+Following the instructions above will automatically install the python packages that NOS-T depends on to run. These package dependencies can
 otherwise be found in the `requirements file <https://github.com/code-lab-org/nost-tools/blob/main/docs/requirements.txt>`__.
 
 NOS-T System description

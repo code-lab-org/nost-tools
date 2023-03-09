@@ -1,7 +1,7 @@
 .. _installation:
 
-NOS-T Tools and Example Codes Installation
-==========================================
+NOS-T Tools Installation
+========================
 
 The best way to get the NOS-T tools library and example codes is to clone the NOS-T git repository
 and install the tools. There are several ways to clone a git repository. `Here <https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository?tool=webui>`__
@@ -24,10 +24,8 @@ Then, from a command prompt,  navigate to the root directory
 Installing the Python Packages
 ------------------------------
 
-Next, you will need to install the python packages that NOS-T depends on to run. This is done by 
-`requirements file <https://github.com/code-lab-org/nost-tools/blob/main/docs/requirements.txt>`__
-
-
+Following the instructions above will automatically install the python packages that NOS-T depends on to run. These package dependencies can
+otherwise be found in the `requirements file <https://github.com/code-lab-org/nost-tools/blob/main/docs/requirements.txt>`__.
 
 Next Step
 ---------
