@@ -10,26 +10,8 @@ Analysis and Design, Third Edition* by James R. Wertz and Wiley J. Larson
 test suite uses the NOS-T tools library and provides an example for how 
 to create a more capable application case than the Science Event Dashboard.
 
-The Interface Control Document contains a more in-depth description of 
-FireSat+ here :ref:`ICDfireSat`
-
-NOS-T Tools Installation
-------------------------
-
-In order to run a FireSat+ test case you first need to install the NOS-T
-tools library by first cloning the repository from the following link:
-
-https://github.com/code-lab-org/nost-tools
-
-Then, from a command prompt,  navigate to the root directory 
-(the location where you cloned the library) and install by running the following command:
-
-:: 
-  
-  pip install -e .
-
-NOTE: There are several ways to clone a git repository. `Here <https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository?tool=webui>`__
-is a good description of some of them.
+* The Interface Control Document has a high-level description of FireSat+ here: :ref:`ICDfireSat`.
+* A deeper dive into the applications and code is here: :ref:`fireSatExampleTop`.
 
 Cesium Access Token and Assets
 ------------------------------
@@ -76,26 +58,34 @@ to be set in a JavaScript file. To do this create a text file with the name
 Running FireSat+
 ----------------
 
-In order to run FireSat+, you will need to start each application separately. The
-Key main files for each application are named main_XYZ.py for the Python applications
-and scoreboard.html for the data visualization tool. These applications need to be
-logically separated. This can be done by running them on separate computers, or 
-by using separate consoles in Spyder, or terminals with VSCode.
+There are five files you will need to run for FireSat+, four user applications, the NOS-T manager application,
+and the **Scoreboard**, a geospatial data visualization tool. These applications need to be
+logically separated when running. For the python scripts, this can be done by running them on separate computers, 
+by using separate consoles in Spyder, or separate terminals with VSCode. The **Scoreboard** is an .html file
+and can be run in a web browser, double-clicking the file should work.  Each folder in the FireSat+ test suite
+has a code you need to run, they are:
 
-You should start the main_manager.py application last, otherwise it does not matter in which 
+* main_fire.py - The **Fires** app publishes historical fire data.
+* main_ground.py - The **Ground** app models a ground station in Svalbard, Norway.
+* main_constellation.py - The **Satellites** app models the constellation of spacecraft observing and reporting the fires.
+* scoreboard.html - The aforementioned **Scoreboard** gives a view of what's happening during a test run.
+* main_manager.py - The NOS-T **Manager** app orchestrates each test run by starting the other apps at the same time, maintaining a consistent time throughout, and shutting down the apps at the end.
+
+You **must** start the main_manager.py application last, otherwise it does not matter in which 
 order you start the other applications. All of the .py applications will give an output that
-they are waiting for the test case to start up. The scoreboard.html application should
-be opened in a web browser.
+they are waiting for the test case to start up. 
+
+If everything is running correctly, the Scoreboard app should show an image similar
+to below.
 
 .. image:: media/fireSatScoreboard.png
    :width: 600
    :align: center
 
-If everything is running correctly, the Scoreboard app should show an image similar
-to above.
+| 
+| Next is a graphical representation of the FireSat+ message flows and their payloads. 
 
 .. image:: media/fireSatWorkflow.png
    :width: 600
    :align: center
 
-A graphical representation of the FireSat+ messages and their payloads is shown here.
