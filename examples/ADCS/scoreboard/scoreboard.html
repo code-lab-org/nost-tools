@@ -80,11 +80,10 @@
     } else if(topic=="BCtest/manager/update"){
 			payload = JSON.parse(message.payloadString);
 			viewer.clockViewModel.multiplier = payload.taskingParameters.timeScalingFactor;
-		} else if(topic=="BCtest/constellation/location") {
+		} else if(topic=="BCtest/satellite/location") {
           payload = JSON.parse(message.payloadString);
 		  commRange = payload.commRange;
 		  if (commRange){
-
 			satColor = Cesium.Color.GREEN
 		  } else {
 			satColor = Cesium.Color.BLUE
@@ -161,10 +160,10 @@
 			color : Cesium.Color.RED,
 			show: true
 			});
-		} else if(topic=="BCtest/constellation/imageTaken"){
+		} else if(topic=="BCtest/satellite/imageTaken"){
 		  payload = JSON.parse(message.payloadString);
 		  floods.get(payload.floodId).color = Cesium.Color.DARKORANGE
-		} else if(topic=="BCtest/constellation/imageDownlinked"){
+		} else if(topic=="BCtest/satellite/imageDownlinked"){
 		  payload = JSON.parse(message.payloadString);
 		  floods.get(payload.floodId).color = Cesium.Color.YELLOW
 		} else if(topic=="BCtest/ground/location"){

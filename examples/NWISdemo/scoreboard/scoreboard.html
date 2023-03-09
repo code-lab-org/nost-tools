@@ -90,24 +90,18 @@
 			satColor = Cesium.Color.BLUE
 		  };
           if(satellites[payload.id]) {
-            satellites[payload.id].position=Cesium.Cartesian3.fromDegrees(
-              payload.longitude,
-              payload.latitude,
-			  payload.altitude
+            satellites[payload.id].position=Cesium.Cartesian3.fromElements(
+              payload.position[1],
+              payload.position[2],
+			  payload.position[3]
             );
 			satellites[payload.id].point.color = satColor;
-			sensorCircles[payload.id].ellipse.semiMajorAxis = payload.radius;
-			sensorCircles[payload.id].ellipse.semiMinorAxis = payload.radius;
-			sensorCircles[payload.id].position=Cesium.Cartesian3.fromDegrees(
-				payload.longitude,
-				payload.latitude
-			);
           } else {
             satellites[payload.id] = viewer.entities.add({
-              position: Cesium.Cartesian3.fromDegrees(
-                payload.longitude,
-                payload.latitude,
-				payload.altitude
+              position: Cesium.Cartesian3.fromElements(
+			  payload.position[1],
+              payload.position[2],
+			  payload.position[3]
               ),
               point: {
                 pixelSize: 8,
@@ -137,77 +131,8 @@
 			  },
               show: true
             });
-			sensorCircles[payload.id]=viewer.entities.add({
-				position: Cesium.Cartesian3.fromDegrees(
-					payload.longitude,
-					payload.latitude
-				),
-				ellipse: {
-					semiMajorAxis: payload.radius,
-					semiMinorAxis: payload.radius,
-					material: Cesium.Color.BLUE.withAlpha(0.2)
-				}
-			});
 		  }
-		} else if(topic=="BCtest/streamGauge/floodWarning") {
-          <!-- Cesium suggests using PointPrimitives when have large collection of points, applies to floods -->
-		  payload = JSON.parse(message.payloadString);
-		  floods.add({
-			position : new Cesium.Cartesian3.fromDegrees(
-				payload.longitude,
-				payload.latitude
-				),
-			pixelSize: 8,
-			color : Cesium.Color.RED,
-			show: true
-			});
-		} else if(topic=="BCtest/constellation/imageTaken"){
-		  payload = JSON.parse(message.payloadString);
-		  floods.get(payload.floodId).color = Cesium.Color.DARKORANGE
-		} else if(topic=="BCtest/constellation/imageDownlinked"){
-		  payload = JSON.parse(message.payloadString);
-		  floods.get(payload.floodId).color = Cesium.Color.YELLOW
-		} else if(topic=="BCtest/ground/location"){
-		  payload = JSON.parse(message.payloadString);
-		  activeCheck = payload.operational;
-		  if (activeCheck){
-			groundColor = Cesium.Color.PINK
-			groundMaterial = Cesium.Color.PINK.withAlpha(0.1)
-		  } else {
-			groundColor = Cesium.Color.LIGHTGRAY
-			groundMaterial = Cesium.Color.LIGHTGRAY.withAlpha(0.1)
-		  };
-		  if (!grounds[payload.groundId]) {
-			  <!-- Only add grounds with unique ids -->
-			  grounds[payload.groundId] = viewer.entities.add({
-				position: Cesium.Cartesian3.fromDegrees(
-					payload.longitude,
-					payload.latitude
-				),
-				point: {
-					pixelSize: 8,
-					color: groundColor
-				},
-				show: true
-			  });
-			 <!-- Currently hardcoded cylinder dimensions, although angle read from message -->
-			 commsCones[payload.groundId] = viewer.entities.add({
-              position: Cesium.Cartesian3.fromDegrees(
-                payload.longitude,
-                payload.latitude,
-				100000.0
-              ),
-			  cylinder: {
-				length: 200000.0,
-				topRadius: 200000.0*Math.tan((90-payload.elevAngle)*Math.PI/180),
-				bottomRadius: 0.0,
-				material: groundMaterial,
-				outline: true,
-				outlineWidth: 1.0,
-				}
-			});
-			}
-		}
+		} 
       } catch(err) {
 	  console.log('An error was caught somewhere...')
 	  }
