@@ -91,6 +91,60 @@ engineering application case. For more information on FireSat+, please see the f
 
 The **Satellites** application
 
+A key component of our example case is the satellite constellation application. This application enables the user to generation a satellite constellation from the nost-tools library,
+leveraging predefined templates to construct a model of a real-life constellation chain. To progress through this section, copy and paste the code blocks into a new file titled main_constellation.py inside your 
+tutorial/firesat/satellites. You will be guided through the meaning of each code block, to help understand the purpose of different components of an application.
+
+.. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
+	:lines: 8-28
+
+These import statements allow you to install the necessary dependencies to construct the application.
+
+.. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
+	:lines: 30-43
+
+These import statements import customized values from the constellation configuration files. The first set of imports draws in the message schema configuration, which is the data that the 
+satellite will communicate. The second set of imports pulls in values to define the satellite: the PREFIX the messages will be published on, the NAME of the satellite, the SCALE of the timed simulation, 
+the TLES that define the satellite's propogation, and the FIELD_OF_REGARD, which indicates the region visible on Earth by the satellite. 
+
+.. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
+	:lines: 45-72
+
+The function compute_min_elevation returns the minimum elevation angle required for a satellite to observe a point from it's current location. It accepts the parameters altitude and field_of_regard to 
+complete mathematical functions to return the degree on minimum elevation. 
+
+.. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
+	:lines: 74-98
+
+The function compute_sensor_radius pulls in the result of compute_min_elevation and the altitude value to return sensor_radius, which provides the radius of the nadir pointing sensors circular view of observation on Earth. 
+
+.. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
+	:lines: 100-118
+
+This function accepts the parameters t, sat, and loc, whcih represent the Skyfield time object, the Skyfield EarthSat object, and the geographic location in lat/long, respectively. It return an elevation angle in respect to the topocentric horizon.
+
+.. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
+	:lines: 120-168
+
+These two functions, check_in_view and check_in_range, affirm if the elevation angle and immediate location of the satellite enable it to connect to a ground station and view regions on Earth. 
+
+.. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
+	:lines: 170-476
+
+This section of the code represents the definition of the Constellation class. In object-oriented programming, a class is a replicatable object that can be assigned unique parameters to generate a diverse collection of similar objects.
+The Constellation class leverages the NOS-T tools library 'Entity' object class to construct the constellation chain.
+
+.. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
+	:lines: 478-507
+
+
+
+.. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
+	:lines: 509-540
+
+.. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
+	:lines: 541- 612
+
 
 
 
