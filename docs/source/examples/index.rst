@@ -8,7 +8,7 @@ The Science Event Dashboard application is a simple example with only two applic
 step-by-step guide for using this example is found here: :ref:`instructionsScienceDash`
 
 FireSat+ is a more complex and capable use case. It integrates the NOS-T tools library. There
-is a step-by-step guide for running this test suite here :ref:`instructionsFireSat`
+is a step-by-step guide for running this test suite in the :ref:`tutorial`
 
 Finally, the Scalability test suite was used to test how well NOS-T can handle messages
 loads of varying frequency and size.

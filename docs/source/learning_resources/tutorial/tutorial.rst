@@ -1,3 +1,5 @@
+.. _tutorial:
+
 Hands-on Tutorial
 =================
 
@@ -58,6 +60,8 @@ Then, from a command prompt,  navigate to the root directory
 
 Following the instructions above will automatically install the python packages that NOS-T depends on to run. These package dependencies can
 otherwise be found in the `requirements file <https://github.com/code-lab-org/nost-tools/blob/main/docs/requirements.txt>`__.
+
+.. _tutorialSystemDescription:
 
 NOS-T System description
 ------------------------

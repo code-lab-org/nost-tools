@@ -30,6 +30,5 @@ otherwise be found in the `requirements file <https://github.com/code-lab-org/no
 Next Step
 ---------
 
-The Getting Started Guide is a simple test case which publishes 
-utility scores to a dashboard. It is comprised of just two applications
-and is a good place to start. For documentation, please see: :ref:`getStarted`.
+The hands-on tutorial will walk you through the FireSat+ test suite and is a good next step. It 
+starts with the installation process given here and continues with a :ref:`tutorialSystemDescription`.

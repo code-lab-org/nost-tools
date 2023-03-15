@@ -67,10 +67,3 @@ running properly the dashboard will look like the figure below:
    :width: 600
    :align: center
 
-Next Step
----------
-
-The next step in the tutorial is the FireSat+ test suite, which is based on the familiar FireSat. This 
-is a running example throughout the classic space systems text, *Space Mission Analysis and Design*. FireSat+ uses 
-the NOS-T Tools Library and is a good entry point for more-capable experiments. The FireSat+ instructions
-are here: :ref:`instructionsFireSat`.
