@@ -29,8 +29,7 @@ var CESIUM_ACCESS_TOKEN = TOKEN;
 
 				// create a MQTT client
 				var client = new Paho.MQTT.Client(BROKER_HOST, BROKER_PORT, "");
-				var satellitesCapella = {}; //<!-- Positions of satellites as points at altitude, BLUE out of comms range, GREEN in comms range -->
-				var satellitesPlanet = {}; //<!-- Positions of satellites as points at altitude, BLUE out of comms range, GREEN in comms range -->
+				var satellite = {}; //<!-- Positions of satellites as points at altitude, BLUE out of comms range, GREEN in comms range -->
 				var sensorCirclesCapella = {}; //<!-- Circles showing views of nadir pointed satellites -->
 				var sensorCirclesPlanet = {}; //<!-- Circles showing views of nadir pointed satellites -->
 				var commsCones = {}; //<!-- Views from ground station FOR comms -->
@@ -76,13 +75,13 @@ var CESIUM_ACCESS_TOKEN = TOKEN;
 							} else {
 								satColor = Cesium.Color.BLUE
 							};
-							if(satellitesCapella[payload.id]) {
-								satellitesCapella[payload.id].position=Cesium.Cartesian3.fromDegrees(
-									payload.longitude,
-									payload.latitude,
-									payload.altitude
+							if(satellite[payload.id]) {
+								satellite[payload.id].position=Cesium.Cartesian3.fromArray(
+									payload.position,
+									0,
+									"zyx"
 								);
-								satellitesCapella[payload.id].point.color = satColor;
+								satellite[payload.id].point.color = satColor;
 								sensorCirclesCapella[payload.id].ellipse.semiMajorAxis = payload.radius;
 								sensorCirclesCapella[payload.id].ellipse.semiMinorAxis = payload.radius;
 								sensorCirclesCapella[payload.id].position=Cesium.Cartesian3.fromDegrees(
@@ -90,14 +89,13 @@ var CESIUM_ACCESS_TOKEN = TOKEN;
 									payload.latitude
 								);
 							} else {
-								satellitesCapella[payload.id] = viewer.entities.add({
-									position: Cesium.Cartesian3.fromDegrees(
-										payload.longitude,
-										payload.latitude,
-										payload.altitude
+								satellite[payload.id] = viewer.entities.add({
+									position: Cesium.Cartesian3.fromArray(
+										payload.position,
+										0,"xyz"
 									),
 									point: {
-										pixelSize: 8,
+										pixelSize: 40,
 										color: satColor
 									},
 									label: {
@@ -165,7 +163,7 @@ var CESIUM_ACCESS_TOKEN = TOKEN;
 										payload.altitude
 									),
 									point: {
-										pixelSize: 8,
+										pixelSize: 40,
 										color: satColor
 									},
 									label: {
