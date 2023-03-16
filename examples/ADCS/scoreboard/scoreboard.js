@@ -68,7 +68,7 @@ var CESIUM_ACCESS_TOKEN = TOKEN;
 						} else if(topic=="BCtest/manager/update"){
 							payload = JSON.parse(message.payloadString);
 							viewer.clockViewModel.multiplier = payload.taskingParameters.timeScalingFactor;
-						} else if(topic=="BCtest/capella/location") {
+						} else if(topic=="BCtest/satellite/location") {
 							payload = JSON.parse(message.payloadString);
 							commRange = payload.commRange;
 							if (commRange){
