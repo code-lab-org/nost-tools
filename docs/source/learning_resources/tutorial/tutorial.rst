@@ -194,12 +194,18 @@ After creating an account, you *must* add the Asset “Blue Marble Next Generati
 July, 2004” from the `Asset Depot (ID 3845) <https://ion.cesium.com/assetdepot/3845>`__ to your account assets to enable
 visualization.
 
+.. _envSetUp:
+
 Setting Up Environment Files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In order to protect your (and our) information, these applications all use
 environment files for usernames, passwords, event broker host site URLs, and
-port numbers.
+port numbers. You will need to create an environment file in the each FireSat+ folders.
+
+Note that you can use most text editors to make these files but be sure that you are not saving them as a .txt file type.
+For instance, if you save a .evn file as a .txt file type using Windows Notepad, it will actually save as .evn.txt which will
+not work. If you're using Windows Notepad choose the file type "All Files (*.*)".
 
 For the applications coded in python (.py files) you will need to create a text
 file with the name ".env" containing the following text:
@@ -222,6 +228,8 @@ to be set in a JavaScript file. To do this create a text file with the name
   var USERNAME="your event broker username"
   var PASSWORD="your event broker password"
   var TOKEN="your Cesium token (see Cesium installation instructions)"
+
+
 
 Executing FireSat+
 ~~~~~~~~~~~~~~~~~~
