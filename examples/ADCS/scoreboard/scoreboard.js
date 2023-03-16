@@ -51,24 +51,24 @@ var CESIUM_ACCESS_TOKEN = TOKEN;
 					var topic = message.destinationName;
 					// try to parse and stringify a JSON string
 					try {
-						if(topic=="utility/manager/init") {
+						if(topic=="BCtest/manager/init") {
 							payload = JSON.parse(message.payloadString);
 							viewer.clockViewModel.currentTime = Cesium.JulianDate.fromIso8601(payload.taskingParameters.simStartTime);
 							viewer.clockViewModel.startTime = Cesium.JulianDate.fromIso8601(payload.taskingParameters.simStartTime);
 							viewer.clockViewModel.stopTime = Cesium.JulianDate.fromIso8601(payload.taskingParameters.simStopTime);
 							viewer.clockViewModel.clockRange = Cesium.ClockRange.CLAMPED;
 							viewer.timeline.zoomTo(viewer.clockViewModel.startTime,viewer.clockViewModel.stopTime);
-						} else if(topic=="utility/manager/start") {
+						} else if(topic=="BCtest/manager/start") {
 							payload = JSON.parse(message.payloadString);
 							viewer.clockViewModel.multiplier = payload.taskingParameters.timeScalingFactor;
-						} else if(topic=="utility/manager/time" || topic=="utility/manager/status/time") {
+						} else if(topic=="BCtest/manager/time" || topic=="BCtest/manager/status/time") {
 							payload = JSON.parse(message.payloadString);
 							viewer.clockViewModel.currentTime = Cesium.JulianDate.fromIso8601(payload.properties.simTime);
 							viewer.timeline.updateFromClock();
-						} else if(topic=="utility/manager/update"){
+						} else if(topic=="BCtest/manager/update"){
 							payload = JSON.parse(message.payloadString);
 							viewer.clockViewModel.multiplier = payload.taskingParameters.timeScalingFactor;
-						} else if(topic=="utility/capella/location") {
+						} else if(topic=="BCtest/capella/location") {
 							payload = JSON.parse(message.payloadString);
 							commRange = payload.commRange;
 							if (commRange){
@@ -136,7 +136,7 @@ var CESIUM_ACCESS_TOKEN = TOKEN;
 									}
 								});
 							}
-						} else if(topic=="utility/planet/location") {
+						} else if(topic=="BCtest/planet/location") {
 							payload = JSON.parse(message.payloadString);
 							commRange = payload.commRange;
 							if (commRange){
@@ -204,7 +204,7 @@ var CESIUM_ACCESS_TOKEN = TOKEN;
 									}
 								});
 							}
-						} else if(topic=="utility/event/start") {
+						} else if(topic=="BCtest/event/start") {
 							//<!-- Cesium suggests using PointPrimitives when have large collection of points, applies to events -->
 							try {
 								payload = JSON.parse(message.payloadString);
@@ -225,9 +225,9 @@ var CESIUM_ACCESS_TOKEN = TOKEN;
 									show: true});
 								eventIndex = eventIndex + 1;
 							} catch {
-								console.log("Error: utility/event/start");
+								console.log("Error: BCtest/event/start");
 							}
-						} else if(topic=="utility/event/dayChange") {
+						} else if(topic=="BCtest/event/dayChange") {
 							try {
 								payload = JSON.parse(message.payloadString);
 								if (payload.isDay==1) {
@@ -236,23 +236,23 @@ var CESIUM_ACCESS_TOKEN = TOKEN;
 									alphasById[payload.eventId] = nightAlpha;
 								}
 							} catch {
-								console.log("Error: First half utility/event/dayChange")
+								console.log("Error: First half BCtest/event/dayChange")
 							} try {
 								currColor = events.get(eventsById[payload.eventId].id).color;
 								events.get(eventsById[payload.eventId].id).color = currColor.withAlpha(alphasById[payload.eventId]);
 							} catch {
-								console.log("Error: Second half utility/event/dayChange")
+								console.log("Error: Second half BCtest/event/dayChange")
 							}
 			
-						} else if(topic=="utility/event/finish") {
+						} else if(topic=="BCtest/event/finish") {
 							try {
 								payload = JSON.parse(message.payloadString);
 								events.get(eventsById[payload.eventId].id).show = false;
 							} catch {
-								console.log("Error: utility/event/finish");
+								console.log("Error: BCtest/event/finish");
 							}
 							
-						} else if(topic=="utility/ground/location"){
+						} else if(topic=="BCtest/ground/location"){
 							try {
 								payload = JSON.parse(message.payloadString);
 								activeCheck = payload.operational;
@@ -294,7 +294,7 @@ var CESIUM_ACCESS_TOKEN = TOKEN;
 									});
 								}
 							} catch {
-								console.log("Error: utility/ground/location");
+								console.log("Error: BCtest/ground/location");
 							}
 
 						}
@@ -308,7 +308,7 @@ var CESIUM_ACCESS_TOKEN = TOKEN;
 					"password": BROKER_CLIENT_PASSWORD,
 					"useSSL": true,
 					"onSuccess": function() {
-						client.subscribe("utility/#", {
+						client.subscribe("BCtest/#", {
 							"onFailure": function() {
 								alert("Error subscribing to topic.");
 							},
