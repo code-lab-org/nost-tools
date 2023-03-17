@@ -47,6 +47,7 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.napoleon", 
     "sphinx_rtd_theme",
+    "sphinx_copybutton",
     "sphinx_search.extension",
     "sphinxcontrib.autodoc_pydantic"
 ]
