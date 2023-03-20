@@ -5,7 +5,7 @@ NOS-T Science Event Test Suite
 
 These two applications provide a basic demonstration on how to publish and
 subscribe to topics with NOS-T. This example does not require the usage of the
-NOS-T tools library.
+NOS-T tools library. A step-by-step walkthrough can be found :ref:`here<instructionsScienceDash>`.
 
 One of the applications, scienceEventPublisher.py produces a "science event"
 which has a random location and consistent utility curve associated with it.
@@ -15,6 +15,8 @@ The second application, scienceEventDashboard, subcribes to this topic and
 then creates a visual dashboard to see the current "science utility" at each
 simulation time step. These dashboards have been helpful for the development
 team in ensuring that test behavior is as expected.
+
+
 
 .. toctree::
   :maxdepth: 1

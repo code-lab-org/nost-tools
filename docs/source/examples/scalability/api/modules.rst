@@ -1,3 +1,5 @@
+.. _scalability:
+
 Scalability Test Suite: Example Applications
 ============================================
 

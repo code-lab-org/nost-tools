@@ -18,6 +18,8 @@ as expected. A basic graphical representation of the data flow is shown below.
    :width: 600
    :align: center
 
+|
+
 In order to run the Science Event test case you first need to get the two
 applications which comprise this test suite. The entire set of NOS-T tools and examples
 are available at the `main GitHub page <https://github.com/code-lab-org/nost-tools>`__.
@@ -52,7 +54,7 @@ name ".env" containing the following text. Make sure that you "Save as type"
   USERNAME="your event broker username"
   PASSWORD="your event broker password"
 
-Each application must have this file in the home path. If they're both in the
+Both applications must have this file in the home path. If they're both in the
 same folder then just one is sufficient.
 
 Running a Test Case
@@ -67,10 +69,3 @@ running properly the dashboard will look like the figure below:
    :width: 600
    :align: center
 
-Next Step
----------
-
-The next step in the tutorial is the FireSat+ test suite, which is based on the familiar FireSat. This 
-is a running example throughout the classic space systems text, *Space Mission Analysis and Design*. FireSat+ uses 
-the NOS-T Tools Library and is a good entry point for more-capable experiments. The FireSat+ instructions
-are here: :ref:`instructionsFireSat`.
