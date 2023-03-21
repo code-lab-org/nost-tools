@@ -175,7 +175,7 @@ class Satellite(Entity):
         return isInRange, groundId
 
 
-    def one_axis_control(self, time_step):  #fn in same class?
+    def one_axis_control(self, time_step):  
         """
         Updates the rotation about one axis the attitude"""
 
@@ -183,6 +183,7 @@ class Satellite(Entity):
         roll.as_quat()
         attitude = R.from_quat(self.att) 
         combined = roll * attitude
+        print(combined.as_euler('xyz',degrees=True))
         self.att = combined.as_quat()
 
         return self.att
