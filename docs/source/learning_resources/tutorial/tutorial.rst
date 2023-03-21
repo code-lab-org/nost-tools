@@ -92,7 +92,6 @@ engineering application case. For more information on FireSat+, please see the f
 * The Interface Control Document has a high-level description of FireSat+ :ref:`here <ICDfireSat>`.
 * A deeper dive into the applications and code is :ref:`here <fireSatExampleTop>`.
 
-
 The **Satellites** application
 
 A key component of our example case is the satellite constellation application. This application enables the user to generation a satellite constellation from the nost-tools library,
@@ -149,14 +148,13 @@ The Constellation class leverages the NOS-T tools library 'Entity' object class 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
 	:lines: 541- 612
 
-
-
-
 Application Build 2
 -------------------
 
 Maintaining a consistent simulation clock is important for many NOS-T use cases. For test suites that need to run faster than real time,
 it is an absolute necessity. The NOS-T **Manager** application is a good way to orchestrate all of the pieces for these types of tests.
+The manager is included in the NOS-T Tools library and will ensure that compliant applications start at the same time, and use a consistent
+simulation clock throughout the test run.
 
 Test Suite Wrap-Up
 ------------------
@@ -166,7 +164,8 @@ asdf
 File Tree Checkup
 ~~~~~~~~~~~~~~~~~
 
-asdf
+If you have done everything correctly up to this point, you should see a file tree like the image below. Most importantly, you should have 
+the five folders in the firesat folder which contain the constituent FireSat+ applications. These applications are described in the next section.
 
 Remaining Applications
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -267,7 +266,13 @@ to below.
 Conclusion
 ----------
 
-This hands-on tutorial was developed to help users get started with NOS-T from a basic level. It began with
-downloading an IDE for interfacing with NOS-T and finished with running the FireSat+ example code. Some good next
+This hands-on tutorial was developed to help users get started with NOS-T from a basic level. It begins with
+downloading an IDE for running scripts to interface with NOS-T and finishes with executing the FireSat+ example code. Some good next
 steps for learning other NOS-T functions and developing your own test suites can be found at the following links:
+
+* :ref:`Main FireSat+ documentation<fireSatExampleTop>`
+* :ref:`Science Event Dashboard test suite walkthrough<instructionsScienceDash>`
+* :ref:`NOS-T Tools API documentation<nostTools>`
+* :ref:`Official release documents<releaseDocs>`
+* 
 
