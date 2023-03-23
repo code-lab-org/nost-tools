@@ -3,6 +3,7 @@ import logging
 import pandas as pd
 from datetime import datetime, timezone, timedelta
 from dotenv import dotenv_values
+import ssl
 
 from skyfield.api import utc
 from keycloak import KeycloakOpenID
@@ -13,24 +14,21 @@ from nost_tools.managed_application import ManagedApplication
 from config import PARAMETERS
 from satellite import *
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 
 # name guard used to ensure script only executes if it is run as the __main__
 if __name__ == "__main__":
-
-    # keycloak_openid = KeycloakOpenID("http://localhost:7777/auth/",
-    #                                 client_id="solace",
-    #                                 realm_name="Master",
-    #                                 )
-
+    print(ssl.OPENSSL_VERSION)
     # Note that these are loaded from a .env file in current working directory
     credentials = dotenv_values(".env")
     HOST, PORT = credentials["SMCE_HOST"], int(credentials["SMCE_PORT"])
     USERNAME, PASSWORD = credentials["SMCE_USERNAME"], credentials["SMCE_PASSWORD"]
-    
+    CA_LIST = credentials["CA_LIST"]
+    CERTIFICATE, KEY = credentials["CERTIFICATE"], credentials["KEY"]
+
     # set the client credentials
-    config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, True)
+    config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, CA_LIST, CERTIFICATE, KEY, True)
 
     # create the managed application
     app = ManagedApplication("satellite")

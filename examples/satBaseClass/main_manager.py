@@ -23,9 +23,12 @@ if __name__ == "__main__":
     credentials = dotenv_values(".env")
     HOST, PORT = credentials["SMCE_HOST"], int(credentials["SMCE_PORT"])
     USERNAME, PASSWORD = credentials["SMCE_USERNAME"], credentials["SMCE_PASSWORD"]
+    CA_LIST = credentials["CA_LIST"]
+    CERTIFICATE = credentials["CERTIFICATE"]
+    KEY = credentials["KEY"]
     
     # set the client credentials from the config file
-    config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, True)
+    config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, CA_LIST, CERTIFICATE, KEY, True)
 
     # create the manager application from the template in the tools library
     manager = Manager()

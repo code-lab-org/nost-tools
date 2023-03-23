@@ -34,7 +34,7 @@ class ConnectionConfig(object):
     """
 
     def __init__(
-        self, username: str, password: str, host: str, port: int, is_tls: bool = True
+        self, username: str, password: str, host: str, port: int, ca_list: str, cert: str, key: str, is_tls: bool = True
     ):
         """
         Initializes a new connection configuration.
@@ -50,6 +50,9 @@ class ConnectionConfig(object):
         self.password = password
         self.host = host
         self.port = port
+        self.ca_list = ca_list
+        self.cert = cert
+        self.key = key
         self.is_tls = is_tls
 
 
