@@ -10,7 +10,7 @@ viewer.scene.globe.depthTestAgainstTerrain = true;
 
 const tileset = viewer.scene.primitives.add(
   new Cesium.Cesium3DTileset({
-    url: Cesium.IonResource.fromAssetId(1582226),
+    url: Cesium.IonResource.fromAssetId(1595223),
   })
 );
 
