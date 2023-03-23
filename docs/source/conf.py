@@ -25,6 +25,12 @@ sys.path.insert(0, os.path.abspath("../../examples/realtime"))
 sys.path.insert(0, os.path.abspath("../../examples/scalability"))
 sys.path.insert(0, os.path.abspath("../../examples/scalability/delay"))
 sys.path.insert(0, os.path.abspath("../../examples/scalability/heartbeat"))
+sys.path.insert(0, os.path.abspath("../../examples/downlink"))
+sys.path.insert(0, os.path.abspath("../../examples/downlink/satellites"))
+sys.path.insert(0, os.path.abspath("../../examples/downlink/grounds"))
+sys.path.insert(0, os.path.abspath("../../examples/downlink/outages"))
+sys.path.insert(0, os.path.abspath("../../examples/downlink/scoreboard"))
+sys.path.insert(0, os.path.abspath("../../examples/satBaseClass"))
 
 # -- Project information -----------------------------------------------------
 

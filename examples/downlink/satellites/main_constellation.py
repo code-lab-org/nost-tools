@@ -2,7 +2,9 @@
 """
     *This application demonstrates a constellation of satellites with continuous data collection and is used to track the state of each satellite's solid-state recorder while its orbital position is propagated from Two-Line Elements (TLEs)*
 
-    The application contains one :obj:`Constellation` (:obj:`Entity`) object class, one :obj:`PositionPublisher` (:obj:`WallclockTimeIntervalPublisher`). The application also contains two global methods outside of these classes, which contain standardized calculations sourced from Ch. 5 of *Space Mission Analysis and Design* by Wertz and Larson.
+    The application contains one :obj:`Constellation` (:obj:`Entity`) object class and one :obj:`PositionPublisher` (:obj:`WallclockTimeIntervalPublisher`). The application also contains two global methods outside of these classes, which contain standardized calculations sourced from Ch. 5 of *Space Mission Analysis and Design* by Wertz and Larson.
+    
+    *NOTE:* For example code demonstrating how the constellation application is started up and how the :obj:`Constellation` :obj:`Entity` object class is initialized and added to the simulator, see the FireSat+ example.
 
 """
 
@@ -123,7 +125,7 @@ class Constellation(Entity):
         capacity_used (:obj:`list`): list of values (*float*) representing current fraction of SSR capacity used for each satellite in the constellation, continuously updated through simulation - *NOTE:* must be same length as **id**
         instrument_rates (:obj:`list`): list of **fixed** instrument data collection rates in Gigabits/second (*float*) for each satellite in the constellation - *NOTE:* must be same length as **id**
         cost_mode (:obj:`list`): list of *str* representing one of three cost modes used to update cumulative costs: :obj:`discrete` (per downlink), :obj:`continuous` (fixed contract), or :obj:`both` - *NOTE:* must be same length as **id**
-        fixed_rates (:obj:`list`): list of **fixed** rates of cost accumulation in dollars/second for :obj:`continuous` cost_mode for each satellite in the constellation - *NOTE:* must be same length as **id**, but ignored of cost_mode for corresponding satellite is :obj:`discrete`
+        fixed_rates (:obj:`list`): list of **fixed** rates of cost accumulation in dollars/second for :obj:`continuous` cost_mode for each satellite in the constellation - *NOTE:* must be same length as **id**, but ignored if cost_mode for corresponding satellite is :obj:`discrete`
         linkCounts (:obj:`list`): list of cumulative counts of link opportunies (*int*) for each satellite in the constellation - *NOTE:* must be same length as **id**, initialized as list of zeros
         linkStatus (:obj:`list`): list of states (*bool*) indicating whether or not each satellite in the constellation is currently in view of an available ground station - *NOTE:* must be same length as **id**, each satellite state initialized as :obj:`False`
         cumulativeCostBySat (:obj:`dict`): Dictionary with keys corresponding to unique satellite name and values corresponding to current cumulative costs in dollars (*float*) accrued by each satellite in the constellation, continuously updated throughout the simulation - *NOTE:* must be same length as **id**, each satellite cost initialized as zero dollars
@@ -355,6 +357,13 @@ class Constellation(Entity):
            
     def on_outage(self, client, userdata, message):
         """
+        Callback function when message detected on the *PREFIX/outage/report* topic.
+        
+        Args:
+           client (:obj:`MQTT Client`): Client that connects application to the event broker using the MQTT protocol. Includes user credentials, tls certificates, and host server-port information.
+           userdata: User defined data of any type (not currently used)
+           message (:obj:`message`): Contains *topic* the client subscribed to and *payload* message content as attributes
+            
         """
         outageReport = OutageReport.parse_raw(message.payload)
         self.grounds["operational"][outageReport.groundId] = False
@@ -364,6 +373,13 @@ class Constellation(Entity):
         
     def on_restore(self, client, userdata, message):
         """
+        Callback function when message detected on the *PREFIX/outage/restore* topic.
+        
+        Args:
+           client (:obj:`MQTT Client`): Client that connects application to the event broker using the MQTT protocol. Includes user credentials, tls certificates, and host server-port information.
+           userdata: User defined data of any type (not currently used)
+           message (:obj:`message`): Contains *topic* the client subscribed to and *payload* message content as attributes
+            
         """
         outageRestore = OutageRestore.parse_raw(message.payload)
         self.grounds["operational"][outageRestore.groundId] = True
@@ -400,15 +416,20 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
         """
         *Abstract publish_message method inherited from the WallclockTimeIntervalPublisher object class from the publisher template in the NOS-T tools library*
 
-        This method sends a message to the *PREFIX/constellation/location* topic for each satellite in the constellation (:obj:`Constellation`), including:
+        This method sends a message to the *PREFIX/constellation/location* topic for each satellite in the constellation (:obj:`Constellation`), which includes:
 
         Args:
-            id (:obj:`list`): list of unique *int* ids for each satellite in the constellation
-            names (:obj:`list`): list of unique *str* for each satellite in the constellation - *NOTE:* must be same length as **id**
-            positions (:obj:`list`): list of current latitude-longitude-altitude locations (:obj:`GeographicPosition`) of each satellite in the constellation - *NOTE:* must be same length as **id**
-            radius (:obj:`list`): list of the radius (meters) of the nadir pointing sensors circular view of observation for each satellite in the constellation - *NOTE:* must be same length as **id**
-            commRange (:obj:`list`): list of *bool* indicating each satellites visibility to *any* ground station - *NOTE:* must be same length as **id**
-            time (:obj:`datetime`): current scenario :obj:`datetime`
+            id (int): Unique id for satellite in constellation
+            name (str): Unique *str* name for satellite in constellation
+            latitude (:obj:`confloat`): Latitude in degrees for satellite in constellation at current scenario time
+            longitude (:obj:`confloat`): Longitude in degrees for satellite in constellation at current scenario time
+            altitude (float): Altitude above sea-level in meters for satellite in constellation at current scenario time
+            capacity_used (float): Fraction of solid-state recorder capacity used for satellite in constellation at current scenario time
+            commRange (bool): Boolean state variable indicating if satellite in constellaton is in view of a ground station at current scenario time
+            groundId (int): Optional unique id for ground station in view of satellite in constellation at current scenario time (if commRange = False, the groundId = None)
+            totalLinkCount (int): Unique count of downlink opportunities for satellite in constellation
+            cumulativeCostBySat (float): Cumulative costs incurred for downlinks and/or fixed cost contracts for satellite in constellation at current scenario time
+            time (:obj:`datetime`): Current scenario :obj:`datetime`
 
         """
         for i, satellite in enumerate(self.constellation.satellites):
@@ -457,9 +478,11 @@ if __name__ == "__main__":
 
     # keys for CelesTrak TLEs used in this example, but indexes often change over time)
     names = ["SUOMI NPP (VIIRS)", "NOAA 20 (VIIRS)"]
-    NPP = activesats[537]
-    NOAA20 = activesats[1285]
-    ES = [NPP, NOAA20]
+    ES = []
+    indices = []
+    for name_i, name in enumerate(names):
+        ES.append(by_name[name])
+        indices.append(name_i)
 
     # initialize the Constellation object class (in this example from EarthSatellite type)
     constellation = Constellation("constellation", app, [0, 1], names, ES)

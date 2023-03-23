@@ -16,4 +16,4 @@ If you're just getting started with NOS-T, the :ref:`tutorial` is a walk-through
    :maxdepth: 1
 
    tech_brief/index
-   ICD/index
+   icd/index
