@@ -83,15 +83,14 @@ communication structure because each member application (client) only
 directly connects to the broker, rather than requiring each application
 to directly connect to every other application.
 
-Application Build 1
--------------------
+Application Build 1 - *Satellites*
+------------------------------------
 
 From here, the tutorial will explain important functions using FireSat+, an example NOS-T test suite based on FireSat, the common space systems 
 engineering application case. For more information on FireSat+, please see the following:
 
 * The Interface Control Document has a high-level description of FireSat+ :ref:`here <ICDfireSat>`.
 * A deeper dive into the applications and code is :ref:`here <fireSatExampleTop>`.
-
 
 The **Satellites** application
 
@@ -149,14 +148,51 @@ The Constellation class leverages the NOS-T tools library 'Entity' object class 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
 	:lines: 541- 612
 
-
-
-
-Application Build 2
--------------------
+Application Build 2 - *Manager*
+---------------------------------
 
 Maintaining a consistent simulation clock is important for many NOS-T use cases. For test suites that need to run faster than real time,
 it is an absolute necessity. The NOS-T **Manager** application is a good way to orchestrate all of the pieces for these types of tests.
+The manager is included in the NOS-T Tools library and will ensure that compliant applications start at the same time, and use a consistent
+simulation clock throughout the test run.
+
+Next, we will go through the Manager code block-by-block to understand what it is doing.
+
+.. literalinclude:: /../../examples/firesat/manager/main_manager.py
+	:lines: 12-26
+
+First, we have all of the import statements that the **Manager** relies on. The first of these three are general Python dependencies, and the
+second two are drawn from the NOS-T tools library. The last imports come from a config file that you should adjust for any specific test suites.
+In that config file you will need to set your desired event message prefix, the time scale, and any time scale updates. 
+
+.. _timeScaleUpdate:
+
+The time scale is a simple multiplier, i.e. if :code:`SCALE = 60` then the time will be sped up by 60x -- meaning that each second of real time
+will be one minute of simulation time. The time scale updates are used when you want to change the time scale at any point during 
+the simulation. As for the updates, They take a form like this:
+
+:code:`UPDATE = [TimeScaleUpdate(120.0, datetime(2020, 1, 1, 8, 20, 0, tzinfo=timezone.utc))]` 
+
+The above command would change the time scale to 120x at the given datetime object in simulation time. If you do not wish to update the time scale
+during a test case, then you can set :code:`UPDATE = []`
+
+Finally, the last line in the above code block sets up a logger to help you track what is going on. More info on the various levels can be found
+`here <https://docs.python.org/3/howto/logging.html#when-to-use-logging>`__.
+
+.. literalinclude:: /../../examples/firesat/manager/main_manager.py
+	:lines: 29-45
+
+The next block of code starts with a name guard and credentials like the **Satellites** app above. These credentials will be drawn from an environment 
+file :ref:`described below<envSetUp>`.
+
+The next four lines of code follow their preceding comments. Using the various NOS-T tools from the library the connection is set, the manager application
+is created, it is set to shut down after the test case, and is commanded to start up.
+
+.. literalinclude:: /../../examples/firesat/manager/main_manager.py
+	:lines: 48-58
+
+This section contains the vital information for executing your test plan. The comments on the right side give a good explanation of what each line means.
+It is important to note that the :code:`SCALE` and :code:`UPDATE` values should be set in the config file as explaned :ref`above<timeScaleUpdate>`.
 
 Test Suite Wrap-Up
 ------------------
@@ -166,7 +202,8 @@ asdf
 File Tree Checkup
 ~~~~~~~~~~~~~~~~~
 
-asdf
+If you have done everything correctly up to this point, you should see a file tree like the image below. Most importantly, you should have 
+the five folders in the firesat folder which contain the constituent FireSat+ applications. These applications are described in the next section.
 
 Remaining Applications
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -267,7 +304,13 @@ to below.
 Conclusion
 ----------
 
-This hands-on tutorial was developed to help users get started with NOS-T from a basic level. It began with
-downloading an IDE for interfacing with NOS-T and finished with running the FireSat+ example code. Some good next
+This hands-on tutorial was developed to help users get started with NOS-T from a basic level. It begins with
+downloading an IDE for running scripts to interface with NOS-T and finishes with executing the FireSat+ example code. Some good next
 steps for learning other NOS-T functions and developing your own test suites can be found at the following links:
+
+* :ref:`Main FireSat+ documentation<fireSatExampleTop>`
+* :ref:`Science Event Dashboard test suite walkthrough<instructionsScienceDash>`
+* :ref:`NOS-T Tools API documentation<nostTools>`
+* :ref:`Official release documents<releaseDocs>`
+* 
 
