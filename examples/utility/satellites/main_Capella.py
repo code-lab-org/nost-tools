@@ -26,8 +26,8 @@ logging.basicConfig(level=logging.INFO)
 if __name__ == "__main__":
     # Note that these are loaded from a .env file in current working directory
     credentials = dotenv_values(".env")
-    HOST, PORT = credentials["SMCE_HOST"], int(credentials["SMCE_PORT"])
-    USERNAME, PASSWORD = credentials["SMCE_USERNAME"], credentials["SMCE_PASSWORD"]
+    HOST, PORT = credentials["HOST"], int(credentials["PORT"])
+    USERNAME, PASSWORD = credentials["USERNAME"], credentials["PASSWORD"]
     
     # set the client credentials
     config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, True)
@@ -36,14 +36,18 @@ if __name__ == "__main__":
     app = ManagedApplication("capella")
 
     # Names of Capella satellites used in Celestrak database
-    names = ["CAPELLA-1-DENALI", \
-            "CAPELLA-2-SEQUOIA", \
-            "CAPELLA-3-WHITNEY", \
-            "CAPELLA-4-WHITNEY", \
-            "CAPELLA-5-WHITNEY", \
-            "CAPELLA-6-WHITNEY", \
-            "CAPELLA-7-WHITNEY", \
-            "CAPELLA-8-WHITNEY"]
+    # names = ["CAPELLA-1-DENALI", \
+    #         "CAPELLA-2-SEQUOIA", \
+    #         "CAPELLA-3-WHITNEY", \
+    #         "CAPELLA-4-WHITNEY", \
+    #         "CAPELLA-5-WHITNEY", \
+    #         "CAPELLA-6-WHITNEY", \
+    #         "CAPELLA-7-WHITNEY", \
+    #         "CAPELLA-8-WHITNEY"]
+    names = ["CAPELLA-4-WHITNEY", \
+             "CAPELLA-6-WHITNEY", \
+             "CAPELLA-7-WHITNEY", \
+             "CAPELLA-8-WHITNEY"]
     
     field_of_regard = [80.0 for _ in names]
 
@@ -61,6 +65,7 @@ if __name__ == "__main__":
                 if i % 3 == 0 and row.strip(' \n') in names:
                     TLES[row.strip(' \n')].append(f[i+1])
                     TLES[row.strip(' \n')].append(f[i+2])
+
     else: 
         TLES = pd.Series(json.loads(PARAMETERS["TLES"]["capella"]))
 

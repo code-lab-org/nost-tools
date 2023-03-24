@@ -1,8 +1,8 @@
-var CESIUM_ACCESS_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlMGE4YTEyMi0wNzllLTRjYmItYTY3Ny1kOTA3YzEwNzk3ZDEiLCJpZCI6MTYyNzcsInNjb3BlcyI6WyJhc3IiLCJnYyJdLCJpYXQiOjE1NzAwNjA5MzF9.NgsS6QgAqCD3SkBP23vtQro_QWUDVgUnEEOW-UQ2ypQ';
-			var BROKER_HOST = 'testbed.mysmce.com';
-			var BROKER_PORT = 8443;
-			var BROKER_CLIENT_USERNAME = 'tsherman';
-			var BROKER_CLIENT_PASSWORD = 'u3AtMZcfsWz3tq';
+var CESIUM_ACCESS_TOKEN = TOKEN;
+			var BROKER_HOST = HOST;
+			var BROKER_PORT = PORT;
+			var BROKER_CLIENT_USERNAME = USERNAME;
+			var BROKER_CLIENT_PASSWORD = PASSWORD;
 	  
 			$(document).ready(function(){
 				Cesium.Ion.defaultAccessToken = CESIUM_ACCESS_TOKEN;

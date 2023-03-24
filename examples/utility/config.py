@@ -7,10 +7,10 @@ from datetime import datetime, timezone, timedelta
 import pandas as pd
 
 # Name of next simulation run
-sim_name = "seedTest2"
+sim_name = 'test'
 
 # Name of simulation file to pull parameters from. if None, use below parameters
-param_file = "seedTest"
+param_file = None
 
 if param_file == None:
     seed = random.randint(0, 1000000000000)
