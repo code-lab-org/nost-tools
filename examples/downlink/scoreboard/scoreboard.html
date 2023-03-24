@@ -26,6 +26,7 @@
 			var BROKER_PORT = PORT;
 			var BROKER_CLIENT_USERNAME = USERNAME;
 			var BROKER_CLIENT_PASSWORD = PASSWORD;
+			var PREFIX = PREFIX;
 
 			$(document).ready(function(){
 				Cesium.Ion.defaultAccessToken = CESIUM_ACCESS_TOKEN;
@@ -57,7 +58,7 @@
 				var commsCones = {}; <!-- Views from ground station FOR comms -->
 				var commsRange = false; <!-- Initialize this commsRange boolean as false, but will update based on satellite subscription -->
 				var satColor = Cesium.Color.BLUE; <!-- Initialize satColor as Cesium's default BLUE, which is color when commsRange is false -->
-				var fires = viewer.scene.primitives.add(new Cesium.PointPrimitiveCollection()); <!-- Initialize fires as primitive points since there will be so many -->
+				<!-- var fires = viewer.scene.primitives.add(new Cesium.PointPrimitiveCollection()); <!-- Initialize fires as primitive points since there will be so many --> -->
 				var grounds = {}; <!-- Surface position of ground stations as PINK points -->
 				var updates = {};
 
@@ -68,24 +69,24 @@
 					var topic = message.destinationName;
 					// try to parse and stringify a JSON string
 					try {
-						if(topic=="downlinkBC/manager/init") {
+						if(topic==`${PREFIX}/manager/init`) {
 							payload = JSON.parse(message.payloadString);
 							viewer.clockViewModel.currentTime = Cesium.JulianDate.fromIso8601(payload.taskingParameters.simStartTime);
 							viewer.clockViewModel.startTime = Cesium.JulianDate.fromIso8601(payload.taskingParameters.simStartTime);
 							viewer.clockViewModel.stopTime = Cesium.JulianDate.fromIso8601(payload.taskingParameters.simStopTime);
 							viewer.clockViewModel.clockRange = Cesium.ClockRange.CLAMPED;
 							viewer.timeline.zoomTo(viewer.clockViewModel.startTime,viewer.clockViewModel.stopTime);
-						} else if(topic=="downlinkBC/manager/start") {
+						} else if(topic==`${PREFIX}/manager/start`) {
 							payload = JSON.parse(message.payloadString);
 							viewer.clockViewModel.multiplier = payload.taskingParameters.timeScalingFactor;
-						} else if(topic=="downlinkBC/manager/time" || topic=="downlinkBC/manager/status/time") {
+						} else if(topic==`${PREFIX}/manager/time` || topic==`${PREFIX}/manager/status/time`) {
 							payload = JSON.parse(message.payloadString);
 							viewer.clockViewModel.currentTime = Cesium.JulianDate.fromIso8601(payload.properties.simTime);
 							viewer.timeline.updateFromClock();
-        				} else if(topic=="downlinkBC/manager/update"){
+        				} else if(topic==`${PREFIX}/manager/update`){
 							payload = JSON.parse(message.payloadString);
 							viewer.clockViewModel.multiplier = payload.taskingParameters.timeScalingFactor;
-						} else if(topic=="downlinkBC/constellation/location") {
+						} else if(topic==`${PREFIX}/constellation/location`) {
 							payload = JSON.parse(message.payloadString);
 							commRange = payload.commRange;
 							if (commRange){
@@ -153,7 +154,7 @@
 									}
 								});
 		  					}
-						} else if(topic=="downlinkBC/ground/location"){
+						} else if(topic==`${PREFIX}/ground/location`){
 							payload = JSON.parse(message.payloadString);
 							activeCheck = payload.operational;
 							if (activeCheck){
@@ -168,7 +169,8 @@
 								grounds[payload.groundId] = viewer.entities.add({
 									position: Cesium.Cartesian3.fromDegrees(
 										payload.longitude,
-										payload.latitude
+										payload.latitude,
+										0.0
 									),
 									point: {
 										pixelSize: 8,
@@ -181,11 +183,11 @@
 									position: Cesium.Cartesian3.fromDegrees(
 										payload.longitude,
 										payload.latitude,
-										100000.0
+										250000.0
 									),
 									cylinder: {
-										length: 200000.0,
-										topRadius: 200000.0*Math.tan((90-payload.elevAngle)*Math.PI/180),
+										length: 500000.0,
+										topRadius: 500000.0*Math.tan((90-payload.elevAngle)*Math.PI/180),
 										bottomRadius: 0.0,
 										material: groundMaterial,
 										outline: true,
@@ -193,6 +195,19 @@
 									}
 								});
 							}
+						} else if(topic==`${PREFIX}/outage/report` || topic==`${PREFIX}/outage/restore`){
+							payload = JSON.parse(message.payloadString);
+							if (topic==`${PREFIX}/outage/report`){
+								groundColor = Cesium.Color.LIGHTGRAY
+								groundMaterial = Cesium.Color.LIGHTGRAY.withAlpha(0.1)
+								commsCones[payload.groundId].cylinder.show = false
+							} else {
+								groundColor = Cesium.Color.PINK
+								groundMaterial = Cesium.Color.PINK.withAlpha(0.1)
+								commsCones[payload.groundId].cylinder.show = true
+							}
+							grounds[payload.groundId].point.color = groundColor
+							commsCones[payload.groundId].cylinder.material = groundMaterial
 						}
 					} catch(err) {
 						console.log('An error was caught somewhere...')
@@ -204,7 +219,7 @@
 					"password": BROKER_CLIENT_PASSWORD,
 					"useSSL": true,
 					"onSuccess": function() {
-						client.subscribe("downlinkBC/#", {
+						client.subscribe(`${PREFIX}/#`, {
 							"onFailure": function() {
 								alert("Error subscribing to topic.");
 							},

@@ -2,7 +2,7 @@
 """
     *This application demonstrates a constellation of satellites for monitoring fires propagated from Two-Line Elements (TLEs)*
 
-    The application contains one :obj:`Constellation` (:obj:`Entity`) object class, one :obj:`PositionPublisher` (:obj:`WallclockTimeIntervalPublisher`), and two :obj:`Observer` object classes to monitor for :obj:`FireDetected` and :obj:`FireReported` events, respectively. The application also contains several methods outside of these classes, which contain standardized calculations sourced from Ch. 5 of *Space Mission Analysis and Design* by Wertz and Larson.
+    The application contains one :obj:`Constellation` (:obj:`Entity`) object class, one :obj:`PositionPublisher` (:obj:`WallclockTimeIntervalPublisher`) class, and two :obj:`Observer` object classes to monitor for :obj:`FireDetected` and :obj:`FireReported` events, respectively. The application also adds several methods outside of these classes containing standardized calculations sourced from Ch. 5 of *Space Mission Analysis and Design* by Wertz and Larson, including:
 
 """
 import logging
@@ -27,14 +27,14 @@ from nost_tools.publisher import WallclockTimeIntervalPublisher
 
 from skyfield.api import load, wgs84, EarthSatellite
 
-from constellation_config_files.schemas import (
+from examples.firesat.satellites.constellation_config_files.schemas import (
     FireStarted,
     FireDetected,
     FireReported,
     SatelliteStatus,
     GroundLocation,
 )
-from constellation_config_files.config import (
+from examples.firesat.satellites.constellation_config_files.config import (
     PREFIX,
     NAME,
     SCALE,
@@ -440,11 +440,13 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
         This method sends a message to the *PREFIX/constellation/location* topic for each satellite in the constellation (:obj:`Constellation`), including:
 
         Args:
-            id (list): list of unique *int* ids for each satellite in the constellation
-            names (list): list of unique *str* for each satellite in the constellation - *NOTE:* must be same length as **id**
-            positions (list): list of current latitude-longitude-altitude locations (:obj:`GeographicPosition`) of each satellite in the constellation - *NOTE:* must be same length as **id**
-            radius (list): list of the radius (meters) of the nadir pointing sensors circular view of observation for each satellite in the constellation - *NOTE:* must be same length as **id**
-            commRange (list): list of *bool* indicating each satellites visibility to *any* ground station - *NOTE:* must be same length as **id**
+            id (int): Unique id for satellite in constellation
+            names (str): Unique name for satellite in constellation
+            latitude (:obj:`confloat`): Latitude in degrees for satellite in constellation at current scenario time
+            longitude (:obj:`confloat`): Longitude in degrees for satellite in constellation at current scenario time
+            altitude (float): Altitude above sea-level in meters for satellite in constellation at current scenario time
+            radius (float): Radius (meters) of the nadir pointing sensors circular view of observation for satellite in constellation at current scenario time
+            commRange (bool): Boolean state variable indicating if satellite in constellaton is in view of a ground station at current scenario time
             time (:obj:`datetime`): current scenario :obj:`datetime`
 
         """
@@ -555,21 +557,6 @@ if __name__ == "__main__":
     activesats_url = "https://celestrak.com/NORAD/elements/active.txt"
     activesats = load.tle_file(activesats_url, reload=True)
     by_name = {sat.name: sat for sat in activesats}
-    # keys for CelesTrak TLEs used in this example (all 6 contained in active.txt, but indexes often change over time)
-    # AQUA (MODIS) = 27424, Index 149
-    # TERRA (MODIS) = 25994, Index 101
-    # SUOMI NPP (VIIRS) = 37849, Index 544
-    # NOAA 20 (VIIRS) = ?, Index 1297
-    # SENTINEL 2A = ?, Index = 897
-    # SENTINEL 2B = ?, Index = 1164
-    # names = ["AQUA (MODIS)", "TERRA (MODIS)", "SUOMI NPP (VIIRS)", "NOAA-20 (VIIRS)", "SENTINEL-2A (MSI)", "SENTINEL-2B (MSI)"]
-    # AQUA = activesats[149]
-    # TERRA = activesats[101]
-    # NPP = activesats[544]
-    # NOAA20 = activesats[1297]
-    # SENTINEL2A = activesats[897]
-    # SENTINEL2B = activesats[1164]
-    # ES = [AQUA, TERRA, NPP, NOAA20, SENTINEL2A, SENTINEL2B]
     names = ["AQUA", "TERRA", "SUOMI NPP", "NOAA 20", "SENTINEL-2A", "SENTINEL-2B"]
 
     ES = []
@@ -579,7 +566,6 @@ if __name__ == "__main__":
         indices.append(name_i)
     
     # initialize the Constellation object class (in this example from EarthSatellite type)
-    # constellation = Constellation("constellation", app, [0, 1, 2, 3, 4, 5], names, ES)
     constellation = Constellation("constellation", app, indices, names, ES)
 
     # add observer classes to the Constellation object class
@@ -610,3 +596,6 @@ if __name__ == "__main__":
     # add message callbacks
     app.add_message_callback("fire", "location", constellation.on_fire)
     app.add_message_callback("ground", "location", constellation.on_ground)
+
+    while True:
+        pass

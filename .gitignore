@@ -131,3 +131,7 @@ dmypy.json
 
 # VSCode project settings
 .vscode/**/*
+*.bak
+*.bak
+*.bak
+*.bak
