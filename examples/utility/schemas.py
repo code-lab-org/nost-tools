@@ -59,10 +59,10 @@ class EventFinished(BaseModel):
 class SatelliteStatus(BaseModel):
     id: int = Field(..., description="Unique satellite identifier")
     name: str = Field(..., description="Satellite name for labeling.")
-    latitude: confloat(ge=-90, le=90) = Field(
+    latitude: float = Field(
         ..., description="Latitude (deg) of satellite subpoint location."
     )
-    longitude: confloat(ge=-180, le=180) = Field(
+    longitude: float = Field(
         ..., description="Longitude (deg) of satellite subpoint location."
     )
     altitude: float = Field(

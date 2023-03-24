@@ -186,3 +186,6 @@ if __name__ == "__main__":
     app.add_message_callback("fire", "location", on_fire)
     app.add_message_callback("constellation", "detected", on_detected)
     app.add_message_callback("constellation", "reported", on_reported)
+
+    while True:
+        pass

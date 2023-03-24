@@ -610,3 +610,6 @@ if __name__ == "__main__":
     # add message callbacks
     app.add_message_callback("fire", "location", constellation.on_fire)
     app.add_message_callback("ground", "location", constellation.on_ground)
+
+    while True:
+        pass
