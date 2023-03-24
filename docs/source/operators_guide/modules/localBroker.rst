@@ -8,7 +8,7 @@ This page shows how to configure a new standalone Solace broker on a local machi
 Initializing a Solace Event Broker with Docker Compose
 ------------------------------------------------------
 
-This tutorial specifically makes use of a Docker container for setting up the broker. A Docker container image is a lightweight, standalone, executable package of software that includes everything needed to run an application: code, runtime, system tools, system libraries and settings. In order to use the Docker Compose commands described, one of the following must be installed:
+This tutorial specifically makes use of a Docker container for setting up the broker. A Docker container image is a lightweight, standalone, executable package of software that includes everything needed to run an application: code, runtime, system tools, system libraries and settings. In order to use the Docker Compose commands described, one of the following can be installed:
 
 	* `Docker Desktop for Windows <https://docs.docker.com/desktop/install/windows-install/>`_ with at least 2 GiB of memory dedicated to Docker Engine.
 	
@@ -22,11 +22,11 @@ Each of the latter includes the Docker Compose tool. To check if Docker Compose 
 
 If a list of options or commands is not displayed, then `installing Docker Compose directly <https://docs.docker.com/compose/install/>`_ may be necessary.
 
-To begin setting up a broker, clone the Solace git repository for the `solace-single-docker-compose <https://github.com/SolaceLabs/solace-single-docker-compose>`_. By cloning this repository, any updates made by Solace can be easily integrated to ensure broker compliance. Alternatively, the `PubSubStandard_singleNode.yml <https://github.com/SolaceLabs/solace-single-docker-compose/blob/37cba15c4ee6a2ce402c699a93560f4a14335e75/template/PubSubStandard_singleNode.yml>`_ file can be downloaded directly for local use, but without the benefit of syncing to the managed git repository. Open an elevated command prompt (NOTE: had issues with elevated Anaconda prompt) and change directories to the location of this :obj:`.yml` and enter the following:
+To begin setting up a broker, clone the Solace git repository for the `solace-single-docker-compose <https://github.com/SolaceLabs/solace-single-docker-compose>`_. By cloning this repository, any updates made by Solace can be easily integrated to ensure broker compliance. Alternatively, the `PubSubStandard_singleNode.yml <https://github.com/SolaceLabs/solace-single-docker-compose/blob/37cba15c4ee6a2ce402c699a93560f4a14335e75/template/PubSubStandard_singleNode.yml>`_ file can be downloaded directly for local use, but without the benefit of syncing to the managed git repository. Open an elevated command prompt and change directories to the location of this :obj:`.yml` and enter the following:
 
 .. code-block:: console
 	
-	> docker-compose -f PubSubStandard_singleNode.yml up -d
+	>>> docker-compose -f PubSubStandard_singleNode.yml up -d
 	[+] Running 2/2
 	- Volume "template-storage-group"	Created							##.#s
 	- Container pubSubStandardSingleNode	Started							##.#s

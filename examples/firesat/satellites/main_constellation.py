@@ -2,7 +2,7 @@
 """
     *This application demonstrates a constellation of satellites for monitoring fires propagated from Two-Line Elements (TLEs)*
 
-    The application contains one :obj:`Constellation` (:obj:`Entity`) object class, one :obj:`PositionPublisher` (:obj:`WallclockTimeIntervalPublisher`), and two :obj:`Observer` object classes to monitor for :obj:`FireDetected` and :obj:`FireReported` events, respectively. The application also contains several methods outside of these classes, which contain standardized calculations sourced from Ch. 5 of *Space Mission Analysis and Design* by Wertz and Larson.
+    The application contains one :obj:`Constellation` (:obj:`Entity`) object class, one :obj:`PositionPublisher` (:obj:`WallclockTimeIntervalPublisher`) class, and two :obj:`Observer` object classes to monitor for :obj:`FireDetected` and :obj:`FireReported` events, respectively. The application also adds several methods outside of these classes containing standardized calculations sourced from Ch. 5 of *Space Mission Analysis and Design* by Wertz and Larson, including:
 
 """
 import logging
@@ -440,11 +440,13 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
         This method sends a message to the *PREFIX/constellation/location* topic for each satellite in the constellation (:obj:`Constellation`), including:
 
         Args:
-            id (list): list of unique *int* ids for each satellite in the constellation
-            names (list): list of unique *str* for each satellite in the constellation - *NOTE:* must be same length as **id**
-            positions (list): list of current latitude-longitude-altitude locations (:obj:`GeographicPosition`) of each satellite in the constellation - *NOTE:* must be same length as **id**
-            radius (list): list of the radius (meters) of the nadir pointing sensors circular view of observation for each satellite in the constellation - *NOTE:* must be same length as **id**
-            commRange (list): list of *bool* indicating each satellites visibility to *any* ground station - *NOTE:* must be same length as **id**
+            id (int): Unique id for satellite in constellation
+            names (str): Unique name for satellite in constellation
+            latitude (:obj:`confloat`): Latitude in degrees for satellite in constellation at current scenario time
+            longitude (:obj:`confloat`): Longitude in degrees for satellite in constellation at current scenario time
+            altitude (float): Altitude above sea-level in meters for satellite in constellation at current scenario time
+            radius (float): Radius (meters) of the nadir pointing sensors circular view of observation for satellite in constellation at current scenario time
+            commRange (bool): Boolean state variable indicating if satellite in constellaton is in view of a ground station at current scenario time
             time (:obj:`datetime`): current scenario :obj:`datetime`
 
         """

@@ -13,7 +13,7 @@ Finally, the :ref:`Scalability Test Suite<scalability>` was used to test how wel
 loads of varying frequency and size.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    scienceDash/api/modules
    firesat/api/modules
