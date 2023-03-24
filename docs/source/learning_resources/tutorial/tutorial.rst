@@ -146,7 +146,7 @@ The Constellation class leverages the NOS-T tools library 'Entity' object class 
 	:lines: 509-540
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-	:lines: 541- 612
+	:lines: 541- 601
 
 Application Build 2 - *Manager*
 ---------------------------------
