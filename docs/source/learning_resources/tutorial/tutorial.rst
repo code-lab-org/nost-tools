@@ -156,14 +156,13 @@ it is an absolute necessity. The NOS-T **Manager** application is a good way to 
 The manager is included in the NOS-T Tools library and will ensure that compliant applications start at the same time, and use a consistent
 simulation clock throughout the test run.
 
-Next, we will go through the Manager code block-by-block to understand what it is doing.
+Next, we will go through the Manager code block-by-block to understand what it is doing. First, we have all of the import statements that the 
+**Manager** relies on. The first of these three are general Python dependencies, and the
+second two are drawn from the NOS-T tools library. The last imports come from a config file that you should adjust for any specific test suites.
+In that config file you will need to set your desired event message prefix, the time scale, and any time scale updates. 
 
 .. literalinclude:: /../../examples/firesat/manager/main_manager.py
 	:lines: 12-26
-
-First, we have all of the import statements that the **Manager** relies on. The first of these three are general Python dependencies, and the
-second two are drawn from the NOS-T tools library. The last imports come from a config file that you should adjust for any specific test suites.
-In that config file you will need to set your desired event message prefix, the time scale, and any time scale updates. 
 
 .. _timeScaleUpdate:
 
@@ -179,11 +178,11 @@ during a test case, then you can set :code:`UPDATE = []`
 Finally, the last line in the above code block sets up a logger to help you track what is going on. More info on the various levels can be found
 `here <https://docs.python.org/3/howto/logging.html#when-to-use-logging>`__.
 
-.. literalinclude:: /../../examples/firesat/manager/main_manager.py
-	:lines: 29-45
-
 The next block of code starts with a name guard and credentials like the **Satellites** app above. These credentials will be drawn from an environment 
 file :ref:`described below<envSetUp>`.
+
+.. literalinclude:: /../../examples/firesat/manager/main_manager.py
+	:lines: 29-45
 
 The next four lines of code follow their preceding comments. Using the various NOS-T tools from the library the connection is set, the manager application
 is created, it is set to shut down after the test case, and is commanded to start up.
