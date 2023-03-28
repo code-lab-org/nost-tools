@@ -121,34 +121,62 @@ Next, the ``compute_sensor_radius`` function  pulls in the result of compute_min
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
 	:lines: 74-98
 
-The ``check_in_view`` function accepts the parameters ``t``, ``sat``, and ``loc``, whcih represent the Skyfield time object, the Skyfield EarthSat object, and the latitude/longitude of the spacecraft's subpoint, respectively. It returns an elevation angle in respect to the topocentric horizon.
+The ``get_elevation_angle`` is a function that uses the Skyfield library. It accepts the parameters ``t``, ``sat``, and ``loc``. The first two, respectively, represent the Skyfield time object, the Skyfield EarthSat object. The third is the latitude/longitude of the spacecraft's subpoint, along with the spacecraft altitude. It returns an elevation angle in respect to the topocentric horizon.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-	:lines: 100-118
+	:lines: 100-117
 
-
+These two functions, ``check_in_view`` and ``check_in_range``, affirm if the elevation angle and immediate location of the satellite enable it to connect to a ground station and view regions on Earth. 
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
 	:lines: 120-168
 
-These two functions, check_in_view and check_in_range, affirm if the elevation angle and immediate location of the satellite enable it to connect to a ground station and view regions on Earth. 
+Constellation class
+~~~~~~~~~~~~~~~~~~~
 
-.. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-	:lines: 170-476
-
-This section of the code represents the definition of the Constellation class. In object-oriented programming, a class is a replicatable object that can be assigned unique parameters to generate a diverse collection of similar objects.
+The next section of code blocks define the Constellation class. In object-oriented programming, a class is a replicable object that can be assigned unique parameters to generate a diverse collection of similar objects.
 The Constellation class leverages the NOS-T tools library 'Entity' object class to construct the constellation chain.
 
-.. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-	:lines: 478-507
-
-
+The first two functions in the Constellation class, ``init`` and ``initialize``, prepare the test run for startup by initializing data.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-	:lines: 509-540
+	:lines: 170-250
+
+The next two functions, ``tick`` and ``tock``, are very important for executing time-managed test suites. Generally, the ``tick`` function computes the current state of an application. Any cumbersome functions like simulations should be performed here. The ``tock`` function commits the state changes. You want this done as quickly as possible to maintain consistent timing between applications.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-	:lines: 541- 601
+  :lines: 252-334
+
+The next function, ``on_fire``, checks the current simulation time vs. a database of actual fires detected by an space-based infrared sensor. This function then publishes a message containing information about the fire. It also maintains an internal database for when fires are detected and reported, and which satellite did the detecting/reporting.
+
+.. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
+  :lines: 336-371
+
+The final block of the Constellation class is next. It contains the ``on_ground`` function which is used to collect information on ground station locations and elevation angles when those messages are published.
+
+.. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
+  :lines: 373-409
+
+Position Publisher Class
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The next class in the **Satellites** application is the Position Publisher. This class takes the satellite location information from the Constellation class and publishes it over the NOS-T infrastructre. These messages are used for the **Scoreboard** application, which is a geospatial visualization tool.
+
+.. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
+	:lines: 413-477
+
+Fire Observer Classes
+~~~~~~~~~~~~~~~~~~~~~
+
+The next code block contains two different fire observation classes. The first of these is for detecting fires and the second is for reporting fires. The concept of operations for FireSat+ is that fires are first *ignited*, then *detected* when a satellite passes over them. Finally, the fires are *reported* when the detecting satellite is in range of a ground station for the data downlink. The Fire Observer classes publish this over the testbed for postprocessing of results, and for **Scoreboard** visualization.
+
+.. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
+	:lines: 480-540
+
+The final block of code in the **Satellites** app is for initializing data and adding the functions and classes.
+
+.. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
+	:lines: 543- 601
 
 Application Build 2 - *Manager*
 ---------------------------------
@@ -178,7 +206,9 @@ the simulation. As for the updates, They take a form like this:
 :code:`UPDATE = [TimeScaleUpdate(120.0, datetime(2020, 1, 1, 8, 20, 0, tzinfo=timezone.utc))]` 
 
 The above command would change the time scale to 120x at the given datetime object in simulation time. If you do not wish to update the time scale
-during a test case, then you can set :code:`UPDATE = []`
+during a test case, then you can set 
+
+:code:`UPDATE = []`
 
 Finally, the last line in the above code block sets up a logger to help you track what is going on. More info on the various levels can be found
 `here <https://docs.python.org/3/howto/logging.html#when-to-use-logging>`__.
