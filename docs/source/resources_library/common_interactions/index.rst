@@ -18,7 +18,6 @@ solely for aggregating these statuses. Heartbeat messages can also be used to di
 .. image:: media/HeartbeatMessage.png
    :align: center
 
-|
 There are three significant phases of communication between the manager and the user application. The initialization block contains a simple initalized message, responsed to by a ready
 status message. In the Start phase, status modes are updated and time status messages are published for the duration of the scenario. In the final stage, the stop phase, the application alerts the manager
 of it's termination and halts the time status messages. Example schemas are shown below for each of the messaging examples. 
