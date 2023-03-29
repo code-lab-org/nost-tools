@@ -12,7 +12,7 @@ This section contains resources for helping users with NOS-T applications and te
 Finally, the :ref:`Resource Library<resourceLibrary>` contains useful material such as application templates.
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :hidden:
 
    installation

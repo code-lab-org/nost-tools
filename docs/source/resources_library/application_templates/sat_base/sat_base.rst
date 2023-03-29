@@ -7,4 +7,6 @@ This set of Python scripts model a basic satellite that can be extended for vari
 main_sat.py
 -----------
 
+Coming Soon!
+
 .. automodule:: satBaseClass.main_sat
