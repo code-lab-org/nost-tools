@@ -11,11 +11,16 @@ Connecting to the Solace Broker
 Publishing Status Messages
 --------------------------
 
+.. image:: media/Heartbeat_message.png
+    :width: 600
+    :align: center
 
 
 Tasking a Commercial Satellite Observation
 ------------------------------------------
-
+.. image:: media/APITaskingRequest.png
+    :width: 600
+    :align: center
 
 
 Paying for a Commercial Satellite Observation
