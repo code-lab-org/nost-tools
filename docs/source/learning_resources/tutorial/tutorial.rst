@@ -102,34 +102,35 @@ tutorial/firesat/satellites. You will be guided through the how each code block 
 This first part of the code contains import statements allow you to install the necessary dependencies to construct the application. The group at the top are regular Python dependencies while the ones at the bottom draw from the :ref:`NOS-T tools library <nostTools>`.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-	:lines: 8-28
+	:lines: 8-20
 
 This next set of import statements are customized for FireSat+ values from the constellation configuration files. The first set of imports draws in the message schema configuration, which defines the structure of how **Satellites** communicates data. The second set of imports pulls in values to define the constellation: the ``PREFIX`` the messages will be published on, the ``NAME`` of the satellite, the ``SCALE`` of the timed simulation, 
 the two-line element sets (``TLEs``) that define the satellites' orbit, and the ``FIELD_OF_REGARD``, which indicates the region visible on Earth by the satellite's instrument.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-	:lines: 30-43
+	:lines: 22-35
 
-The function below, ``compute_min_elevation``, returns the minimum elevation angle required for a satellite to observe a point from it's current location. It accepts the parameters altitude and field_of_regard to 
+The first line in the code block below sets up a logger to help you track what is going on. More info on the various levels can be found
+`here <https://docs.python.org/3/howto/logging.html#when-to-use-logging>`__. Next, the function, ``compute_min_elevation``, returns the minimum elevation angle required for a satellite to observe a point from it's current location. It accepts the parameters altitude and field_of_regard to 
 complete mathematical functions to return the degree on minimum elevation.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-	:lines: 45-72
+	:lines: 37-63
  
 Next, the ``compute_sensor_radius`` function  pulls in the result of compute_min_elevation and the altitude value to return ``sensor_radius``, which provides the radius of the nadir pointing sensor's circular view projected onto Earth. 
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-	:lines: 74-98
+	:lines: 66-89
 
 The ``get_elevation_angle`` is a function that uses the Skyfield library. It accepts the parameters ``t``, ``sat``, and ``loc``. The first two, respectively, represent the Skyfield time object, the Skyfield EarthSat object. The third is the latitude/longitude of the spacecraft's subpoint, along with the spacecraft altitude. It returns an elevation angle in respect to the topocentric horizon.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-	:lines: 100-117
+	:lines: 92-109
 
 These two functions, ``check_in_view`` and ``check_in_range``, affirm if the elevation angle and immediate location of the satellite enable it to connect to a ground station and view regions on Earth. 
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-	:lines: 120-168
+	:lines: 112-159
 
 Constellation class
 ~~~~~~~~~~~~~~~~~~~
@@ -140,22 +141,22 @@ The Constellation class leverages the NOS-T tools library 'Entity' object class 
 The first two functions in the Constellation class, ``init`` and ``initialize``, prepare the test run for startup by initializing data.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-	:lines: 170-250
+	:lines: 162-239
 
 The next two functions, ``tick`` and ``tock``, are very important for executing time-managed test suites. Generally, the ``tick`` function computes the current state of an application. Any cumbersome functions like simulations should be performed here. The ``tock`` function commits the state changes. You want this done as quickly as possible to maintain consistent timing between applications.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-  :lines: 252-334
+  :lines: 241-317
 
 The next function, ``on_fire``, checks the current simulation time vs. a database of actual fires detected by an space-based infrared sensor. This function then publishes a message containing information about the fire. It also maintains an internal database for when fires are detected and reported, and which satellite did the detecting/reporting.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-  :lines: 336-371
+  :lines: 319-354
 
 The final block of the Constellation class is next. It contains the ``on_ground`` function which is used to collect information on ground station locations and elevation angles when those messages are published.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-  :lines: 373-409
+  :lines: 356-392
 
 Position Publisher Class
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -163,7 +164,7 @@ Position Publisher Class
 The next class in the **Satellites** application is the Position Publisher. This class takes the satellite location information from the Constellation class and publishes it over the NOS-T infrastructre. These messages are used for the **Scoreboard** application, which is a geospatial visualization tool.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-	:lines: 413-477
+	:lines: 395-460
 
 Fire Observer Classes
 ~~~~~~~~~~~~~~~~~~~~~
@@ -171,12 +172,12 @@ Fire Observer Classes
 The next code block contains two different fire observation classes. The first of these is for detecting fires and the second is for reporting fires. The concept of operations for FireSat+ is that fires are first *ignited*, then *detected* when a satellite passes over them. Finally, the fires are *reported* when the detecting satellite is in range of a ground station for the data downlink. The Fire Observer classes publish this over the testbed for postprocessing of results, and for **Scoreboard** visualization.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-	:lines: 480-540
+	:lines: 463-523
 
 The final block of code in the **Satellites** app is for initializing data and adding the functions and classes.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-	:lines: 543- 601
+	:lines: 526- 584
 
 Application Build 2 - *Manager*
 ---------------------------------

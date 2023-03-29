@@ -6,7 +6,7 @@ Here you will find descriptions and schema for interactions which are common for
 Connecting to the Solace Broker
 -------------------------------
 
-
+Coming Soon!
 
 Publishing Status Messages
 --------------------------
