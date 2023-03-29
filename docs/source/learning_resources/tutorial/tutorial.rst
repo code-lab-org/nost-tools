@@ -84,7 +84,7 @@ directly connects to the broker, rather than requiring each application
 to directly connect to every other application.
 
 Application Build 1 - *Satellites*
-------------------------------------
+----------------------------------
 
 From here, the tutorial will explain important functions using FireSat+, an example NOS-T test suite based on FireSat, the common space systems 
 engineering application case. For more information on FireSat+, please see the following:
@@ -92,88 +92,110 @@ engineering application case. For more information on FireSat+, please see the f
 * The Interface Control Document has a high-level description of FireSat+ :ref:`here <ICDfireSat>`.
 * A deeper dive into the applications and code is :ref:`here <fireSatExampleTop>`.
 
-The **Satellites** application
+**Satellites** - main_constellation.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A key component of our example case is the satellite constellation application. This application enables the user to generation a satellite constellation from the nost-tools library,
-leveraging predefined templates to construct a model of a real-life constellation chain. To progress through this section, copy and paste the code blocks into a new file titled main_constellation.py inside your 
-tutorial/firesat/satellites. You will be guided through the meaning of each code block, to help understand the purpose of different components of an application.
+A key component of the FireSat+ example case is **Satellite** application. This application enables the user to generation a satellite constellation using the nost-tools library,
+leveraging predefined templates to construct a model of a real-life constellation. To progress through this section, copy and paste the code blocks into a new file titled main_constellation.py inside your 
+tutorial/firesat/satellites. You will be guided through the how each code block works, to help understand the purpose of different components in an application.
 
-These import statements allow you to install the necessary dependencies to construct the application.
+This first part of the code contains import statements allow you to install the necessary dependencies to construct the application. The group at the top are regular Python dependencies while the ones at the bottom draw from the :ref:`NOS-T tools library <nostTools>`.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
 	:lines: 8-28
 
-  These import statements import customized values from the constellation configuration files. The first set of imports draws in the message schema configuration, which is the data that the 
-satellite will communicate. The second set of imports pulls in values to define the satellite: the PREFIX the messages will be published on, the NAME of the satellite, the SCALE of the timed simulation, 
-the TLES that define the satellite's propogation, and the FIELD_OF_REGARD, which indicates the region visible on Earth by the satellite. 
+This next set of import statements are customized for FireSat+ values from the constellation configuration files. The first set of imports draws in the message schema configuration, which defines the structure of how **Satellites** communicates data. The second set of imports pulls in values to define the constellation: the ``PREFIX`` the messages will be published on, the ``NAME`` of the satellite, the ``SCALE`` of the timed simulation, 
+the two-line element sets (``TLEs``) that define the satellites' orbit, and the ``FIELD_OF_REGARD``, which indicates the region visible on Earth by the satellite's instrument.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
 	:lines: 30-43
 
-The function compute_min_elevation returns the minimum elevation angle required for a satellite to observe a point from it's current location. It accepts the parameters altitude and field_of_regard to 
-complete mathematical functions to return the degree on minimum elevation. 
+The function below, ``compute_min_elevation``, returns the minimum elevation angle required for a satellite to observe a point from it's current location. It accepts the parameters altitude and field_of_regard to 
+complete mathematical functions to return the degree on minimum elevation.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
 	:lines: 45-72
-
-The function compute_sensor_radius pulls in the result of compute_min_elevation and the altitude value to return sensor_radius, which provides the radius of the nadir pointing sensors circular view of observation on Earth. 
+ 
+Next, the ``compute_sensor_radius`` function  pulls in the result of compute_min_elevation and the altitude value to return ``sensor_radius``, which provides the radius of the nadir pointing sensor's circular view projected onto Earth. 
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
 	:lines: 74-98
 
-This function accepts the parameters t, sat, and loc, whcih represent the Skyfield time object, the Skyfield EarthSat object, and the geographic location in lat/long, respectively. It return an elevation angle in respect to the topocentric horizon.
+The ``get_elevation_angle`` is a function that uses the Skyfield library. It accepts the parameters ``t``, ``sat``, and ``loc``. The first two, respectively, represent the Skyfield time object, the Skyfield EarthSat object. The third is the latitude/longitude of the spacecraft's subpoint, along with the spacecraft altitude. It returns an elevation angle in respect to the topocentric horizon.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-	:lines: 100-118
+	:lines: 100-117
 
-These two functions, check_in_view and check_in_range, affirm if the elevation angle and immediate location of the satellite enable it to connect to a ground station and view regions on Earth. 
+These two functions, ``check_in_view`` and ``check_in_range``, affirm if the elevation angle and immediate location of the satellite enable it to connect to a ground station and view regions on Earth. 
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
 	:lines: 120-168
 
-This section of the code represents the definition of the Constellation class. In object-oriented programming, a class is a replicatable object that can be assigned unique parameters to generate a diverse collection of similar objects.
+Constellation class
+~~~~~~~~~~~~~~~~~~~
+
+The next section of code blocks define the Constellation class. In object-oriented programming, a class is a replicable object that can be assigned unique parameters to generate a diverse collection of similar objects.
 The Constellation class leverages the NOS-T tools library 'Entity' object class to construct the constellation chain.
 
-.. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-	:lines: 170-476
-
-This function defines an observer, an object that is able to monitor state changes and send notification messages of fire events upon detection.  
+The first two functions in the Constellation class, ``init`` and ``initialize``, prepare the test run for startup by initializing data.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-	:lines: 478-507
+	:lines: 170-250
 
-Similar to the previous function, this observer is an object that is able to monitor the reporting status of a particualr fire event.
-
-.. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-	:lines: 509-540
-
-The remainder of the code is execution management. This chunk provides host credentials and configuration management to allow the necessary dependencies to be applied. Additionally,
-the satellites to be propogated are found on Line 558. These names are dynamically adjustable to fit hte need of the mission, as Lines 560-568 iterate and identify their TLEs and
-construct a satellite constellation from the user-defined satellites. 
+The next two functions, ``tick`` and ``tock``, are very important for executing time-managed test suites. Generally, the ``tick`` function computes the current state of an application. Any cumbersome functions like simulations should be performed here. The ``tock`` function commits the state changes. You want this done as quickly as possible to maintain consistent timing between applications.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-	:lines: 541- 597
+  :lines: 252-334
 
-Application Build 2
--------------------
-	:lines: 541- 601
+The next function, ``on_fire``, checks the current simulation time vs. a database of actual fires detected by an space-based infrared sensor. This function then publishes a message containing information about the fire. It also maintains an internal database for when fires are detected and reported, and which satellite did the detecting/reporting.
+
+.. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
+  :lines: 336-371
+
+The final block of the Constellation class is next. It contains the ``on_ground`` function which is used to collect information on ground station locations and elevation angles when those messages are published.
+
+.. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
+  :lines: 373-409
+
+Position Publisher Class
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The next class in the **Satellites** application is the Position Publisher. This class takes the satellite location information from the Constellation class and publishes it over the NOS-T infrastructre. These messages are used for the **Scoreboard** application, which is a geospatial visualization tool.
+
+.. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
+	:lines: 413-477
+
+Fire Observer Classes
+~~~~~~~~~~~~~~~~~~~~~
+
+The next code block contains two different fire observation classes. The first of these is for detecting fires and the second is for reporting fires. The concept of operations for FireSat+ is that fires are first *ignited*, then *detected* when a satellite passes over them. Finally, the fires are *reported* when the detecting satellite is in range of a ground station for the data downlink. The Fire Observer classes publish this over the testbed for postprocessing of results, and for **Scoreboard** visualization.
+
+.. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
+	:lines: 480-540
+
+The final block of code in the **Satellites** app is for initializing data and adding the functions and classes.
+
+.. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
+	:lines: 543- 601
 
 Application Build 2 - *Manager*
 ---------------------------------
+
+**Manager** - main_manager.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Maintaining a consistent simulation clock is important for many NOS-T use cases. For test suites that need to run faster than real time,
 it is an absolute necessity. The NOS-T **Manager** application is a good way to orchestrate all of the pieces for these types of tests.
 The manager is included in the NOS-T Tools library and will ensure that compliant applications start at the same time, and use a consistent
 simulation clock throughout the test run.
 
-Next, we will go through the Manager code block-by-block to understand what it is doing.
+Next, we will go through the Manager code block-by-block to understand what it is doing. First, we have all of the import statements that the 
+**Manager** relies on. The first of these three are general Python dependencies, and the
+second two are drawn from the NOS-T tools library. The last imports come from a config file that you should adjust for any specific test suites.
+In that config file you will need to set your desired event message prefix, the time scale, and any time scale updates. 
 
 .. literalinclude:: /../../examples/firesat/manager/main_manager.py
 	:lines: 12-26
-
-First, we have all of the import statements that the **Manager** relies on. The first of these three are general Python dependencies, and the
-second two are drawn from the NOS-T tools library. The last imports come from a config file that you should adjust for any specific test suites.
-In that config file you will need to set your desired event message prefix, the time scale, and any time scale updates. 
 
 .. _timeScaleUpdate:
 
@@ -184,16 +206,18 @@ the simulation. As for the updates, They take a form like this:
 :code:`UPDATE = [TimeScaleUpdate(120.0, datetime(2020, 1, 1, 8, 20, 0, tzinfo=timezone.utc))]` 
 
 The above command would change the time scale to 120x at the given datetime object in simulation time. If you do not wish to update the time scale
-during a test case, then you can set :code:`UPDATE = []`
+during a test case, then you can set 
+
+:code:`UPDATE = []`
 
 Finally, the last line in the above code block sets up a logger to help you track what is going on. More info on the various levels can be found
 `here <https://docs.python.org/3/howto/logging.html#when-to-use-logging>`__.
 
-.. literalinclude:: /../../examples/firesat/manager/main_manager.py
-	:lines: 29-45
-
 The next block of code starts with a name guard and credentials like the **Satellites** app above. These credentials will be drawn from an environment 
 file :ref:`described below<envSetUp>`.
+
+.. literalinclude:: /../../examples/firesat/manager/main_manager.py
+	:lines: 29-45
 
 The next four lines of code follow their preceding comments. Using the various NOS-T tools from the library the connection is set, the manager application
 is created, it is set to shut down after the test case, and is commanded to start up.
@@ -207,7 +231,7 @@ It is important to note that the :code:`SCALE` and :code:`UPDATE` values should 
 Test Suite Wrap-Up
 ------------------
 
-Stub
+asdf
 
 File Tree Checkup
 ~~~~~~~~~~~~~~~~~
