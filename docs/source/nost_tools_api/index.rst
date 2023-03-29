@@ -13,13 +13,13 @@ a whole.
 
 In this webpage, you can find the documentation for the provided templates, The
 FireSat+ example codes show how the templates can be integrated into user applications.
-The applications can be found in `this GitHub folder <https://github.com/code-lab-org/nost-tools/tree/main/nost_tools>`__.
+The applications can be found in `this GitHub repository <https://github.com/code-lab-org/nost-tools/tree/main/nost_tools>`__.
 
-A step-by-step guide for running the test suite is here: :ref:`instructionsFireSat`
+A step-by-step guide for running FireSat+, including installation instructions, is in the :ref:`tutorial`
 
 The tools library is an expansion of the NOS-T infrastructure project, intended to simplify
 component interoperability for distributed systems testing. A deep dive into the NOS-T project
-is in the Interface Control Document here: :ref:`ICD`.
+is in the :ref:`ICD`.
 
 .. toctree::
   :maxdepth: 1

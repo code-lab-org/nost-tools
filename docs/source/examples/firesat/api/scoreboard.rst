@@ -1,9 +1,6 @@
 Scoreboard
 ==========
 
-scoreboard.html
----------------
-
 *Unmanaged application written in JavaScript leveraging the CesiumJS platform to visualize FireSat+ test cases.*
 
 Below is an example view of what the Scoreboard looks like. The yellow (detected) and red (ignited) dots represent fires.

@@ -10,6 +10,7 @@
 
 import time
 import random
+import os
 import sys
 import logging
 import datetime
@@ -26,8 +27,20 @@ from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
 from nost_tools.observer import Observer
 from nost_tools.managed_application import ManagedApplication
 
-from examples.utility.schemas import EventState, EventStarted, EventDetected, EventReported, EventDayChange, EventFinished
-from examples.utility.config import PARAMETERS
+# getting the name of the directory
+# where the this file is present.
+current = os.path.dirname(os.path.realpath(__file__))
+ 
+# Getting the parent directory name
+# where the current directory is present.
+parent = os.path.dirname(current)
+superparent = os.path.dirname(parent)
+
+sys.path.append(superparent)
+sys.path.append(parent)
+
+from schemas import EventState, EventStarted, EventDetected, EventReported, EventDayChange, EventFinished
+from config import PARAMETERS
 
 
 logging.basicConfig(level=logging.INFO)

@@ -1,3 +1,5 @@
+.. _releaseDocs:
+
 Release Documents
 =================
 
@@ -9,8 +11,7 @@ use cases, the NOS-T tools library, and a detailed starting guide.
 The Technical Brief contains similar information to the ICD but in a more
 concise format. 
 
-If you're just getting started with NOS-T, a shorter beginner's guide
-can be found here :ref:`getStarted`
+If you're just getting started with NOS-T, the :ref:`tutorial` is a walk-through on using NOS-T.
 
 
 .. toctree::

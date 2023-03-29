@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-    *This application demonstrates a constellation of satellites for monitoring fires propagated from Two-Line Elements (TLEs)*
+    *This application demonstrates a constellation of satellites with continuous data collection and is used to track the state of each satellite's solid-state recorder while its orbital position is propagated from Two-Line Elements (TLEs)*
 
-    The application contains one :obj:`Constellation` (:obj:`Entity`) object class, one :obj:`PositionPublisher` (:obj:`WallclockTimeIntervalPublisher`), and two :obj:`Observer` object classes to monitor for :obj:`FireDetected` and :obj:`FireReported` events, respectively. The application also contains several methods outside of these classes, which contain standardized calculations sourced from Ch. 5 of *Space Mission Analysis and Design* by Wertz and Larson.
+    The application contains one :obj:`Constellation` (:obj:`Entity`) object class and one :obj:`PositionPublisher` (:obj:`WallclockTimeIntervalPublisher`). The application also contains two global methods outside of these classes, which contain standardized calculations sourced from Ch. 5 of *Space Mission Analysis and Design* by Wertz and Larson.
+    
+    *NOTE:* For example code demonstrating how the constellation application is started up and how the :obj:`Constellation` :obj:`Entity` object class is initialized and added to the simulator, see the FireSat+ example.
 
 """
 
@@ -34,7 +36,9 @@ from constellation_config_files.schemas import (
     SatelliteStatus,
     GroundLocation,
     LinkStart,
-    LinkCharge
+    LinkCharge,
+    OutageReport,
+    OutageRestore
 )
 from constellation_config_files.config import (
     PREFIX,
@@ -43,63 +47,12 @@ from constellation_config_files.config import (
     # TLES,
     SSR_CAPACITY,
     CAPACITY_USED,
-    INSTRUMENT_RATES
+    INSTRUMENT_RATES,
+    COST_MODE,
+    FIXED_RATES
 )
 
 logging.basicConfig(level=logging.INFO)
-
-# def compute_min_elevation(altitude, field_of_regard):
-#     """
-#     Computes the minimum elevation angle required for a satellite to observe a point from current location.
-
-#     Args:
-#         altitude (float): Altitude (meters) above surface of the observation.
-#         field_of_regard (float): Angular width (degrees) of observation.
-
-#     Returns:
-#         float : min_elevation
-#             The minimum elevation angle (degrees) for observation.
-#     """
-#     earth_equatorial_radius = 6378137.000000000
-#     earth_polar_radius = 6356752.314245179
-#     earth_mean_radius = (2 * earth_equatorial_radius + earth_polar_radius) / 3
-
-#     # eta is the angular radius of the region viewable by the satellite
-#     sin_eta = np.sin(np.radians(field_of_regard / 2))
-#     # rho is the angular radius of the earth viewed by the satellite
-#     sin_rho = earth_mean_radius / (earth_mean_radius + altitude)
-#     # epsilon is the min satellite elevation for obs (grazing angle)
-#     cos_epsilon = sin_eta / sin_rho
-#     if cos_epsilon > 1:
-#         return 0.0
-#     return np.degrees(np.arccos(cos_epsilon))
-
-
-# def compute_sensor_radius(altitude, min_elevation):
-#     """
-#     Computes the sensor radius for a satellite at current altitude given minimum elevation constraints.
-
-#     Args:
-#         altitude (float): Altitude (meters) above surface of the observation.
-#         min_elevation (float): Minimum angle (degrees) with horizon for visibility.
-
-#     Returns:
-#         float : sensor_radius
-#             The radius (meters) of the nadir pointing sensors circular view of observation.
-#     """
-#     earth_equatorial_radius = 6378137.0
-#     earth_polar_radius = 6356752.314245179
-#     earth_mean_radius = (2 * earth_equatorial_radius + earth_polar_radius) / 3
-#     # rho is the angular radius of the earth viewed by the satellite
-#     sin_rho = earth_mean_radius / (earth_mean_radius + altitude)
-#     # eta is the nadir angle between the sub-satellite direction and the target location on the surface
-#     eta = np.degrees(np.arcsin(np.cos(np.radians(min_elevation)) * sin_rho))
-#     # calculate swath width half angle from trigonometry
-#     sw_HalfAngle = 90 - eta - min_elevation
-#     if sw_HalfAngle < 0.0:
-#         return 0.0
-#     return earth_mean_radius * np.radians(sw_HalfAngle)
-
 
 def get_elevation_angle(t, sat, loc):
     """
@@ -119,28 +72,6 @@ def get_elevation_angle(t, sat, loc):
     # NOTE: Topos uses term altitude for what we are referring to as elevation
     alt, az, distance = topocentric.altaz()
     return alt.degrees
-
-
-# def check_in_view(t, satellite, topos, min_elevation):
-#     """
-#     Checks if the elevation angle of the satellite with respect to the ground location is greater than the minimum elevation angle constraint
-
-#     Args:
-#         t (:obj:`Time`): Time object of skyfield.timelib module
-#         satellite (:obj:`EarthSatellite`): Skyview EarthSatellite object from skyfield.sgp4lib module
-#         topos (:obj:`GeographicPosition`): Geographic location on surface specified by latitude-longitude from skyfield.toposlib module
-#         min_elevation (float): Minimum elevation angle (degrees) for ground to be in view of satellite, as calculated by compute_min_elevation
-
-#     Returns:
-#         bool : isInView
-#             True/False indicating visibility of ground location to satellite
-#     """
-#     isInView = False
-#     elevationFromFire = get_elevation_angle(t, satellite, topos)
-#     if elevationFromFire >= min_elevation:
-#         isInView = True
-#     return isInView
-
 
 def check_in_range(t, satellite, grounds):
     """
@@ -185,10 +116,20 @@ class Constellation(Entity):
         tles (:obj:`list`): Optional list of Two-Line Element *str* to be converted into :obj:`EarthSatellite` objects and included in the simulation
 
     Attributes:
+        groundTimes (:obj:`dict`): Dictionary with keys corresponding to unique satellite name and values corresponding to sequential list of ground access opportunities - *NOTE:* each value is initialized as an empty **:obj:`list`** and opportunities are appended chronologically
         grounds (:obj:`DataFrame`): Dataframe containing information about ground stations with unique groundId (*int*), latitude-longitude location (:obj:`GeographicPosition`), min_elevation (*float*) angle constraints, and operational status (*bool*) - *NOTE:* initialized as **None**
         satellites (:obj:`list`): List of :obj:`EarthSatellite` objects included in the constellation - *NOTE:* must be same length as **id**
         positions (:obj:`list`): List of current latitude-longitude-altitude locations (:obj:`GeographicPosition`) of each satellite in the constellation - *NOTE:* must be same length as **id**
         next_positions (:obj:`list`): List of next latitude-longitude-altitude locations (:obj:`GeographicPosition`) of each satellite in the constellation - *NOTE:* must be same length as **id**
+        ssr_capacity (:obj:`list`): List of **fixed** Solid-State Recorder (SSR) capacities in Gigabits (*int*) for each satellite in the constellation - *NOTE:* must be same length as **id**
+        capacity_used (:obj:`list`): list of values (*float*) representing current fraction of SSR capacity used for each satellite in the constellation, continuously updated through simulation - *NOTE:* must be same length as **id**
+        instrument_rates (:obj:`list`): list of **fixed** instrument data collection rates in Gigabits/second (*float*) for each satellite in the constellation - *NOTE:* must be same length as **id**
+        cost_mode (:obj:`list`): list of *str* representing one of three cost modes used to update cumulative costs: :obj:`discrete` (per downlink), :obj:`continuous` (fixed contract), or :obj:`both` - *NOTE:* must be same length as **id**
+        fixed_rates (:obj:`list`): list of **fixed** rates of cost accumulation in dollars/second for :obj:`continuous` cost_mode for each satellite in the constellation - *NOTE:* must be same length as **id**, but ignored if cost_mode for corresponding satellite is :obj:`discrete`
+        linkCounts (:obj:`list`): list of cumulative counts of link opportunies (*int*) for each satellite in the constellation - *NOTE:* must be same length as **id**, initialized as list of zeros
+        linkStatus (:obj:`list`): list of states (*bool*) indicating whether or not each satellite in the constellation is currently in view of an available ground station - *NOTE:* must be same length as **id**, each satellite state initialized as :obj:`False`
+        cumulativeCostBySat (:obj:`dict`): Dictionary with keys corresponding to unique satellite name and values corresponding to current cumulative costs in dollars (*float*) accrued by each satellite in the constellation, continuously updated throughout the simulation - *NOTE:* must be same length as **id**, each satellite cost initialized as zero dollars
+        cumulativeCosts (float): Sum of values in cumulativeCostBySat in dollars, continuously updated throughout the simulation
 
     """
 
@@ -213,11 +154,15 @@ class Constellation(Entity):
                     EarthSatellite(tle[0], tle[1], self.names[i], self.ts)
                 )
         self.positions = self.next_positions = [None for satellite in self.satellites]
-        self.ssr_capacity = SSR_CAPACITY
-        self.capacity_used = CAPACITY_USED
-        self.instrument_rates = INSTRUMENT_RATES
+        self.ssr_capacity = SSR_CAPACITY # in Gigabits
+        self.capacity_used = CAPACITY_USED # fraction from 0 to 1
+        self.instrument_rates = INSTRUMENT_RATES # in Gigabits/second
+        self.cost_mode = COST_MODE
+        self.fixed_rates = FIXED_RATES
         self.linkCounts = [0 for satellite in self.satellites]
         self.linkStatus = [False for satellite in self.satellites]
+        self.cumulativeCostBySat = {l:0.00 for l in self.names}
+        self.cumulativeCosts = 0.00
 
     def initialize(self, init_time):
         """
@@ -235,7 +180,8 @@ class Constellation(Entity):
                 "elevAngle": pd.Series([], dtype="float"),
                 "operational": pd.Series([], dtype="bool"),
                 "downlinkRate": pd.Series([], dtype="float"),
-                "costPerSecond": pd.Series([], dtype="float")
+                "costPerSecond": pd.Series([], dtype="float"),
+                "costMode": pd.Series([], dtype="str")
             }
         )
         self.positions = self.next_positions = [
@@ -274,6 +220,9 @@ class Constellation(Entity):
             then = self.ts.from_datetime(self.get_time() + time_step)
             isInRange, groundId = check_in_range(then, satellite, self.grounds)
             self.capacity_used[i] = self.capacity_used[i] + ((self.instrument_rates[i]*time_step.total_seconds())/self.ssr_capacity[i])
+            if self.cost_mode[i] == "continuous" or self.cost_mode[i] == "both":
+                self.cumulativeCostBySat[self.names[i]] = self.cumulativeCostBySat[self.names[i]] + self.fixed_rates[i]*time_step.total_seconds()
+                self.cumulativeCosts = self.cumulativeCosts + self.fixed_rates[i]*time_step.total_seconds()
             if isInRange:
                 if not self.linkStatus[i]:
                     self.linkStatus[i] = True
@@ -290,6 +239,23 @@ class Constellation(Entity):
         # tik = time.time()
         self.positions = self.next_positions
         super().tock()
+        for i, satellite in enumerate(self.satellites):
+            if self.cost_mode[i] == "continuous" or self.cost_mode[i] == "both":
+                self.app.send_message(
+                        "linkCharge",
+                        LinkCharge(
+                            groundId = 100,
+                            satId = self.id[i],
+                            satName = self.names[i],
+                            linkId = 0,
+                            end = self.get_time(),
+                            duration = 0,
+                            dataOffload = 0,
+                            downlinkCost = 0,
+                            cumulativeCostBySat = self.cumulativeCostBySat[self.names[i]],
+                            cumulativeCosts = self.cumulativeCosts
+                            ).json()
+                        )
 
     def on_ground(self, client, userdata, message):
         """
@@ -331,7 +297,8 @@ class Constellation(Entity):
                     "elevAngle": location.elevAngle,
                     "operational": location.operational,
                     "downlinkRate": location.downlinkRate,
-                    "costPerSecond": location.costPerSecond
+                    "costPerSecond": location.costPerSecond,
+                    "costMode": location.costMode
                 },
                 ignore_index=True,
             )
@@ -349,20 +316,21 @@ class Constellation(Entity):
         """
         downlinkStart = LinkStart.parse_raw(message.payload)
         print(downlinkStart)
-        self.groundTimes[downlinkStart.satName].append(
-            {
-                "groundId":downlinkStart.groundId,
-                "satId":downlinkStart.satId,
-                "satName":downlinkStart.satName,
-                "linkId":downlinkStart.linkId,
-                "start":downlinkStart.start,
-                "end":None,
-                "duration":None,
-                "initialData": downlinkStart.data,
-                "dataOffload":None,
-                "downlinkCost":None
-            },
-        )
+        if downlinkStart.groundId != -1:
+            self.groundTimes[downlinkStart.satName].append(
+                {
+                    "groundId":downlinkStart.groundId,
+                    "satId":downlinkStart.satId,
+                    "satName":downlinkStart.satName,
+                    "linkId":downlinkStart.linkId,
+                    "start":downlinkStart.start,
+                    "end":None,
+                    "duration":None,
+                    "initialData": downlinkStart.data,
+                    "dataOffload":None,
+                    "downlinkCost":None
+                    },
+            )
 
     def on_linkCharge(self, client, userdata, message):
        """
@@ -375,14 +343,50 @@ class Constellation(Entity):
 
        """
        downlinkCharge = LinkCharge.parse_raw(message.payload)
-       self.groundTimes[downlinkCharge.satName][downlinkCharge.linkId]["end"] = downlinkCharge.end
-       self.groundTimes[downlinkCharge.satName][downlinkCharge.linkId]["duration"] = downlinkCharge.duration
-       self.groundTimes[downlinkCharge.satName][downlinkCharge.linkId]["dataOffload"] = downlinkCharge.dataOffload
-       self.groundTimes[downlinkCharge.satName][downlinkCharge.linkId]["downlinkCost"] = downlinkCharge.downlinkCost
-       self.capacity_used[downlinkCharge.satId] = self.capacity_used[downlinkCharge.satId] - (downlinkCharge.dataOffload / self.ssr_capacity[downlinkCharge.satId])
-       if self.capacity_used[downlinkCharge.satId] < 0:
-           self.capacity_used[downlinkCharge.satId] = 0
-
+       print(downlinkCharge)
+       if downlinkCharge.groundId != -1:
+           self.groundTimes[downlinkCharge.satName][downlinkCharge.linkId]["end"] = downlinkCharge.end
+           self.groundTimes[downlinkCharge.satName][downlinkCharge.linkId]["duration"] = downlinkCharge.duration
+           self.groundTimes[downlinkCharge.satName][downlinkCharge.linkId]["dataOffload"] = downlinkCharge.dataOffload
+           self.groundTimes[downlinkCharge.satName][downlinkCharge.linkId]["downlinkCost"] = downlinkCharge.downlinkCost
+           self.capacity_used[downlinkCharge.satId] = self.capacity_used[downlinkCharge.satId] - (downlinkCharge.dataOffload / self.ssr_capacity[downlinkCharge.satId])
+           if self.capacity_used[downlinkCharge.satId] < 0:
+               self.capacity_used[downlinkCharge.satId] = 0
+           self.cumulativeCostBySat[downlinkCharge.satName] = self.cumulativeCostBySat[downlinkCharge.satName] + downlinkCharge.downlinkCost
+           self.cumulativeCosts = self.cumulativeCosts + downlinkCharge.downlinkCost
+           
+    def on_outage(self, client, userdata, message):
+        """
+        Callback function when message detected on the *PREFIX/outage/report* topic.
+        
+        Args:
+           client (:obj:`MQTT Client`): Client that connects application to the event broker using the MQTT protocol. Includes user credentials, tls certificates, and host server-port information.
+           userdata: User defined data of any type (not currently used)
+           message (:obj:`message`): Contains *topic* the client subscribed to and *payload* message content as attributes
+            
+        """
+        outageReport = OutageReport.parse_raw(message.payload)
+        self.grounds["operational"][outageReport.groundId] = False
+        if outageReport.groundId == 11:
+            for c, mode in enumerate(self.cost_mode):
+                self.cost_mode[c] = "discrete"
+        
+    def on_restore(self, client, userdata, message):
+        """
+        Callback function when message detected on the *PREFIX/outage/restore* topic.
+        
+        Args:
+           client (:obj:`MQTT Client`): Client that connects application to the event broker using the MQTT protocol. Includes user credentials, tls certificates, and host server-port information.
+           userdata: User defined data of any type (not currently used)
+           message (:obj:`message`): Contains *topic* the client subscribed to and *payload* message content as attributes
+            
+        """
+        outageRestore = OutageRestore.parse_raw(message.payload)
+        self.grounds["operational"][outageRestore.groundId] = True
+        if outageRestore.groundId == 11:
+            for c, mode in enumerate(self.cost_mode):
+                self.cost_mode[c] = "both"
+               
 
 # define a publisher to report satellite status
 class PositionPublisher(WallclockTimeIntervalPublisher):
@@ -412,15 +416,20 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
         """
         *Abstract publish_message method inherited from the WallclockTimeIntervalPublisher object class from the publisher template in the NOS-T tools library*
 
-        This method sends a message to the *PREFIX/constellation/location* topic for each satellite in the constellation (:obj:`Constellation`), including:
+        This method sends a message to the *PREFIX/constellation/location* topic for each satellite in the constellation (:obj:`Constellation`), which includes:
 
         Args:
-            id (:obj:`list`): list of unique *int* ids for each satellite in the constellation
-            names (:obj:`list`): list of unique *str* for each satellite in the constellation - *NOTE:* must be same length as **id**
-            positions (:obj:`list`): list of current latitude-longitude-altitude locations (:obj:`GeographicPosition`) of each satellite in the constellation - *NOTE:* must be same length as **id**
-            radius (:obj:`list`): list of the radius (meters) of the nadir pointing sensors circular view of observation for each satellite in the constellation - *NOTE:* must be same length as **id**
-            commRange (:obj:`list`): list of *bool* indicating each satellites visibility to *any* ground station - *NOTE:* must be same length as **id**
-            time (:obj:`datetime`): current scenario :obj:`datetime`
+            id (int): Unique id for satellite in constellation
+            name (str): Unique *str* name for satellite in constellation
+            latitude (:obj:`confloat`): Latitude in degrees for satellite in constellation at current scenario time
+            longitude (:obj:`confloat`): Longitude in degrees for satellite in constellation at current scenario time
+            altitude (float): Altitude above sea-level in meters for satellite in constellation at current scenario time
+            capacity_used (float): Fraction of solid-state recorder capacity used for satellite in constellation at current scenario time
+            commRange (bool): Boolean state variable indicating if satellite in constellaton is in view of a ground station at current scenario time
+            groundId (int): Optional unique id for ground station in view of satellite in constellation at current scenario time (if commRange = False, the groundId = None)
+            totalLinkCount (int): Unique count of downlink opportunities for satellite in constellation
+            cumulativeCostBySat (float): Cumulative costs incurred for downlinks and/or fixed cost contracts for satellite in constellation at current scenario time
+            time (:obj:`datetime`): Current scenario :obj:`datetime`
 
         """
         for i, satellite in enumerate(self.constellation.satellites):
@@ -440,10 +449,11 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
                     latitude=subpoint.latitude.degrees,
                     longitude=subpoint.longitude.degrees,
                     altitude=subpoint.elevation.m,
-                    capacity_used=self.constellation.capacity_used[i],
+                    capacity_used=self.constellation.capacity_used[i]*self.constellation.ssr_capacity[i],
                     commRange=self.isInRange[i],
                     groundId=groundId,
                     totalLinkCount=self.constellation.linkCounts[i],
+                    cumulativeCostBySat=self.constellation.cumulativeCostBySat[self.constellation.names[i]],
                     time=constellation.get_time(),
                 ).json(),
             )
@@ -468,16 +478,14 @@ if __name__ == "__main__":
 
     # keys for CelesTrak TLEs used in this example, but indexes often change over time)
     names = ["SUOMI NPP (VIIRS)", "NOAA 20 (VIIRS)"]
-    NPP = activesats[541]
-    NOAA20 = activesats[1293]
-    ES = [NPP, NOAA20]
-
+    ES = []
+    indices = []
+    for name_i, name in enumerate(names):
+        ES.append(by_name[name])
+        indices.append(name_i)
 
     # initialize the Constellation object class (in this example from EarthSatellite type)
     constellation = Constellation("constellation", app, [0, 1], names, ES)
-
-    # add observer classes to the Constellation object class
-    # constellation.add_observer(FireReportedObserver(app))
 
     # add the Constellation entity to the application's simulator
     app.simulator.add_entity(constellation)
@@ -496,7 +504,7 @@ if __name__ == "__main__":
         config,
         True,
         time_status_step=timedelta(seconds=10) * SCALE,
-        time_status_init=datetime(2020, 10, 24, 7, 20, tzinfo=timezone.utc),
+        time_status_init=datetime(2023, 1, 23, 7, 20, tzinfo=timezone.utc),
         time_step=timedelta(seconds=1) * SCALE,
     )
 
@@ -504,3 +512,5 @@ if __name__ == "__main__":
     app.add_message_callback("ground", "location", constellation.on_ground)
     app.add_message_callback("ground", "linkStart", constellation.on_linkStart)
     app.add_message_callback("ground", "linkCharge", constellation.on_linkCharge)
+    app.add_message_callback("outage", "report", constellation.on_outage)
+    app.add_message_callback("outage", "restore", constellation.on_restore)

@@ -25,6 +25,12 @@ sys.path.insert(0, os.path.abspath("../../examples/realtime"))
 sys.path.insert(0, os.path.abspath("../../examples/scalability"))
 sys.path.insert(0, os.path.abspath("../../examples/scalability/delay"))
 sys.path.insert(0, os.path.abspath("../../examples/scalability/heartbeat"))
+sys.path.insert(0, os.path.abspath("../../examples/downlink"))
+sys.path.insert(0, os.path.abspath("../../examples/downlink/satellites"))
+sys.path.insert(0, os.path.abspath("../../examples/downlink/grounds"))
+sys.path.insert(0, os.path.abspath("../../examples/downlink/outages"))
+sys.path.insert(0, os.path.abspath("../../examples/downlink/scoreboard"))
+sys.path.insert(0, os.path.abspath("../../examples/satBaseClass"))
 
 # -- Project information -----------------------------------------------------
 
@@ -47,8 +53,10 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.napoleon", 
     "sphinx_rtd_theme",
+    "sphinx_copybutton",
     "sphinx_search.extension",
-    "sphinxcontrib.autodoc_pydantic"
+    "sphinxcontrib.autodoc_pydantic",
+    "sphinx_copybutton"
 ]
 
 napoleon_google_docstring = True
@@ -65,6 +73,8 @@ napoleon_use_rtype = True
 autodoc_pydantic_model_show_json = False
 autodoc_pydantic_model_show_config = False
 trim_footnote_reference_space = True
+copybutton_prompt_text = "myinputprompt"
+copybutton_prompt_text = ">>> "
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None)
 }

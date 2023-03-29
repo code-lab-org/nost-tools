@@ -20,7 +20,9 @@ from ground_config_files.schemas import (
     SatelliteStatus,
     GroundLocation,
     LinkStart,
-    LinkCharge
+    LinkCharge,
+    OutageReport,
+    OutageRestore
 )
 from ground_config_files.config import (
     PREFIX,
@@ -51,6 +53,8 @@ class GroundNetwork(Observable,Observer):
         self.satelliteIds = []
         self.satelliteNames = []
         self.ssrCapacity = []
+        self.outages = []
+        self.restores = []
         self.cumulativeCosts = 0.00
 
     def on_change(self, source, property_name, old_value, new_value):
@@ -58,9 +62,6 @@ class GroundNetwork(Observable,Observer):
         *Standard on_change callback function format inherited from Observer object class*
 
         In this instance, the callback function checks when the **PROPERTY_MODE** switches to **EXECUTING** to send a :obj:`GroundLocation` message to the *PREFIX/ground/location* topic:
-
-            .. literalinclude:: /../../firesat/grounds/main_ground.py
-                :lines: 51-62
 
         """
         if property_name == Simulator.PROPERTY_MODE and new_value == Mode.EXECUTING:
@@ -74,7 +75,8 @@ class GroundNetwork(Observable,Observer):
                         elevAngle=ground.elevAngle,
                         operational=ground.operational,
                         downlinkRate=ground.downlinkRate,
-                        costPerSecond=ground.costPerSecond
+                        costPerSecond=ground.costPerSecond,
+                        costMode=ground.costMode
                     ).json()
                 )
 
@@ -87,6 +89,34 @@ class GroundNetwork(Observable,Observer):
     def all_ready(self, client, userdata, message):
         self.groundTimes = {j:[] for j in self.satelliteNames}
         self.satView = {k:{"on":False,"linkCount":0} for k in self.satelliteNames}
+        self.cumulativeCostBySat = {l:0.00 for l in self.satelliteNames}
+        for i,l in enumerate(self.satelliteNames):
+            self.app.send_message(
+                    "linkStart",
+                    LinkStart(
+                        groundId = -1,
+                        satId = i,
+                        satName = l,
+                        linkId = -1,
+                        start = self.app.simulator.get_time(),
+                        data = 0.0
+                    ).json(),
+                )
+            self.app.send_message(
+                    "linkCharge",
+                    LinkCharge(
+                        groundId = -1,
+                        satId = i,
+                        satName = l,
+                        linkId = -1,
+                        end = self.app.simulator.get_time(),
+                        duration = 0.0,
+                        dataOffload = 0.0,
+                        downlinkCost = 0.00,
+                        cumulativeCostBySat = self.cumulativeCostBySat[l],
+                        cumulativeCosts = 0.00
+                    ).json()
+                )
 
     def on_commRange(self, client, userdata, message):
         satInView = SatelliteStatus.parse_raw(message.payload)
@@ -97,6 +127,12 @@ class GroundNetwork(Observable,Observer):
                      - self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["start"]).total_seconds()
                 self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["dataOffload"] = self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["duration"]*self.grounds["downlinkRate"][self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["groundId"]]
                 self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["downlinkCost"] = self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["duration"]*self.grounds["costPerSecond"][self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["groundId"]]
+                if self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["dataOffload"] > self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["initialData"]:
+                    self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["dataOffload"] = self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["initialData"]
+                    self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["downlinkCost"] = (self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["dataOffload"]/self.grounds["downlinkRate"][self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["groundId"]])*self.grounds["costPerSecond"][self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["groundId"]]
+                if self.grounds["costMode"][self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["groundId"]] == "continuous":
+                    self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["downlinkCost"] = 0.00
+                self.cumulativeCostBySat[satInView.name] = self.cumulativeCostBySat[satInView.name]+self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["downlinkCost"]
                 self.cumulativeCosts = self.cumulativeCosts + self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["downlinkCost"]
                 self.notify_observers(
                         self.PROPERTY_OUT_OF_RANGE,
@@ -110,9 +146,10 @@ class GroundNetwork(Observable,Observer):
                             "duration":self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["duration"],
                             "dataOffload":self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["dataOffload"],
                             "downlinkCost":self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["downlinkCost"],
+                            "cumulativeCostBySat":self.cumulativeCostBySat[satInView.name],
                             "cumulativeCosts":self.cumulativeCosts
-                        },
-                    )
+                            },
+                        )
                 self.satView[satInView.name]["on"] = False
                 self.satView[satInView.name]["linkCount"] = self.satView[satInView.name]["linkCount"]+1
 
@@ -126,7 +163,7 @@ class GroundNetwork(Observable,Observer):
                     "start":satInView.time,
                     "end":None,
                     "duration":None,
-                    "initialData": satInView.capacity_used*self.ssrCapacity[satInView.id],
+                    "initialData": satInView.capacity_used,
                     "dataOffload":None,
                     "downlinkCost":None
                 },
@@ -144,6 +181,36 @@ class GroundNetwork(Observable,Observer):
                         "data":self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["initialData"]
                     },
                 )
+            
+    def on_outage(self, client, userdata, message):
+        outageReport = OutageReport.parse_raw(message.payload)
+        self.grounds["operational"][outageReport.groundId] = False
+        self.outages.append(
+            {
+             "groundId":outageReport.groundId,
+             "outageStart":outageReport.outageStart,
+             "outageDuration":outageReport.outageDuration,
+             "outageEnd":outageReport.outageEnd
+            },
+        )
+        
+    def on_restore(self, client, userdata, message):
+        outageRestore = OutageRestore.parse_raw(message.payload)
+        print(outageRestore)
+        self.grounds["operational"][outageRestore.groundId] = True
+        self.restores.append(
+            {
+                "groundId":outageRestore.groundId,
+                "outageEnd":outageRestore.outageEnd
+            },
+        )
+        
+    
+    def fixedCost(self, client, userdata, message):
+        fixedCharge = LinkCharge.parse_raw(message.payload)
+        self.cumulativeCostBySat[fixedCharge.satName] = fixedCharge.cumulativeCostBySat
+        self.cumulativeCosts = fixedCharge.cumulativeCosts
+        
 
 class LinkStartObserver(Observer):
     """
@@ -208,45 +275,10 @@ class LinkEndObserver(Observer):
                         duration = new_value["duration"],
                         dataOffload = new_value["dataOffload"],
                         downlinkCost = new_value["downlinkCost"],
+                        cumulativeCostBySat = new_value["cumulativeCostBySat"],
                         cumulativeCosts = new_value["cumulativeCosts"]
                     ).json()
                 )
-
-# def on_ready(client, userdata, message):
-#     """
-#     *Callback function appends a new satellite name in prep for all_ready method*
-
-#     .. literalinclude:: /../../firesat/grounds/main_ground.py
-#         :lines: 66-67
-
-#     """
-#     for index, observer in enumerate(app.simulator._observers):
-#         if isinstance(observer, GroundNetwork):
-#             app.simulator._observers[index].on_ready(client, userdata, message)
-
-# def all_ready(client, userdata, message):
-#     """
-#     *Callback function creates two new dictionaries with keys corresponding to satellite names*
-
-#     .. literalinclude:: /../../firesat/grounds/main_ground.py
-#         :lines: 70-71
-
-#     """
-#     for index, observer in enumerate(app.simulator._observers):
-#         if isinstance(observer, GroundNetwork):
-#             app.simulator._observers[index].all_ready(client, userdata, message)
-
-# def on_commRange(client, userdata, message):
-#     """
-#     *Callback function checks for transitions of commRange boolean*
-
-#     .. literalinclude:: /../../firesat/grounds/main_ground.py
-#         :lines: 74-89
-
-#     """
-#     for index, observer in enumerate(app.simulator._observers):
-#         if isinstance(observer, GroundNetwork):
-#             app.simulator._observers[index].on_commRange(client, userdata, message)
 
 
 # name guard used to ensure script only executes if it is run as the __main__
@@ -281,7 +313,7 @@ if __name__ == "__main__":
         config,
         True,
         time_status_step=timedelta(seconds=10) * SCALE,
-        time_status_init=datetime(2020, 10, 24, 7, 20, tzinfo=timezone.utc),
+        time_status_init=datetime(2023, 1, 23, 7, 30, tzinfo=timezone.utc),
         time_step=timedelta(seconds=1) * SCALE,
     )
 
@@ -289,3 +321,6 @@ if __name__ == "__main__":
     app.add_message_callback("constellation", "ready", groundNetwork.on_ready)
     app.add_message_callback("constellation","allReady", groundNetwork.all_ready)
     app.add_message_callback("constellation", "location", groundNetwork.on_commRange)
+    app.add_message_callback("constellation","linkCharge",groundNetwork.fixedCost)
+    app.add_message_callback("outage", "report", groundNetwork.on_outage)
+    app.add_message_callback("outage","restore", groundNetwork.on_restore)

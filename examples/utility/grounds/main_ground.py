@@ -6,6 +6,8 @@
 
 """
 
+import os
+import sys
 import time
 import logging
 from datetime import datetime, timezone, timedelta
@@ -16,8 +18,20 @@ from nost_tools.simulator import Simulator, Mode
 from nost_tools.observer import Observer
 from nost_tools.managed_application import ManagedApplication
 
-from examples.utility.schemas import GroundLocation
-from examples.utility.config import PARAMETERS
+# getting the name of the directory
+# where the this file is present.
+current = os.path.dirname(os.path.realpath(__file__))
+ 
+# Getting the parent directory name
+# where the current directory is present.
+parent = os.path.dirname(current)
+superparent = os.path.dirname(parent)
+
+sys.path.append(superparent)
+sys.path.append(parent)
+
+from schemas import GroundLocation
+from config import PARAMETERS
 
 logging.basicConfig(level=logging.INFO)
 
@@ -64,8 +78,8 @@ class Environment(Observer):
 if __name__ == "__main__":
     # Note that these are loaded from a .env file in current working directory
     credentials = dotenv_values(".env")
-    HOST, PORT = credentials["HOST"], int(credentials["PORT"])
-    USERNAME, PASSWORD = credentials["USERNAME"], credentials["PASSWORD"]
+    HOST, PORT = credentials["SMCE_HOST"], int(credentials["SMCE_PORT"])
+    USERNAME, PASSWORD = credentials["SMCE_USERNAME"], credentials["SMCE_PASSWORD"]
     
     # set the client credentials
     config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, True)

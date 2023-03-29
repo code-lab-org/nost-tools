@@ -4,7 +4,8 @@
     
     This manager application leverages the manager template in the NOS-T tools library. The manager template is designed to publish information to specific topics, and any applications using the :obj:`ManagedApplication` object class will subscribe to these topics to know when to start and stop simulations, as well as the resolution and time scale factor of the simulation steps.
 """
-
+import os
+import sys
 import logging
 from datetime import datetime, timedelta, timezone
 from dotenv import dotenv_values
@@ -13,8 +14,20 @@ from skyfield.api import utc
 from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
 from nost_tools.manager import Manager
 
+# getting the name of the directory
+# where the this file is present.
+current = os.path.dirname(os.path.realpath(__file__))
+ 
+# Getting the parent directory name
+# where the current directory is present.
+parent = os.path.dirname(current)
+superparent = os.path.dirname(parent)
+
+sys.path.append(superparent)
+sys.path.append(parent)
+
 # client credentials should be saved to config.py file in manager_config_files directory
-from examples.utility.config import PARAMETERS
+from config import PARAMETERS
 
 logging.basicConfig(level=logging.INFO)
 
@@ -23,8 +36,8 @@ logging.basicConfig(level=logging.INFO)
 if __name__ == "__main__":
     # Note that these are loaded from a .env file in current working directory
     credentials = dotenv_values(".env")
-    HOST, PORT = credentials["HOST"], int(credentials["PORT"])
-    USERNAME, PASSWORD = credentials["USERNAME"], credentials["PASSWORD"]
+    HOST, PORT = credentials["SMCE_HOST"], int(credentials["SMCE_PORT"])
+    USERNAME, PASSWORD = credentials["SMCE_USERNAME"], credentials["SMCE_PASSWORD"]
     
     # set the client credentials from the config file
     config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, True)
@@ -46,7 +59,7 @@ if __name__ == "__main__":
         time_step=timedelta(seconds=1),                         # wallclock time resolution for simulation
         time_scale_factor=PARAMETERS['SCALE'],                                # initial scale between wallclock and scenario clock (e.g. if SCALE = 60.0 then  1 wallclock second = 1 scenario minute)
         time_scale_updates=PARAMETERS['UPDATE'],                              # optionally schedule changes to the time_scale_factor at a specified scenario time
-        time_status_step=timedelta(seconds=5)
+        time_status_step=timedelta(seconds=1)
         * PARAMETERS['SCALE'],                                                # optional duration between time status 'heartbeat' messages
         time_status_init=
             datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc) + timedelta(minutes=1),                                                      # optional initial scenario datetime to start publishing time status 'heartbeat' messages
