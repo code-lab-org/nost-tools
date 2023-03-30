@@ -69,8 +69,7 @@ NOS-T System description
 The NOS-T system architecture follows a loosely coupled event-driven
 architecture (EDA) where member applications communicate state changes
 through events that are embodied as notification messages sent over a
-network. EDA provides enhanced scalability and reliability over other
-software architectures by replicating event handling functions across
+network. These event/message payloads contain the relevant data for communicating these state changes. EDA provides enhanced scalability and reliability over other software architectures by replicating event handling functions across
 infrastructure instances while maintaining modularity between
 applications through a simple event-handling interface. NOS-T can also
 be described as a service-oriented architecture (SOA) as applications
@@ -83,17 +82,28 @@ communication structure because each member application (client) only
 directly connects to the broker, rather than requiring each application
 to directly connect to every other application.
 
-Application Build 1 - *Satellites*
-----------------------------------
+The FireSat+ Test Suite
+-----------------------
 
 From here, the tutorial will explain important functions using FireSat+, an example NOS-T test suite based on FireSat, the common space systems 
-engineering application case. For more information on FireSat+, please see the following:
+engineering application case. The operational concept for FireSat+ is that one or several satellites are searching for fires. The fires are ignited following a historical dataset. When one of the satellites orbit above these locations, it will detect the fire. Finally, once that satellite is in range of a ground station, it will report the fire.
+
+This is a graphical representation of the FireSat+ message flows and their payloads. 
+
+.. image:: media/fireSatWorkflow.png
+   :width: 600
+   :align: center
+
+For more information on FireSat+, please see the following:
 
 * The Interface Control Document has a high-level description of FireSat+ :ref:`here <ICDfireSat>`.
 * A deeper dive into the applications and code is :ref:`here <fireSatExampleTop>`.
+* A paper describing this test suite is `here <https://doi.org/10.1109/IGARSS46834.2022.9883290>`__
 
-**Satellites** - main_constellation.py
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NOS-T test suites are made up of applications communicating over the broker. Next, the tutorial will detail two of the FireSat+ apps to give you a better idea of how they work. 
+
+The **Satellites** application - main_constellation.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A key component of the FireSat+ example case is **Satellite** application. This application enables the user to generation a satellite constellation using the nost-tools library,
 leveraging predefined templates to construct a model of a real-life constellation. To progress through this section, copy and paste the code blocks into a new file titled main_constellation.py inside your 
@@ -179,11 +189,9 @@ The final block of code in the **Satellites** app is for initializing data and a
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
 	:lines: 526- 584
 
-Application Build 2 - *Manager*
----------------------------------
 
-**Manager** - main_manager.py
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The **Manager** application - main_manager.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Maintaining a consistent simulation clock is important for many NOS-T use cases. For test suites that need to run faster than real time,
 it is an absolute necessity. The NOS-T **Manager** application is a good way to orchestrate all of the pieces for these types of tests.
@@ -232,7 +240,7 @@ It is important to note that the :code:`SCALE` and :code:`UPDATE` values should 
 Test Suite Wrap-Up
 ------------------
 
-asdf
+Next, we'll go through the next steps to actually executing FireSat+.
 
 File Tree Checkup
 ~~~~~~~~~~~~~~~~~
@@ -326,13 +334,6 @@ If everything is running correctly, the Scoreboard app should show an image simi
 to below.
 
 .. image:: media/fireSatScoreboard.png
-   :width: 600
-   :align: center
-
-| 
-| Next is a graphical representation of the FireSat+ message flows and their payloads. 
-
-.. image:: media/fireSatWorkflow.png
    :width: 600
    :align: center
 
