@@ -105,9 +105,7 @@ NOS-T test suites are made up of applications communicating over the broker. Nex
 The **Satellites** application - main_constellation.py
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A key component of the FireSat+ example case is **Satellite** application. This application enables the user to generation a satellite constellation using the nost-tools library,
-leveraging predefined templates to construct a model of a real-life constellation. To progress through this section, copy and paste the code blocks into a new file titled main_constellation.py inside your 
-tutorial/firesat/satellites. You will be guided through the how each code block works, to help understand the purpose of different components in an application.
+A key component of the FireSat+ example case is **Satellite** application. This application enables the user to generation a satellite constellation using the nost-tools library, leveraging predefined templates to construct a model of a real-life constellation. To progress through this section, copy and paste the code blocks into a new file titled main_constellation.py inside your  examples/firesat_tutorial/satellites folder. You will be guided through the how each code block works, to help understand the purpose of different components in an application.
 
 This first part of the code contains import statements allow you to install the necessary dependencies to construct the application. The group at the top are regular Python dependencies while the ones at the bottom draw from the :ref:`NOS-T tools library <nostTools>`.
 
@@ -196,7 +194,8 @@ The **Manager** application - main_manager.py
 Maintaining a consistent simulation clock is important for many NOS-T use cases. For test suites that need to run faster than real time,
 it is an absolute necessity. The NOS-T **Manager** application is a good way to orchestrate all of the pieces for these types of tests.
 The manager is included in the NOS-T Tools library and will ensure that compliant applications start at the same time, and use a consistent
-simulation clock throughout the test run.
+simulation clock throughout the test run. As above with the **Satellites** application, you should create a main_manager.py file in the 
+examples/firesat_tutorial/manager folder.
 
 Next, we will go through the Manager code block-by-block to understand what it is doing. First, we have all of the import statements that the 
 **Manager** relies on. The first of these three are general Python dependencies, and the
