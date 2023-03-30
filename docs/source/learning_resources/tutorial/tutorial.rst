@@ -25,7 +25,7 @@ upon existing Earth science measurement techniques.
 Setup
 -----
 
-This section will show you how to set up NOS-T starting from zero.
+This section will show you how to set up NOS-T assuming you are a beginner to both coding and the testbed.
 
 Integrated Development Environment (IDE)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
