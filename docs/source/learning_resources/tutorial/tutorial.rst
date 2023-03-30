@@ -91,8 +91,10 @@ engineering application case. The operational concept for FireSat+ is that one o
 This is a graphical representation of the FireSat+ message flows and their payloads. 
 
 .. image:: media/fireSatWorkflow.png
-   :width: 600
+   :width: 400
    :align: center
+
+|
 
 For more information on FireSat+, please see the following:
 
@@ -105,7 +107,9 @@ NOS-T test suites are made up of applications communicating over the broker. Nex
 The **Satellites** application - main_constellation.py
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A key component of the FireSat+ example case is **Satellite** application. This application enables the user to generation a satellite constellation using the nost-tools library, leveraging predefined templates to construct a model of a real-life constellation. To progress through this section, copy and paste the code blocks into a new file titled main_constellation.py inside your  examples/firesat_tutorial/satellites folder. You will be guided through the how each code block works, to help understand the purpose of different components in an application.
+A key component of the FireSat+ example case is **Satellite** application. This application enables the user to generation a satellite constellation using the nost-tools library, leveraging predefined templates to construct a model of a real-life constellation. You will be guided through the how each code block works, to help understand the purpose of different components in an application.
+
+First, you'll need to create a new file titled main_constellation.py inside your examples/firesat_tutorial/satellites folder. To progress through this section, copy and paste the code blocks into this file. NOTE: You *must* maintain the indentations you see in these code blocks when pasting them into the main_constellation.py file.
 
 This first part of the code contains import statements allow you to install the necessary dependencies to construct the application. The group at the top are regular Python dependencies while the ones at the bottom draw from the :ref:`NOS-T tools library <nostTools>`.
 
@@ -194,8 +198,10 @@ The **Manager** application - main_manager.py
 Maintaining a consistent simulation clock is important for many NOS-T use cases. For test suites that need to run faster than real time,
 it is an absolute necessity. The NOS-T **Manager** application is a good way to orchestrate all of the pieces for these types of tests.
 The manager is included in the NOS-T Tools library and will ensure that compliant applications start at the same time, and use a consistent
-simulation clock throughout the test run. As above with the **Satellites** application, you should create a main_manager.py file in the 
-examples/firesat_tutorial/manager folder.
+simulation clock throughout the test run. 
+
+As above with the **Satellites** application, you should create a blank main_manager.py file in the examples/firesat_tutorial/manager folder. 
+NOTE: You *must* maintain the indentations you see in these code blocks when pasting them into the main_manager.py file.
 
 Next, we will go through the Manager code block-by-block to understand what it is doing. First, we have all of the import statements that the 
 **Manager** relies on. The first of these three are general Python dependencies, and the
@@ -222,19 +228,17 @@ Finally, the last line in the above code block sets up a logger to help you trac
 `here <https://docs.python.org/3/howto/logging.html#when-to-use-logging>`__.
 
 The next block of code starts with a name guard and credentials like the **Satellites** app above. These credentials will be drawn from an environment 
-file :ref:`described below<envSetUp>`.
+file :ref:`described below<envSetUp>`. The next four lines of code follow their preceding comments. Using the various NOS-T tools from the library the connection is set, the manager application is created, it is set to shut down after the test case, and is commanded to start up.
 
 .. literalinclude:: /../../examples/firesat/manager/main_manager.py
 	:lines: 29-45
 
-The next four lines of code follow their preceding comments. Using the various NOS-T tools from the library the connection is set, the manager application
-is created, it is set to shut down after the test case, and is commanded to start up.
+This final section of code contains the vital information for executing your test plan. The comments on the right side give a good explanation of 
+what each line means. It is important to note that the :code:`SCALE` and :code:`UPDATE` values should be set in the config file as explained 
+:ref:`above <timeScaleUpdate>`.
 
 .. literalinclude:: /../../examples/firesat/manager/main_manager.py
 	:lines: 48-58
-
-This section contains the vital information for executing your test plan. The comments on the right side give a good explanation of what each line means.
-It is important to note that the :code:`SCALE` and :code:`UPDATE` values should be set in the config file as explaned :ref`above<timeScaleUpdate>`.
 
 Test Suite Wrap-Up
 ------------------
@@ -246,6 +250,10 @@ File Tree Checkup
 
 If you have done everything correctly up to this point, you should see a file tree like the image below. Most importantly, you should have 
 the five folders in the firesat folder which contain the constituent FireSat+ applications. These applications are described in the next section.
+
+.. image:: media/fileTree.png
+   :width: 400
+   :align: center
 
 Remaining Applications
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -292,7 +300,7 @@ file with the name ".env" containing the following text:
 ::
 
   HOST="your event broker host URL"
-  PORT=#### - your connection port
+  PORT=8883 - your connection port
   USERNAME="your event broker username"
   PASSWORD="your event broker password"
 
@@ -303,7 +311,7 @@ to be set in a JavaScript file. To do this create a text file with the name
 ::
 
   var HOST="your event broker host URL"
-  var PORT=#### - your connection port
+  var PORT=8883 - your connection port
   var USERNAME="your event broker username"
   var PASSWORD="your event broker password"
   var TOKEN="your Cesium token (see Cesium installation instructions)"
@@ -325,7 +333,7 @@ has a code you need to run, they are:
 * scoreboard.html - The aforementioned **Scoreboard** gives a view of what's happening during a test run.
 * main_manager.py - The NOS-T **Manager** app orchestrates each test run by starting the other apps at the same time, maintaining a consistent time throughout, and shutting down the apps at the end.
 
-You **must** start the main_manager.py application last, otherwise it does not matter in which 
+You **must** run the main_manager.py application last, otherwise it does not matter in which 
 order you start the other applications. All of the .py applications will give an output that
 they are waiting for the test case to start up. 
 
@@ -343,9 +351,7 @@ This hands-on tutorial was developed to help users get started with NOS-T from a
 downloading an IDE for running scripts to interface with NOS-T and finishes with executing the FireSat+ example code. Some good next
 steps for learning other NOS-T functions and developing your own test suites can be found at the following links:
 
-* :ref:`Main FireSat+ documentation<fireSatExampleTop>`
-* :ref:`Science Event Dashboard test suite walkthrough<instructionsScienceDash>`
-* :ref:`NOS-T Tools API documentation<nostTools>`
-* :ref:`Official release documents<releaseDocs>`
-* 
+* :ref:`Main FireSat+ documentation <fireSatExampleTop>`
+* :ref:`Science Event Dashboard test suite walkthrough <instructionsScienceDash>`
+* :ref:`NOS-T Tools API documentation <nostTools>`
 
