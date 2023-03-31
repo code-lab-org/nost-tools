@@ -1,11 +1,12 @@
 .. _instructionsScienceDash:
 
-Science Event Dashboard
-=======================
+Visualization Implementation Example
+====================================
 
 The Science Event Dashboard Test Suite is a simple example of NOS-T
 capabilities. It does not require the use of the NOS-T tools library.
-It contains two applications, a Science Event Publisher and Dashboard.
+It contains two applications, a Science Event Publisher and Dashboard. Importantly, it uses a dashboard to visualize data being sent over the testbed. The development 
+team has found visualization tools like this to be essential in ensuring test suites are functioning as intended.
 
 The Science Event Publisher regularly publishes a utility score and globally distributed random location.
 The utility scores follow a parabolic curve from the apex down to zero for each time step.
@@ -50,7 +51,7 @@ name ".env" containing the following text. Make sure that you "Save as type"
 ::
 
   HOST="your event broker host URL"
-  PORT=#### - your connection port
+  PORT=8883 - your connection port
   USERNAME="your event broker username"
   PASSWORD="your event broker password"
 

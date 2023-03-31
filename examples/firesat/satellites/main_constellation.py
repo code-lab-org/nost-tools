@@ -11,21 +11,13 @@ from dotenv import dotenv_values
 import numpy as np
 import pandas as pd
 import copy
-# import matplotlib.pyplot as plt
-# import matplotlib.patches as mpatches
-# import seaborn as sns
-
-# from scipy import stats
-
-# import time
+from skyfield.api import load, wgs84, EarthSatellite
 
 from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
 from nost_tools.entity import Entity
 from nost_tools.observer import Observer
 from nost_tools.managed_application import ManagedApplication
 from nost_tools.publisher import WallclockTimeIntervalPublisher
-
-from skyfield.api import load, wgs84, EarthSatellite
 
 from examples.firesat.satellites.constellation_config_files.schemas import (
     FireStarted,
@@ -223,9 +215,6 @@ class Constellation(Entity):
             )
             for i, satellite in enumerate(self.satellites)
         ]
-        # # Two print lines below can be used as sanity check that SMAD Ch. 5 equations implemented properly
-        # print("\nInitial elevation angles:\n")
-        # print(self.min_elevations_fire)
 
     def initialize(self, init_time):
         """
@@ -256,7 +245,6 @@ class Constellation(Entity):
         Args:
             time_step (:obj:`timedelta`): Duration between current and next simulation scenario time
         """
-        # tik = time.time()
         super().tick(time_step)
         self.next_positions = [
             wgs84.subpoint(
@@ -292,15 +280,12 @@ class Constellation(Entity):
                             self.report[j]["firstReport"] = True
                             self.report[j]["firstReporter"] = self.names[i]
                             self.report[j]["firstReportedTo"] = groundId
-        # tok = time.time() - tik
-        # print(f"The tick took {tok} seconds to filter \n")
 
     def tock(self):
         """
         Commits the next :obj:`Constellation` state and advances simulation scenario time
 
         """
-        # tik = time.time()
         self.positions = self.next_positions
         for i, newly_detected_fire in enumerate(self.detect):
             if newly_detected_fire["firstDetect"]:
@@ -329,8 +314,6 @@ class Constellation(Entity):
                     },
                 )
             self.report[i]["firstReport"] = False
-        # tok = time.time() - tik
-        # print(f"The tock took {tok} seconds \n")
         super().tock()
 
     def on_fire(self, client, userdata, message):

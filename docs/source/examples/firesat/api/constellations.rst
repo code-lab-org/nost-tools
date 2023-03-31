@@ -62,7 +62,7 @@ FireDetectedObserver
 .. automethod:: examples.firesat.satellites.main_constellation.FireDetectedObserver.on_change
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-            :lines: 500-508
+            :lines: 483-491
 			
 FireReportedObserver
 ^^^^^^^^^^^^^^^^^^^^
@@ -73,7 +73,7 @@ FireReportedObserver
 .. automethod:: examples.firesat.satellites.main_constellation.FireReportedObserver.on_change
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-            :lines: 531-540
+            :lines: 514-523
 
 |
 
@@ -83,6 +83,6 @@ Startup Script
 The following code demonstrates how the :obj:`Constellation` :obj:`Entity` object class is initialized and added to the simulator, how the application is started up, and how callback functions are assigned to the application:
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-	:lines: 545-598
+	:lines: 528-584 
 
 In this example, six satellites (AQUA, TERRA, SUOMI NPP, NOAA 20, SENTINEL 2A, SENTINEL 2B) are included in the simulation. CelesTrak is queried for current active TLEs, which returns this information as *list* of :obj:`EarthSatellite` objects. A subset *list* of :obj:`EarthSatellite` objects is constructed containing the six satellites of interest. This subset is used for initializing the :obj:`Constellation` :obj:`Entity` before adding to the simulator.
