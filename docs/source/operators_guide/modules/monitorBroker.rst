@@ -1,6 +1,6 @@
 Setting up Monitor for all Event Broker Messages
 ================================================
 
-This part would outline how to set up the NOS-T Monitor (formerly online manager) for watching messages coming through to the broker.
+This section will cover how to set up the NOS-T Monitor for keeping track of all messages coming through to the broker on a given prefix. This will include both the front end and back end configurations.
 
-Front end - back end configuration.
+Coming soon.
