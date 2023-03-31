@@ -6,7 +6,7 @@ Example script to specify object schemas for the AWS Downlink test case.
 
 from pydantic import BaseModel, Field, confloat
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 class SatelliteReady(BaseModel):
@@ -37,13 +37,19 @@ class SatelliteStatus(BaseModel):
     )
     capacity_used: float = Field(
         ..., 
-        description="Fraction of solid state recorder capacity used"
+        description="GB of solid state recorder capacity used"
     )
     commRange: bool = Field(
         False, description="Boolean for if satellite is in ground stations view"
     )
     groundId: Optional[int] = Field(
         ..., description="Ground Station id in view (None if not in view)"
+    )
+    totalLinkCount: Optional[int] = Field(
+        ..., description="Running count of downlink opportunity per satellite"    
+    )
+    cumulativeCostBySat: float = Field(
+        ..., description="Cumulative cost of downlinks and/or fixed cost contracts per satellite"    
     )
     time: datetime = Field(
         ..., description="Time in satellite reference frame"
@@ -69,6 +75,9 @@ class GroundLocation(BaseModel):
     )
     costPerSecond: float = Field(
         ..., description="Cost in $ per second for downlinks"
+    )
+    costMode: str = Field(
+        "discrete", description="Could be a boolean, options are discrete or fixed, default to discrete"    
     )
     
 class LinkStart(BaseModel):
@@ -105,6 +114,27 @@ class LinkCharge(BaseModel):
     downlinkCost: float = Field(
         ..., description="Cost of data downlink based on per-second cost rates unique to each ground station"
     )
+    cumulativeCostBySat: float = Field(
+        ..., description="Dictionary of running totals for downlink costs per satellite"
+    )
     cumulativeCosts: float = Field(
         ..., description="Running total of ALL downlink costs for the entirety of the Test Case"
+    )
+    
+class OutageReport(BaseModel):
+    groundId: int = Field(..., description="Unique ground station identifier experiencing outage")
+    outageStart: datetime = Field(
+        ..., description="Initial time of outage report"
+    )
+    outageDuration: timedelta = Field(
+        ..., description="Duration of the reported outage"
+    )
+    outageEnd: datetime = Field(
+        ..., description="outageStart + outageDuration"
+    )
+    
+class OutageRestore(BaseModel):
+    groundId: int = Field(..., description="Unique ground station identifier")
+    outageEnd: datetime = Field(
+        ..., description = "outageStart + outageDuration"
     )

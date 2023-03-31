@@ -10,21 +10,21 @@ tools library, example codes that can help you develop your own applications, of
 release documents, and publications that have been based on or used the testbed.
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Contents:
 
    overview/index
-   getting_started/index
+   learning_resources/index
+   operators_guide/index
    nost_tools_api/index
    examples/index
+   resources_library/index
    release_docs/index
    publications
 
-.. image:: media/graphicalConcept.png
-   :width: 600
+.. figure:: media/graphicalConcept.png
    :align: center
 
-NOS-T Graphical Concept
+   NOS-T Graphical Concept
    
 * :ref:`genindex`
-* :ref:`modindex`
