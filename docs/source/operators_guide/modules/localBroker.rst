@@ -46,34 +46,31 @@ Note that the names of both the container and the storage-group can be customize
 Logging into the Solace Event Broker
 ------------------------------------
 
-Once yada yada yada
+Coming soon.
 
 Customizing your Solace Event Broker
 ------------------------------------
 
-Look at all the cool things you can do and monitor.
+Coming soon.
 
 Clients
 ^^^^^^^
 
-Some more words.
+Coming soon.
 
 Queues
 ^^^^^^
 
-Queues can be tricky, see page on setting up queues.
+Coming soon.
 
 Access Control
 ^^^^^^^^^^^^^^
 
-Here is how Solace lets you manage access rules for different users.
+Coming soon.
 
 Cache
 ^^^^^
 
-Need to set up a cache in order to enable a queue.
+Coming soon.
 
-Other Options as Needed
-^^^^^^^^^^^^^^^^^^^^^^^
 
-Just a place holder.
