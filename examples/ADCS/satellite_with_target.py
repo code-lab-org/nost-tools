@@ -26,9 +26,11 @@ class Satellite(Entity):
         self.pos = self.next_pos = None
         self.vel = self.next_vel = None
         self.att = self.next_att = None
+        self.omega = self.next_omega = None
 
         self.grounds = grounds
         self.target = self.next_target = None
+
 
 
     def initialize(self, init_time):
@@ -48,6 +50,7 @@ class Satellite(Entity):
         dcm_0 = np.stack([b_x, b_y, b_z])            # initial dcm from inertial to body coordinates
         r = R.from_matrix(dcm_0)                     # creating rotation in scipy rotations library
         self.att = r.as_quat()                       # initial quaternion from inertial to body coordinates
+        self.omega = np.array([0,0,0])               # initial rotational velocity
 
 
     def tick(self, time_step): # computes
@@ -178,19 +181,28 @@ class Satellite(Entity):
         return isInRange, groundId
 
 
-    def target_maneuver(self, time_step):  
-        """
-        Rotates the spacecraft to center on the target
-        """
+    def compute_omega_target(r, target_lat, target_lon, r_E, v_Earth, t):
+        # Compute target position vector
+        lat_rad = np.deg2rad(target_lat)
+        lon_rad = np.deg2rad(target_lon)
+        N = r_E / np.sqrt(1 - e ** 2 * np.sin(lat_rad) ** 2)
+        r_target = np.array([(N + t * v_Earth) * np.cos(lat_rad) * np.cos(lon_rad),
+                             (N + t * v_Earth) * np.cos(lat_rad) * np.sin(lon_rad),
+                             (N * (1 - e ** 2) + t * v_Earth) * np.sin(lat_rad)])
 
-        roll = R.from_euler('x', 10, degrees=True)
-        roll.as_quat()
-        attitude = R.from_quat(self.att) 
-        combined = roll * attitude
-        print(combined.as_euler('xyz',degrees=True))
-        self.att = combined.as_quat()
-
-        return self.att
+        # Compute Earth rotation matrix
+        theta = 2 * np.pi * t / (24 * 60 * 60)  # Earth rotates once every 24 hours
+        R_Earth = np.array([[np.cos(theta), -np.sin(theta), 0],
+                            [np.sin(theta), np.cos(theta), 0],
+                            [0, 0, 1]])
+        
+        # Apply Earth rotation to target position vector
+        r_target = np.dot(R_Earth, r_target)
+        
+        # Compute desired attitude quaternion
+        omega_target = np.cross(q_to_rot(q_inv(q)), (r_target - r) / np.linalg.norm(r_target - r))
+        
+        return omega_target
 
 
 # define a publisher to report satellite status

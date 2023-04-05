@@ -187,7 +187,7 @@ class Satellite(Entity):
         self.att = combined.as_quat()
 
         return self.att
-
+    
 
 # define a publisher to report satellite status
 class StatusPublisher(WallclockTimeIntervalPublisher):
