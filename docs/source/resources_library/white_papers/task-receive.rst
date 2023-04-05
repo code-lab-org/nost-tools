@@ -9,11 +9,10 @@ One concern that PIs might have about automated tasking is the ability to keep t
 
 It is common for these APIs to report a cost and an estimated time of retrieval for a given request but wait for approval from the customer before proceeding. Some also allow tasks to be pre-approved in the original request, thus bypassing this wait for cost approval. The required approval for a request is the commercial provider’s own gatekeeping mechanism, but the goal is to provide a gatekeeper that is controlled by the customer/user and not the commercial API. Within NOS-T, this problem can be handled by designing a gatekeeper application that defines a budget ceiling and floor and monitors costs as they are incurred. Every time the tasking MQTT client officially submits a task with pre-approval, a message is published to an appropriately named topic which includes the cost reported for the task. The assumption is that at this point the cost is officially incurred and should be deducted from the remaining budget. Once the remaining budget drops below the pre-defined budget floor, a message would be triggered by the gatekeeper. This message is a flag to the other MQTT clients to cease task submissions. Each of the MQTT clients might handle this in different ways. For example, the tasking MQTT client could switch the format of its task so that pre-approval is false, or it could unsubscribe from all topics where it was receiving requests. Other MQTT clients making task requests might choose to disconnect from the broker on receipt of that message.
 
-|
+.. figure:: media/Commercial_API_Tasking_Sequence.png
+   :align: center
 
-Coming soon: Generic sequence diagram for API driven Tasking
-
-|
+   Generic Sequence Diagram with Cost-Monitoring Gatekeeper Application for Automated API Tasking
 
 Once a task has been completed and the data product is delivered to a ground station, the commercial provider has to deliver the data product to the customer. These data products feature high resolution imagery, and thus the file sizes are prohibitively large, and the best means of delivery is by a secure third-party file-sharing service. In an automated workflow such as could be facilitated by NOS-T, a brief sequence of actions need to be communicated to execute this transaction. First, an MQTT client must either be continuously monitoring the file-sharing endpoint for any new activity, or subscribing to a topic where another monitoring application (presumably external to the testbed but with a similar MQTT interface to communicate on NOS-T) would publish a message to indicate the availability of a new data product to retrieve. This message payload would likely include the name of the new file and an http endpoint from where the file can be pulled. This message would trigger an MQTT client to initiate the pull. A common challenge in interorganizational cooperation is the issue of security and passing files through firewalls.
 
