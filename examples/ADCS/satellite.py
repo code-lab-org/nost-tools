@@ -45,7 +45,8 @@ class Satellite(Entity):
         b_y = np.cross(b_x,b_z)                      # body y-axis normal to orbital plane
         dcm_0 = np.stack([b_x, b_y, b_z])            # initial dcm from inertial to body coordinates
         r = R.from_matrix(dcm_0)                     # creating rotation in scipy rotations library
-        self.att = r.as_quat()                # initial quaternion from inertial to body coordinates
+       # self.att = r.as_quat()                       # initial quaternion from inertial to body coordinates
+        self.att = R.from_euler('xyz', [0, 0, 0]).as_quat()
 
 
     def tick(self, time_step): # computes
@@ -179,12 +180,15 @@ class Satellite(Entity):
         """
         Updates the rotation about one axis the attitude"""
 
-        roll = R.from_euler('x', 10, degrees=True)
-        roll.as_quat()
-        attitude = R.from_quat(self.att) 
-        combined = roll * attitude
-        print(combined.as_euler('xyz',degrees=True))
-        self.att = combined.as_quat()
+        # Define the roll angle (in radians)
+        roll_angle = np.deg2rad(1)
+        # set up rotation object
+        R_roll = R.from_euler('x', roll_angle).as_matrix()
+        # Update the attitude quaternion 
+        self.att = R.from_matrix(R_roll @ R.from_quat(self.att).as_matrix()).as_quat()
+        # Get and print euler angles
+        euler_angles = R.from_quat(self.att).as_euler('xyz', degrees=True)
+        print(euler_angles)
 
         return self.att
     
