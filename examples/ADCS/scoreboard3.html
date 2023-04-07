@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Cesium Rotation Example</title>
+    <script src="https://api.cesium.com/api/assets/1/cesium-ion.js"></script>
+    <style>
+      #cesiumContainer {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+      }
+    </style>
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.82/Build/Cesium/Cesium.js"></script>
+    <link href="https://cesium.com/downloads/cesiumjs/releases/1.82/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+  </head>
+  <body>
+    <div id="cesiumContainer"></div>
+    <script>
+      // Initialize the Cesium Viewer
+      Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkMDYyZWI5YS0wZDMyLTQxZjUtOTkxZi04NzkyMzM0YTZiYzAiLCJpZCI6OTA2NTQsImlhdCI6MTY1MDQ5Mzk1OH0.uWM48K-hD7eA-cU7Wo6Z3Pyp_0SntGeoi0mw5eo0Xd8';
+      var modelId = '1595223';
+      var modelMatrix = Cesium.Transforms.eastNorthUpToFixedFrame(Cesium.Cartesian3.fromDegrees(-75.62898254394531, 40.02804946899414, 0.0));
+      var model = viewer.scene.primitives.add(ionClient.getModel(modelId, {
+        modelMatrix: modelMatrix,
+        scale: 100.0
+      }));
+      var ionClient = new Cesium.Ion.CesiumIonClient();
+      var viewer = new Cesium.Viewer("cesiumContainer", {
+        animation: false,
+        baseLayerPicker: false,
+        fullscreenButton: false,
+        geocoder: false,
+        homeButton: false,
+        infoBox: false,
+        sceneModePicker: false,
+        selectionIndicator: false,
+        timeline: false,
+        navigationHelpButton: false,
+        scene3DOnly: true,
+        shouldAnimate: true,
+        skyBox: new Cesium.SkyBox({
+          sources: {
+            positiveX: 'https://cesium.com/downloads/cesiumjs/releases/1.82/Assets/Textures/SkyBox/tycho2t3_80_px.jpg',
+            negativeX: 'https://cesium.com/downloads/cesiumjs/releases/1.82/Assets/Textures/SkyBox/tycho2t3_80_mx.jpg',
+            positiveY: 'https://cesium.com/downloads/cesiumjs/releases/1.82/Assets/Textures/SkyBox/tycho2t3_80_py.jpg',
+            negativeY: 'https://cesium.com/downloads/cesiumjs/releases/1.82/Assets/Textures/SkyBox/tycho2t3_80_my.jpg',
+            positiveZ: 'https://cesium.com/downloads/cesiumjs/releases/1.82/Assets/Textures/SkyBox/tycho2t3_80_pz.jpg',
+            negativeZ: 'https://cesium.com/downloads/cesiumjs/releases/1.82/Assets/Textures/SkyBox/tycho2t3_80_mz.jpg'
+          }
+        })
+      });
+
+      // Define the initial spacecraft position and orientation
+      var position = Cesium.Cartesian3.fromDegrees(-75.59777, 40.03883, 500000.0);
+      var orientation = Cesium.Transforms.headingPitchRollQuaternion(position, new Cesium.HeadingPitchRoll(0.0, 0.0, 0.0));
+
+      // Create the spacecraft model
+      var modelMatrix = Cesium.Transforms.headingPitchRollToFixedFrame(position, new Cesium.HeadingPitchRoll(0.0, 0.0, 0.0));
+      var model = viewer.scene.primitives.add(Cesium.Model.fromGltf({
+        url: `C:/Users/brian/Documents/Postdoc/NOS-T/Codes/nost-tools/examples/ADCS/CloudSat.gltf`,
+        modelMatrix: modelMatrix,
+        scale: 100.0
+      }));
+
+      // Define the roll axis and angle
+      var roll_axis = 'x';
+      var roll_angle = 10.
+
+      // Define the rotation function
+      function rotate() {
+        // Compute the new attitude quaternion
+        var quaternion = new Cesium.Quaternion();
+        quaternion = quaternion.multiply(Cesium.Quaternion.fromAxisAngle(Cesium.Cartesian3.UNIT_X, Cesium.Math.toRadians(roll_angle)));
+
+        // Rotate the spacecraft model
+        var transform = Cesium.Matrix4.fromRotationTranslation(Cesium.Matrix3.fromQuaternion(quaternion));
+        modelMatrix = Cesium.Matrix4.multiply(modelMatrix, transform, new Cesium.Matrix4());
+        model.modelMatrix = modelMatrix;
+
+        // Request the next frame
+        requestAnimationFrame(rotate);
+      }
+
+      // Start the rotation animation
+      requestAnimationFrame(rotate);
+    </script>
+  </body>
+</html>

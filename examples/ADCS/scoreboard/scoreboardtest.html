@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Single Axis Rotation</title>
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.83/Build/Cesium/Cesium.js"></script>
+    <link href="https://cesium.com/downloads/cesiumjs/releases/1.83/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+    <style>
+        #cesiumContainer {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            position: absolute;
+        }
+    </style>
+</head>
+<body>
+<div id="cesiumContainer"></div>
+<script>
+    // Initialize Cesium
+    var viewer = new Cesium.Viewer('cesiumContainer');
+
+    // Create spacecraft entity
+    var spacecraft = viewer.entities.add({
+        model: {
+            uri: 'https://cesium.com/downloads/asset-packs/moon-orbiting-satellite.glb',
+            minimumPixelSize: 64,
+            maximumScale: 20000
+        },
+        position: Cesium.Cartesian3.fromDegrees(-120.0, 45.0, 100000.0),
+        orientation: Cesium.Quaternion.IDENTITY // Use quaternion input here
+    });
+
+    // Rotate spacecraft around X axis
+    var initialTime = new Cesium.JulianDate();
+    var rotationRate = 0.2;
+    viewer.clock.onTick.addEventListener(function (clock) {
+        var seconds = Cesium.JulianDate.secondsDifference(clock.currentTime, initialTime);
+        var angle = rotationRate * seconds;
+        var quaternion = Cesium.Quaternion.fromAxisAngle(Cesium.Cartesian3.UNIT_X, angle);
+        spacecraft.orientation = quaternion;
+    });
+</script>
+</body>
+</html>
