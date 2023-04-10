@@ -38,8 +38,14 @@
       crossorigin="anonymous"
     ></script>
     <script>
+      var CESIUM_ACCESS_TOKEN = TOKEN;
+      var BROKER_HOST = HOST;
+      var BROKER_PORT = PORT;
+      var BROKER_CLIENT_USERNAME = USERNAME;
+      var BROKER_CLIENT_PASSWORD = PASSWORD;
+
       $(document).ready(function () {
-        Cesium.Ion.defaultAccessToken = TOKEN;
+        Cesium.Ion.defaultAccessToken = CESIUM_ACCESS_TOKEN;
         var clock = new Cesium.Clock({
           currentTime: Cesium.JulianDate.fromIso8601("1900-01-01"),
           clockStep: Cesium.ClockStep.SYSTEM_CLOCK_MULTIPLIER,
@@ -59,19 +65,34 @@
           imageryProvider: new Cesium.IonImageryProvider({ assetId: 3845 }),
           clockViewModel: new Cesium.ClockViewModel(clock),
         });
+        const position = Cesium.Cartesian3.fromDegrees(
+          -123.0744619,
+          44.0503706,
+          300000.0
+        );
+        const orientation = Cesium.Quaternion.IDENTITY;
+        const blueBox = viewer.entities.add({
+          name: "Blue box",
+          position: position,
+          orientation: orientation,
+          box: {
+            dimensions: new Cesium.Cartesian3(2.0, 1.0, 1.0),
+            material: Cesium.Color.BLUE,
+          },
+        });
         <!-- viewer.scene.globe.enableLighting = true; -->
+        viewer.trackedEntity = blueBox;
 
         // create a MQTT client
-        var client = new Paho.MQTT.Client(HOST, PORT, "");
-
+        var client = new Paho.MQTT.Client(BROKER_HOST, BROKER_PORT, "");
         var satellites = {}; <!-- Positions of satellites as points at altitude, BLUE out of comms range, GREEN in comms range -->
         var sensorCircles = {}; <!-- Circles showing views of nadir pointed satellites -->
         var commsCones = {}; <!-- Views from ground station FOR comms -->
         var commsRange = false; <!-- Initialize this commsRange boolean as false, but will update based on satellite subscription -->
-        var satColor = Cesium.Color.BLUE; <!-- Initialize satColor as Cesiums default BLUE, which is color when commsRange is false -->
-        var floods = viewer.scene.primitives.add(
+        var satColor = Cesium.Color.BLUE; <!-- Initialize satColor as Cesium's default BLUE, which is color when commsRange is false -->
+        var fires = viewer.scene.primitives.add(
           new Cesium.PointPrimitiveCollection()
-        ); <!-- Initialize floods as primitive points since there will be so many -->
+        ); <!-- Initialize fires as primitive points since there will be so many -->
         var grounds = {}; <!-- Surface position of ground stations as PINK points -->
         var updates = {};
 
@@ -82,7 +103,7 @@
           var topic = message.destinationName;
           // try to parse and stringify a JSON string
           try {
-            if (topic == "BCtest/manager/start") {
+            if (topic == "BCtest/manager/init") {
               payload = JSON.parse(message.payloadString);
               viewer.clockViewModel.currentTime = Cesium.JulianDate.fromIso8601(
                 payload.taskingParameters.simStartTime
@@ -93,14 +114,19 @@
               viewer.clockViewModel.stopTime = Cesium.JulianDate.fromIso8601(
                 payload.taskingParameters.simStopTime
               );
-              viewer.clockViewModel.multiplier =
-                payload.taskingParameters.timeScalingFactor;
               viewer.clockViewModel.clockRange = Cesium.ClockRange.CLAMPED;
               viewer.timeline.zoomTo(
                 viewer.clockViewModel.startTime,
                 viewer.clockViewModel.stopTime
               );
-            } else if (topic == "BCtest/status/manager/time") {
+            } else if (topic == "BCtest/manager/start") {
+              payload = JSON.parse(message.payloadString);
+              viewer.clockViewModel.multiplier =
+                payload.taskingParameters.timeScalingFactor;
+            } else if (
+              topic == "BCtest/manager/time" ||
+              topic == "BCtest/manager/status/time"
+            ) {
               payload = JSON.parse(message.payloadString);
               viewer.clockViewModel.currentTime = Cesium.JulianDate.fromIso8601(
                 payload.properties.simTime
@@ -110,61 +136,59 @@
               payload = JSON.parse(message.payloadString);
               viewer.clockViewModel.multiplier =
                 payload.taskingParameters.timeScalingFactor;
-            } else if (topic == "BCtest/constellation/location") {
+            } else if (topic == "BCtest/satellite/state") {
               payload = JSON.parse(message.payloadString);
-              commRange = payload.commRange;
-              if (commRange) {
-                satColor = Cesium.Color.GREEN;
+              blueBox.orientation = new Cesium.Quaternion(
+                payload.attitude[0],
+                payload.attitude[1],
+                payload.attitude[2],
+                payload.attitude[3]
+              );
+              blueBox.position = new Cesium.Cartesian3(
+                payload.position[0],
+                payload.position[1],
+                payload.position[2]
+              );
+            } else if (topic == "BCtest/ground/location") {
+              payload = JSON.parse(message.payloadString);
+              activeCheck = payload.operational;
+              if (activeCheck) {
+                groundColor = Cesium.Color.PINK;
+                groundMaterial = Cesium.Color.PINK.withAlpha(0.1);
               } else {
-                satColor = Cesium.Color.BLUE;
+                groundColor = Cesium.Color.LIGHTGRAY;
+                groundMaterial = Cesium.Color.LIGHTGRAY.withAlpha(0.1);
               }
-              if (satellites[payload.id]) {
-                satellites[payload.id].position =
-                  Cesium.Cartesian3.fromElements(
-                    payload.position[1],
-                    payload.position[2],
-                    payload.position[3]
-                  );
-                satellites[payload.id].point.color = satColor;
-              } else {
-                satellites[payload.id] = viewer.entities.add({
-                  position: Cesium.Cartesian3.fromElements(
-                    payload.position[1],
-                    payload.position[2],
-                    payload.position[3]
+              if (!grounds[payload.groundId]) {
+                <!-- Only add grounds with unique ids -->
+                grounds[payload.groundId] = viewer.entities.add({
+                  position: Cesium.Cartesian3.fromDegrees(
+                    payload.longitude,
+                    payload.latitude
                   ),
                   point: {
                     pixelSize: 8,
-                    color: satColor,
-                  },
-                  label: {
-                    text: payload.name,
-                    font: "12px Georgia",
-                    fillColor: Cesium.Color.SKYBLUE,
-                    outlineColor: Cesium.Color.BLACK,
-                    outlineWidth: 2,
-                    style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-                    pixelOffset: new Cesium.Cartesian2(40.0, 8.0),
-                    pixelOffsetScaleByDistance: new Cesium.NearFarScalar(
-                      1.5e2,
-                      3.0,
-                      1.5e7,
-                      0.5
-                    ),
-                    scaleByDistance: new Cesium.NearFarScalar(
-                      1.5e2,
-                      2.0,
-                      1.5e7,
-                      0.5
-                    ),
-                    translucencyByDistance: new Cesium.NearFarScalar(
-                      1.5e2,
-                      1.0,
-                      1.5e8,
-                      0.0
-                    ),
+                    color: groundColor,
                   },
                   show: true,
+                });
+                <!-- Currently hardcoded cylinder dimensions, although angle read from message -->
+                commsCones[payload.groundId] = viewer.entities.add({
+                  position: Cesium.Cartesian3.fromDegrees(
+                    payload.longitude,
+                    payload.latitude,
+                    100000.0
+                  ),
+                  cylinder: {
+                    length: 200000.0,
+                    topRadius:
+                      200000.0 *
+                      Math.tan(((90 - payload.elevAngle) * Math.PI) / 180),
+                    bottomRadius: 0.0,
+                    material: groundMaterial,
+                    outline: true,
+                    outlineWidth: 1.0,
+                  },
                 });
               }
             }
@@ -174,8 +198,8 @@
         }
 
         client.connect({
-          userName: USERNAME,
-          password: PASSWORD,
+          userName: BROKER_CLIENT_USERNAME,
+          password: BROKER_CLIENT_PASSWORD,
           useSSL: true,
           onSuccess: function () {
             client.subscribe("BCtest/#", {

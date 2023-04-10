@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <!-- Include the CesiumJS JavaScript and CSS files -->
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.104/Build/Cesium/Cesium.js"></script>
+    <link
+      href="https://cesium.com/downloads/cesiumjs/releases/1.104/Build/Cesium/Widgets/widgets.css"
+      rel="stylesheet"
+    />
+    <script type="text/javascript" src="env.js"></script>
+  </head>
+
+  <body>
+    <main role="main" class="container-fluid">
+      <div id="cesiumContainer" class="fullSize"></div>
+      <div id="loadingOverlay">
+        <h1>Loading...</h1>
+      </div>
+      <div id="toolbar"></div>
+    </main>
+
+    <script>
+      // Grant CesiumJS access to your ion assets
+      Cesium.Ion.defaultAccessToken = TOKEN;
+
+      const viewer = new Cesium.Viewer("cesiumContainer");
+
+      (async () => {
+        "use strict";
+        try {
+          const resource = await Cesium.IonResource.fromAssetId(1591963);
+          const entity = viewer.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(0, 0, 100),
+            model: {
+              uri: resource,
+            },
+          });
+          viewer.trackedEntity = entity;
+        } catch (error) {
+          console.log(error);
+        }
+      })();
+    </script>
+  </body>
+</html>

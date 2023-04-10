@@ -181,7 +181,7 @@ class Satellite(Entity):
         Updates the rotation about one axis the attitude"""
 
         # Define the roll angle (in radians)
-        roll_angle = np.deg2rad(1)
+        roll_angle = np.deg2rad(5)
         # set up rotation object
         R_roll = R.from_euler('x', roll_angle).as_matrix()
         # Update the attitude quaternion 
@@ -216,7 +216,7 @@ class StatusPublisher(WallclockTimeIntervalPublisher):
         self.isInRange, groundId = self.satellite.check_in_range(self.satellite.grounds)
         
         self.app.send_message(
-            "location",
+            "state",
             SatelliteStatus(
                 id=self.satellite.id,
                 name=self.satellite.name,
