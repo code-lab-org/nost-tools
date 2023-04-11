@@ -23,7 +23,7 @@ class Satellite(Entity):
         self.field_of_regard = field_of_regard
 
         self.geocentric = None
-        self.pos = self.next_pos = None                             # xyz position (ECEF)
+        self.pos = self.next_pos = None
         self.vel = self.next_vel = None
         self.att = self.next_att = None
 
@@ -38,14 +38,15 @@ class Satellite(Entity):
         self.vel = self.geocentric.velocity.m_per_s
         
         # initial rotation from inertial to body coordinates
-        posMag = np.linalg.norm(self.pos)                    # position magnitude
-        velMag = np.linalg.norm(self.vel)                    # velocity magnitude  
-        b_x = self.vel/velMag                                # body x-axis along velocity vector
-        b_z = self.pos/posMag                                # body z-axis nadir pointing
-        b_y = np.cross(b_x,b_z)                              # body y-axis normal to orbital plane
-        dcm_0 = np.stack([b_x, b_y, b_z])                    # initial dcm from inertial to body coordinates
-        r = R.from_matrix(dcm_0)                             # creating rotation in scipy rotations library
-        self.att = R.from_euler('xyz', [0, 0, 0]).as_quat()  # initial quaternion from inertial to body coordinates
+        posMag = np.linalg.norm(self.pos)            # position magnitude
+        velMag = np.linalg.norm(self.vel)            # velocity magnitude  
+        b_x = self.vel/velMag                        # body x-axis along velocity vector
+        b_z = self.pos/posMag                        # body z-axis nadir pointing
+        b_y = np.cross(b_x,b_z)                      # body y-axis normal to orbital plane
+        dcm_0 = np.stack([b_x, b_y, b_z])            # initial dcm from inertial to body coordinates
+        r = R.from_matrix(dcm_0)                     # creating rotation in scipy rotations library
+       # self.att = r.as_quat()                       # initial quaternion from inertial to body coordinates
+        self.att = R.from_euler('xyz', [0, 0, 0]).as_quat()
 
 
     def tick(self, time_step): # computes
