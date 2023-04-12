@@ -45,7 +45,7 @@ class Satellite(Entity):
         b_y = np.cross(b_x,b_z)                              # body y-axis normal to orbital plane
         dcm_0 = np.stack([b_x, b_y, b_z])                    # initial dcm from inertial to body coordinates
         r = R.from_matrix(dcm_0)                             # creating rotation in scipy rotations library
-        self.att = R.from_euler('xyz', [0, 0, 0]).as_quat()  # initial quaternion from inertial to body coordinates
+        self.att = r.as_quat()  # initial quaternion from inertial to body coordinates
 
 
     def tick(self, time_step): # computes
@@ -53,7 +53,7 @@ class Satellite(Entity):
         self.next_geocentric = self.ES.at(self.ts.from_datetime(self.get_time()))
         self.next_pos = self.next_geocentric.position.m
         self.next_vel = self.next_geocentric.velocity.m_per_s
-        self.one_axis_control(time_step)
+        self.nadirPointing(time_step)
         self.next_att = self.att
 
 
@@ -175,19 +175,27 @@ class Satellite(Entity):
         return isInRange, groundId
 
 
-    def one_axis_control(self, time_step):  
+    def nadirPointing(self, time_step):  
         """
         Updates the rotation about one axis the attitude"""
 
-        # Define the roll angle (in radians)
-        roll_angle = np.deg2rad(5)
-        # set up rotation object
-        R_roll = R.from_euler('x', roll_angle).as_matrix()
-        # Update the attitude quaternion 
-        self.att = R.from_matrix(R_roll @ R.from_quat(self.att).as_matrix()).as_quat()
-        # Get and print euler angles
-        euler_angles = R.from_quat(self.att).as_euler('xyz', degrees=True)
-        print(euler_angles)
+        # current position
+        # posMag = np.linalg.norm(self.pos)                    # position magnitude
+        # velMag = np.linalg.norm(self.vel)                    # velocity magnitude  
+        # b_x = self.vel/velMag                                # body x-axis along velocity vector
+        # b_z = self.pos/posMag                                # body z-axis nadir pointing
+        # b_y = np.cross(b_x,b_z)                              # body y-axis normal to orbital plane
+        # dcm_0 = np.stack([b_x, b_y, b_z])                    # initial dcm from inertial to body coordinates
+        # r = R.from_matrix(dcm_0)                             # creating rotation in scipy rotations library
+        # self.att = r.as_quat()  # initial quaternion from inertial to body coordinates
+        
+        g = np.array([0, 0, -1])  # gravitational acceleration vector
+
+        # Calculate nadir-pointing quaternion
+        r1 = R.from_quat(self.att)
+        rot_matrix = R.align_vectors(np.array(self.pos), -g)
+        r = R.from_matrix(rot_matrix)
+        self.att = r.apply(self.att)
 
         return self.att
     
