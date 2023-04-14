@@ -14,3 +14,4 @@ functions...
    common_interactions/index
    white_papers/index
    application_templates/index
+   common_issues/index
