@@ -45,7 +45,7 @@ class Satellite(Entity):
         b_y = np.cross(b_x,b_z)                              # body y-axis normal to orbital plane
         dcm_0 = np.stack([b_x, b_y, b_z])                    # initial dcm from inertial to body coordinates
         r = R.from_matrix(dcm_0)                             # creating rotation in scipy rotations library
-        self.att = r.as_quat()  # initial quaternion from inertial to body coordinates
+        self.att = r.as_quat()                               # initial quaternion from inertial to body coordinates
 
 
     def tick(self, time_step): # computes

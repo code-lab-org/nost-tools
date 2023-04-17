@@ -181,7 +181,7 @@ class Satellite(Entity):
         Updates the rotation about one axis the attitude"""
 
         # Define the roll angle (in radians)
-        roll_angle = np.deg2rad(5)
+        roll_angle = np.deg2rad(15)
         # set up rotation object
         R_roll = R.from_euler('x', roll_angle).as_matrix()
         # Update the attitude quaternion 

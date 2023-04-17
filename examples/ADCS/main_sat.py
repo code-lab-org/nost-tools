@@ -10,7 +10,7 @@ from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
 from nost_tools.managed_application import ManagedApplication
 
 from config import PARAMETERS
-from satellite import *
+from satellite_one_axis_roll import *
 
 logging.basicConfig(level=logging.INFO)
 
