@@ -10,8 +10,21 @@ Connection Issues with the Broker
 
 If you are having trouble connecting with the broker there are several possible causes.
 
-* Not on the internet number whitelist
+* Not on the IP address whitelist
 * Do not have VPN hooked in
+
+Why can't I connect to the broker?
+----------------------------------
+
+.. dropdown:: Dropdown menu title
+
+    Dropdown text only
+
+
+.. dropdown:: Dropdown menu title
+
+    Dropdown text only
+
 
 Timing with applications
 ------------------------
