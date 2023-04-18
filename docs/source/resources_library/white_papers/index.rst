@@ -7,3 +7,4 @@ This section of the resources library contains white papers which describe more 
    :maxdepth: 2
    
    task-receive
+   internal-interacts

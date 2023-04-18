@@ -30,3 +30,13 @@ Timing with applications
 ------------------------
 
 Starting the manager before all other apps are initialized and ready to start. 
+
+Query NIST servers 
+
+
+Visualizations Not Populating 
+-----------------------------
+
+When generating science dashboards or simulation models, first validate the port number is consistent.
+Next, validate that the data is importign correctly: for satellites, ensure all TLEs are updated and in appropriate format,
+and for graphs, ensure data sources are accurate and in the correct format.
