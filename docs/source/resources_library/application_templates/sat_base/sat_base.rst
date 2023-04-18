@@ -1,13 +1,13 @@
 Basic Satellite
 ===============
 
+Coming Soon!
+
 This set of Python scripts model a basic satellite that can be extended for various functions. 
 
 
 satellite.py
 ------------
-
-Coming Soon!
 
 .. automodule:: examples.satBaseClass.main_sat
 

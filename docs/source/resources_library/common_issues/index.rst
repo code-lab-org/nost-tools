@@ -13,9 +13,9 @@ This section contains some common technical issues the development team encounte
 
     You do not need to use the NOS-T manager. However, many if not most applications which require scaled time (i.e. a faster-than-real-time simulation) will want to use it. Some test suites, like :ref:`FireSat+ <fireSatExampleTop>`, have both managed and unmanaged applications working together. A more in-depth description of these distinctions is found :ref:`here <unmgdVSmgd>`.
 
-.. dropdown:: Can I duplicate applications?
+.. dropdown:: Can I run duplicate applications?
 
-    Yes... In some cases duplicating applications might not be necessary or desirable. Some clear examples of this would be if you want to use multiple spacecraft or ground stations as opposed to one. Your applications can be developed so that, for instance, a constellation of spacecraft is represented by one application, rather than requiring applications for each individual spacecraft. The :ref:`FireSat+ <fireSatExampleTop>` **Grounds** application has a simple example of this. In the below config.py code block, the top commented lines could be used to represent 7 separate ground stations. The bottom lines which aren't commented are used to represent a single ground station.
+    Yes, you can duplicate applications to create copies of various nodes. However, in some cases duplicating applications might not be necessary or desirable. Some clear examples of this would be if you want to use multiple spacecraft or ground stations as opposed to one. Your applications can be developed so that, for instance, a constellation of spacecraft is represented by one application, rather than requiring applications for each individual spacecraft. The :ref:`FireSat+ <fireSatExampleTop>` **Grounds** application has a simple example of this. In the below config.py code block, the top commented lines could be used to represent 7 separate ground stations. The bottom lines which aren't commented are used to represent a single ground station. Using a single application to represent several nodes will cut down on message traffic - this will prevent slowdown during test cases.
 
     .. code-block:: python
 
