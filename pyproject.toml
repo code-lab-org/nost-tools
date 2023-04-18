@@ -49,5 +49,5 @@ docs = [
     "seaborn >= 0.12",
     "scipy >= 1.7.3",
     "skyfield >= 1.45",
-    "sphinx_panels >= 0.6.0"
+    "sphinx_panels == 0.6.0"
 ]
