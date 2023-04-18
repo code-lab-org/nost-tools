@@ -57,7 +57,7 @@ extensions = [
     "sphinx_copybutton",
     "sphinx_search.extension",
     "sphinxcontrib.autodoc_pydantic",
-    "sphinx_panels"
+    "sphinx_design"
 ]
 
 napoleon_google_docstring = True
