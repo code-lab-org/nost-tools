@@ -653,6 +653,8 @@ All manager events are published to the topic *$PREFIX/manager/TYPE
 type) and use JSON for message payload encoding. This section briefly
 describes the topic and payload for each type of manager event.
 
+.. _controlEvents:
+
 Control Events
 ~~~~~~~~~~~~~~
 
@@ -982,6 +984,8 @@ Figure 8.
    :alt: Diagram Description automatically generated
 
 Figure 8. FireSat+ Test Case Event Publishers/Subscribers
+
+.. _unmgdVSmgd:
 
 Unmanaged Use Case
 ------------------

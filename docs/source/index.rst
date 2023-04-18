@@ -21,6 +21,7 @@ release documents, and publications that have been based on or used the testbed.
    resources_library/index
    release_docs/index
    publications
+   publicationsCards
 
 .. figure:: media/graphicalConcept.png
    :align: center
