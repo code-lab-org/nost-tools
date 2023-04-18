@@ -51,7 +51,7 @@ name ".env" containing the following text. Make sure that you "Save as type"
 ::
 
   HOST="your event broker host URL"
-  PORT=#### - your connection port
+  PORT=8883 - your connection port
   USERNAME="your event broker username"
   PASSWORD="your event broker password"
 
