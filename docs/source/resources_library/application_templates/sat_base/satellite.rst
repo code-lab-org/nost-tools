@@ -1,16 +1,9 @@
-Basic Satellite
-===============
+.. _satBaseSatellite:
 
-Coming Soon!
+Satellite
+=========
 
-This set of Python scripts model a basic satellite that can be extended for various functions. 
-
-
-satellite.py
-------------
-
-.. automodule:: examples.satBaseClass.main_sat
-
+.. automodule:: examples.satBaseClass.satellite
 
 Classes
 -------

@@ -6,4 +6,4 @@ This section of the resources library contains templates for common DSM function
 .. toctree::
    :maxdepth: 1
 
-   sat_base/sat_base
+   sat_base/modules
