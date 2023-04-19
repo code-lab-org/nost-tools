@@ -1,7 +1,7 @@
 .. _satBaseSchemas:
 
-Schemas
-=======
+schemas.py
+==========
 
 .. automodule:: examples.satBaseClass.schemas
 
