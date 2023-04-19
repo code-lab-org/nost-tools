@@ -5,10 +5,7 @@ schemas.py
 
 .. automodule:: examples.satBaseClass.schemas
 
-Classes
--------
-
-The following class have built-in methods that are unique to each object. The :obj:`Satellite Status` class tracks state transitions for the satellite, while the :obj:`StatusPublisher` standardizes the message structure and frequency of published messages updating these states.
+This file contains a pydantic schema for the :obj:`StatusPublisher` object class in the :ref:`satellite.py <satBaseSatellite>` script. It defines the message structure, variables, and their data types. This schema will aid in debugging if your messages are using the wrong data type.
 
 Satellite Status
 ^^^^^^^^^^^^^^^^
