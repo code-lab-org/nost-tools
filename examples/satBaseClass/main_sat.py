@@ -22,7 +22,7 @@ if __name__ == "__main__":
     credentials = dotenv_values(".env")
     HOST, PORT = credentials["HOST"], int(credentials["PORT"])
     USERNAME, PASSWORD = credentials["USERNAME"], credentials["PASSWORD"]
-    
+
     # set the client credentials
     config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, True)
 
@@ -38,9 +38,10 @@ if __name__ == "__main__":
 
     field_of_regard = 112.56
 
-    satellite = Satellite(app, 0, 'satellite', field_of_regard, PARAMETERS['GROUND'], ES=by_name[name])
+    satellite = Satellite(app, 0, 'satellite', field_of_regard,
+                          PARAMETERS['GROUND'], ES=by_name[name])
 
-    # add the Constellation entity to the application's simulator
+    # add the Satellite entity to the application's simulator
     app.simulator.add_entity(satellite)
 
     # add a shutdown observer to shut down after a single test case
@@ -48,7 +49,8 @@ if __name__ == "__main__":
 
     # add a position publisher to update satellite state every 5 seconds of wallclock time
     app.simulator.add_observer(
-        StatusPublisher(app, satellite, timedelta(seconds=5)*PARAMETERS['SCALE'])
+        StatusPublisher(app, satellite, timedelta(
+            seconds=5)*PARAMETERS['SCALE'])
     )
 
     # start up the application on PREFIX, publish time status every 10 seconds of wallclock time
@@ -57,7 +59,8 @@ if __name__ == "__main__":
         config,
         True,
         time_status_step=timedelta(seconds=5)*PARAMETERS['SCALE'],
-        time_status_init=datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc),
+        time_status_init=datetime.fromtimestamp(
+            PARAMETERS['SCENARIO_START']).replace(tzinfo=utc),
         time_step=timedelta(seconds=1) * PARAMETERS['SCALE'],
     )
 
