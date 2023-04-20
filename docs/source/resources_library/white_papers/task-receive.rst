@@ -14,10 +14,12 @@ It is common for these APIs to report a cost and an estimated time of retrieval 
 
    Generic Sequence Diagram with Cost-Monitoring Gatekeeper Application for Automated API Tasking
 
-Once a task has been completed and the data product is delivered to a ground station, the commercial provider has to deliver the data product to the customer. These data products feature high resolution imagery, and thus the file sizes are prohibitively large, and the best means of delivery is by a secure third-party file-sharing service. In an automated workflow such as could be facilitated by NOS-T, a brief sequence of actions need to be communicated to execute this transaction. First, an MQTT client must either be continuously monitoring the file-sharing endpoint for any new activity, or subscribing to a topic where another monitoring application (presumably external to the testbed but with a similar MQTT interface to communicate on NOS-T) would publish a message to indicate the availability of a new data product to retrieve. This message payload would likely include the name of the new file and an http endpoint from where the file can be pulled. This message would trigger an MQTT client to initiate the pull. A common challenge in interorganizational cooperation is the issue of security and passing files through firewalls.
+Once a task has been completed and the data product is delivered to a ground station, the commercial provider must deliver the data product to the customer. These data products feature high resolution imagery with prohibitively large file sizes, and the best means of delivery is by a secure third-party file-sharing service. A common challenge in interorganizational cooperation is the issue of security and passing files through firewalls, which prevents automated pushing of data products from the commercial satellite imagery provider to the customer. In an automated workflow such as could be facilitated by NOS-T, a brief sequence of actions need to be communicated to deliver the data product and circumvent the firewall. 
 
 |
 
 Coming soon: Generic sequence diagram for API driven Retrieval of data
 
 |
+
+The customer/user's MQTT client must either be continuously monitoring the file-sharing endpoint for any new activity, or subscribing to a topic where another monitoring application would publish a message to indicate the availability of a new data product to retrieve. The message payload should include the name of the new file and an http endpoint from where the file can be retrieved. This message would trigger the customer/user MQTT client to initiate a pull of the data product from behind the firewall.
