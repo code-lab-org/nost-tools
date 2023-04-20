@@ -81,6 +81,21 @@ dcm0 = np.stack([b_x, b_y, b_z])                              # initial rotation
 
 r = R.from_matrix(dcm0)
 
+# make DCM
+
+# set up DCM rotation
+
+# apply DCM rotation
+
+# set up attitude rotation
+
+# apply attitude rotation
+
+r2 = R.from_euler('y', 90, degrees=True)
+initnew = r2.apply(vel)
+
+
+
 
 
 
