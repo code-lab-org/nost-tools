@@ -66,7 +66,10 @@ num_steps = int(duration/step)
 
 # with dummy vectors
 
-pos = [0, 1000, 0]
+# # Define the initial orientation of the satellite (pointing towards the negative z-axis)
+init_orientation = R.from_euler('xyz', [0, 0, 0], degrees=True).as_quat()  # body axes
+
+pos = [0, 7500, 0]
 vel = [3, 0, 0]
 posMag = np.linalg.norm(pos)                        # position magnitude
 velMag = np.linalg.norm(vel)                        # velocity magnitude  
