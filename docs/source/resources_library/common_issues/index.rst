@@ -3,17 +3,60 @@
 Common Technical Issues
 =======================
 
-This section contains some common technical issues the development team encountered along with methods for overcoming them.
+This section contains some common technical issues the development team encountered along with methods for overcoming them. Please click on the dropdown menus.
 
-Connection Issues with the Broker
----------------------------------
+.. dropdown:: Why can't I connect to the broker?
 
-If you are having trouble connecting with the broker there are several possible causes.
+    If you are having trouble connecting with the broker there are several possible causes. Having the proper credentials and being logged in is a likely cause. Depending on how your organization handles these credentials, one of these would be if your IP address is not recognized by the broker host. Make sure that your broker administrator has your IP address on a whitelist. Relatedly, if you generally connect to the use a VPN make sure that it's turned on.
+  
+.. dropdown:: Do I need to use the NOS-T manager?
 
-* Not on the internet number whitelist
-* Do not have VPN hooked in
+    You do not need to use the NOS-T manager. However, many if not most applications which require scaled time (i.e. a faster-than-real-time simulation) will want to use it. Some test suites, like :ref:`FireSat+ <fireSatExampleTop>`, have both managed and unmanaged applications working together. A more in-depth description of these distinctions is found :ref:`here <unmgdVSmgd>`.
 
-Timing with applications
-------------------------
+.. dropdown:: Can I run duplicate applications?
 
-Starting the manager before all other apps are initialized and ready to start. 
+    Yes, you can duplicate applications to create copies of various nodes. However, in some cases duplicating applications might not be necessary or desirable. Some clear examples of this would be if you want to use multiple spacecraft or ground stations as opposed to one. Your applications can be developed so that, for instance, a constellation of spacecraft is represented by one application, rather than requiring applications for each individual spacecraft. The :ref:`FireSat+ <fireSatExampleTop>` **Grounds** application has a simple example of this. In the below config.py code block, the top commented lines could be used to represent 7 separate ground stations. The bottom lines which aren't commented are used to represent a single ground station. Using a single application to represent several nodes will cut down on message traffic - this will prevent slowdown during test cases.
+
+    .. code-block:: python
+
+        GROUND = pd.DataFrame(
+            # data={
+            #     "groundId": [0, 1, 2, 3, 4, 5, 6],
+            #     "latitude": [35.0, 30.0, -5.0, -30.0, 52.0, -20.0, 75.0],
+            #     "longitude": [-102.0, -9.0, -60.0, 25.0, 65.0, 140.0, -40.0],
+            #     "elevAngle": [5.0, 15.0, 5.0, 10.0, 5.0, 25.0, 15.0],
+            #     "operational": [True, True, True, True, True, False, False],
+            # }
+            data={
+                "groundId": [0],
+                "latitude": [LAT],
+                "longitude": [LNG],
+                "elevAngle": [MIN_ELEVATION],
+                "operational": [True],
+            }
+        )
+
+.. dropdown:: Why aren't my visualizations populating?
+
+    When generating science dashboards or simulation models, first validate the port number is correct.
+    Next, validate that the data is importing correctly: for satellites, ensure all TLEs are updated and in appropriate format,
+    and for graphs, ensure data sources are accurate and in the correct format.
+
+    Also, most visualization tools should be started up before they start receiving data. For visualization tools receiving data from a managed application, the manager should be started last.
+
+.. dropdown:: Why doesn't my managed application start up?
+
+    This is commonly caused by the NOS-T manager starting up before the managed application. Sometimes, even if you start up the manager last, delays in initializing the managed application can cause timing problems. The initialization process is described :ref: `here <controlEvents>`. In particular, repeated NTP requests on the managed application can delay the startup enough so that the manager sends out its initialization messages before the application is ready. In the case of the :ref: `FireSat+ <fireSatExampleTop>` example applications, you should wait until you see the following message in your IDE console:
+
+    .. code-block:: 
+
+        INFO:nost_tools.application:Contacting pool.ntp.org to retrieve wallclock offset.
+        INFO:nost_tools.application:Wallclock offset updated to 0:00:00.248738.
+        INFO:nost_tools.application:Application ground successfully started up.
+
+    
+
+
+
+
+
