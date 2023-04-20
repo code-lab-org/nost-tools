@@ -82,6 +82,8 @@ r = R.from_matrix(dcm0)
 
 
 
+
+
 # # Simulate the satellite's position and orientation over time
 # for i in range(num_steps):
     
