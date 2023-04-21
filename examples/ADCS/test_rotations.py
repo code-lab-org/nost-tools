@@ -69,16 +69,12 @@ num_steps = int(duration/step)
 # # Define the initial orientation of the satellite (pointing towards the negative z-axis)
 init_orientation = R.from_euler('xyz', [0, 0, 0], degrees=True).as_quat()  # body axes
 
-position = [0, 7500, 0]
-velocity = [3000, 0, 0]
-
-
-
-
+r = [0, 7500, 0]
+v = [3000, 0, 0]
 
 # Normalize position and velocity vectors
-position_norm = position / np.linalg.norm(position)
-velocity_norm = velocity / np.linalg.norm(velocity)
+position_norm = r / np.linalg.norm(r)
+velocity_norm = v / np.linalg.norm(v)
 
 # Calculate the cross product of the normalized position and velocity vectors
 cross_product = np.cross(position_norm, velocity_norm)
