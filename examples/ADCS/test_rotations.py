@@ -69,19 +69,66 @@ num_steps = int(duration/step)
 # # Define the initial orientation of the satellite (pointing towards the negative z-axis)
 init_orientation = R.from_euler('xyz', [0, 0, 0], degrees=True).as_quat()  # body axes
 
-pos = [0, 7500, 0]
-vel = [3, 0, 0]
-posMag = np.linalg.norm(pos)                        # position magnitude
-velMag = np.linalg.norm(vel)                        # velocity magnitude  
-b_x = vel/velMag                                    # body x-axis along velocity vector
-b_z = pos/posMag                                    # body z-axis nadir pointing
-b_y = np.cross(b_x,b_z)                                       # body y-axis normal to orbital plane
+position = [0, 7500, 0]
+velocity = [3000, 0, 0]
 
-dcm0 = np.stack([b_x, b_y, b_z])                              # initial rotation axis
 
-r = R.from_matrix(dcm0)
 
-# make DCM
+
+
+# Normalize position and velocity vectors
+position_norm = position / np.linalg.norm(position)
+velocity_norm = velocity / np.linalg.norm(velocity)
+
+# Calculate the cross product of the normalized position and velocity vectors
+cross_product = np.cross(position_norm, velocity_norm)
+
+# Normalize the cross product vector
+cross_norm = cross_product / np.linalg.norm(cross_product)
+
+# Calculate the cross product of the normalized velocity vector and the normalized cross product vector
+cross2_product = np.cross(velocity_norm, cross_norm)
+
+# Normalize the second cross product vector
+cross2_norm = cross2_product / np.linalg.norm(cross2_product)
+
+# Calculate the cross product of the normalized cross product vector and the normalized second cross product vector
+cross3_norm = np.cross(cross_norm, cross2_norm)
+
+# Assemble the direction cosine matrix
+dcm = np.array([cross2_norm, cross3_norm, cross_norm]).T
+
+# set up rotation
+# r = R.from_matrix(dcm).as_quat
+
+# Define the rotation angle and axis
+angle = np.deg2rad(10)
+axis = np.array([1, 0, 0])
+
+# Create a rotation object using the angle-axis representation
+r = R.from_rotvec(angle * axis)
+
+# Convert the rotation object to a quaternion
+q = r.as_quat()
+
+# Apply the rotation to the DCM
+new_dcm = r.apply(dcm)
+
+# Convert the new DCM to a quaternion
+new_q = R.from_matrix(new_dcm).as_quat()
+
+print("Original DCM:\n", dcm)
+print("New DCM:\n", new_dcm)
+print("Quaternion representing the rotation:\n", q)
+print("New quaternion:\n", new_q)
+
+
+
+
+
+
+
+
 
 # set up DCM rotation
 
@@ -91,12 +138,13 @@ r = R.from_matrix(dcm0)
 
 # apply attitude rotation
 
-r2 = R.from_euler('y', 90, degrees=True)
-initnew = r2.apply(vel)
+# r2 = R.from_euler('y', 90, degrees=True)
+# initnew = r2.apply(vel)
 
 
 
-
+# specific angular momentum
+# h = np.cross(pos, vel)
 
 
 
@@ -117,8 +165,7 @@ initnew = r2.apply(vel)
 #     velocity = satellite.at(time).velocity.km_per_s
 #     velocities[i] = velocity
     
-#     # specific angular momentum
-#     h = np.cross(position, velocity)
+
     
 #     posMag = np.linalg.norm(position)            # position magnitude
 #     velMag = np.linalg.norm(velocity)            # velocity magnitude  
