@@ -9,6 +9,10 @@ This section contains some common technical issues the development team encounte
 
     If you are having trouble connecting with the broker there are several possible causes. Having the proper credentials and being logged in is a likely cause. Depending on how your organization handles these credentials, one of these would be if your IP address is not recognized by the broker host. Make sure that your broker administrator has your IP address on a whitelist. Relatedly, if you generally connect to the use a VPN make sure that it's turned on.
   
+.. dropdown:: Why can't I see my messages being published?
+
+    If you are not able to see an application's messages publishing to the broker, the first step is to ensure that the application can connect to the broker. See the question above for guidance on broker connection issues. If the application is correctly connected, next verify that the topic the application is publishing to is the desired channel. For event driven applications, validate that the trigger event is occuring, and the application in question is receiving the trigger as needed. If the application is connected to the appropriate channel and receiving the trigger, validate the syntax of the message -- if there is a sytax error, the message will not populate correctly. 
+
 .. dropdown:: Do I need to use the NOS-T manager?
 
     You do not need to use the NOS-T manager. However, many if not most applications which require scaled time (i.e. a faster-than-real-time simulation) will want to use it. Some test suites, like :ref:`FireSat+ <fireSatExampleTop>`, have both managed and unmanaged applications working together. A more in-depth description of these distinctions is found :ref:`here <unmgdVSmgd>`.
@@ -53,6 +57,15 @@ This section contains some common technical issues the development team encounte
         INFO:nost_tools.application:Contacting pool.ntp.org to retrieve wallclock offset.
         INFO:nost_tools.application:Wallclock offset updated to 0:00:00.248738.
         INFO:nost_tools.application:Application ground successfully started up.
+
+.. dropdown:: Do all my applications need to be hosted on one device?
+
+    No! One of the benefits of using the NOS-T architecture is that applications can be hosted throughout a distrubuted network, so long as each machine can be connected to the broker.
+
+.. dropdown:: How can I map my complex scenario into an NOS-T project?
+
+    The first step in evaluating a project for modeling with NOS-T is to break down components of the scenario into individual components that can be turned into applications. Once these applications are identified, determine the way they will interact. Common interactions and methods for determining them are detailed in the whitepaper Common Interacts.
+
 
     
 
