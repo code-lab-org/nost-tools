@@ -1,7 +1,9 @@
-"""
-    *This application demonstrates a manager synchronizing a test case between disaggregated applications*
-    
+# -*- coding: utf-8 -*-
+"""  
     This manager application leverages the manager template in the NOS-T tools library. The manager template is designed to publish information to specific topics, and any applications using the :obj:`ManagedApplication` object class will subscribe to these topics to know when to start and stop simulations, as well as the resolution and time scale factor of the simulation steps.
+
+    .. literalinclude:: /../../examples/satBaseClass/main_manager.py
+        :lines: 9-
 """
 
 import logging
@@ -21,9 +23,9 @@ logging.basicConfig(level=logging.INFO)
 if __name__ == "__main__":
     # Note that these are loaded from a .env file in current working directory
     credentials = dotenv_values(".env")
-    HOST, PORT = credentials["SMCE_HOST"], int(credentials["SMCE_PORT"])
-    USERNAME, PASSWORD = credentials["SMCE_USERNAME"], credentials["SMCE_PASSWORD"]
-    
+    HOST, PORT = credentials["HOST"], int(credentials["PORT"])
+    USERNAME, PASSWORD = credentials["USERNAME"], credentials["PASSWORD"]
+
     # set the client credentials from the config file
     config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, True)
 
@@ -38,13 +40,23 @@ if __name__ == "__main__":
 
     # execute a test plan
     manager.execute_test_plan(
-        datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc),                                         # scenario start datetime
-        datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc) + timedelta(hours=PARAMETERS['SCENARIO_LENGTH']),                                           # scenario end datetime
-        start_time=None,                                        # optionally specify a wallclock start datetime for synchronization
-        time_step=timedelta(seconds=1),                         # wallclock time resolution for simulation
-        time_scale_factor=PARAMETERS['SCALE'],                                # initial scale between wallclock and scenario clock (e.g. if SCALE = 60.0 then  1 wallclock second = 1 scenario minute)
-        time_scale_updates=PARAMETERS['UPDATE'],                              # optionally schedule changes to the time_scale_factor at a specified scenario time
-        time_status_step=timedelta(seconds=5) * PARAMETERS['SCALE'],                                                # optional duration between time status 'heartbeat' messages
-        time_status_init=datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc) + timedelta(minutes=1),                                                      # optional initial scenario datetime to start publishing time status 'heartbeat' messages
-        command_lead=timedelta(seconds=5),                                                      # lead time before a scheduled update or stop command
+        datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(
+            tzinfo=utc),                                         # scenario start datetime
+        datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc) + timedelta(
+            hours=PARAMETERS['SCENARIO_LENGTH']),                                           # scenario end datetime
+        # optionally specify a wallclock start datetime for synchronization
+        start_time=None,
+        # wallclock time resolution for simulation
+        time_step=timedelta(seconds=1),
+        # initial scale between wallclock and scenario clock (e.g. if SCALE = 60.0 then  1 wallclock second = 1 scenario minute)
+        time_scale_factor=PARAMETERS['SCALE'],
+        # optionally schedule changes to the time_scale_factor at a specified scenario time
+        time_scale_updates=PARAMETERS['UPDATE'],
+        # optional duration between time status 'heartbeat' messages
+        time_status_step=timedelta(seconds=5) * PARAMETERS['SCALE'],
+        # optional initial scenario datetime to start publishing time status 'heartbeat' messages
+        time_status_init=datetime.fromtimestamp(
+            PARAMETERS['SCENARIO_START']).replace(tzinfo=utc) + timedelta(minutes=1),
+        # lead time before a scheduled update or stop command
+        command_lead=timedelta(seconds=5),
     )
