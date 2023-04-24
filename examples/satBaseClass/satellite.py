@@ -17,6 +17,24 @@ from schemas import *
 
 class Satellite(Entity):
 
+    """
+    *This object class inherits properties from the Entity object class in the NOS-T tools library*
+
+    Args:
+        Name (str): A string containing the name for the satellite application
+        app (:obj:`ManagedApplication`): An application containing a test-run namespace, a name and description for the app, client credentials, and simulation timing instructions
+        id (list): List of unique *int* ids for each satellite
+        ES (list): Optional list of :obj:`EarthSatellite` objects to be included (NOTE: at least one of **ES** or **tles** MUST be specified, or an exception will be thrown)\n
+        tles (list): Optional list of Two-Line Element *str* to be converted into :obj:`EarthSatellite` objects and included in the simulation
+
+    Attributes:
+        pos (list): List of current XYZ inertial coordinates (:obj:`Distance`) of the satellite
+        next_pos (list): List of next XYZ inertial coordinates (:obj:`Distance`) of the satellite
+        vel (list): List of current velocity in XYZ coordinates (:obj:`Velocity`) of the satellite
+        next_vel (list): List of next velocity in XYZ coordinates (:obj:`Velocity`) of the satellite
+        grounds (:obj:`DataFrame`): Dataframe containing information about ground stations with unique groundId (*int*), latitude-longitude location (:obj:`GeographicPosition`), min_elevation (*float*) angle constraints, and operational status (*bool*) - *NOTE:* initialized as **None**
+    """
+
     def __init__(self, app, id, name, field_of_regard, grounds, ES=None, tle=None):
         super().__init__(name)
         self.app = app
@@ -49,7 +67,7 @@ class Satellite(Entity):
 
     def tick(self, time_step):
         """
-        Computes the next :obj:`Constellation` state after the specified scenario duration and the next simulation scenario time
+        Computes the next :obj:`Satellite` state after the specified scenario duration and the next simulation scenario time
 
         Args:
             time_step (:obj:`timedelta`): Duration between current and next simulation scenario time
@@ -61,7 +79,7 @@ class Satellite(Entity):
 
     def tock(self):
         """
-        Commits the next :obj:`Constellation` state and advances simulation scenario time
+        Commits the next :obj:`Satellite` state and advances simulation scenario time
 
         """
 
