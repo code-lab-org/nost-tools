@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Apr 20 13:54:00 2023
+Created on Tue Apr 25 18:10:44 2023
 
 @author: brian
 """
@@ -187,4 +187,3 @@ print("New euler:\n", new_euler)
 
     # Print 
     #print(h)
-
