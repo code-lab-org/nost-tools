@@ -2,7 +2,7 @@
 """  
     This manager application leverages the manager template in the NOS-T tools library. The manager template is designed to publish information to specific topics, and any applications using the :obj:`ManagedApplication` object class will subscribe to these topics to know when to start and stop simulations, as well as the resolution and time scale factor of the simulation steps.
 
-    .. literalinclude:: /../../examples/satBaseClass/main_manager.py
+    .. literalinclude:: /../../examples/application_templates/basic_satellite/main_manager.py
         :lines: 9-
 """
 

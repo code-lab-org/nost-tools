@@ -32,7 +32,8 @@ sys.path.insert(0, os.path.abspath("../../examples/downlink/satellites"))
 sys.path.insert(0, os.path.abspath("../../examples/downlink/grounds"))
 sys.path.insert(0, os.path.abspath("../../examples/downlink/outages"))
 sys.path.insert(0, os.path.abspath("../../examples/downlink/scoreboard"))
-sys.path.insert(0, os.path.abspath("../../examples/satBaseClass"))
+sys.path.insert(0, os.path.abspath(
+    "../../examples/application_templates/basic_satellite"))
 
 # -- Project information -----------------------------------------------------
 

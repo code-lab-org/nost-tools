@@ -24,8 +24,8 @@ class Satellite(Entity):
         Name (str): A string containing the name for the satellite application
         app (:obj:`ManagedApplication`): An application containing a test-run namespace, a name and description for the app, client credentials, and simulation timing instructions
         id (list): List of unique *int* ids for each satellite
-        ES (list): Optional list of :obj:`EarthSatellite` objects to be included (NOTE: at least one of **ES** or **tles** MUST be specified, or an exception will be thrown)\n
-        tles (list): Optional list of Two-Line Element *str* to be converted into :obj:`EarthSatellite` objects and included in the simulation
+        ES (list): Optional :obj:`EarthSatellite` object to be included (NOTE: at least one of **ES** or **tles** MUST be specified, or an exception will be thrown)\n
+        tles (list): Optional Two-Line Element *str* to be converted into :obj:`EarthSatellite` objects and included in the simulation
 
     Attributes:
         pos (list): List of current XYZ inertial coordinates (:obj:`Distance`) of the satellite
