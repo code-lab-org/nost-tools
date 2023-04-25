@@ -9,7 +9,7 @@ import pandas as pd
 PARAMETERS = pd.Series(
     data={
         # Global parameters
-        "PREFIX": "satBaseClassTest",
+        "PREFIX": "basic_template",
         "SCALE": 60,
         "SCENARIO_START": datetime(2023, 1, 1, 7, 0, 0).timestamp(),
         "SCENARIO_LENGTH": 1,

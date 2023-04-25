@@ -10,5 +10,7 @@ This file contains a pydantic schema for the :obj:`StatusPublisher` object class
 Satellite Status
 ^^^^^^^^^^^^^^^^
 
-.. autoclass:: examples.application_templates.basic_satellite.schemas.SatelliteStatus
-	:show-inheritance:
+.. autopydantic_settings:: examples.application_templates.basic_satellite.schemas.SatelliteStatus
+   :noindex:
+   :settings-show-config-member: True
+   :validator-list-fields: True
