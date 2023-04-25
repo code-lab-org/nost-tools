@@ -638,6 +638,8 @@ calling the *loop()* function directly), per-topic callback functions to
 simplify event handling, and additional configuration options to manage
 the broker connection.
 
+.. _icdManager:
+
 Manager Events
 --------------
 
