@@ -53,10 +53,10 @@ if __name__ == "__main__":
         # optionally schedule changes to the time_scale_factor at a specified scenario time
         time_scale_updates=PARAMETERS['UPDATE'],
         # optional duration between time status 'heartbeat' messages
-        time_status_step=timedelta(seconds=5) * PARAMETERS['SCALE'],
+        time_status_step=timedelta(seconds=1) * PARAMETERS['SCALE'],
         # optional initial scenario datetime to start publishing time status 'heartbeat' messages
         time_status_init=datetime.fromtimestamp(
             PARAMETERS['SCENARIO_START']).replace(tzinfo=utc) + timedelta(minutes=1),
         # lead time before a scheduled update or stop command
-        command_lead=timedelta(seconds=5),
+        command_lead=timedelta(seconds=1),
     )

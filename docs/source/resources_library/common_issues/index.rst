@@ -11,7 +11,7 @@ This section contains some common technical issues the development team encounte
   
 .. dropdown:: Why can't I see my messages being published?
 
-    If you are not able to see an application's messages publishing to the broker, the first step is to ensure that the application can connect to the broker. See the question above for guidance on broker connection issues. If the application is correctly connected, next verify that the topic the application is publishing to is the desired channel. Furthermore, make sure you are watching the desired channel if you are using an online manager. For event-driven applications, validate that the trigger event is occuring, and the application in question is receiving the trigger as needed. If the application is connected to the appropriate channel and receiving the trigger, validate the syntax of the message -- if there is a syntax error, the message will not populate correctly. 
+    If you are not able to see an application's messages publishing to the broker, the first step is to ensure that the application can connect to the broker. See the question above for guidance on broker connection issues. If the application is correctly connected, next verify that the topic the application is publishing to is the desired channel. Furthermore, make sure you are monitoring the desired channel if you are using the online manager. For event-driven applications, validate that the trigger event is occuring, and the application in question is receiving the trigger as needed. If the application is connected to the appropriate channel and receiving the trigger, validate the syntax of the message -- if there is a syntax error, the message will not populate correctly. 
 
 .. dropdown:: Do I need to use the NOS-T manager?
 
@@ -65,6 +65,17 @@ This section contains some common technical issues the development team encounte
 .. dropdown:: How can I map my complex scenario into an NOS-T project?
 
     The first step in evaluating a project for modeling with NOS-T is to break down components of the scenario into individual components that can be turned into applications. Once these applications are identified, determine the way they will interact. Common interactions and methods for determining them are detailed in the whitepaper :ref:`commonInteracts`.
+
+.. dropdown:: How do I fix a pydantic error?
+
+    If you receive a pydantic error similar to the one below:
+
+    .. code-block::
+    
+        pydantic.error_wrappers.ValidationError: 1 validation error for SatelliteStatus position 
+        value is not a valid list (type=type_error.list)
+
+    Then you are probably sending out a message that does not have the correct data type. Check the data type for that element in the message (SatelliteStatus position above) and make sure that it is of the correct data type (list in the example above). These schema are very helpful for catching these data type errors.
 
 
     

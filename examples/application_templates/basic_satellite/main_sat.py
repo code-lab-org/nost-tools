@@ -29,14 +29,14 @@ if __name__ == "__main__":
     # create the managed application
     app = ManagedApplication("satellite")
 
-    # Names of Capella satellites used in Celestrak database
-    name = "SUOMI NPP"
+    # Name of Satellite for reference orbit from Celestrak database
+    name = PARAMETERS['name']
 
     activesats_url = "https://celestrak.com/NORAD/elements/active.txt"
     activesats = load.tle_file(activesats_url, reload=False)
     by_name = {sat.name: sat for sat in activesats}
 
-    field_of_regard = 112.56
+    field_of_regard = PARAMETERS["field_of_regard"]
 
     satellite = Satellite(app, 0, 'satellite', field_of_regard,
                           PARAMETERS['GROUND'], ES=by_name[name])
@@ -50,7 +50,7 @@ if __name__ == "__main__":
     # add a position publisher to update satellite state every 5 seconds of wallclock time
     app.simulator.add_observer(
         StatusPublisher(app, satellite, timedelta(
-            seconds=5)*PARAMETERS['SCALE'])
+            seconds=1))
     )
 
     # start up the application on PREFIX, publish time status every 10 seconds of wallclock time

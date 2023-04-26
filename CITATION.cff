@@ -1,14 +1,17 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 authors:
-- family-names: "Grogan"
-  given-names: "Paul T."
-  orcid: "https://orcid.org/0000-0001-8986-4806"
-- family-names: "Chell"
-  given-names: "Brian"
-  orcid: "https://orcid.org/0000-0001-7624-7817"
+  - family-names: "Grogan"
+    given-names: "Paul T."
+    orcid: "https://orcid.org/0000-0001-8986-4806"
+  - family-names: "Chell"
+    given-names: "Brian"
+    orcid: "https://orcid.org/0000-0001-7624-7817"
+  - family-names: "LeVine"
+    given-names: "Matthew J."
+    orcid: "https://orcid.org/0000-0002-1972-9227"
 title: "New Observing Strategies Testbed (NOS-T)"
 version: 1.1
-doi: 
+doi:
 date-released: 2023-1-17
 url: "https://github.com/code-lab-org/nost-tools"
