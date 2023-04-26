@@ -1,3 +1,5 @@
+.. _commonInteracts:
+
 Development of Common Internal Application Interactions
 ========================================================
 While the the New Observing Strategies Testbed supports a wide range of test suites, there are certain interactions that will appear frequently regardless of the specifics of the project. 

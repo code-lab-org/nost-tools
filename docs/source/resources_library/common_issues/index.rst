@@ -7,11 +7,11 @@ This section contains some common technical issues the development team encounte
 
 .. dropdown:: Why can't I connect to the broker?
 
-    If you are having trouble connecting with the broker there are several possible causes. Having the proper credentials and being logged in is a likely cause. Depending on how your organization handles these credentials, one of these would be if your IP address is not recognized by the broker host. Make sure that your broker administrator has your IP address on a whitelist. Relatedly, if you generally connect to the use a VPN make sure that it's turned on.
+    If you are having trouble connecting with the broker there are several possible causes. Not having the proper credentials to log in is a likely cause. Depending on how your organization handles these credentials, one of these would be if your IP address is not recognized by the broker host. Make sure that your broker administrator has your IP address on a whitelist. Relatedly, if you generally connect to the use a VPN make sure that it's turned on.
   
 .. dropdown:: Why can't I see my messages being published?
 
-    If you are not able to see an application's messages publishing to the broker, the first step is to ensure that the application can connect to the broker. See the question above for guidance on broker connection issues. If the application is correctly connected, next verify that the topic the application is publishing to is the desired channel. For event driven applications, validate that the trigger event is occuring, and the application in question is receiving the trigger as needed. If the application is connected to the appropriate channel and receiving the trigger, validate the syntax of the message -- if there is a sytax error, the message will not populate correctly. 
+    If you are not able to see an application's messages publishing to the broker, the first step is to ensure that the application can connect to the broker. See the question above for guidance on broker connection issues. If the application is correctly connected, next verify that the topic the application is publishing to is the desired channel. Furthermore, make sure you are watching the desired channel if you are using an online manager. For event-driven applications, validate that the trigger event is occuring, and the application in question is receiving the trigger as needed. If the application is connected to the appropriate channel and receiving the trigger, validate the syntax of the message -- if there is a syntax error, the message will not populate correctly. 
 
 .. dropdown:: Do I need to use the NOS-T manager?
 
@@ -50,7 +50,7 @@ This section contains some common technical issues the development team encounte
 
 .. dropdown:: Why doesn't my managed application start up?
 
-    This is commonly caused by the NOS-T manager starting up before the managed application. Sometimes, even if you start up the manager last, delays in initializing the managed application can cause timing problems. The initialization process is described :ref: `here <controlEvents>`. In particular, repeated NTP requests on the managed application can delay the startup enough so that the manager sends out its initialization messages before the application is ready. In the case of the :ref: `FireSat+ <fireSatExampleTop>` example applications, you should wait until you see the following message in your IDE console:
+    This is commonly caused by the NOS-T manager starting up before the managed application. Sometimes, even if you start up the manager last, delays in initializing the managed application can cause timing problems. The initialization process is described :ref:`here <controlEvents>`. In particular, repeated NTP requests on the managed application can delay the startup enough so that the manager sends out its initialization messages before the application is ready. In the case of the :ref:`FireSat+ <fireSatExampleTop>` example applications, you should wait until you see the following message in your IDE console
 
     .. code-block:: 
 
@@ -64,7 +64,7 @@ This section contains some common technical issues the development team encounte
 
 .. dropdown:: How can I map my complex scenario into an NOS-T project?
 
-    The first step in evaluating a project for modeling with NOS-T is to break down components of the scenario into individual components that can be turned into applications. Once these applications are identified, determine the way they will interact. Common interactions and methods for determining them are detailed in the whitepaper Common Interacts.
+    The first step in evaluating a project for modeling with NOS-T is to break down components of the scenario into individual components that can be turned into applications. Once these applications are identified, determine the way they will interact. Common interactions and methods for determining them are detailed in the whitepaper :ref:`commonInteracts`.
 
 
     
