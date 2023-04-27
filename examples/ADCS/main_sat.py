@@ -10,7 +10,7 @@ from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
 from nost_tools.managed_application import ManagedApplication
 
 from config import PARAMETERS
-from satellite_one_axis_roll import *
+from satellite_nadir import *
 
 logging.basicConfig(level=logging.INFO)
 
@@ -29,14 +29,14 @@ if __name__ == "__main__":
     # create the managed application
     app = ManagedApplication("satellite")
 
-    # Name(s) of satellite(s) used in Celestrak database
-    name = "SUOMI NPP"
+    # Name of Satellite for reference orbit from Celestrak database
+    name = PARAMETERS['name']
 
     activesats_url = "https://celestrak.com/NORAD/elements/active.txt"
     activesats = load.tle_file(activesats_url, reload=False)
     by_name = {sat.name: sat for sat in activesats}
 
-    field_of_regard = 112.56
+    field_of_regard = PARAMETERS["field_of_regard"]
 
     satellite = Satellite(app, 0, 'satellite', field_of_regard, PARAMETERS['GROUND'], ES=by_name[name])
 

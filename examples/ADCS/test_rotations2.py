@@ -69,57 +69,45 @@ num_steps = int(duration/step)
 # # Define the initial orientation of the satellite (pointing towards the negative z-axis)
 init_orientation = R.from_euler('xyz', [0, 0, 0], degrees=True).as_quat()  # body axes
 
-r = [0, 7500, 0]
-v = [3000, 0, 0]
+# Define the position and velocity vectors
+r = np.array([0, 7500, 0])
+v = np.array([3000, 0, 0])
 
-# Normalize position and velocity vectors
-position_norm = r / np.linalg.norm(r)
-velocity_norm = v / np.linalg.norm(v)
+# Calculate the specific angular momentum vector
+h = np.cross(r, v)
 
-# Calculate the cross product of the normalized position and velocity vectors ()
-cross_product = np.cross(position_norm, velocity_norm)
+# Calculate the rotation matrix from the inertial to the orbital frame
+i_hat = -r / np.linalg.norm(r)
+k_hat = h / np.linalg.norm(h)
+j_hat = np.cross(k_hat, i_hat)
+R_io = np.vstack((i_hat, j_hat, k_hat)).T
 
-# Normalize the cross product vector
-cross_norm = cross_product / np.linalg.norm(cross_product)
+# Define the body frame axes
+b_x = np.array([1, 0, 0])
+b_y = np.array([0, 1, 0])
+b_z = np.array([0, 0, 1])
 
-# Calculate the cross product of the normalized velocity vector and the normalized cross product vector
-cross2_product = np.cross(velocity_norm, cross_norm)
+# Calculate the rotation matrix from the body to the inertial frame
+R_bo = np.vstack((b_x, b_y, b_z)).T
 
-# Normalize the second cross product vector
-cross2_norm = cross2_product / np.linalg.norm(cross2_product)
+# Calculate the rotation matrix from the inertial to the body frame
+R_ib = np.dot(R_bo, R_io.T)
 
-# Calculate the cross product of the normalized cross product vector and the normalized second cross product vector
-cross3_norm = np.cross(cross_norm, cross2_norm)
-
-# Assemble the direction cosine matrix
-dcm = np.array([cross2_norm, cross3_norm, cross_norm]).T
-
-# set up rotation
-# r = R.from_matrix(dcm).as_quat
+# Convert the rotation matrix to a quaternion
+quat = R.from_matrix(R_ib).as_quat()
 
 # Define the rotation angle and axis
 angle = np.deg2rad(10)
 axis = np.array([1, 0, 0])
 
-# Create a rotation object using the angle-axis representation
-r = R.from_rotvec(angle * axis)
 
-# Convert the rotation object to a quaternion
-q = r.as_quat()
+print("Quaternion for Cesium")
 
-# Apply the rotation to the DCM
-new_dcm = r.apply(dcm)
-
-# Convert the new DCM to a quaternion
-new_q = R.from_matrix(new_dcm).as_quat()
-
-new_euler = R.from_matrix(new_dcm).as_rotvec()
-
-print("Original DCM:\n", dcm)
-print("New DCM:\n", new_dcm)
-print("Quaternion representing the rotation:\n", q)
-print("New quaternion:\n", new_q)
-print("New euler:\n", new_euler)
+# print("Original DCM:\n", dcm)
+# print("New DCM:\n", new_dcm)
+# print("Quaternion representing the rotation:\n", q)
+# print("New quaternion:\n", new_q)
+# print("New euler:\n", new_euler)
 
 
 
