@@ -15,7 +15,7 @@ PARAMETERS = pd.Series(
         "SCENARIO_LENGTH": 10000,
         
         # Name of satellite for reference orbit from Celestrak database SUOMI NPP GOES 18
-        "name": "SUOMI NPP",
+        "name": "NAVSTAR 72 (USA 258)",
 
         # satellite field of regard
         "field_of_regard": 112.56,

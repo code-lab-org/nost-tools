@@ -37,47 +37,15 @@ class Satellite(Entity):
         self.geocentric = self.ES.at(self.ts.from_datetime(init_time))
         self.pos = self.geocentric.position.m
         self.vel = self.geocentric.velocity.m_per_s
-
-        # initial rotation from inertial to body coordinates
-        
-        h = np.cross(self.pos, self.vel)
-
-        # Calculate the unit vectors for the body x, y, and z axes
-        
-        b_y = h / np.linalg.norm(h)
-        b_z = self.pos / np.linalg.norm(self.pos)
-        b_x0 = np.cross(b_y,b_z)
-        b_x = b_x0 / np.linalg.norm(b_x0)
-        
-        # Calculate the rotation matrix from the body to the inertial frame
-        R_bo = np.vstack((b_x, b_y, b_z)).T
-        
-        # Calculate the rotation matrix from the inertial to the body frame
-        # R_ib = R_bo.T
-        
-        # Convert the rotation matrix to a quaternion
-        self.att = R.from_matrix(R_bo).as_quat()
-       #  posMag = np.linalg.norm(self.pos)            # position magnitude
-       #  velMag = np.linalg.norm(self.vel)            # velocity magnitude
-       #  b_x = self.vel/velMag                        # body x-axis along velocity vector
-       #  b_z = self.pos/posMag                        # body z-axis nadir pointing
-       #  # body y-axis normal to orbital plane
-       #  b_y = np.cross(b_x, b_z)
-       #  # initial dcm from inertial to body coordinates
-       #  dcm_0 = np.stack([b_x, b_y, b_z])
-       #  # creating rotation in scipy rotations library
-       #  r = R.from_matrix(dcm_0)
-       # # self.att = r.as_quat()                       # initial quaternion from inertial to body coordinates
-       #  self.att = R.from_euler('xyz', [0, 0, 0]).as_quat()
+        self.att = self.nadirPoint()
 
     def tick(self, time_step):  # computes
         super().tick(time_step)
         self.next_geocentric = self.ES.at(
-            self.ts.from_datetime(self.get_time()))
+            self.ts.from_datetime(self.get_time() + time_step))
         self.next_pos = self.next_geocentric.position.m
         self.next_vel = self.next_geocentric.velocity.m_per_s
-        self.nadirPoint(time_step)
-        self.next_att = self.att
+        self.next_att = self.nextNadirPoint()
 
     def tock(self):
         self.geocentric = self.next_geocentric
@@ -196,31 +164,50 @@ class Satellite(Entity):
                     break
         return isInRange, groundId
 
-    def nadirPoint(self, time_step):
+    def nadirPoint(self):
         """
-        Updates the rotation about one axis the attitude"""
+        Maintains a nadir-pointing orientation
+        """
 
         h = np.cross(self.pos, self.vel)
 
         # Calculate the unit vectors for the body x, y, and z axes
-        
         b_y = h / np.linalg.norm(h)
         b_z = self.pos / np.linalg.norm(self.pos)
-        b_x0 = np.cross(b_y,b_z)
+        b_x0 = np.cross(b_y, b_z)
         b_x = b_x0 / np.linalg.norm(b_x0)
-        
+
         # Calculate the rotation matrix from the body to the inertial frame
         R_bo = np.vstack((b_x, b_y, b_z)).T
-        
+
         # Calculate the rotation matrix from the inertial to the body frame
         R_ib = R_bo.T
-        
+
         # Convert the rotation matrix to a quaternion
         self.att = R.from_matrix(R_bo).as_quat()
 
-        # Get and print euler angles
-        # euler_angles = R.from_quat(self.att).as_euler('xyz', degrees=True)
-        # print(euler_angles)
+        return self.att
+
+    def nextNadirPoint(self):
+        """
+        Maintains a nadir-pointing orientation
+        """
+        h = np.cross(self.next_pos, self.next_vel)
+
+        # Calculate the unit vectors for the body x, y, and z axes
+        b_y = h / np.linalg.norm(h)
+        b_z = self.next_pos / np.linalg.norm(self.next_pos)
+        b_x0 = np.cross(b_y, b_z)
+        b_x = b_x0 / np.linalg.norm(b_x0)
+
+        # Calculate the rotation matrix from the body to the inertial frame
+        R_bo = np.vstack((b_x, b_y, b_z)).T
+
+        # Calculate the rotation matrix from the inertial to the body frame
+        R_ib = R_bo.T
+
+        # Convert the rotation matrix to a quaternion
+        self.att = R.from_matrix(R_bo).as_quat()
 
         return self.att
 

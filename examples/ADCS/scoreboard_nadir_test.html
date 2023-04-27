@@ -47,7 +47,7 @@
       $(document).ready(function () {
         Cesium.Ion.defaultAccessToken = CESIUM_ACCESS_TOKEN;
         var clock = new Cesium.Clock({
-          currentTime: Cesium.JulianDate.fromIso8601("1900-01-01"),
+          currentTime: Cesium.JulianDate.fromIso8601("2023-04-27"),
           clockStep: Cesium.ClockStep.SYSTEM_CLOCK_MULTIPLIER,
           multiplier: 0, // how much time to advance each SYSTEM CLOCK tick
           shouldAnimate: false,
@@ -65,8 +65,17 @@
           imageryProvider: new Cesium.IonImageryProvider({ assetId: 3845 }),
           clockViewModel: new Cesium.ClockViewModel(clock),
         });
-        const position = Cesium.Cartesian3.fromDegrees(180, 90, 280000.0);
-        const orientation = Cesium.Quaternion(0, 0, 0, 1);
+        const position = new Cesium.Cartesian3(
+          1282404.3176994226,
+          -14339.301209319172,
+          -7097560.083777206
+        );
+        const orientation = new Cesium.Quaternion(
+          0.8692303373960795,
+          -0.4862824903557974,
+          0.07838386763417797,
+          -0.0427074866782067
+        );
         const blueBox = viewer.entities.add({
           name: "Blue box",
           position: position,
@@ -79,11 +88,11 @@
             ),
           },
           box: {
-            dimensions: new Cesium.Cartesian3(300.0, 200.0, 100.0),
+            dimensions: new Cesium.Cartesian3(3000000.0, 2000000.0, 1000000.0),
             material: Cesium.Color.BLUE,
             distanceDisplayCondition: new Cesium.DistanceDisplayCondition(
               0.0,
-              12500000000.5
+              1250000000000.5
             ),
           },
         });
