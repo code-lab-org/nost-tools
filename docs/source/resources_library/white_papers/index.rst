@@ -6,4 +6,5 @@ This section of the resources library contains white papers which describe more 
 .. toctree::
    :maxdepth: 2
    
-   task-receive
+   task_receive
+   common_interacts

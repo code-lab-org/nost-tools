@@ -10,6 +10,7 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
+import nost_tools
 import os
 import sys
 
@@ -17,7 +18,8 @@ sys.path.insert(0, os.path.abspath("../.."))
 sys.path.insert(0, os.path.abspath("../../examples"))
 sys.path.insert(0, os.path.abspath("../../examples/firesat"))
 sys.path.insert(0, os.path.abspath("../../examples/firesat/fires"))
-sys.path.insert(0, os.path.abspath("../../examples/firesat/fires/fire_config_files"))
+sys.path.insert(0, os.path.abspath(
+    "../../examples/firesat/fires/fire_config_files"))
 sys.path.insert(0, os.path.abspath("../../examples/firesat/grounds"))
 sys.path.insert(0, os.path.abspath("../../examples/firesat/satellites"))
 sys.path.insert(0, os.path.abspath("../../examples/firesat/manager"))
@@ -30,7 +32,8 @@ sys.path.insert(0, os.path.abspath("../../examples/downlink/satellites"))
 sys.path.insert(0, os.path.abspath("../../examples/downlink/grounds"))
 sys.path.insert(0, os.path.abspath("../../examples/downlink/outages"))
 sys.path.insert(0, os.path.abspath("../../examples/downlink/scoreboard"))
-sys.path.insert(0, os.path.abspath("../../examples/satBaseClass"))
+sys.path.insert(0, os.path.abspath(
+    "../../examples/application_templates/basic_satellite"))
 
 # -- Project information -----------------------------------------------------
 
@@ -39,7 +42,6 @@ copyright = '2023, Stevens Institute of Technology'
 author = 'NOS-T Team'
 
 # The full version, including alpha/beta/rc tags
-import nost_tools
 release = nost_tools.__version__
 
 
@@ -51,11 +53,12 @@ release = nost_tools.__version__
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.intersphinx",
-    "sphinx.ext.napoleon", 
+    "sphinx.ext.napoleon",
     "sphinx_rtd_theme",
     "sphinx_copybutton",
     "sphinx_search.extension",
-    "sphinxcontrib.autodoc_pydantic"
+    "sphinxcontrib.autodoc_pydantic",
+    "sphinx_design"
 ]
 
 napoleon_google_docstring = True

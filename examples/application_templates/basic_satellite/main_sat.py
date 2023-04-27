@@ -22,25 +22,26 @@ if __name__ == "__main__":
     credentials = dotenv_values(".env")
     HOST, PORT = credentials["HOST"], int(credentials["PORT"])
     USERNAME, PASSWORD = credentials["USERNAME"], credentials["PASSWORD"]
-    
+
     # set the client credentials
     config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, True)
 
     # create the managed application
     app = ManagedApplication("satellite")
 
-    # Names of Capella satellites used in Celestrak database
-    name = "SUOMI NPP"
+    # Name of Satellite for reference orbit from Celestrak database
+    name = PARAMETERS['name']
 
     activesats_url = "https://celestrak.com/NORAD/elements/active.txt"
     activesats = load.tle_file(activesats_url, reload=False)
     by_name = {sat.name: sat for sat in activesats}
 
-    field_of_regard = 112.56
+    field_of_regard = PARAMETERS["field_of_regard"]
 
-    satellite = Satellite(app, 0, 'satellite', field_of_regard, PARAMETERS['GROUND'], ES=by_name[name])
+    satellite = Satellite(app, 0, 'satellite', field_of_regard,
+                          PARAMETERS['GROUND'], ES=by_name[name])
 
-    # add the Constellation entity to the application's simulator
+    # add the Satellite entity to the application's simulator
     app.simulator.add_entity(satellite)
 
     # add a shutdown observer to shut down after a single test case
@@ -48,7 +49,8 @@ if __name__ == "__main__":
 
     # add a position publisher to update satellite state every 5 seconds of wallclock time
     app.simulator.add_observer(
-        StatusPublisher(app, satellite, timedelta(seconds=5)*PARAMETERS['SCALE'])
+        StatusPublisher(app, satellite, timedelta(
+            seconds=1))
     )
 
     # start up the application on PREFIX, publish time status every 10 seconds of wallclock time
@@ -57,7 +59,8 @@ if __name__ == "__main__":
         config,
         True,
         time_status_step=timedelta(seconds=5)*PARAMETERS['SCALE'],
-        time_status_init=datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc),
+        time_status_init=datetime.fromtimestamp(
+            PARAMETERS['SCENARIO_START']).replace(tzinfo=utc),
         time_step=timedelta(seconds=1) * PARAMETERS['SCALE'],
     )
 
