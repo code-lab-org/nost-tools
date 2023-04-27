@@ -39,18 +39,36 @@ class Satellite(Entity):
         self.vel = self.geocentric.velocity.m_per_s
 
         # initial rotation from inertial to body coordinates
-        posMag = np.linalg.norm(self.pos)            # position magnitude
-        velMag = np.linalg.norm(self.vel)            # velocity magnitude
-        b_x = self.vel/velMag                        # body x-axis along velocity vector
-        b_z = self.pos/posMag                        # body z-axis nadir pointing
-        # body y-axis normal to orbital plane
-        b_y = np.cross(b_x, b_z)
-        # initial dcm from inertial to body coordinates
-        dcm_0 = np.stack([b_x, b_y, b_z])
-        # creating rotation in scipy rotations library
-        r = R.from_matrix(dcm_0)
-       # self.att = r.as_quat()                       # initial quaternion from inertial to body coordinates
-        self.att = R.from_euler('xyz', [0, 0, 0]).as_quat()
+        
+        h = np.cross(self.pos, self.vel)
+
+        # Calculate the unit vectors for the body x, y, and z axes
+        
+        b_y = h / np.linalg.norm(h)
+        b_z = self.pos / np.linalg.norm(self.pos)
+        b_x0 = np.cross(b_y,b_z)
+        b_x = b_x0 / np.linalg.norm(b_x0)
+        
+        # Calculate the rotation matrix from the body to the inertial frame
+        R_bo = np.vstack((b_x, b_y, b_z)).T
+        
+        # Calculate the rotation matrix from the inertial to the body frame
+        # R_ib = R_bo.T
+        
+        # Convert the rotation matrix to a quaternion
+        self.att = R.from_matrix(R_bo).as_quat()
+       #  posMag = np.linalg.norm(self.pos)            # position magnitude
+       #  velMag = np.linalg.norm(self.vel)            # velocity magnitude
+       #  b_x = self.vel/velMag                        # body x-axis along velocity vector
+       #  b_z = self.pos/posMag                        # body z-axis nadir pointing
+       #  # body y-axis normal to orbital plane
+       #  b_y = np.cross(b_x, b_z)
+       #  # initial dcm from inertial to body coordinates
+       #  dcm_0 = np.stack([b_x, b_y, b_z])
+       #  # creating rotation in scipy rotations library
+       #  r = R.from_matrix(dcm_0)
+       # # self.att = r.as_quat()                       # initial quaternion from inertial to body coordinates
+       #  self.att = R.from_euler('xyz', [0, 0, 0]).as_quat()
 
     def tick(self, time_step):  # computes
         super().tick(time_step)
