@@ -24,24 +24,23 @@ v = np.array([
         1449.9653603832396
     ])
 
+body_euler = np.array([0,0,180])
+
 # Calculate the specific angular momentum vector
 h = np.cross(r, v)
-
 # Calculate the unit vectors for the body x, y, and z axes
-
 b_y = h / np.linalg.norm(h)
 b_z = r / np.linalg.norm(r)
 b_x0 = np.cross(b_y,b_z)
 b_x = b_x0 / np.linalg.norm(b_x0)
-
 # Calculate the rotation matrix from the body to the inertial frame
 R_bo = np.vstack((b_x, b_y, b_z)).T
-
 # Calculate the rotation matrix from the inertial to the body frame
-# R_ib = R_bo.T
-
+R_ib = R_bo.T
 # Convert the rotation matrix to a quaternion
 quat = R.from_matrix(R_bo).as_quat()
+
+
 
 
 print("Quaternion for Cesium", quat[0], ",", quat[1], ",", quat[2], ",", quat[3])

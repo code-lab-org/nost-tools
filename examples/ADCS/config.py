@@ -3,6 +3,7 @@ import json
 import string
 import random
 from datetime import datetime, timezone, timedelta
+import numpy as np
 
 import pandas as pd
 
@@ -13,7 +14,7 @@ PARAMETERS = pd.Series(
         "SCALE": 100,
         "SCENARIO_START": datetime(2023, 1, 1, 7, 0, 0).timestamp(),
         "SCENARIO_LENGTH": 10000,
-        
+
         # Name of satellite for reference orbit from Celestrak database SUOMI NPP GOES 18
         "name": "NAVSTAR 72 (USA 258)",
 
@@ -30,6 +31,19 @@ PARAMETERS = pd.Series(
                 "operational": [True],
             }
         ),
+
+        # ADCS system parameters
+        # Controller gains
+        "Kp": 0.1,
+        "Ki": 0.01,
+        "Kd": 0.01,
+        
+        # Actuators
+        "rxnwl_mass": 226e-3,
+        "rxnwl_radius": 0.5 * 65e-3,
+        "rxnwl_max_torque": np.inf,
+        "rxnwl_max_momentum": np.inf,
+        "noise_factor": 0.0,
 
         # Satellite parameters
         "TLES": {},

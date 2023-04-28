@@ -13,6 +13,13 @@ from datetime import datetime, timezone, timedelta
 # Load the Earth's gravitational field model and the TLE data for the satellite
 ts = load.timescale()
 
+# Name of satellite for reference orbit from Celestrak database SUOMI NPP GOES 18
+# name = "NAVSTAR 72 (USA 258)",
+
+# activesats_url = "https://celestrak.com/NORAD/elements/active.txt"
+# activesats = load.tle_file(activesats_url, reload=False)
+# by_name = {sat.name: sat for sat in activesats}
+
 # GOES 18 tles
 line1 = '1 51850U 22021A   23103.96072472  .00000087  00000+0  00000+0 0  9995'
 line2 = '2 51850   0.0319  43.0117 0000436 329.8306  37.8882  1.00271539  4170'

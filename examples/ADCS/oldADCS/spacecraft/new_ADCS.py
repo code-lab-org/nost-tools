@@ -78,6 +78,8 @@ period = 2 * np.pi / orbit_w
 
 # define a function that returns the inertial position and velocity of the
 # spacecraft (in m & m/s) at any given time
+
+
 def position_velocity_func(t):
     r = orbit_radius / np.sqrt(2) * np.array([
         -np.cos(orbit_w * t),
@@ -90,6 +92,7 @@ def position_velocity_func(t):
         -np.sin(orbit_w * t),
     ])
     return r, v
+
 
 # compute the initial inertial position and velocity
 r_0, v_0 = position_velocity_func(0)
@@ -106,7 +109,7 @@ b_z = cross(b_x, b_y)
 # axes and compute the equivalent quaternion
 
 dcm_0_nominal = np.stack([b_x, b_y, b_z])
-DCM_target = dcm_0_nominal ## maybe
+DCM_target = dcm_0_nominal  # maybe
 q_0_nominal = dcm_to_quaternion(dcm_0_nominal)
 
 # compute the nominal angular velocity required to achieve the reference
@@ -118,12 +121,14 @@ w_nominal = np.matmul(dcm_0_nominal, w_nominal_i)
 q_0 = q_0_nominal
 w_0 = w_nominal
 # q_0 = quaternion_multiply(
-    # np.array(
-    #     [0, np.sin(45 * np.pi / 180 / 2), 0,
-    #       np.cos(45 * np.pi / 180 / 2)]), q_0_nominal)
+# np.array(
+#     [0, np.sin(45 * np.pi / 180 / 2), 0,
+#       np.cos(45 * np.pi / 180 / 2)]), q_0_nominal)
 # w_0 = w_nominal + np.array([0.005, 0, 0])
 
 # define a function that will model perturbations
+
+
 def perturbations_func(satellite):
     return (satellite.approximate_gravity_gradient_torque() +
             satellite.approximate_magnetic_field_torque())
@@ -131,6 +136,8 @@ def perturbations_func(satellite):
 # define a function that returns the desired state at any given point in
 # time (the initial state and a subsequent rotation about the body x, y, or
 # z axis depending upon which nominal angular velocity term is nonzero)
+
+
 def desired_state_func(t):
     if w_nominal[0] != 0:
         DCM_target = np.matmul(t1_matrix(w_nominal[0] * t), dcm_0_nominal)
@@ -139,6 +146,7 @@ def desired_state_func(t):
     elif w_nominal[2] != 0:
         DCM_target = np.matmul(t3_matrix(w_nominal[2] * t), dcm_0_nominal)
     return DCM_target, w_nominal
+
 
 satellite = Spacecraft(
     J=J,
@@ -156,7 +164,7 @@ satellite = Spacecraft(
 def derivatives_func(t, x, satellite, desired_state_func, perturbations_func,
                      position_velocity_func, delta_t):
     """Computes the derivative of the spacecraft state
-    
+
     Args:
         t (float): the time (in seconds)
         x (numpy ndarray): the state (10x1) where the elements are:
@@ -174,7 +182,7 @@ def derivatives_func(t, x, satellite, desired_state_func, perturbations_func,
             the position and velocity; its header must be (t)
         delta_t (float): the time between user-defined integrator steps
                 (not the internal/adaptive integrator steps) in seconds
-    
+
     Returns:
         numpy ndarray: the derivative of the state (10x1) with respect to time
     """
@@ -208,7 +216,7 @@ def simulate_estimation_and_control(t,
                                     delta_t,
                                     log=True):
     """Simulates attitude estimation and control for derivatives calculation
-    
+
     Args:
         t (float): the time (in seconds)
         satellite (Spacecraft): the Spacecraft object that represents the
@@ -220,7 +228,7 @@ def simulate_estimation_and_control(t,
             perturbation torques (N * m); its header must be (t, q, w)
         delta_t (float): the time between user-defined integrator steps
                 (not the internal/adaptive integrator steps) in seconds
-    
+
     Returns:
         numpy ndarray: the control moment (3x1) as actually applied on
                 the reaction wheels (the input control torque with some
@@ -277,20 +285,19 @@ def simulate_estimation_and_control(t,
 
     return M_applied, w_dot_rxwls, logged_results
 
+
 def run_adcs(mqttc, obj, msg):
     """ Callback that parses message and runs one ADCS step """
-    
+
     message = json.loads(msg.payload.decode("utf-8"))
     i = message["i"]
     t = message["t"]
     dcm_0_nominal = message["DCM_target"]
     dcm_0_nominal = np.array(dcm_0_nominal)
     # w_nominal = message["w_nominal"]
-    
 
-    
     #w_nominal = [0,0,0.0011313759174069189]
-   
+
     def desired_state_func(t):
         if w_nominal[0] != 0:
             DCM_target = np.matmul(t1_matrix(w_nominal[0] * t), dcm_0_nominal)
@@ -300,14 +307,13 @@ def run_adcs(mqttc, obj, msg):
             DCM_target = np.matmul(t3_matrix(w_nominal[2] * t), dcm_0_nominal)
         return DCM_target, w_nominal
 
-    
     # if verbose:
     #     print("Starting propagation at time: {}".format(t))
-    
+
     if solver.successful() and t <= stop_time:
         if verbose:
             print("Time: {}\nState: {}\n".format(t, solver.y))
-            
+
         # this section currently duplicates calculations for logging purposes
         q = normalize(solver.y[0:4])
         w = solver.y[4:7]
@@ -316,7 +322,7 @@ def run_adcs(mqttc, obj, msg):
         satellite.w = w
         satellite.r = r
         satellite.v = v
-        
+
         _, _, log = simulate_estimation_and_control(
             t, satellite, desired_state_func, delta_t, log=True)
         times[i] = t
@@ -336,26 +342,26 @@ def run_adcs(mqttc, obj, msg):
         M_perturb[i] = perturbations_func(satellite)
         positions[i] = r
         velocities[i] = v
-        psi[i] = math.degrees(math.atan(DCM_target[i,0,1]/DCM_target[i,0,0]))
-        theta[i] = math.degrees(math.atan(-DCM_target[i,0,2]/math.sqrt(1-DCM_target[i,0,2]**2)))
-        phi[i] = math.degrees(math.atan(DCM_target[i,1,2]/DCM_target[i,2,2]))
+        psi[i] = math.degrees(
+            math.atan(DCM_target[i, 0, 1]/DCM_target[i, 0, 0]))
+        theta[i] = math.degrees(
+            math.atan(-DCM_target[i, 0, 2]/math.sqrt(1-DCM_target[i, 0, 2]**2)))
+        phi[i] = math.degrees(
+            math.atan(DCM_target[i, 1, 2]/DCM_target[i, 2, 2]))
         bx[i] = -normalize(velocities[i])
         by[i] = normalize(positions[i])
-        bz[i] = cross(bx[i],by[i])
-
+        bz[i] = cross(bx[i], by[i])
 
         desired_state_func(t)
         solver.set_f_params(satellite, desired_state_func, perturbations_func,
-                    position_velocity_func, delta_t)
+                            position_velocity_func, delta_t)
 
-        #print("t=",t,desired_state_func(t))
-        # continue integrating      
+        # print("t=",t,desired_state_func(t))
+        # continue integrating
         solver.integrate(t + delta_t)
 
-    
-    
     plot = False
-    if t==stop_time:    
+    if t == stop_time:
         results = {}
         results["times"] = times[:-2]
         results["q_actual"] = q_actual[:-2]
@@ -376,11 +382,11 @@ def run_adcs(mqttc, obj, msg):
         results["thetay"] = theta[:-2]
         results["phiz"] = phi[:-2]
         results["w_nominal"] = w_nominal[:-2]
-        #return results
-        
-        #plot the desired results (logged at each delta_t)
+        # return results
 
-        tag=r"(Perfect Estimation \& Control)"
+        # plot the desired results (logged at each delta_t)
+
+        tag = r"(Perfect Estimation \& Control)"
         plt.figure(1)
         plt.subplot(411)
         # plt.title(r"Evolution of Quaternion Components over Time")
@@ -398,7 +404,7 @@ def run_adcs(mqttc, obj, msg):
         plt.xlabel(r"Time (s)")
         plt.subplots_adjust(
             left=0.08, right=0.94, bottom=0.08, top=0.94, hspace=0.3)
-        
+
         plt.figure(2)
         plt.subplot(311)
         # plt.title(r"Evolution of Angular Velocity over Time {}".format(tag))
@@ -431,7 +437,7 @@ def run_adcs(mqttc, obj, msg):
         plt.legend()
         plt.subplots_adjust(
             left=0.08, right=0.94, bottom=0.08, top=0.94, hspace=0.3)
-        
+
         plt.figure(3)
         plt.subplot(311)
         plt.title(r"Angular Velocity of Reaction Wheels over Time {}".format(tag))
@@ -446,7 +452,7 @@ def run_adcs(mqttc, obj, msg):
         plt.xlabel(r"Time (s)")
         plt.subplots_adjust(
             left=0.08, right=0.94, bottom=0.08, top=0.94, hspace=0.3)
-        
+
         plt.figure(4)
         plt.subplot(311)
         plt.title(r"Perturbation Torques over Time {}".format(tag))
@@ -461,12 +467,12 @@ def run_adcs(mqttc, obj, msg):
         plt.xlabel(r"Time (s)")
         plt.subplots_adjust(
             left=0.08, right=0.94, bottom=0.08, top=0.94, hspace=0.3)
-        
+
         plt.figure(5)
         DCM_actual = np.empty(results["DCM_target"].shape)
         for i, q in enumerate(results["q_actual"]):
             DCM_actual[i] = quaternion_to_dcm(q)
-        
+
         k = 1
         for i in range(3):
             for j in range(3):
@@ -489,7 +495,7 @@ def run_adcs(mqttc, obj, msg):
                 k += 1
         plt.subplots_adjust(
             left=0.08, right=0.94, bottom=0.08, top=0.94, hspace=0.25, wspace=0.3)
-        
+
         plt.figure(6)
         k = 1
         for i in range(3):
@@ -514,7 +520,7 @@ def run_adcs(mqttc, obj, msg):
                 k += 1
         plt.subplots_adjust(
             left=0.08, right=0.94, bottom=0.08, top=0.94, hspace=0.25, wspace=0.3)
-        
+
         plt.figure(7)
         plt.subplot(311)
         plt.title(r"Actual Angular Velocity over Time {}".format(tag))
@@ -539,13 +545,13 @@ def run_adcs(mqttc, obj, msg):
         # plt.legend()
         plt.subplot(313)
         plt.plot(results["times"], results["w_actual"][:, 2], label="actual")
-        #plt.axis([0,6000,-.005,0])
+        # plt.axis([0,6000,-.005,0])
         plt.ylabel(r"$\omega_z$ (rad/s)")
         plt.xlabel(r"Time (s)")
         plt.legend()
         plt.subplots_adjust(
             left=0.08, right=0.94, bottom=0.08, top=0.94, hspace=0.3)
-        
+
         plt.figure(8)
         plt.subplot(311)
         plt.title(r"Commanded vs Applied Torques over Time {}".format(tag))
@@ -578,34 +584,34 @@ def run_adcs(mqttc, obj, msg):
         plt.legend()
         plt.subplots_adjust(
             left=0.08, right=0.94, bottom=0.08, top=0.94, hspace=0.3)
-        
+
         reul = R.from_quat(q_actual)
         reul = reul[:-2]
-        eulers = reul.as_euler('xyz',degrees=True)
+        eulers = reul.as_euler('xyz', degrees=True)
         plt.figure(9)
         plt.subplot(311)
         plt.title(r"Euler Angles over Time")
-        plt.plot(results["times"], eulers[:,0])
+        plt.plot(results["times"], eulers[:, 0])
         plt.ylabel("Pitch Radians")
         plt.subplot(312)
-        plt.plot(results["times"], eulers[:,1])
+        plt.plot(results["times"], eulers[:, 1])
         plt.ylabel("Roll Radians")
         plt.subplot(313)
-        plt.plot(results["times"], eulers[:,2])
+        plt.plot(results["times"], eulers[:, 2])
         plt.ylabel("Yaw Radians")
         plt.xlabel(r"Time (s)")
         plt.subplots_adjust(
             left=0.08, right=0.94, bottom=0.08, top=0.94, hspace=0.3)
-        
+
         plt.show()
 
 
 # name guard used to ensure script only executes if it is run as the __main__
 if __name__ == "__main__":
-    start_time=0
-    delta_t=1
-    stop_time=1000
-    verbose=True
+    start_time = 0
+    delta_t = 1
+    stop_time = 1000
+    verbose = True
     i = 0
 
     try:
@@ -650,7 +656,6 @@ if __name__ == "__main__":
     by = np.empty((length, 3))
     bz = np.empty((length, 3))
 
-
     # Note that these are loaded from a .env file in current working directory
     credentials = dotenv_values(".env")
     HOST, PORT = credentials["HOST"], int(credentials["PORT"])
@@ -664,7 +669,7 @@ if __name__ == "__main__":
     # connect to MQTT server
     client.connect(HOST, PORT)
     # subscribe to science event topics
-    client.subscribe("BCtest/ADCS/heartbeat",0)
+    client.subscribe("BCtest/ADCS/heartbeat", 0)
     # bind the message handler
     client.on_message = run_adcs
     # start a background thread to let MQTT do things
