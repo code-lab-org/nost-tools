@@ -638,6 +638,8 @@ calling the *loop()* function directly), per-topic callback functions to
 simplify event handling, and additional configuration options to manage
 the broker connection.
 
+.. _icdManager:
+
 Manager Events
 --------------
 
@@ -652,6 +654,8 @@ All manager events are published to the topic *$PREFIX/manager/TYPE
 ($PREFIX* is the test case namespace and *TYPE* is the control event
 type) and use JSON for message payload encoding. This section briefly
 describes the topic and payload for each type of manager event.
+
+.. _controlEvents:
 
 Control Events
 ~~~~~~~~~~~~~~
@@ -982,6 +986,8 @@ Figure 8.
    :alt: Diagram Description automatically generated
 
 Figure 8. FireSat+ Test Case Event Publishers/Subscribers
+
+.. _unmgdVSmgd:
 
 Unmanaged Use Case
 ------------------

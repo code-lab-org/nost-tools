@@ -1,3 +1,5 @@
+.. _commonInteractions:
+
 Common Interactions Library
 ===========================
 
