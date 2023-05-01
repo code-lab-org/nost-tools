@@ -14,18 +14,30 @@ First, you need to clone the repository from the following link:
 
 https://github.com/code-lab-org/nost-tools
 
-Then, from a command prompt,  navigate to the root directory 
-(the location where you cloned the library) and install by running the following command:
+Installing NOS-T tools requires pip version 23 or greater. Install via
+
+::
+  
+  python -m pip install --upgrade pip
+
+Then, from a command prompt,  navigate to the root directory (the location where you cloned the library) and install by running the following command:
 
 :: 
   
   pip install -e .
 
+If you want to install additional libraries required to run the examples, run:
+
+:: 
+  
+  pip install -e .[examples]
+
+
 Installing the Python Packages
 ------------------------------
 
 Following the instructions above will automatically install the python packages that NOS-T depends on to run. These package dependencies can
-otherwise be found in the `requirements file <https://github.com/code-lab-org/nost-tools/blob/main/docs/requirements.txt>`__.
+otherwise be found in the `project specification <https://github.com/code-lab-org/nost-tools/blob/main/pyproject.toml>`__.
 
 Next Step
 ---------
