@@ -34,9 +34,14 @@ PARAMETERS = pd.Series(
 
         # ADCS system parameters
         # Controller gains
-        "Kp": 0.1,
+        "Kp": 0.01,
         "Ki": 0.01,
-        "Kd": 0.01,
+        "Kd": 0.0001,
+        
+        # Define initial state of satellite
+        "cubeMass": 2,                                                            # mass of single cubesat cube (kg)
+        "cubeLength": 0.1,                                                        # length of single cubesat cube (m)
+  
         
         # Actuators
         "rxnwl_mass": 226e-3,

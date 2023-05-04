@@ -37,7 +37,7 @@ class Satellite(Entity):
         self.geocentric = self.ES.at(self.ts.from_datetime(init_time))
         self.pos = self.geocentric.position.m
         self.vel = self.geocentric.velocity.m_per_s
-        self.att = self.nadirPoint()
+        self.att = self.nadirPoint(self.pos, self.vel)
 
     def tick(self, time_step):  # computes
         super().tick(time_step)
@@ -45,7 +45,7 @@ class Satellite(Entity):
             self.ts.from_datetime(self.get_time() + time_step))
         self.next_pos = self.next_geocentric.position.m
         self.next_vel = self.next_geocentric.velocity.m_per_s
-        self.next_att = self.nextNadirPoint()
+        self.next_att = self.nadirPoint(self.next_pos, self.next_vel)
 
     def tock(self):
         self.geocentric = self.next_geocentric
@@ -164,16 +164,15 @@ class Satellite(Entity):
                     break
         return isInRange, groundId
 
-    def nadirPoint(self):
+    def nadirPoint(self, pos, vel):
         """
         Maintains a nadir-pointing orientation
         """
 
-        h = np.cross(self.pos, self.vel)
-
+        h = np.cross(pos, vel)
         # Calculate the unit vectors for the body x, y, and z axes
         b_y = h / np.linalg.norm(h)
-        b_z = self.pos / np.linalg.norm(self.pos)
+        b_z = pos / np.linalg.norm(pos)
         b_x0 = np.cross(b_y, b_z)
         b_x = b_x0 / np.linalg.norm(b_x0)
 
@@ -184,33 +183,9 @@ class Satellite(Entity):
         R_ib = R_bo.T
 
         # Convert the rotation matrix to a quaternion
-        self.att = R.from_matrix(R_bo).as_quat()
+        attQuat = R.from_matrix(R_bo).as_quat()
 
-        return self.att
-
-    def nextNadirPoint(self):
-        """
-        Finds the nadir-pointing quaternion for the next time step
-        """
-        h = np.cross(self.next_pos, self.next_vel)
-
-        # Calculate the unit vectors for the body x, y, and z axes
-        b_y = h / np.linalg.norm(h)
-        b_z = self.next_pos / np.linalg.norm(self.next_pos)
-        b_x0 = np.cross(b_y, b_z)
-        b_x = b_x0 / np.linalg.norm(b_x0)
-
-        # Calculate the rotation matrix from the body to the inertial frame
-        R_bo = np.vstack((b_x, b_y, b_z)).T
-
-        # Calculate the rotation matrix from the inertial to the body frame
-        R_ib = R_bo.T
-
-        # Convert the rotation matrix to a quaternion
-        self.att = R.from_matrix(R_bo).as_quat()
-
-        return self.att
-
+        return attQuat
 
 # define a publisher to report satellite status
 class StatusPublisher(WallclockTimeIntervalPublisher):

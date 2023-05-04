@@ -1,11 +1,16 @@
 from scipy.spatial.transform import Rotation as R
 import numpy as np
+import pandas as pd
 
 from skyfield.api import load, wgs84, EarthSatellite
 from nost_tools.entity import Entity
 from nost_tools.publisher import WallclockTimeIntervalPublisher
 
 from schemas import *
+from config import PARAMETERS
+
+
+w = np.array([0, 0, 0])                                                 # initial angular velocity in body frame
 
 
 class Satellite(Entity):
@@ -28,7 +33,7 @@ class Satellite(Entity):
         self.pos = self.next_pos = None
         self.vel = self.next_vel = None
         self.att = self.next_att = None
-        self.attDesired = self.next_attDesired = None
+
         self.grounds = grounds
 
     def initialize(self, init_time):
@@ -37,8 +42,10 @@ class Satellite(Entity):
         self.geocentric = self.ES.at(self.ts.from_datetime(init_time))
         self.pos = self.geocentric.position.m
         self.vel = self.geocentric.velocity.m_per_s
-        self.att = 
-        self.attDesired = self.nadirPoint()
+        self.att = np.array([0.3826834323650898,         # initial attitude quaternion (45 deg roll about x)
+                                0.0, 
+                                0.0, 
+                                0.9238795325112867])  
 
     def tick(self, time_step):  # computes
         super().tick(time_step)
@@ -46,8 +53,7 @@ class Satellite(Entity):
             self.ts.from_datetime(self.get_time() + time_step))
         self.next_pos = self.next_geocentric.position.m
         self.next_vel = self.next_geocentric.velocity.m_per_s
-        self.next_att = 
-        self.next_attDesired = self.nextNadirPoint()
+        self.next_att = self.maneuver(self.next_pos, self.next_vel, w, time_step)
 
     def tock(self):
         self.geocentric = self.next_geocentric
@@ -166,46 +172,50 @@ class Satellite(Entity):
                     break
         return isInRange, groundId
 
-    def nadirPoint(self):
+    def maneuver(self, pos, vel, w, time_step):
         """
         Maintains a nadir-pointing orientation
         """
+        T_c = np.array([0,0,0])
+        cubeMass = PARAMETERS["cubeMass"]
+        cubeLength = PARAMETERS["cubeLength"]
+        Kp = PARAMETERS["Kp"]
+        Kd = PARAMETERS["Kd"]
+        # 6U cubesat inertia tensor                                    
+        I = np.diag([cubeMass/12*((1*cubeLength)**2+(2*cubeLength)**2), 
+                      cubeMass/12*((1*cubeLength)**2+(3*cubeLength)** 2), 
+                      cubeMass/12*((2*cubeLength)**2+(3*cubeLength)**2)])
 
-        h = np.cross(self.pos, self.vel)
-        # Calculate the unit vectors for the body x, y, and z axes
-        b_y = h / np.linalg.norm(h)
-        b_z = self.pos / np.linalg.norm(self.pos)
-        b_x0 = np.cross(b_y, b_z)
-        b_x = b_x0 / np.linalg.norm(b_x0)
-        # Calculate the rotation matrix from the body to the inertial frame
-        R_bo = np.vstack((b_x, b_y, b_z)).T
+        h = np.cross(pos, vel)
+        # Calculate the unit vectors for the reference x, y, and z axes
+        y_r = h / np.linalg.norm(h)
+        z_r = pos / np.linalg.norm(pos) 
+        x_r = np.cross(y_r, z_r)
+        # Calculate the rotation matrix from the reference to the inertial frame (body to inertial?)
+        R_bo = np.vstack((x_r, y_r, z_r)).T
         # Calculate the rotation matrix from the inertial to the body frame
-        R_ib = R_bo.T
-
+        # R_ib = R_bo.T
         # Convert the rotation matrix to a quaternion
-        self.att = R.from_matrix(R_bo).as_quat()
+        targetQuat = R.from_matrix(R_bo).as_quat()
+        
+        # computing error between body and reference attitude
+        qT = np.array([[targetQuat[3], targetQuat[2], -targetQuat[1], targetQuat[0]],
+              [-targetQuat[2], targetQuat[3], targetQuat[0], targetQuat[1]],
+              [targetQuat[1], -targetQuat[0], targetQuat[3], targetQuat[2]],
+              [-targetQuat[0], -targetQuat[1], -targetQuat[2], targetQuat[3]]])
+        qB = np.array([-self.att[0], -self.att[1], -self.att[2], self.att[3]])
+        errorQuat = np.matmul(qT,qB)
+        
+        T_c[0] = 2*Kp*errorQuat[0]*errorQuat[3] + Kd*w[0]
+        T_c[1] = 2*Kp*errorQuat[1]*errorQuat[3] + Kd*w[1]
+        T_c[2] = 2*Kp*errorQuat[2]*errorQuat[3] + Kd*w[2]
+        
+        # Update angular velocity, euler angles, and quaternion 
+        alpha = np.matmul(np.linalg.inv(I), T_c)
+        w = alpha*time_step.total_seconds()                       
+        attQuat = self.att + 0.5*np.array([w[0],w[1],w[2],0])*time_step.total_seconds()
 
-        return self.att
-
-    def nextNadirPoint(self):
-        """
-        Maintains a nadir-pointing orientation
-        """
-        h = np.cross(self.next_pos, self.next_vel)
-        # Calculate the unit vectors for the body x, y, and z axes
-        b_y = h / np.linalg.norm(h)
-        b_z = self.next_pos / np.linalg.norm(self.next_pos)
-        b_x0 = np.cross(b_y, b_z)
-        b_x = b_x0 / np.linalg.norm(b_x0)
-        # Calculate the rotation matrix from the body to the inertial frame
-        R_bo = np.vstack((b_x, b_y, b_z)).T
-        # Calculate the rotation matrix from the inertial to the body frame
-        R_ib = R_bo.T
-        # Convert the rotation matrix to a quaternion
-        self.att = R.from_matrix(R_bo).as_quat()
-
-        return self.att
-
+        return attQuat
 
 # define a publisher to report satellite status
 class StatusPublisher(WallclockTimeIntervalPublisher):

@@ -10,7 +10,7 @@ from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
 from nost_tools.managed_application import ManagedApplication
 
 from config import PARAMETERS
-from satellite_nadir import *
+from satellite_nadir_torque_maneuver import *
 
 logging.basicConfig(level=logging.INFO)
 

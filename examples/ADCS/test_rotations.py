@@ -9,6 +9,7 @@ import numpy as np
 from scipy.spatial.transform import Rotation as R
 from skyfield.api import load, Topos, EarthSatellite, wgs84
 from datetime import datetime, timezone, timedelta
+import matplotlib.pyplot as plt
 
 
 # Define the position and velocity vectors
@@ -24,37 +25,39 @@ v = np.array([
 ])
 
 # Define initial state of satellite
-cubeMass = 2                                                       # mass of single cubesat cube (kg)
-cubeLength = 0.1                                                   # length of single cubesat cube (m)
+cubeMass = 2                                                            # mass of single cubesat cube (kg)
+cubeLength = 0.1                                                        # length of single cubesat cube (m)
 # 6U cubesat inertia tensor                                    
 I = np.diag([cubeMass/12*((1*cubeLength)**2+(2*cubeLength)**2), 
               cubeMass/12*((1*cubeLength)**2+(3*cubeLength)** 2), 
               cubeMass/12*((2*cubeLength)**2+(3*cubeLength)**2)])   
-currentQuat = np.array([0.3826834323650898,                         # initial attitude quaternion (45 deg roll about x)
+currentQuat = np.array([0.3826834323650898,                             # initial attitude quaternion (45 deg roll about x)
                         0.0, 
                         0.0, 
                         0.9238795325112867])     
-w = np.array([0, 0, 0])                                            # initial angular velocity in body frame
-euler = np.array([0,0,0])                                          # initial euler angles 
+w = np.array([0, 0, 0])                                                 # initial angular velocity in body frame
+euler = R.from_quat(currentQuat).as_euler('xyz',degrees=True)           # initial euler angles 
 
 # Define PID controller gains
-Kp = np.array([1, 1, 1])         # proportional gain
+Kp = np.array([.01, 1, 1])         # proportional gain
 # Ki = np.array([0.1, 0.1, 0.1])   # integral gain
-Kd = np.array([0.1, 0.1, 0.1])   # derivative gain
+Kd = np.array([0.0001, 0., 0.])   # derivative gain
 
 # Define reaction wheel specifications
 Iw = np.array([0.1, 0.1, 0.1])    # moment of inertia of each wheel
 max_torque = np.array([1, 1, 1])  # maximum torque each wheel can produce
 
 # Define simulation parameters
-dt = 1   # time step
-t_final = 100   # final time
+dt = .1   # time step
+t_final = 60   # final time
+steps = int(t_final/dt)
 
 # Initialize arrays
-euler_hist = np.zeros((t_final,3))
-q_hist = np.zeros((t_final, 4))
-w_hist = np.zeros((t_final, 3))
-torque_hist = np.zeros((t_final, 3))
+alpha_hist = np.zeros((steps,3))
+euler_hist = np.zeros((steps,3))
+w_hist = np.zeros((steps, 3))
+q_hist = np.zeros((steps, 4))
+torque_hist = np.zeros((steps, 3))
 errorQuat = np.zeros(4)
 T_c = np.zeros(3)
 
@@ -97,7 +100,7 @@ def control_torque(errorQuat, Kp, Kd, w):
 
 
 # Run simulation
-for i in range(t_final):
+for i in range(steps):
     # Calculate error quaternion
     errorQuat = att_error(currentQuat, targetQuat)
 
@@ -105,16 +108,24 @@ for i in range(t_final):
     T_c = control_torque(errorQuat, Kp, Kd, w)
 
     # Update angular velocity, euler angles, and quaternion 
-    w = np.matmul(np.linalg.inv(I), T_c)
-    euler = w*dt                                 
+    alpha = np.matmul(np.linalg.inv(I), T_c)
+    w = alpha*dt                         
     currentQuat = currentQuat + 0.5*np.array([w[0],w[1],w[2],0])*dt
-    currentQuat = currentQuat / np.linalg.norm(currentQuat)
+    # currentQuat = currentQuat / np.linalg.norm(currentQuat)
+    euler = R.from_quat(currentQuat).as_euler('xyz',degrees=True) 
 
     # Store results
+    alpha_hist[i,:] = alpha
+    w_hist[i,:] = w
     euler_hist[i,:] = euler
     q_hist[i,:] = currentQuat
-    w_hist[i,:] = w
+
     torque_hist[i,:] = T_c
+    
+plt.plot(euler_hist[:,0])
+plt.show
+    
+
 
 
 # print("Quaternion for Cesium", quat[0], ",", quat[1], ",", quat[2], ",", quat[3])
