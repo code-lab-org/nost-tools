@@ -190,7 +190,7 @@ class Satellite(Entity):
 
     def nextNadirPoint(self):
         """
-        Maintains a nadir-pointing orientation
+        Finds the nadir-pointing quaternion for the next time step
         """
         h = np.cross(self.next_pos, self.next_vel)
 
