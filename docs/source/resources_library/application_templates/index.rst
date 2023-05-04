@@ -7,3 +7,4 @@ This section of the resources library contains templates for common DSM function
    :maxdepth: 1
 
    basic_satellite/modules
+   ground_station/modules
