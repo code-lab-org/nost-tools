@@ -37,16 +37,16 @@ eulerRad = np.array([0, 0, 0])
 #euler = R.from_quat(currentQuat).as_euler('xyz', degrees=True)                           # initial euler angles
 
 # Define PID controller gains
-Kp = np.array([1000, 500, 70])         # proportional gain
+Kp = np.array([1000, 500, 7000])         # proportional gain
 # Ki = np.array([0.1, 0.1, 0.1])       # integral gain
-Kd = np.array([2000, 100, 1400])       # derivative gain
+Kd = np.array([2000, 500, 1400])       # derivative gain
 
 # Define reaction wheel specifications
 Iw = np.array([0.1, 0.1, 0.1])    # moment of inertia of each wheel
 max_torque = np.array([1, 1, 1])  # maximum torque each wheel can produce
 
 # Define simulation parameters
-dt = .1   # time step
+dt = 1   # time step
 t_final = 60   # final time
 steps = int(t_final/dt)
 
@@ -119,7 +119,7 @@ for i in range(steps):
     w = w + alpha*dt
     eulerRad = eulerRad + w*dt +0.5*alpha*dt**2
     euler = np.degrees(eulerRad)
-    currentQuat = currentQuat + 0.5*np.array([w[0], w[1], w[2], 0])*dt
+    currentQuat = currentQuat + 0.5*currentQuat*np.array([w[0], w[1], w[2], 0])*dt
     # currentQuat = currentQuat / np.linalg.norm(currentQuat)
     # euler = R.from_quat(currentQuat).as_euler('zyx', degrees=True)
 
