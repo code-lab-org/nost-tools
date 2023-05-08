@@ -6,5 +6,5 @@ This section of the resources library contains templates for common DSM function
 .. toctree::
    :maxdepth: 1
 
-   basic_satellite/modules
-   ground_station/modules
+   satellite_template/modules
+   ground_station_template/modules

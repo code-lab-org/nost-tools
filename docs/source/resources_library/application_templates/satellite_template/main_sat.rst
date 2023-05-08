@@ -7,6 +7,6 @@ Of the four scripts that make up the Basic Satellite template, this is "entry po
 
 The following code also demonstrates how the ground application is started up and how the :obj:`Satellite` and :obj:`StatusPublisher` object classes are initialized and added to the simulator. It also adds the :obj:`ShutDownObserver` from the :ref:`NOS-T Tools Library <nostTools>`.
 
-.. literalinclude:: /../../examples/application_templates/basic_satellite/main_sat.py
+.. literalinclude:: /../../examples/application_templates/satellite_template/main_sat.py
 	:lines: 18-
 
