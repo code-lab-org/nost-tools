@@ -13,4 +13,5 @@ Please note that this template is built as a *managed* application - meaning tha
 .. toctree::
   :maxdepth: 1
 
+  main_ground
   config

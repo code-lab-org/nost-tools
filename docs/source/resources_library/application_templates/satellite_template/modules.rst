@@ -1,7 +1,7 @@
 .. _basic_satellite:
 
-Basic Satellite
-===============
+Satellite Template
+==================
 
 This set of four Python scripts model a basic satellite. Its main functions are to propagate an orbit from Two-Line Elements, check if a point on Earth is within a set field of regard, and see if a ground station is viewable. You can find these files within the nost-tools/examples/satBaseClass folder after you :ref:`clone the GitHub repository <installation>`. 
 
@@ -14,7 +14,7 @@ You need all four of the following files in the same folder: :ref:`satBaseMain`,
   
 Simplified Architecture Diagram of the Basic Satellite Template
 
-Please note that this template is built as a *managed* application - meaning that it responds to control events (red box with sharp edges in the above figure) from the included NOS-T :ref:`Manager <satBaseManager>` application. These include initialization, startup, and timing commands - an in-depth description is :ref:`found here <icdManager>` It does not matter if main_manager.py is in the same folder as the other files or not.
+Please note that this template is built as a *managed* application - meaning that it responds to control events (red box with sharp edges in the above figure) from the included NOS-T :ref:`Manager <manager_template>` application. These include initialization, startup, and timing commands - an in-depth description is :ref:`found here <icdManager>` It does not matter if main_manager.py is in the same folder as the other files or not.
 
 .. toctree::
   :maxdepth: 1
@@ -23,4 +23,3 @@ Please note that this template is built as a *managed* application - meaning tha
   satellite
   schemas
   satConfig
-  main_manager

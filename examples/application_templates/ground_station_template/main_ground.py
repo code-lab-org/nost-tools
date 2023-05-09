@@ -1,11 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-    *This application demonstrates a network of ground stations given geospatial locations, and minimum elevation angle constraints*
-
-    The application contains a single class, the :obj:`Environment` class, which waits for a message from the manager that indicates the beginning of the simulation execution. The application publishes all of the ground station information once, at the beginning of the simulation.
-
-"""
-
 import logging
 from datetime import datetime, timezone, timedelta
 from dotenv import dotenv_values
@@ -24,9 +17,8 @@ from ground_config_files.config import (
 
 logging.basicConfig(level=logging.INFO)
 
+
 # define an observer to manage ground updates
-
-
 class Environment(Observer):
     """
     *The Environment object class inherits properties from the Observer object class in the NOS-T tools library*
@@ -46,8 +38,8 @@ class Environment(Observer):
 
         In this instance, the callback function checks when the **PROPERTY_MODE** switches to **EXECUTING** to send a :obj:`GroundLocation` message to the *PREFIX/ground/location* topic:
 
-            .. literalinclude:: /../../examples/application_templates/grounds/main_ground.py
-                :lines: 51-62
+            .. literalinclude:: /../../examples/application_templates/ground_station_template/main_ground.py
+                :lines: 53-63
 
         """
         if property_name == Simulator.PROPERTY_MODE and new_value == Mode.EXECUTING:

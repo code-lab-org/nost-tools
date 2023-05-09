@@ -9,3 +9,4 @@ This file contains the parameters required for modeling a basic ground station. 
    :align: center
    :alt: Simplified architecture diagram of the basic satellite template
    :width: 8 in
+

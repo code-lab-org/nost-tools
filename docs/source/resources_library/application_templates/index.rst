@@ -8,3 +8,4 @@ This section of the resources library contains templates for common DSM function
 
    satellite_template/modules
    ground_station_template/modules
+   manager_template/modules
