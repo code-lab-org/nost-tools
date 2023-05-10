@@ -14,7 +14,7 @@ from skyfield.api import utc
 from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
 from nost_tools.manager import Manager
 
-from satConfig import PARAMETERS
+from config import PARAMETERS
 
 logging.basicConfig(level=logging.INFO)
 
@@ -36,7 +36,7 @@ if __name__ == "__main__":
     manager.simulator.add_observer(ShutDownObserver(manager))
 
     # start up the manager on PREFIX from config file
-    manager.start_up(PARAMETERS["PREFIX"], satConfig, True)
+    manager.start_up(PARAMETERS["PREFIX"], config, True)
 
     # execute a test plan
     manager.execute_test_plan(

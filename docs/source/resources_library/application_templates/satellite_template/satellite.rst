@@ -19,18 +19,18 @@ Satellite
 
 .. automethod:: examples.application_templates.satellite_template.satellite.Satellite.tock
 
-.. automethod:: examples.application_templates.satellite_template.satellite.Satellite.get_min_elevation
-	
-.. automethod:: examples.application_templates.satellite_template.satellite.Satellite.get_sensor_radius
-	
-.. automethod:: examples.application_templates.satellite_template.satellite.Satellite.get_elevation_angle
-	
-.. automethod:: examples.application_templates.satellite_template.satellite.Satellite.check_in_view
-	
-.. automethod:: examples.application_templates.satellite_template.satellite.Satellite.check_in_range
-
 Status Publisher
 ^^^^^^^^^^^^^^^^
 
 .. autoclass:: examples.application_templates.satellite_template.satellite.StatusPublisher
 	:show-inheritance:
+
+Instrument View and Interfacing with the Ground Station Template
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This satellite template is very basic. The :ref:`example codes <examples>` contain satellite scripts that have extended functionality. In particular, some useful functions are to see where on the Earth's surface is in view of an instrument, and when the spacecraft is able to communicate with a ground station. The following code snippet from the :ref:`FireSat+ test suite <fireSatConstellations>` contains methods that can perform these functions. Combining the :obj:`check_in_view` and :obj:`check_in_range` methods allows for simulating ground communciations with the :ref:`Ground Station Template <groundTemplate>`. Further discussion on all of these methods is found in the :ref:`Hand-on Tutorial Satellites section <tutorialSat>`.
+
+*NOTE*: If you wish to add functions to the satellite template, remember to add the relevant data to the message that :ref:`main_sat.py <satBaseMain>` publishes, and the structure for that data to the :ref:`schemas.py <satBaseSchemas>`.
+
+.. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
+	:lines: 39-159

@@ -22,4 +22,4 @@ Please note that this template is built as a *managed* application - meaning tha
   main_sat
   satellite
   schemas
-  satConfig
+  config
