@@ -27,29 +27,24 @@ if __name__ == "__main__":
     # Note that these are loaded from a .env file in current working directory
     credentials = dotenv_values(".env")
     HOST, PORT = credentials["HOST"], int(credentials["PORT"])
-    USERNAME, PASSWORD = credentials["USERNAME"], credentials["PASSWORD"]
-    CA_LIST = credentials["CA_LIST"]
     CERTIFICATE, KEY = credentials["CERTIFICATE"], credentials["KEY"]
 
     # set the client credentials
-    config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, CA_LIST, CERTIFICATE, KEY, True)
+    config = ConnectionConfig(HOST, PORT, CERTIFICATE, KEY)
 
     # create the managed application
     app = ManagedApplication("capella")
 
     # Names of Capella satellites used in Celestrak database
-    # names = ["CAPELLA-1-DENALI", \
-    #         "CAPELLA-2-SEQUOIA", \
-    #         "CAPELLA-3-WHITNEY", \
-    #         "CAPELLA-4-WHITNEY", \
-    #         "CAPELLA-5-WHITNEY", \
-    #         "CAPELLA-6-WHITNEY", \
-    #         "CAPELLA-7-WHITNEY", \
-    #         "CAPELLA-8-WHITNEY"]
-    names = ["CAPELLA-4-WHITNEY", \
-             "CAPELLA-6-WHITNEY", \
-             "CAPELLA-7-WHITNEY", \
-             "CAPELLA-8-WHITNEY"]
+    # NOTE: This is currently not working, as it seems which of these Capella satellites are included in Celestrak's database is inconsistent.
+    names = ["CAPELLA-1-DENALI", \
+            "CAPELLA-2-SEQUOIA", \
+            "CAPELLA-3-WHITNEY", \
+            "CAPELLA-4-WHITNEY", \
+            "CAPELLA-5-WHITNEY", \
+            "CAPELLA-6-WHITNEY", \
+            "CAPELLA-7-WHITNEY", \
+            "CAPELLA-8-WHITNEY"]
     
     field_of_regard = [80.0 for _ in names]
 

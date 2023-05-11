@@ -1,8 +1,6 @@
 var CESIUM_ACCESS_TOKEN = TOKEN;
 			var BROKER_HOST = HOST;
 			var BROKER_PORT = PORT;
-			var BROKER_CLIENT_USERNAME = USERNAME;
-			var BROKER_CLIENT_PASSWORD = PASSWORD;
 	  
 			$(document).ready(function(){
 				Cesium.Ion.defaultAccessToken = CESIUM_ACCESS_TOKEN;
@@ -304,8 +302,6 @@ var CESIUM_ACCESS_TOKEN = TOKEN;
 				}
 
 				client.connect({
-					"userName": BROKER_CLIENT_USERNAME,
-					"password": BROKER_CLIENT_PASSWORD,
 					"useSSL": true,
 					"onSuccess": function() {
 						client.subscribe("utility/#", {
