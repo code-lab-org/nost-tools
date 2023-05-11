@@ -34,6 +34,9 @@ sys.path.insert(0, os.path.abspath("../../examples/downlink/scoreboard"))
 sys.path.insert(
     0, os.path.abspath("../../examples/application_templates/satellite_template")
 )
+sys.path.insert(
+    0, os.path.abspath("../../examples/application_templates/manager_template")
+)
 
 # -- Project information -----------------------------------------------------
 

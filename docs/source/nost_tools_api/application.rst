@@ -31,6 +31,8 @@ Applications manage communication between a simulator and broker using the MQTT 
   :members:
   :show-inheritance:
 
+.. _toolsMgdApp:
+
 .. autoclass:: nost_tools.managed_application.ManagedApplication
   :members:
   :show-inheritance:

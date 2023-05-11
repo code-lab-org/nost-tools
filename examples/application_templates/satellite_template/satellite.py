@@ -36,22 +36,29 @@ class Satellite(Entity):
         next_vel (list): List of next velocity in geocentric XYZ vector elements (:obj:`Velocity`) of the satellite
     """
 
-    def __init__(self, app, id, name, ES=None, tle=None):
+    def __init__(self, app, id, name, ES=None, tles=None):
         super().__init__(name)
         self.app = app
         self.ts = load.timescale()
 
         # Checks whether tles or EarthSatellite objects were provided, and builds self.satellites from either
         self.satellites = []
+        # if ES is not None:
+        #     for satellite in ES:
+        #         self.satellites.append(satellite)
+        # if self.tles is not None:
+        #     for name in self.tles.keys():
+        #         self.satellites.append(
+        #             EarthSatellite(self.tles[name][0], self.tles[name][1], name, self.ts)
+        #         )
         if ES is not None:
             for satellite in ES:
                 self.satellites.append(satellite)
-        if self.tles is not None:
-            for name in self.tles.keys():
+        if tles is not None:
+            for i, tle in enumerate(tles):
                 self.satellites.append(
-                    EarthSatellite(self.tles[name][0], self.tles[name][1], name, self.ts)
+                    EarthSatellite(tle[0], tle[1], self.names[i], self.ts)
                 )
-
         self.id = id
         self.name = name
 
@@ -60,7 +67,7 @@ class Satellite(Entity):
         self.pos = self.next_pos = None
         self.vel = self.next_vel = None
 
-        self.grounds = grounds
+        # self.grounds = grounds
 
     def initialize(self, init_time):
         """
