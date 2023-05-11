@@ -22,13 +22,11 @@ if __name__ == "__main__":
     print(ssl.OPENSSL_VERSION)
     # Note that these are loaded from a .env file in current working directory
     credentials = dotenv_values(".env")
-    HOST, PORT = credentials["SMCE_HOST"], int(credentials["SMCE_PORT"])
-    USERNAME, PASSWORD = credentials["SMCE_USERNAME"], credentials["SMCE_PASSWORD"]
-    CA_LIST = credentials["CA_LIST"]
+    HOST, PORT = credentials["HOST"], int(credentials["PORT"])
     CERTIFICATE, KEY = credentials["CERTIFICATE"], credentials["KEY"]
 
     # set the client credentials
-    config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, CA_LIST, CERTIFICATE, KEY, True)
+    config = ConnectionConfig(HOST, PORT, CERTIFICATE, KEY)
 
     # create the managed application
     app = ManagedApplication("satellite")
