@@ -37,9 +37,9 @@ currentQuat = np.array([0,0,0,1])
 # rot = R.from_euler('zyx', [-60,-40,40], degrees=True)
 # targetQuat = (R.as_quat(rot))
 targetQuat = np.array([0.439032, -0.117638, -0.542817, 0.706231])
-Kp = np.array([1000, 500, 70])         # proportional gain
+Kp = np.array([.10, .5, .7])         # proportional gain
 # Ki = np.array([0.1, 0.1, 0.1])       # integral gain
-Kd = np.array([2000, 100, 1400])       # derivative gain
+Kd = np.array([.20, .10, .14])       # derivative gain
 
 # initial angular velocity in body frame
 w = np.array([0, 0, 0])
@@ -57,8 +57,8 @@ Iw = np.array([0.1, 0.1, 0.1])    # moment of inertia of each wheel
 max_torque = np.array([1, 1, 1])  # maximum torque each wheel can produce
 
 # Define simulation parameters
-dt = .1   # time step
-t_final = 60   # final time
+dt = 1   # time step
+t_final = 6000   # final time
 steps = int(t_final/dt)
 
 # Initialize arrays
