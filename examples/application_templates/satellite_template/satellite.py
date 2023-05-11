@@ -36,7 +36,7 @@ class Satellite(Entity):
         next_vel (list): List of next velocity in geocentric XYZ vector elements (:obj:`Velocity`) of the satellite
     """
 
-    def __init__(self, app, id, name, field_of_regard, grounds, ES=None, tle=None):
+    def __init__(self, app, id, name, ES=None, tle=None):
         super().__init__(name)
         self.app = app
         self.ts = load.timescale()
