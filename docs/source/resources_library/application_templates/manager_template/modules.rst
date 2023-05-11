@@ -9,3 +9,4 @@ This template is for an NOS-T manager application.
   :maxdepth: 1
 
   main_manager
+  config

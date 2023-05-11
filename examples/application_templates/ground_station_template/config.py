@@ -1,12 +1,12 @@
 import os
 import pandas as pd
 
-PREFIX = os.getenv("PREFIX", "greenfield")
+PREFIX = os.getenv("PREFIX", "template")
 NAME = os.getenv("NAME", "Grounds")
 LOG = f"\x1b[1m[\x1b[32m{NAME}\x1b[37m]\x1b[0m"
 HEADER = {
     "name": NAME,
-    "description": f'Broadcasts it\'s location to the testbed on the "{PREFIX}/ground/location" topic.',
+    "description": f'Broadcasts its location to the testbed on the "{PREFIX}/ground/location" topic.',
 }
 
 # Default location is Svalbard, Norway
@@ -22,7 +22,7 @@ GROUND = pd.DataFrame(
         "groundId": [0],
         "latitude": [LAT],
         "longitude": [LNG],
-        "elevAngle": [MIN_ELEVATION]
+        "elevAngle": [MIN_ELEVATION],
     }
     # data={
     #     "groundId": [0, 1, 2, 3, 4, 5, 6],

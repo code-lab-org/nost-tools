@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-    *This application template models a satellite's orbit and view of Earth*
+    *This application template models a satellite's orbit*
 
     The template contains two classes, the :obj:`Satellite` (:obj:`Entity`) object class and the one :obj:`StatusPublisher` (:obj:`WallclockTimeIntervalPublisher`) class. The template also adds several methods within these classes.
 
@@ -41,14 +41,21 @@ class Satellite(Entity):
         self.app = app
         self.ts = load.timescale()
 
+        # Checks whether tles or EarthSatellite objects were provided, and builds self.satellites from either
+        self.satellites = []
         if ES is not None:
-            self.ES = ES
-        if tle is not None:
-            self.ES = EarthSatellite(tle[0], tle[1], name)
+            for satellite in ES:
+                self.satellites.append(satellite)
+        if self.tles is not None:
+            for name in self.tles.keys():
+                self.satellites.append(
+                    EarthSatellite(self.tles[name][0], self.tles[name][1], name, self.ts)
+                )
 
         self.id = id
         self.name = name
-        self.field_of_regard = field_of_regard
+
+        self.geocentric = None
         self.geoPos = self.next_geoPos = None
         self.pos = self.next_pos = None
         self.vel = self.next_vel = None
@@ -66,7 +73,10 @@ class Satellite(Entity):
         super().initialize(init_time)
         self.geocentric = self.ES.at(self.ts.from_datetime(init_time))
         self.geoPos = self.geocentric.position.m
-        self.pos = wgs84.subpoint(ES.at(self.ts.from_datetime(init_time)))
+        # self.pos = wgs84.subpoint(ES.at(self.ts.from_datetime(init_time)))
+        self.pos = self.next_pos = [
+            wgs84.subpoint(ES.at(self.ts.from_datetime(init_time)))
+        ]
         self.vel = self.geocentric.velocity.m_per_s
 
     def tick(self, time_step):
@@ -78,9 +88,14 @@ class Satellite(Entity):
         """
         super().tick(time_step)
 
-        self.next_geocentric = self.ES.at(self.ts.from_datetime(self.get_time()))
+        self.next_pos = [
+            wgs84.subpoint(ES.at(self.ts.from_datetime(self.get_time() + time_step)))
+        ]
+        self.next_geocentric = self.ES.at(
+            self.ts.from_datetime(self.get_time() + time_step)
+        )
         self.next_geoPos = self.next_geocentric.position.m
-        self.next_pos = wgs84.subpoint(self.ts.from_datetime(self.get_time()))
+        # self.next_pos = wgs84.subpoint(self.ts.from_datetime(self.get_time()))
         self.next_vel = self.next_geocentric.velocity.m_per_s
 
     def tock(self):
@@ -88,12 +103,13 @@ class Satellite(Entity):
         Commits the next :obj:`Satellite` state and advances simulation scenario time
 
         """
-
+        self.pos = self.next_pos
         self.geoPos = self.next_geoPos
         self.pos = self.next_pos
         self.vel = self.next_vel
 
         super().tock()
+
 
 # define a publisher to report satellite status
 class StatusPublisher(WallclockTimeIntervalPublisher):
