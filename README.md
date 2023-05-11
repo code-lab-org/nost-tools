@@ -8,11 +8,20 @@ Documentation: https://nost-tools.readthedocs.io
 ## NOS-T Tools Installation
 
 NOS-T tools is a collection of tools for the New Observing Strategies Testbed
-(NOS-T). To install `nost-tools` as an editable Python library, run the
-following command from the project root directory:
+(NOS-T). Installing `nost-tools` as an editable Python library requires `pip`
+version 23 or greater (install via `python -m pip install --upgrade pip`).
+
+To install `nost-tools`, run the following command from the project root 
+directory:
 
 ```
 pip install -e .
+```
+
+Alternatively, to install supplemental libraries required for examples, run
+
+```
+pip install -e .[examples]
 ```
 
 ## Contact

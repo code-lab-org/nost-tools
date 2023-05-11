@@ -1,3 +1,5 @@
+import os
+import sys
 import logging
 import numpy as np
 import pandas as pd
@@ -10,7 +12,19 @@ from nost_tools.entity import Entity
 from nost_tools.observer import Observer
 from nost_tools.publisher import WallclockTimeIntervalPublisher
 
-from examples.utility.schemas import *
+# getting the name of the directory
+# where the this file is present.
+current = os.path.dirname(os.path.realpath(__file__))
+ 
+# Getting the parent directory name
+# where the current directory is present.
+parent = os.path.dirname(current)
+superparent = os.path.dirname(parent)
+
+sys.path.append(superparent)
+sys.path.append(parent)
+
+from schemas import *
 
 
 def compute_min_elevation(altitude, field_of_regard):

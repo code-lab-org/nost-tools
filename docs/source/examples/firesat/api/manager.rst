@@ -1,8 +1,7 @@
+.. _fireSatMgr:
+
 Manager
 =======
-
-main_manager.py module
-----------------------
   
 .. automodule:: firesat.manager.main_manager
   :members:

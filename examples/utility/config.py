@@ -7,7 +7,7 @@ from datetime import datetime, timezone, timedelta
 import pandas as pd
 
 # Name of next simulation run
-sim_name = 'test'
+sim_name = "DemoDesign"
 
 # Name of simulation file to pull parameters from. if None, use below parameters
 param_file = None
@@ -20,14 +20,14 @@ if param_file == None:
             # Global parameters
             "PREFIX": "utility",
             "SCALE": 60,
-            "SCENARIO_START": datetime(2022, 11, 1, 7, 0, 0, tzinfo=timezone.utc).timestamp(),
-            "SCENARIO_LENGTH": 1,
+            "SCENARIO_START": datetime(2022, 1, 22, 16, 0, 0, tzinfo=timezone.utc).timestamp(),
+            "SCENARIO_LENGTH": 6,
             "SIM_NAME": sim_name,
 
             # Event parameters
             "SEED": seed,
             # "SEED": "123testdaynightseed",
-            "EVENT_COUNT": 50,
+            "EVENT_COUNT": 3,
             "EVENT_LENGTH": 2,
             "EVENT_START_RANGE": (-1, 1),
 

@@ -1,6 +1,6 @@
 import os
 
-PREFIX = os.getenv("PREFIX", "downlinkBC")
+PREFIX = os.getenv("PREFIX", "downlink")
 NAME = "constellation"
 LOG = f"\x1b[1m[\x1b[34m{NAME}\x1b[37m]\x1b[0m"
 HEADER = {
@@ -30,8 +30,9 @@ TLES = [[TLE1_SC1,TLE2_SC1],[TLE1_SC2,TLE2_SC2]]
 # )  # degrees (comms more forgiving than sensor, not currently used)
 # MIN_INTENSITY = float(os.getenv("MIN_INTENSITY", 10.0))  # square meters
 
-SSR_CAPACITY = [280,343] # Capacity of onboard Solid State Recorder in Gigabytes
-CAPACITY_USED = [0.5, 0.5] # Fractional value from 0 (empty) to 1 (full). Arbitrarily starting with SSR half full, but will offload at first pass
-INSTRUMENT_RATES = [12.5, 12.5] # Rate of data collection for all instruments in Megabytes/second
-
+SSR_CAPACITY = [280,343] # Capacity of onboard Solid State Recorder in Gigabits
+CAPACITY_USED = [0.30, 0.25] # Fractional value from 0 (empty) to 1 (full). Arbitrarily starting with SSR half full, but will offload at first pass
+INSTRUMENT_RATES = [.0125, .0125] # Rate of data collection for all instruments in Gigabits/second
+COST_MODE = ["discrete","discrete"] # Options per satellite are "discrete" (per downlink), "continuous" (fixed contract), or "both"
+FIXED_RATES = [0.09, 0.09] # Only used if "continuous" or "both" are the cost mode, otherwise costs reported by ground for "discrete"
 SCALE = 60							

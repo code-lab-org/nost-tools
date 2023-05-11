@@ -16,7 +16,7 @@ from dotenv import dotenv_values
 from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
 from nost_tools.manager import Manager
 
-# client credentials should be saved to config.py file in manager_config_files directory
+# The test suite event prefix, time scale, and any updated time scales go in the config.py file
 from manager_config_files.config import (
     PREFIX,
     SCALE,

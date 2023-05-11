@@ -2,7 +2,8 @@
 """
     *This application demonstrates a constellation of Planet satellites for monitoring events propagated from Two-Line Elements (TLEs)*
 """
-
+import os
+import sys
 import time
 import logging
 import json
@@ -15,7 +16,19 @@ from nost_tools.managed_application import ManagedApplication
 
 from constellation import *
 
-from examples.utility.config import PARAMETERS
+# getting the name of the directory
+# where the this file is present.
+current = os.path.dirname(os.path.realpath(__file__))
+ 
+# Getting the parent directory name
+# where the current directory is present.
+parent = os.path.dirname(current)
+superparent = os.path.dirname(parent)
+
+sys.path.append(superparent)
+sys.path.append(parent)
+
+from config import PARAMETERS
 
 logging.basicConfig(level=logging.INFO)
 
@@ -91,7 +104,7 @@ if __name__ == "__main__":
 
     # add a position publisher to update satellite state every 5 seconds of wallclock time
     app.simulator.add_observer(
-        PositionPublisher(app, constellation, timedelta(seconds=2))
+        PositionPublisher(app, constellation, timedelta(seconds=1))
     )
 
     # start up the application on PREFIX, publish time status every 10 seconds of wallclock time
@@ -101,7 +114,7 @@ if __name__ == "__main__":
         True,
         time_status_step=timedelta(seconds=10) * PARAMETERS['SCALE'],
         time_status_init=datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=timezone.utc),
-        time_step=timedelta(seconds=2) * PARAMETERS['SCALE'],
+        time_step=timedelta(seconds=1) * PARAMETERS['SCALE'],
     )
 
     # add message callbacks

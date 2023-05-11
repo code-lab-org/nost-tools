@@ -4,6 +4,8 @@
     monitoring events propagated from Two-Line Elements (TLEs)*
 """
 
+import os
+import sys
 import time
 import logging
 import json
@@ -17,7 +19,19 @@ from nost_tools.managed_application import ManagedApplication
 
 from constellation import *
 
-from examples.utility.config import PARAMETERS
+# getting the name of the directory
+# where the this file is present.
+current = os.path.dirname(os.path.realpath(__file__))
+ 
+# Getting the parent directory name
+# where the current directory is present.
+parent = os.path.dirname(current)
+superparent = os.path.dirname(parent)
+
+sys.path.append(superparent)
+sys.path.append(parent)
+
+from config import PARAMETERS
 
 logging.basicConfig(level=logging.INFO)
 
@@ -36,18 +50,15 @@ if __name__ == "__main__":
     app = ManagedApplication("capella")
 
     # Names of Capella satellites used in Celestrak database
-    # names = ["CAPELLA-1-DENALI", \
-    #         "CAPELLA-2-SEQUOIA", \
-    #         "CAPELLA-3-WHITNEY", \
-    #         "CAPELLA-4-WHITNEY", \
-    #         "CAPELLA-5-WHITNEY", \
-    #         "CAPELLA-6-WHITNEY", \
-    #         "CAPELLA-7-WHITNEY", \
-    #         "CAPELLA-8-WHITNEY"]
-    names = ["CAPELLA-4-WHITNEY", \
-             "CAPELLA-6-WHITNEY", \
-             "CAPELLA-7-WHITNEY", \
-             "CAPELLA-8-WHITNEY"]
+    names = [#"CAPELLA-1-DENALI", \
+            "CAPELLA-2-SEQUOIA", \
+            "CAPELLA-3-WHITNEY", \
+            "CAPELLA-4-WHITNEY", \
+            "CAPELLA-5-WHITNEY", \
+            "CAPELLA-6-WHITNEY", \
+            "CAPELLA-7-WHITNEY", \
+            "CAPELLA-8-WHITNEY"
+            ]
     
     field_of_regard = [80.0 for _ in names]
 
@@ -86,7 +97,7 @@ if __name__ == "__main__":
 
     # add a position publisher to update satellite state every 5 seconds of wallclock time
     app.simulator.add_observer(
-        PositionPublisher(app, constellation, timedelta(seconds=2))
+        PositionPublisher(app, constellation, timedelta(seconds=1))
     )
 
     # start up the application on PREFIX, publish time status every 10 seconds of wallclock time
@@ -96,7 +107,7 @@ if __name__ == "__main__":
         True,
         time_status_step=timedelta(seconds=10) * PARAMETERS['SCALE'],
         time_status_init=datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=timezone.utc),
-        time_step=timedelta(seconds=2) * PARAMETERS['SCALE'],
+        time_step=timedelta(seconds=1) * PARAMETERS['SCALE'],
     )
 
     # add message callbacks
