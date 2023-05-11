@@ -119,7 +119,7 @@ def taylorIntegrate(w, currentQuat, dt):
     R4 = 0.5*(-w[0]*dt*currentQuat[0]-w[1]*dt*currentQuat[1]-w[2]*dt*currentQuat[3])
     Ri = np.array([R1, R2, R3, R4])
     
-    currentQuat = currentQuat + Ri-D2*currentQuat-D2*Ri/3+D2**2*currentQuat/6
+    currentQuat = currentQuat + Ri-D2*currentQuat-D2*Ri/3+(D2**2*currentQuat)/6
     
     return currentQuat
     
