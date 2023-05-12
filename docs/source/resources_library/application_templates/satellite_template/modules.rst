@@ -17,7 +17,7 @@ Simplified Architecture Diagram of the Basic Satellite Template
 Please note that this template is built as a *managed* application - meaning that it responds to control events (red box with sharp edges in the above figure) from the included NOS-T :ref:`Manager <manager_template>` application. These include initialization, startup, and timing commands - an in-depth description is :ref:`found here <icdManager>` It does not matter if main_manager.py is in the same folder as the other files or not.
 
 .. toctree::
-  :maxdepth: 1
+  :maxdepth: 2
 
   main_sat
   satellite

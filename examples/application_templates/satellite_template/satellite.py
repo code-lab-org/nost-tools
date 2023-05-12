@@ -1,11 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-    *This application template models a satellite's orbit*
-
-    The template contains two classes, the :obj:`Satellite` (:obj:`Entity`) object class and the one :obj:`StatusPublisher` (:obj:`WallclockTimeIntervalPublisher`) class. The template also adds several methods within these classes.
-
-"""
-
 import numpy as np
 
 from skyfield.api import load, wgs84, EarthSatellite

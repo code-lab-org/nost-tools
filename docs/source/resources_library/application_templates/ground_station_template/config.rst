@@ -12,5 +12,5 @@ This file contains the parameters required for modeling a basic ground station. 
 
 You have the ability to use this template to represent any number of ground stations. Note that in the code below, there are two :obj:`data` lists within the dataframe, the bottom one being commented-out. The commented-out section is an example of how you can implement multiple ground stations. 
 
-.. literalinclude:: /../../examples/application_templates/ground_station_template/main_ground.py
-  :lines: 4-
+.. literalinclude:: /../../examples/application_templates/ground_station_template/config.py
+  :lines: 1-
