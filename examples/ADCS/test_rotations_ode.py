@@ -34,6 +34,7 @@ cubeLength = 0.1
 # from  Sidi book
 I = np.diag([1000, 1000, 1000])
 currentQuat = np.array([0,0,0,1])
+q0 = np.array([0,0,0,1])
 # rot = R.from_euler('zyx', [-60,-40,40], degrees=True)
 # targetQuat = (R.as_quat(rot))
 targetQuat = np.array([0.439032, -0.117638, -0.542817, 0.706231])
@@ -58,7 +59,7 @@ max_torque = np.array([1, 1, 1])  # maximum torque each wheel can produce
 
 # Define simulation parameters
 dt = 1   # time step
-t_final = 6000   # final time
+t_final = 60   # final time
 steps = int(t_final/dt)
 
 # Initialize arrays
@@ -113,22 +114,23 @@ def control_torque(errorQuat, Kp, Kd, w):
 
     return T_c
 
-def quaternion_derivative(t, q, w):
+def quaternion_derivative(t, q, w, currentQuat):
+  
+    omegaPrime = np.array([[0, w[2], -w[1], w[0]],
+                           [-w[2], 0, w[0], w[1]],
+                           [w[1], -w[0], 0, w[2]],
+                           [-w[0], -w[1], -w[2], 0]]) 
     
+    dqdt = 0.5*np.matmul(omegaPrime,currentQuat)
     
+    return dqdt
 
 def solve_ODE(w, currentQuat, dt):
     
+    sol = solve_ivp(quaternion_derivative, t_final, q0, method='RK45')
+    
+    return currentQuat  
 
-    
-    return currentQuat
-    
-
-omegaPrime = np.array([[0, w[2], -w[1], w[0]],
-                       [-w[2], 0, w[0], w[1]],
-                       [w[1], -w[0], 0, w[2]],
-                       [-w[0], -w[1], -w[2], 0]]) 
-    
 
 # Run simulation
 for i in range(steps):
@@ -143,19 +145,8 @@ for i in range(steps):
     w = w + alpha*dt
     eulerRad = eulerRad + w*dt +0.5*alpha*dt**2
     euler = np.degrees(eulerRad)
-    # currentQuat = taylorIntegrate(w, currentQuat, dt)
+    currentQuat = solve_ODE(w,currentQuat,dt)
     
-    
-#     # from Sola
-    # qwdt = [np.cos(np.linalg.norm(w)*dt/2)],[((w/np.linalg.norm(w))*np.sin(np.linalg.norm(w)*dt/2))]
-    qwdt = np.array([np.cos(np.linalg.norm(w)*dt/2),((w[0]/np.linalg.norm(w))*np.sin(np.linalg.norm(w)*dt/2)),((w[1]/np.linalg.norm(w))*np.sin(np.linalg.norm(w)*dt/2)),((w[2]/np.linalg.norm(w))*np.sin(np.linalg.norm(w)*dt/2))])
-    currentQuat = np.matmul(currentQuat, qwdt)
-    
-#     #qdot = 
-    
-#     currentQuat = currentQuat + 0.5*currentQuat*np.array([w[0], w[1], w[2], 0])*dt
-#     # currentQuat = currentQuat / np.linalg.norm(currentQuat)
-#     # euler = R.from_quat(currentQuat).as_euler('zyx', degrees=True)
 
 #     # Store results
     alpha_hist[i, :] = alpha

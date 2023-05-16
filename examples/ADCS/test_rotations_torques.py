@@ -146,7 +146,7 @@ for i in range(steps):
     w = w + alpha*dt
     eulerRad = eulerRad + w*dt +0.5*alpha*dt**2
     euler = np.degrees(eulerRad)
-    # currentQuat = taylorIntegrate(w, currentQuat, dt)
+    currentQuat = taylorIntegrate(w, currentQuat, dt)
     
     
 #     # from Sola
