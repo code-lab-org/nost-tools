@@ -7,7 +7,7 @@ Created on Tue Apr 25 18:10:44 2023
 
 import numpy as np
 from scipy.spatial.transform import Rotation as R
-from scipy.integrate import ode
+from scipy.integrate import solve_ivp
 # from skyfield.api import load, Topos, EarthSatellite, wgs84
 # from datetime import datetime, timezone, timedelta
 import matplotlib.pyplot as plt
@@ -106,23 +106,20 @@ def att_error(currentQuat, targetQuat):
 def control_torque(errorQuat, Kp, Kd, w):
     
     # T_c[0] = 1
-    T_c[1] = 1
-    # T_c[0] = 2*Kp[0]*errorQuat[0]*errorQuat[3] + Kd[0]*w[0]
-    # T_c[1] = 2*Kp[1]*errorQuat[1]*errorQuat[3] + Kd[1]*w[1]
-    # T_c[2] = 2*Kp[2]*errorQuat[2]*errorQuat[3] + Kd[2]*w[2]
+    # T_c[1] = 1
+    T_c[0] = 2*Kp[0]*errorQuat[0]*errorQuat[3] + Kd[0]*w[0]
+    T_c[1] = 2*Kp[1]*errorQuat[1]*errorQuat[3] + Kd[1]*w[1]
+    T_c[2] = 2*Kp[2]*errorQuat[2]*errorQuat[3] + Kd[2]*w[2]
 
     return T_c
 
-def taylorIntegrate(w, currentQuat, dt):
+def quaternion_derivative(t, q, w):
     
-    D2 = (w[0]*dt)**2 + (w[1]**dt)**2 + (w[2]*dt)**2
-    R1 = 0.5*(w[0]*dt*currentQuat[3]-w[1]*dt*currentQuat[2]+w[2]*dt*currentQuat[1])
-    R2 = 0.5*(w[0]*dt*currentQuat[2]+w[1]*dt*currentQuat[3]-w[2]*dt*currentQuat[0])
-    R3 = 0.5*(-w[0]*dt*currentQuat[1]+w[1]*dt*currentQuat[0]+w[2]*dt*currentQuat[3])
-    R4 = 0.5*(-w[0]*dt*currentQuat[0]-w[1]*dt*currentQuat[1]-w[2]*dt*currentQuat[3])
-    Ri = np.array([R1, R2, R3, R4])
     
-    currentQuat = currentQuat + Ri-D2*currentQuat-D2*Ri/3+(D2**2*currentQuat)/6
+
+def solve_ODE(w, currentQuat, dt):
+    
+
     
     return currentQuat
     
@@ -151,8 +148,8 @@ for i in range(steps):
     
 #     # from Sola
     # qwdt = [np.cos(np.linalg.norm(w)*dt/2)],[((w/np.linalg.norm(w))*np.sin(np.linalg.norm(w)*dt/2))]
-    # qwdt = np.array([np.cos(np.linalg.norm(w)*dt/2),((w[0]/np.linalg.norm(w))*np.sin(np.linalg.norm(w)*dt/2)),((w[1]/np.linalg.norm(w))*np.sin(np.linalg.norm(w)*dt/2)),((w[2]/np.linalg.norm(w))*np.sin(np.linalg.norm(w)*dt/2))])
-    # currentQuat = np.matmul(currentQuat, qwdt)
+    qwdt = np.array([np.cos(np.linalg.norm(w)*dt/2),((w[0]/np.linalg.norm(w))*np.sin(np.linalg.norm(w)*dt/2)),((w[1]/np.linalg.norm(w))*np.sin(np.linalg.norm(w)*dt/2)),((w[2]/np.linalg.norm(w))*np.sin(np.linalg.norm(w)*dt/2))])
+    currentQuat = np.matmul(currentQuat, qwdt)
     
 #     #qdot = 
     
