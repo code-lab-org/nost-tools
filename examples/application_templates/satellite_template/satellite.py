@@ -71,11 +71,11 @@ class Satellite(Entity):
         """
 
         super().initialize(init_time)
-        self.geocentric = self.ES.at(self.ts.from_datetime(init_time))
+        self.geocentric = self.at(self.ts.from_datetime(init_time))
         self.geoPos = self.geocentric.position.m
         # self.pos = wgs84.subpoint(ES.at(self.ts.from_datetime(init_time)))
         self.pos = self.next_pos = [
-            wgs84.subpoint(ES.at(self.ts.from_datetime(init_time)))
+            wgs84.subpoint(Satellite.at(self.ts.from_datetime(init_time)))
         ]
         self.vel = self.geocentric.velocity.m_per_s
 
