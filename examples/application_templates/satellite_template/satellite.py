@@ -29,29 +29,16 @@ class Satellite(Entity):
         next_vel (list): List of next velocity in geocentric XYZ vector elements (:obj:`Velocity`) of the satellite
     """
 
-    def __init__(self, app, id, name, ES=None, tles=None):
+    def __init__(self, app, id, name, ES=None, tle=None):
         super().__init__(name)
         self.app = app
         self.ts = load.timescale()
 
-        # Checks whether tles or EarthSatellite objects were provided, and builds self.satellites from either
-        self.satellites = []
-        # if ES is not None:
-        #     for satellite in ES:
-        #         self.satellites.append(satellite)
-        # if self.tles is not None:
-        #     for name in self.tles.keys():
-        #         self.satellites.append(
-        #             EarthSatellite(self.tles[name][0], self.tles[name][1], name, self.ts)
-        #         )
         if ES is not None:
-            for satellite in ES:
-                self.satellites.append(satellite)
-        if tles is not None:
-            for i, tle in enumerate(tles):
-                self.satellites.append(
-                    EarthSatellite(tle[0], tle[1], self.names[i], self.ts)
-                )
+            self.ES = ES
+        if tle is not None:
+            self.ES = EarthSatellite(tle[0], tle[1], name)
+    
         self.id = id
         self.name = name
 
@@ -71,11 +58,10 @@ class Satellite(Entity):
         """
 
         super().initialize(init_time)
-        self.geocentric = self.at(self.ts.from_datetime(init_time))
-        self.geoPos = self.geocentric.position.m
-        # self.pos = wgs84.subpoint(ES.at(self.ts.from_datetime(init_time)))
-        self.pos = self.next_pos = [
-            wgs84.subpoint(Satellite.at(self.ts.from_datetime(init_time)))
+        self.geocentric = self.ES.at(self.ts.from_datetime(init_time))
+        self.geocentricPos = self.geocentric.position.m
+        self.geographicPos = self.next_pos = [
+            wgs84.subpoint(ES.at(self.ts.from_datetime(init_time)))
         ]
         self.vel = self.geocentric.velocity.m_per_s
 
