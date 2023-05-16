@@ -15,8 +15,6 @@ PARAMETERS = pd.Series(
         "SCENARIO_LENGTH": 1,
         # Name of satellite for reference orbit from Celestrak database
         "name": "SUOMI NPP",
-        # satellite field of regard
-        "field_of_regard": 112.56,
         # Satellite parameters
         "TLES": {},
         # Manager Parameters:

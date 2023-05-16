@@ -35,8 +35,6 @@ if __name__ == "__main__":
     activesats = load.tle_file(activesats_url, reload=False)
     by_name = {sat.name: sat for sat in activesats}
 
-    field_of_regard = PARAMETERS["field_of_regard"]
-
     satellite = Satellite(app, 0, "satellite", ES=[by_name[name]])
 
     # add the Satellite entity to the application's simulator
