@@ -4,40 +4,14 @@ Time Management
 ===============
 
 When developing a scenario for executing on the NOS testbed, it is crucial to understand how the applications in 
-the sceanrio will interact with time. Will the applications rely on real-time progression? Will time be scaled up to forecast future behaviors?
+the scenario will interact with time. Will the applications rely on real-time progression? Will time be scaled up to forecast future behaviors?
 This section will detail the methods of time management for a variety of user scenarios, including selection metrics, management best practices, and code templates. 
 
 Real Time
 ---------
 
-One of the two main management methods in the NOS Testbed methodology is real-time control. In a real-time scenario, the applications iterate in line with the actual progression of time. Applications that may benefit from a real-time progression 
-would be applications relying on external data, for example in-situ sensors, or TLEs from current satellites. While there are many ways to manage time across a distributed network, the recommended procedure is to query an extrenal time-keeping source from each application to allow for syncronicity across machines. 
-One such method is used in the provided examples -- iteration functions that operate in parallel to wallclock requests. The National Institute of Standards and Technology (NIST) offers a pooled service that allows 
-a user to standardize their computer's internal clock. When this standardization is used across a distributed network (applications running across mutliple distributed machines), it mitigates local system errors. A millisecond of difference 
-each iteration can grow over long simulations and cause complications, thus the importance of instantiating a time-management system.
-
-The following code block shows an example of real-time management in the Scalability example:
-
-.. code-block:: python3
-
-   def query_nist(host="pool.ntp.org", retry_delay_s=5, max_retry=5):
-    for i in range(max_retry):
-        try:
-            logging.info(f"Contacting {host} to retrieve wallclock offset.")
-            response = ntplib.NTPClient().request(host, version=3, timeout=2)
-            offset = timedelta(seconds=response.offset)
-            logging.info(f"Wallclock offset updated to {offset}.\nWaiting for manager start command.")
-            return offset
-        except ntplib.NTPException:
-            logging.warning(
-                f"Could not connect to {host}, attempt #{i+1}/{max_retry} in {retry_delay_s} s."
-            )
-            time.sleep(retry_delay_s)
-
-The 'query_nist' function calls "pool.ntp.org", which will submit a request for the time to the NIST servers. When the time was returned, this 'real' time is compared to the local time, and the offset is accounted for. 
-By constantly monitoring the offset of the internal local clock on each individual machine, the user can ensure that each application is running synchronisly across a scenario. This function aids in time mangement in a dispersed system where applications mimic
-behaviors of a system in real time.
-
+One of the two main time management methods in the NOS Testbed methodology is real-time control. In a real-time scenario, the applications iterate in line with the actual progression of time. Applications that may benefit from a real-time progression 
+would be applications relying on external data, for example in-situ sensors, or those that want to propagate up-to-date satellite orbits. While there are many ways to manage time across a distributed network, the recommended procedure is to query an external time-keeping source from each application to allow for syncronicity across machines. 
 
 Simulated Time
 --------------
@@ -73,6 +47,7 @@ The 'tick' method progresses the application internal time using the 'time_step'
 the state of the application (location, field of regard, elevation angle, etc.). 
 
 .. code-block:: python3
+
     def tock(self):
         self.positions = self.next_positions
         for i, newly_detected_fire in enumerate(self.detect):
@@ -99,6 +74,7 @@ For both of the commonly used time management techniques, the NOS-T Tools librar
 To define the time parameters of a scenario, best practices encourange drafting a test plan modelled after the parameters defined by the manager tool. 
 
 .. code-block:: python3
+
     def execute_test_plan(
         self,
         sim_start_time: datetime,
@@ -115,12 +91,12 @@ To define the time parameters of a scenario, best practices encourange drafting 
         init_max_retry: int = 5,
 
 
-.. list-table:: Variable explination
-   :widths: 25 25 50
+.. list-table:: Variable definitions
+   :widths: 50 50
    :header-rows: 1
 
    * - Variable
-     - Explination
+     - Explanation
    * - self
      - Reference to the manager object instanciated by the calling of the 'execute_test_plan' function
    * - sim_start_time
@@ -148,5 +124,32 @@ To define the time parameters of a scenario, best practices encourange drafting 
 
 The variables that comprise the test plan are passed into the manager application upon execution. By defining these variables, a user can better understand the management of their scenario, and ensure that the goals of the project are met. 
 
+Time Synchronization
+--------------------
 
+One such method is used in the provided examples -- iteration functions that operate in parallel to wallclock requests. The National Institute of Standards and Technology (NIST) offers a pooled service that allows 
+a user to standardize their computer's internal clock. When this standardization is used across a distributed network (applications running across mutliple distributed machines), it mitigates local system errors. A millisecond of difference 
+each iteration can grow over long simulations and cause complications, thus the importance of instantiating a time-management system.
+
+The following code block shows an example of real-time management in the Scalability example:
+
+.. code-block:: python3
+
+   def query_nist(host="pool.ntp.org", retry_delay_s=5, max_retry=5):
+    for i in range(max_retry):
+        try:
+            logging.info(f"Contacting {host} to retrieve wallclock offset.")
+            response = ntplib.NTPClient().request(host, version=3, timeout=2)
+            offset = timedelta(seconds=response.offset)
+            logging.info(f"Wallclock offset updated to {offset}.\nWaiting for manager start command.")
+            return offset
+        except ntplib.NTPException:
+            logging.warning(
+                f"Could not connect to {host}, attempt #{i+1}/{max_retry} in {retry_delay_s} s."
+            )
+            time.sleep(retry_delay_s)
+
+The 'query_nist' function calls "pool.ntp.org", which will submit a request for the time to the NIST servers. When the time was returned, this 'real' time is compared to the local time, and the offset is accounted for. 
+By constantly monitoring the offset of the internal local clock on each individual machine, the user can ensure that each application is running synchronisly across a scenario. This function aids in time mangement in a dispersed system where applications mimic
+behaviors of a system in real time.
  
