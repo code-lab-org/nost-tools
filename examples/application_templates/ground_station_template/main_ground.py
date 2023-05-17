@@ -39,7 +39,7 @@ class Environment(Observer):
         In this instance, the callback function checks when the **PROPERTY_MODE** switches to **EXECUTING** to send a :obj:`GroundLocation` message to the *PREFIX/ground/location* topic:
 
             .. literalinclude:: /../../examples/application_templates/ground_station_template/main_ground.py
-                :lines: 53-63
+                :lines: 45-55
 
         """
         if property_name == Simulator.PROPERTY_MODE and new_value == Mode.EXECUTING:
