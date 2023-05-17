@@ -35,12 +35,12 @@ cubeLength = 0.1
 I = np.diag([1000, 1000, 1000])
 currentQuat = np.array([0,0,0,1])
 q0 = np.array([0,0,0,1])
-# rot = R.from_euler('zyx', [-60,-40,40], degrees=True)
+# rot = R.from_euler('xyz', [45,0,0], degrees=True)
 # targetQuat = (R.as_quat(rot))
-targetQuat = np.array([0.439032, -0.117638, -0.542817, 0.706231])
-Kp = np.array([.10, .5, .7])         # proportional gain
+targetQuat = np.array([0.382683, 0, 0, 0.92388])
+Kp = np.array([1000, 500, 70])         # proportional gain
 # Ki = np.array([0.1, 0.1, 0.1])       # integral gain
-Kd = np.array([.20, .10, .14])       # derivative gain
+Kd = np.array([2000, 100, 1400])       # derivative gain
 
 # initial angular velocity in body frame
 w = np.array([0, 0, 0])
@@ -59,7 +59,7 @@ max_torque = np.array([1, 1, 1])  # maximum torque each wheel can produce
 
 # Define simulation parameters
 dt = 1   # time step
-t_final = 60   # final time
+t_final = 6000   # final time
 steps = int(t_final/dt)
 
 # Initialize arrays
@@ -68,6 +68,7 @@ euler_hist = np.zeros((steps, 3))
 eulerRad_hist = np.zeros((steps, 3))
 w_hist = np.zeros((steps, 3))
 q_hist = np.zeros((steps, 4))
+error_hist = np.zeros((steps, 4))
 torque_hist = np.zeros((steps, 3))
 errorQuat = np.zeros(4)
 T_c = np.zeros(3)
@@ -114,22 +115,9 @@ def control_torque(errorQuat, Kp, Kd, w):
 
     return T_c
 
-def quaternion_derivative(t, q, w, currentQuat):
+def quaternion_ode(omegaPrime,currentQuat):
   
-    omegaPrime = np.array([[0, w[2], -w[1], w[0]],
-                           [-w[2], 0, w[0], w[1]],
-                           [w[1], -w[0], 0, w[2]],
-                           [-w[0], -w[1], -w[2], 0]]) 
-    
-    dqdt = 0.5*np.matmul(omegaPrime,currentQuat)
-    
-    return dqdt
-
-def solve_ODE(w, currentQuat, dt):
-    
-    sol = solve_ivp(quaternion_derivative, t_final, q0, method='RK45')
-    
-    return currentQuat  
+    return 0.5*np.matmul(omegaPrime,currentQuat)
 
 
 # Run simulation
@@ -143,9 +131,13 @@ for i in range(steps):
     # Update angular velocity, euler angles, and quaternion
     alpha = np.matmul(np.linalg.inv(I), T_c) 
     w = w + alpha*dt
+    omegaPrime = np.array([[0, w[2], -w[1], w[0]],
+                           [-w[2], 0, w[0], w[1]],
+                           [w[1], -w[0], 0, w[2]],
+                           [-w[0], -w[1], -w[2], 0]]) 
     eulerRad = eulerRad + w*dt +0.5*alpha*dt**2
     euler = np.degrees(eulerRad)
-    currentQuat = solve_ODE(w,currentQuat,dt)
+    currentQuat = solve_ivp(quaternion_ode, [i,t_final], currentQuat)
     
 
 #     # Store results
@@ -154,7 +146,7 @@ for i in range(steps):
     euler_hist[i, :] = euler
     eulerRad_hist[i, :] = eulerRad
     q_hist[i, :] = currentQuat
-
+    error_hist[i, :] = errorQuat
     torque_hist[i, :] = T_c
 
 plt.plot(w_hist[:, 2])

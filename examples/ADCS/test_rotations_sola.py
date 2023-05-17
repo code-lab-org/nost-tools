@@ -14,9 +14,6 @@ import matplotlib.pyplot as plt
 # import skinematics as skin
 
 
-# Define the position and velocity vectors
-r = np.array([0, 0, 7189833])
-v = np.array([7500, 0, 0])
 
 # Define initial state of satellite
 # mass of single cubesat cube (kg)
@@ -45,12 +42,6 @@ Kd = np.array([2000, 100, 1400])       # derivative gain
 w = np.array([0, 0, 0])
 alpha = np.array([0, 0, 0])
 eulerRad = np.array([0, 0, 0])
-#euler = R.from_quat(currentQuat).as_euler('xyz', degrees=True)                           # initial euler angles
-
-# Define PID controller gains
-# Kp = np.array([1000, 500, 70])         # proportional gain
-# Ki = np.array([0.1, 0.1, 0.1])       # integral gain
-# Kd = np.array([2000, 100, 1400])       # derivative gain
 
 # Define reaction wheel specifications
 Iw = np.array([0.1, 0.1, 0.1])    # moment of inertia of each wheel
@@ -70,22 +61,6 @@ torque_hist = np.zeros((steps, 3))
 errorQuat = np.zeros(4)
 error_hist = np.zeros((steps, 4)) 
 T_c = np.zeros(3)
-
-# setting up reference coordinate frame
-# Calculate the specific angular momentum vector
-# h = np.cross(r, v)
-# Calculate the unit vectors for the reference x, y, and z axes
-# y_r = h / np.linalg.norm(h)
-# z_r = r / np.linalg.norm(r)
-# x_r = np.cross(y_r, z_r)
-# Calculate the rotation matrix from the reference to the inertial frame (body to inertial?)
-# R_bo = np.vstack((x_r, y_r, z_r)).T
-# Calculate the rotation matrix from the inertial to the body frame
-# R_ib = R_bo.T
-# Convert the rotation matrix to a quaternion
-# targetQuat = R.from_matrix(R_bo).as_quat()
-# targetQuat = np.array([0, -0.34202, 0, 0.93969])
-
 
 
 # Calculate error between current quat and desired quat (Wie style)
@@ -117,36 +92,6 @@ def quaternion_product(currentQuat, qwdt):
     currentQuat[3] = currentQuat[3]*qwdt[2]+currentQuat[0]*qwdt[1]-currentQuat[1]*qwdt[0]+currentQuat[2]*qwdt[3]
 
     return currentQuat
-
-# def taylorIntegrate(w, currentQuat, dt):
-    
-#     D2 = (w[0]*dt)**2 + (w[1]**dt)**2 + (w[2]*dt)**2
-#     R1 = 0.5*(w[0]*dt*currentQuat[3]-w[1]*dt*currentQuat[2]+w[2]*dt*currentQuat[1])
-#     R2 = 0.5*(w[0]*dt*currentQuat[2]+w[1]*dt*currentQuat[3]-w[2]*dt*currentQuat[0])
-#     R3 = 0.5*(-w[0]*dt*currentQuat[1]+w[1]*dt*currentQuat[0]+w[2]*dt*currentQuat[3])
-#     R4 = 0.5*(-w[0]*dt*currentQuat[0]-w[1]*dt*currentQuat[1]-w[2]*dt*currentQuat[3])
-#     Ri = np.array([R1, R2, R3, R4])
-    
-#     currentQuat = currentQuat + Ri-D2*currentQuat-D2*Ri/3+(D2**2*currentQuat)/6
-    
-#     return currentQuat
-
-# def zerothOrderInt:
-    
-#     qwdt
-    
-
-# omegaPrime = np.array([[0, w[2], -w[1], w[0]],
-#                        [-w[2], 0, w[0], w[1]],
-#                        [w[1], -w[0], 0, w[2]],
-#                        [-w[0], -w[1], -w[2], 0]]) 
-    
-
-#     # Store results
-# cQuat0 = []
-# cQuat1 = []
-# cQuat2 = []
-# cQuat3 = []
 
 # Run simulation
 for i in range(steps):
