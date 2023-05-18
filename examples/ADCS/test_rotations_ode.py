@@ -137,6 +137,10 @@ for i in range(steps):
                            [-w[0], -w[1], -w[2], 0]]) 
     eulerRad = eulerRad + w*dt +0.5*alpha*dt**2
     euler = np.degrees(eulerRad)
+    
+    # state vector for ODE
+    state = np.array([w[0], w[1], w[2], currentQuat[0], currentQuat[1], currentQuat[2], currentQuat[3]])
+    
     currentQuat = solve_ivp(quaternion_ode, [i,t_final], currentQuat)
     
 
