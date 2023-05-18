@@ -30,7 +30,7 @@ cubeLength = 0.1
 
 # from  Sidi book
 I = np.diag([1000, 500, 700])
-currentQuat = np.array([0,0,0,1])
+currentQuat = np.array([0.0,0.0,0.0,1.0])
 # rot = R.from_euler('xyz', [45,0,0], degrees=True)
 # targetQuat = (R.as_quat(rot))
 targetQuat = np.array([0.382683, 0, 0, 0.92388])  
@@ -104,7 +104,7 @@ for i in range(steps):
     # Update angular velocity, euler angles, and quaternion
     alpha = np.matmul(np.linalg.inv(I), T_c) 
     w = w + alpha*dt
-    eulerRad = eulerRad + w*dt +0.5*alpha*dt**2
+    eulerRad = eulerRad + w*dt 
     euler = np.degrees(eulerRad)
     # currentQuat = taylorIntegrate(w, currentQuat, dt)
     
