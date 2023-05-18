@@ -31,9 +31,9 @@ cubeLength = 0.1
 # from  Sidi book
 I = np.diag([1000, 500, 700])
 currentQuat = np.array([0,0,0,1])
-# rot = R.from_euler('zyx', [180,0,0], degrees=True)
+# rot = R.from_euler('xyz', [45,0,0], degrees=True)
 # targetQuat = (R.as_quat(rot))
-targetQuat = np.array([0, 0, 0.382683, 0.92388])
+targetQuat = np.array([0.382683, 0, 0, 0.92388])  
 Kp = np.array([1000, 500, 70])         # proportional gain
 # Ki = np.array([0.1, 0.1, 0.1])       # integral gain
 Kd = np.array([2000, 100, 1400])       # derivative gain
@@ -111,7 +111,7 @@ for i in range(steps):
     
 #     # from Sola
     # qwdt = [np.cos(np.linalg.norm(w)*dt/2)],[((w/np.linalg.norm(w))*np.sin(np.linalg.norm(w)*dt/2))]
-    qwdt = np.array([((w[0]/np.linalg.norm(w))*np.sin(np.linalg.norm(w)*dt/2)),((w[1]/np.linalg.norm(w))*np.sin(np.linalg.norm(w)*dt/2)),((w[2]/np.linalg.norm(w))*np.sin(np.linalg.norm(w)*dt/2)),np.cos(np.linalg.norm(w)*dt/2),])
+    qwdt = np.array([((w[0]/np.linalg.norm(w))*np.sin(np.linalg.norm(w)*dt/2)),((w[1]/np.linalg.norm(w))*np.sin(np.linalg.norm(w)*dt/2)),((w[2]/np.linalg.norm(w))*np.sin(np.linalg.norm(w)*dt/2)),np.cos(np.linalg.norm(w)*dt/2)])
     currentQuat = quaternion_product(currentQuat, qwdt)
    
     
