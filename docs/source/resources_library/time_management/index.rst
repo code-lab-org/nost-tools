@@ -4,20 +4,83 @@ Time Management
 ===============
 
 When developing a scenario for executing on the NOS testbed, it is crucial to understand how the applications in 
-the scenario will interact with time. Will the applications rely on real-time progression? Will time be scaled up to forecast future behaviors?
+the scenario will interact with time. Will the applications rely on real-time progression? Will time be scaled up to run simulations faster than real time?
 This section will detail the methods of time management for a variety of user scenarios, including selection metrics, management best practices, and code templates. 
 
 Real Time
 ---------
 
-One of the two main time management methods in the NOS Testbed methodology is real-time control. In a real-time scenario, the applications iterate in line with the actual progression of time. Applications that may benefit from a real-time progression 
-would be applications relying on external data, for example in-situ sensors, or those that want to propagate up-to-date satellite orbits. While there are many ways to manage time across a distributed network, the recommended procedure is to query an external time-keeping source from each application to allow for syncronicity across machines. 
+One choice for managing time with NOS-T is to simply run applications in real time. In a real-time scenario, the applications iterate in line with the actual progression of time. Applications that may benefit from a real-time progression 
+would be applications relying on external data, for example in-situ sensors, or those that want to propagate current satellite orbits. While there are many ways to manage time across a distributed network
 
-Simulated Time
---------------
+Scaled Time
+-----------
 
-While real-time simulations are critical for digital twin modelling and monitoring scenarios, a user may also want to run a simulation with historical data, or for long periods of time. In these cases, it is best practice for a user to utilize all features of the manager, and the tick/tock methods.
-Below are snippets for the tick/tock methods, but their full integration can be found in the FireSat example.
+NOS-T Manager Timing Parameters 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+For both of the commonly used time management techniques, the NOS-T Tools library has all controls needed to manage a user defined scenario.
+
+To define the time parameters of a scenario, best practices encourange drafting a test plan modelled after the parameters defined by the manager tool. 
+
+The variables that comprise the test plan are passed into the manager application upon execution. By defining these variables, a user can better understand the management of their scenario, and ensure that the goals of the project are met. 
+
+.. code-block:: python3
+
+    def execute_test_plan(
+        self,
+        sim_start_time: datetime,
+        sim_stop_time: datetime,
+        start_time: datetime = None,
+        time_step: timedelta = timedelta(seconds=1),
+        time_scale_factor: float = 1.0,
+        time_scale_updates: List[TimeScaleUpdate] = [],
+        time_status_step: timedelta = None,
+        time_status_init: datetime = None,
+        command_lead: timedelta = timedelta(seconds=0),
+        required_apps: List[str] = [],
+        init_retry_delay_s: int = 5,
+        init_max_retry: int = 5,
+
+
+.. list-table:: Variable definitions
+   :widths: 50 50
+   :header-rows: 1
+
+   * - Variable
+     - Explanation
+   * - self
+     - Reference to the manager object instanciated by the calling of the 'execute_test_plan' function
+   * - sim_start_time
+     - The time in 'datetime' at which the simulation should start. If a time in the past, the simulation will start immidieately. Otherwise, the simulation will begin at the specified time.
+   * - sim_stop_time
+     - The time in 'datetime' at which the simulation will stop.
+   * - time_step
+     - The iteration of time per the tick/tock methods. The standard in 1 second, that is then scaled through the time_scale_factor.
+   * - time_scale_factor
+     - A multiplication factor that scales the time step of a function. For example, a factor of 60  mean that one second of real time is 60 seconds (one minute) of simulation time. This factor can be used in non-real-time scenarios to progress through long periods of time quickly.e
+   * - time_scale_updates
+     - This variable is an optional list of timestamps, at which the scale factor can be updated to a specified amount. This is used to 'fast-forward' through parts of the simulation, or slow down for further analysis.
+   * - time_status_step
+     - This is the interval at which the time of the application will be published, an important step for checking consistency and debugging.
+   * - time_status_init
+     - This is the first timestamp at which status will be published
+   * - command_lead
+     - This variable sends a command offset that delays execution of the test plan by the specified time.
+   * - required_apps
+     - This optional variable allows the user to specifiy applications required to be connected for execution.
+   * - init_retry_delay_s
+     - This variable defines the delay from last execution of the test plan in the event of failure.
+   * - init_max_retry
+     - This variable sets the retry limit for a test plan
+
+
+
+The Tick and Tock Methods
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In these cases, it is best practice for a user to utilize all features of the manager, and the tick/tock methods.
+Below are snippets for the tick/tock methods, but their full integration can be found in the :ref:`FireSat+ tutorial <tutorialConstellation>`.
 
 
 .. code-block:: python3
@@ -66,63 +129,7 @@ the state of the application (location, field of regard, elevation angle, etc.).
         ...
 
 
-Manager 
--------
 
-For both of the commonly used time management techniques, the NOS-T Tools library has all controls needed to manage a user defined scenario.
-
-To define the time parameters of a scenario, best practices encourange drafting a test plan modelled after the parameters defined by the manager tool. 
-
-.. code-block:: python3
-
-    def execute_test_plan(
-        self,
-        sim_start_time: datetime,
-        sim_stop_time: datetime,
-        start_time: datetime = None,
-        time_step: timedelta = timedelta(seconds=1),
-        time_scale_factor: float = 1.0,
-        time_scale_updates: List[TimeScaleUpdate] = [],
-        time_status_step: timedelta = None,
-        time_status_init: datetime = None,
-        command_lead: timedelta = timedelta(seconds=0),
-        required_apps: List[str] = [],
-        init_retry_delay_s: int = 5,
-        init_max_retry: int = 5,
-
-
-.. list-table:: Variable definitions
-   :widths: 50 50
-   :header-rows: 1
-
-   * - Variable
-     - Explanation
-   * - self
-     - Reference to the manager object instanciated by the calling of the 'execute_test_plan' function
-   * - sim_start_time
-     - The time in 'datetime' at which the simulation should start. If a time in the past, the simulation will start immidieately. Otherwise, the simulation will begin at the specified time.
-   * - sim_stop_time
-     - The time in 'datetime' at which the simulation will stop.
-   * - time_step
-     - The iteration of time per the tick/tock methods. The standard in 1 second, that is then scaled through the time_scale_factor.
-   * - time_scale_factor
-     - A multiplication factor that scales the time step of a function. For example, a factor of 60  mean that one second of real time is 60 seconds (one minute) of simulation time. This factor can be used in non-real-time scenarios to progress through long periods of time quickly.e
-   * - time_scale_updates
-     - This varibale is an optional list of timestamps, at which the scale factor can be updated to a specified amount. This is used to 'fast-forward' through parts of the simulation, or slow down for further analysis.
-   * - time_status_step
-     - This is the interval at which the time of the application will be published, an important step for checking consistency and debugging.
-   * - time_status_init
-     - This is the first timestamp at which status will be published
-   * - command_lead
-     - This variable sends a command offset that delays execution of the test plan by the specified time.
-   * - required_apps
-     - This optional variable allows the user to specifiy applications required to be connected for execution.
-   * - init_retry_delay_s
-     - This variable defines the delay from last execution of the test plan in the event of failure.
-   * - init_max_retry
-     - This variable sets the retry limit for a test plan
-
-The variables that comprise the test plan are passed into the manager application upon execution. By defining these variables, a user can better understand the management of their scenario, and ensure that the goals of the project are met. 
 
 Time Synchronization
 --------------------
