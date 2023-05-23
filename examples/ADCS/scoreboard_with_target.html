@@ -65,7 +65,7 @@
           imageryProvider: new Cesium.IonImageryProvider({ assetId: 3845 }),
           clockViewModel: new Cesium.ClockViewModel(clock),
         });
-        const position = Cesium.Cartesian3.fromDegrees(180, 90, 4500000.0);
+        const position = Cesium.Cartesian3.fromDegrees(180, 90, 1100000.0);
         const orientation = Cesium.Quaternion(0, 0, 0, 1);
         const blueBox = viewer.entities.add({
           name: "Blue box",
@@ -174,11 +174,6 @@
                 payload.attitude[1],
                 payload.attitude[2],
                 payload.attitude[3]
-              );
-              blueBox.position = new Cesium.Cartesian3(
-                payload.position[0],
-                payload.position[1],
-                payload.position[2]
               );
             } else if (topic == "BCtest/ground/location") {
               payload = JSON.parse(message.payloadString);

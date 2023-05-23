@@ -30,17 +30,17 @@ cubeLength = 0.1
 # I = np.array([[1200, 100, -200],[100, 2200, 300],[-200, 300, 3100]])
 
 # from  Sidi book
-I = np.diag([1000, 1000, 1000])
+I = np.diag([100, 100, 100])
 currentQuat = np.array([0.0, 0.0, 0.0, 1.0])  # x,y,z,w
-rot = R.from_euler('xyz', [0,0,0], degrees=True)
+rot = R.from_euler('xyz', [45,0,0], degrees=True)
 targetQuat = (R.as_quat(rot))
 #targetQuat = np.array([0.258819, 0, 0, 0.965926])
 Kp = np.array([1000, 1000, 1000])  # proportional gain
 # Ki = np.array([0.1, 0.1, 0.1])       # integral gain
-Kd = np.array([1000, 1000, 1000])  # derivative gain
+Kd = np.array([1900, 10, 10])  # derivative gain
 
 # initial angular velocity in body frame
-w = np.array([1, 2,-3])
+w = np.array([0, 0,0])
 alpha = np.array([0, 0, 0])
 eulerRad = np.array([0, 0, 0])
 
@@ -88,13 +88,6 @@ def control_torque(errorQuat, Kp, Kd, w):  #Sidi
     T_c[2] = -(2 * Kp[2] * errorQuat[2] * errorQuat[3] + Kd[2] * w[2])
 
     return T_c
-
-# def control_torque(errorQuat, Kp, Kd, w):  
-#     T_c[0] = -(Kp[0] * errorQuat[0] + Kd[0] * w[0])
-#     T_c[1] = -(Kp[1] * errorQuat[1] + Kd[1] * w[1])
-#     T_c[2] = -(Kp[2] * errorQuat[2] + Kd[2] * w[2])
-
-#     return T_c
 
 
 def quaternion_product(currentQuat, qwdt):

@@ -5,7 +5,17 @@ from skyfield.api import load, wgs84, EarthSatellite
 from nost_tools.entity import Entity
 from nost_tools.publisher import WallclockTimeIntervalPublisher
 
-from schemas import *
+from schemas_with_target import *
+from config import PARAMETERS
+
+# initialize
+targetQuat = PARAMETERS["targetQuat"]
+Kp = PARAMETERS["Kp"]
+Kd = PARAMETERS["Kd"]
+initialQuat = PARAMETERS["initialQuat"]
+T_c = PARAMETERS["initialT"]
+I = PARAMETERS["I"]
+dt = PARAMETERS["dt"]
 
 class Satellite(Entity):
 
@@ -49,17 +59,18 @@ class Satellite(Entity):
         b_y = np.cross(b_x,b_z)                      # body y-axis normal to orbital plane
         dcm_0 = np.stack([b_x, b_y, b_z])            # initial dcm from inertial to body coordinates
         r = R.from_matrix(dcm_0)                     # creating rotation in scipy rotations library
-        self.att = r.as_quat()                       # initial quaternion from inertial to body coordinates
+        # self.att = r.as_quat()                       # initial quaternion from inertial to body coordinates
+        self.att = np.array([0,0,0,1])
         self.omega = np.array([0,0,0])               # initial rotational velocity
 
 
     def tick(self, time_step): # computes
         super().tick(time_step)
-        self.next_geocentric = self.ES.at(self.ts.from_datetime(self.get_time()))
+        self.next_geocentric = self.ES.at(self.ts.from_datetime(self.get_time() + time_step))
         self.next_pos = self.next_geocentric.position.m
         self.next_vel = self.next_geocentric.velocity.m_per_s
-        self.one_axis_control(time_step)
-        self.next_att = self.att
+        self.next_att = self.update_attitude(self)
+        self.next_omega = self.omega
         self.next_target = self.target 
 
 
@@ -179,30 +190,78 @@ class Satellite(Entity):
                     groundId = k
                     break
         return isInRange, groundId
+    
+    # Calculate error between current quat and desired quat (Wie style)
+    def att_error(self):
+        qT = np.array(
+            [
+                [targetQuat[3], targetQuat[2], -targetQuat[1], -targetQuat[0]],
+                [-targetQuat[2], targetQuat[3], targetQuat[0], -targetQuat[1]],
+                [targetQuat[1], -targetQuat[0], targetQuat[3], -targetQuat[2]],
+                [targetQuat[0], targetQuat[1], targetQuat[2], targetQuat[3]],
+            ]
+        )
+        qB = np.array([self.att[0], self.att[1], self.att[2], self.att[3]])
+        errorQuat = np.matmul(qT, qB)
+
+        return errorQuat
 
 
-    def compute_omega_target(r, target_lat, target_lon, r_E, v_Earth, t):
-        # Compute target position vector
-        lat_rad = np.deg2rad(target_lat)
-        lon_rad = np.deg2rad(target_lon)
-        N = r_E / np.sqrt(1 - e ** 2 * np.sin(lat_rad) ** 2)
-        r_target = np.array([(N + t * v_Earth) * np.cos(lat_rad) * np.cos(lon_rad),
-                             (N + t * v_Earth) * np.cos(lat_rad) * np.sin(lon_rad),
-                             (N * (1 - e ** 2) + t * v_Earth) * np.sin(lat_rad)])
+    # Calculate torque produced by reaction wheels 
+    def control_torque(self, errorQuat, Kp, Kd):  #Sidi
+        
+        T_c[0] = -(2 * Kp[0] * errorQuat[0] * errorQuat[3] + Kd[0] * self.omega[0])
+        T_c[1] = -(2 * Kp[1] * errorQuat[1] * errorQuat[3] + Kd[1] * self.omega[1])
+        T_c[2] = -(2 * Kp[2] * errorQuat[2] * errorQuat[3] + Kd[2] * self.omega[2])
+    
+        return T_c
+    
+    
+    def quaternion_product(self, qwdt):
+        x0 = self.att[0]
+        y0 = self.att[1]
+        z0 = self.att[2]
+        w0 = self.att[3]
+    
+        x1 = qwdt[0]
+        y1 = qwdt[1]
+        z1 = qwdt[2]
+        w1 = qwdt[3]
+    
+        xn = w0 * x1 + x0 * w1 + y0 * z1 - z0 * y1
+        yn = w0 * y1 - x0 * z1 + y0 * w1 + z0 * x1
+        zn = w0 * z1 + x0 * y1 - y0 * x1 + z0 * w1
+        wn = w0 * w1 - x0 * x1 - y0 * y1 - z0 * z1
+        
+        self.att = np.array([xn,yn,zn,wn])
+    
+        return self.att
+    
+    def update_attitude(self, time_step):
+        
+        # Calculate error quaternion
+        errorQuat = self.att_error()
+        
+        # Calculate torque produced by reaction wheels
+        T_c = self.control_torque(errorQuat, Kp, Kd)
+        
+        # Update angular velocity, euler angles, and quaternion
+        alpha = np.matmul(np.linalg.inv(I), T_c)
+        self.omega = self.omega + alpha * dt
+        # eulerRad = eulerRad + self.omega * time_step
+        # euler = np.degrees(eulerRad)
+        qwdt = np.array(
+            [
+                ((self.omega[0] / np.linalg.norm(self.omega)) * np.sin(np.linalg.norm(self.omega) * dt / 2)),
+                ((self.omega[1] / np.linalg.norm(self.omega)) * np.sin(np.linalg.norm(self.omega) * dt / 2)),
+                ((self.omega[2] / np.linalg.norm(self.omega)) * np.sin(np.linalg.norm(self.omega) * dt / 2)),
+                np.cos(np.linalg.norm(self.omega) * dt / 2)
+            ]
+        )
 
-        # Compute Earth rotation matrix
-        theta = 2 * np.pi * t / (24 * 60 * 60)  # Earth rotates once every 24 hours
-        R_Earth = np.array([[np.cos(theta), -np.sin(theta), 0],
-                            [np.sin(theta), np.cos(theta), 0],
-                            [0, 0, 1]])
+        self.att = self.quaternion_product(qwdt)
         
-        # Apply Earth rotation to target position vector
-        r_target = np.dot(R_Earth, r_target)
-        
-        # Compute desired attitude quaternion
-        omega_target = np.cross(q_to_rot(q_inv(q)), (r_target - r) / np.linalg.norm(r_target - r))
-        
-        return omega_target
+        return self.att
 
 
 # define a publisher to report satellite status
@@ -219,7 +278,7 @@ class StatusPublisher(WallclockTimeIntervalPublisher):
         # if self.satellite.att==None:
         #     return
         next_time = self.satellite.ts.from_datetime(
-            self.satellite.get_time() + 60 * self.time_status_step
+            self.satellite.get_time() + self.time_status_step
             )
         satSpaceTime = self.satellite.ES.at(next_time)
         subpoint = wgs84.subpoint(satSpaceTime)
@@ -228,13 +287,14 @@ class StatusPublisher(WallclockTimeIntervalPublisher):
         self.isInRange, groundId = self.satellite.check_in_range(self.satellite.grounds)
         
         self.app.send_message(
-            "location",
+            "state",
             SatelliteStatus(
                 id=self.satellite.id,
                 name=self.satellite.name,
                 position=list(self.satellite.pos),
                 velocity=list(self.satellite.vel),
-                attitude=list(self.satellite.att), #if self.satellite.att!=None else None,
+                attitude=list(self.satellite.att),
+                omega = list(self.satellite.omega), #if self.satellite.att!=None else None,
                 radius=sensorRadius,
                 commRange=self.isInRange,
                 time=self.satellite.get_time(),

@@ -10,7 +10,7 @@ from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
 from nost_tools.managed_application import ManagedApplication
 
 from config import PARAMETERS
-from satellite import *
+from satellite_with_target import *
 
 logging.basicConfig(level=logging.INFO)
 
@@ -37,13 +37,13 @@ if __name__ == "__main__":
     by_name = {sat.name: sat for sat in activesats}
     
     # spacecraft parameters
-    m = 1000                                                 # mass of spacecraft (kg)
-    I = np.array([[2.22e-3, 0, 0], [0, 2.22e-3, 0], [0, 0, 2.22e-3]]) # 1U spacecraft inertia matrix (kg m^2)
-    field_of_regard = 112.56
+    # m = 1000                                                 # mass of spacecraft (kg)
+    # I = np.array([[2.22e-3, 0, 0], [0, 2.22e-3, 0], [0, 0, 2.22e-3]]) # 1U spacecraft inertia matrix (kg m^2)
+    field_of_regard = PARAMETERS["field_of_regard"]
    
-    # control gains
-    Kp = np.array([0.1, 0.1, 0.1])                           # proportional gain vector
-    Kd = np.array([0.05, 0.05, 0.05])                        # derivative gain vector
+    # # control gains
+    # Kp = np.array([0.1, 0.1, 0.1])                           # proportional gain vector
+    # Kd = np.array([0.05, 0.05, 0.05])                        # derivative gain vector
 
     satellite = Satellite(app, 0, 'satellite', field_of_regard, PARAMETERS['GROUND'], ES=by_name[name])
 
@@ -55,7 +55,7 @@ if __name__ == "__main__":
 
     # add a position publisher to update satellite state every 5 seconds of wallclock time
     app.simulator.add_observer(
-        StatusPublisher(app, satellite, timedelta(seconds=5))
+        StatusPublisher(app, satellite, timedelta(seconds=.5))
     )
 
     # start up the application on PREFIX, publish time status every 10 seconds of wallclock time
@@ -63,9 +63,9 @@ if __name__ == "__main__":
         PARAMETERS["PREFIX"],
         config,
         True,
-        time_status_step=timedelta(seconds=5)*PARAMETERS['SCALE'],
+        time_status_step=timedelta(seconds=1)*PARAMETERS['SCALE'],
         time_status_init=datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc),
-        time_step=timedelta(seconds=1) * PARAMETERS['SCALE'],
+        time_step=timedelta(seconds=.1) * PARAMETERS['SCALE'],
     )
 
     # Ensures the application hangs until the simulation is terminated, to allow background threads to run
