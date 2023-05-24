@@ -14,7 +14,7 @@ import pandas as pd # type: ignore
 
 
 from nost_tools.application_utils import ConnectionConfig, ShutDownObserver # type: ignore
-from nost_tools.entity import Entity # type: ignore
+from nost_tools.observer import Observer, Observable # type: ignore
 from nost_tools.managed_application import ManagedApplication # type: ignore
 from nost_tools.publisher import WallclockTimeIntervalPublisher # type: ignore
 
@@ -41,6 +41,21 @@ def _sigint_handler(signal, frame):
 signal.signal(signal.SIGINT, _sigint_handler) 
        
 ################################################################
+
+class StateMachine(Observable,Observer):
+    """
+    *The StateMachine object class inherits properties from the Observer object class in the NOS-T tools library*
+
+    Attributes:
+        app (:obj:`ManagedApplication`): An application containing a test-run namespace, a name and description for the app, client credentials, and simulation timing instructions
+        state (int): Integer value indicating current reported state of state machine (defaults to 0)
+    """
+
+    def __init__(self, app, initial_state = 0, initial_rotations = 0):
+        super().__init__()
+        self.app = app
+        self.state = initial_state
+        self.rotations = initial_rotations
 
 # name guard used to ensure script only executes if it is run as the __main__
 if __name__ == "__main__":

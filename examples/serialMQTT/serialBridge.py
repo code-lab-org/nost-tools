@@ -18,10 +18,10 @@ import os, sys, struct, time, logging, functools, queue, signal, getpass
 
 # documentation: https://doc.qt.io/qt-5/index.html
 # documentation: https://www.riverbankcomputing.com/static/Docs/PyQt5/index.html
-from PyQt5 import QtCore, QtGui, QtWidgets, QtNetwork, QtSerialPort
+from PyQt5 import QtCore, QtGui, QtWidgets, QtNetwork, QtSerialPort # type: ignore
 
 # documentation: https://www.eclipse.org/paho/clients/python/docs/
-import paho.mqtt.client as mqtt
+import paho.mqtt.client as mqtt # type: ignore
 
 # configure logging output
 log = logging.getLogger('main')
