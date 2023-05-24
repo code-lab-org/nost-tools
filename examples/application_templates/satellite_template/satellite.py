@@ -22,11 +22,12 @@ class Satellite(Entity):
 
         self.id = id
         self.name = name
+        self.satellites = []
 
         self.geocentric = self.next_geocentric = None
         self.geocentricPos = self.next_geocentricPos = None
-        self.geographicPos = self.next_geographicPos = None
         self.vel = self.next_vel = None
+        self.geographicPos = self.next_geographicPos = None
 
 
 
@@ -36,7 +37,10 @@ class Satellite(Entity):
         self.geocentric = self.ES.at(self.ts.from_datetime(init_time))
         self.geocentricPos = self.geocentric.position.m
         self.vel = self.geocentric.velocity.m_per_s
-
+        self.geographicPos = self.next_geographicPos = [
+            wgs84.subpoint(satellite.at(self.ts.from_datetime(init_time)))
+            for satellite in self.satellites
+        ]
 
     def tick(self, time_step):  # computes
         super().tick(time_step)
@@ -44,13 +48,19 @@ class Satellite(Entity):
             self.ts.from_datetime(self.get_time() + time_step))
         self.next_geocentricPos = self.next_geocentric.position.m
         self.next_vel = self.next_geocentric.velocity.m_per_s
+        self.next_geographicPos =         self.next_positions = [
+            wgs84.subpoint(
+                satellite.at(self.ts.from_datetime(self.get_time() + time_step))
+            )
+            for satellite in self.satellites
+        ]
 
 
     def tock(self):
         self.geocentric = self.next_geocentric
         self.geocentricPos = self.next_geocentricPos
         self.vel = self.next_vel
-
+        self.geographicPos = self.next_geographicPos
 
         super().tock()
 
@@ -82,6 +92,7 @@ class StatusPublisher(WallclockTimeIntervalPublisher):
                 id=self.satellite.id,
                 name=self.satellite.name,
                 geocentric_position=list(self.satellite.geocentricPos),
+                geographic_position=list(self.satellite.geographicPos),
                 velocity=list(self.satellite.vel),
                 time=self.satellite.get_time(),
             ).json(),

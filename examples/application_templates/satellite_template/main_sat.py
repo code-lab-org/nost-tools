@@ -46,10 +46,10 @@ if __name__ == "__main__":
 
     # add a position publisher to update satellite state every 5 seconds of wallclock time
     app.simulator.add_observer(
-        StatusPublisher(app, satellite, timedelta(seconds=5))
+        StatusPublisher(app, satellite, timedelta(seconds=1))
     )
 
-    # start up the application on PREFIX, publish time status every 10 seconds of wallclock time
+    # start up the application on PREFIX, publish time status
     app.start_up(
         PARAMETERS["PREFIX"],
         config,
