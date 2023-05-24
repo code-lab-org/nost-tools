@@ -19,17 +19,17 @@ This guide assumes that you have created a solace docker container, and the foll
 
 8443 (MQTT over WebSockets with TLS) 
 
-Obtain a SSL certificate from a trusted authority and upload it to the broker as the server certificate. This must be done through the Solace CLI. 
+Next, you need to obtain a SSL certificate from a trusted authority and upload it to the broker as the server certificate. This must be done through the Solace CLI. 
 
-Additionally, you must enable Client Certificate Authentication on the broker by going to “Access Control”, “Client Authentication”, “Settings”, and switching “Client Certificate Authentication” to on. Also ensure that “Username Source” is set to Common Name. 
+Additionally, you must enable Client Certificate Authentication on the broker by going to Access Control > Client Authentication > Settings, and switching “Client Certificate Authentication” to on. Also ensure that “Username Source” is set to Common Name. 
 
-To add usernames of clients, navigate to “Access Control”, “Client Usernames”, and add as many client usernames as necessary. To ensure clients without enabled usernames can not connect even if they have a trusted certificate, disable the “default” client username. 
+To add usernames of clients, navigate to Access Control > Client Usernames, and add as many client usernames as necessary. To ensure clients without enabled usernames can not connect even if they have a trusted certificate, disable the “default” client username. 
 
 
 Creating Certificate Authority (CA)
 -----------------------------------
 
-For clients to authenticate with the broker, they must have a certificate signed by an authority trusted by the broker, and the Common Name (CN) of the certificate must match a username in the broker. It is possible to aquire client certificates that are signed by a trusted authority, but these are expensive and inconvienent. Free certificate services such as LetsEncrypt only offer server certificates, not client certificates. Standard practice for applications such as this is for the broker manager to create their own Certificate Authority and generate certificates for users. This requires the CA to be added to the list the broker trusts. 
+For clients to authenticate with the broker, they must have a certificate signed by an authority trusted by the broker, and the Common Name (CN) of the certificate must match a username in the broker. It is possible to aquire client certificates that are signed by a trusted authority, but these are expensive and inconvienent. Free certificate services such as LetsEncrypt only offer server certificates, not client certificates. Standard practice for these types of applications is for the broker manager to create their own CA and generate certificates for users. This requires the CA to be added to the list the broker trusts. 
 
 To generate a Certificate Authority to sign client certificates, ensure OpenSSL is installed and enter the following commands: 
 
@@ -39,7 +39,7 @@ To generate the CA's private key:
 
     openssl genrsa -des3 -out root.key 4096
 
-This will require inputting a password that will be required to sign certificates in the future using this CA. 
+You will need to input a password that will be required to sign certificates in the future using this CA. 
 
 To generate the CA's public certificate: 
 
@@ -47,7 +47,7 @@ To generate the CA's public certificate:
 
     openssl req -new -x509 -days 365 -key root.key -out root.pem 
 
-Where the number after days is the length of time the certificate is valid for. You will be prompted for several parameters that can be stored within the certificate, including: 
+Where the number after days (365 above) is the length of time the certificate is valid for. You will be prompted for several parameters that can be stored within the certificate, including: 
 
 * Country Name (2 letter code)
 * State or Province Name (full name) 
@@ -57,7 +57,7 @@ Where the number after days is the length of time the certificate is valid for. 
 * Common Name (e.g. server FQDN or YOUR name) 
 * Email Address 
 
-These fields are all optional except for common name, which should just be whatever you want the CA to be called. 
+These fields are all optional except for CN, which should just be whatever you want the CA to be called. 
 
 This Authority is not trusted by the broker by default, so the certificate must be added to the broker in order for certificates signed by it to be trusted. To do this, enter the following command to examine the CA certificate: 
 
@@ -67,7 +67,7 @@ This Authority is not trusted by the broker by default, so the certificate must 
 
 From this command's output, copy the section beginning with ``-----BEGIN CERTIFICATE-----`` and ending with ``-----END CERTIFICATE-----`` including those lines to the clipboard. 
 
-Now go to the broker manager, navigate to “User Mgmt”, “User Authentication”, “Client Certificate Authorities” and click “+ Client Certificate Authority”.  Give it a name and click “Change Certificate” at the bottom of the settings, and paste the certificate you copied earlier into the text box. Apply the changes. 
+Now go to the broker manager, navigate to User Mgmt > User Authentication > Client Certificate Authorities and click “+ Client Certificate Authority”.  Give it a name and click “Change Certificate” at the bottom of the settings, and paste the certificate you copied earlier into the text box. Apply the changes. 
 
 Generating Client Certificates 
 ------------------------------
@@ -96,14 +96,14 @@ To sign the request an issue a certificate, the CA manager must input the follow
 
 This will ask for the password used when first creating the CA private key. This username.pem is the user's public certificate, and can now be sent back to them to be used in their applications. 
 
-There is most likely a relatively simple way to automate this process, but when you have few users, manual distribution of certificates should not be too cumbersome.  
+There is likely a relatively simple way to automate this process, but when you have few users, manual distribution of certificates should not be too cumbersome.  
 
 Using Client Certificates 
 -------------------------
 
-To use the certifcates in python applications, all that needs to be done is include a filepath to your cert and key in your application's .env file, and then pass these paths to the ``ConnectionConfig`` object used to start the application. This is identical to how username and password were passed to the broker previously. Username and password are no longer necessary, and are not parameters of the ``ConnectionConfig`` object. 
+To use the certifcates in python applications, all that needs to be done is include a filepath to your certificate and key in your application's :ref:`.env file <envSetUp>`, and then pass these paths to the ``ConnectionConfig`` object used to start the application. This is identical to how username and password were passed to the broker previously. Username and password are no longer necessary, and are not parameters of the ``ConnectionConfig`` object. 
 
-To use the certificates in javascript applications such as Cesium dashboards, the certificate isn't passed to the javascript code, its uploaded directly to the browser. To do this, you must first combine your certificate and private key into one pkcs12 format file. Use the following command to do this: 
+To use the certificates in javascript applications such as Cesium dashboards, the certificate isn't passed to the javascript code, it is uploaded directly to the browser. To do this, you must first combine your certificate and private key into one pkcs12 format file. Use the following command to do this: 
 
 .. code-block::
 
@@ -113,9 +113,7 @@ This will prompt you for a password, which must be entered again when uploading 
 
 To upload your certificate to the browser: 
 
-Navigate to “Settings”, “Privacy & Security”, “Security” 
-
-Select “View Certificates”, and under “Your Certificates” select “Import” and navigate to the .pfx file created in the previous step. You will be prompted for the password used when you created that file. 
+Navigate to “Settings > Privacy & Security > Security,  and then select “View Certificates”, and under “Your Certificates” select “Import” and navigate to the .pfx file created in the previous step. You will be prompted for the password used when you created that file. 
 
 The above instructions are specifically for Mozilla Firefox, but the steps are mostly identical for other browsers. 
 
