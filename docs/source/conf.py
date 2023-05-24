@@ -18,8 +18,7 @@ sys.path.insert(0, os.path.abspath("../.."))
 sys.path.insert(0, os.path.abspath("../../examples"))
 sys.path.insert(0, os.path.abspath("../../examples/firesat"))
 sys.path.insert(0, os.path.abspath("../../examples/firesat/fires"))
-sys.path.insert(0, os.path.abspath(
-    "../../examples/firesat/fires/fire_config_files"))
+sys.path.insert(0, os.path.abspath("../../examples/firesat/fires/fire_config_files"))
 sys.path.insert(0, os.path.abspath("../../examples/firesat/grounds"))
 sys.path.insert(0, os.path.abspath("../../examples/firesat/satellites"))
 sys.path.insert(0, os.path.abspath("../../examples/firesat/manager"))
@@ -32,14 +31,18 @@ sys.path.insert(0, os.path.abspath("../../examples/downlink/satellites"))
 sys.path.insert(0, os.path.abspath("../../examples/downlink/grounds"))
 sys.path.insert(0, os.path.abspath("../../examples/downlink/outages"))
 sys.path.insert(0, os.path.abspath("../../examples/downlink/scoreboard"))
-sys.path.insert(0, os.path.abspath(
-    "../../examples/application_templates/basic_satellite"))
+sys.path.insert(
+    0, os.path.abspath("../../examples/application_templates/satellite_template")
+)
+sys.path.insert(
+    0, os.path.abspath("../../examples/application_templates/manager_template")
+)
 
 # -- Project information -----------------------------------------------------
 
-project = 'NOS Testbed (NOS-T)'
-copyright = '2023, Stevens Institute of Technology'
-author = 'NOS-T Team'
+project = "NOS Testbed (NOS-T)"
+copyright = "2023, Stevens Institute of Technology"
+author = "NOS-T Team"
 
 # The full version, including alpha/beta/rc tags
 release = nost_tools.__version__
@@ -58,7 +61,7 @@ extensions = [
     "sphinx_copybutton",
     "sphinx_search.extension",
     "sphinxcontrib.autodoc_pydantic",
-    "sphinx_design"
+    "sphinx_design",
 ]
 
 napoleon_google_docstring = True
@@ -77,9 +80,7 @@ autodoc_pydantic_model_show_config = False
 trim_footnote_reference_space = True
 copybutton_prompt_text = "myinputprompt"
 copybutton_prompt_text = ">>> "
-intersphinx_mapping = {
-    "python": ("https://docs.python.org/3", None)
-}
+intersphinx_mapping = {"python": ("https://docs.python.org/3", None)}
 
 # Add any paths that contain templates here, relative to this directory.
 # templates_path = ['_templates']

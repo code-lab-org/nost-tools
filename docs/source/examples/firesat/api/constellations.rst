@@ -1,3 +1,5 @@
+.. _fireSatConstellations:
+
 Constellations
 ==============
 

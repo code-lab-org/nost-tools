@@ -1,3 +1,5 @@
+.. _toolsAppObj:
+
 Application Objects
 ===================
 
@@ -30,6 +32,8 @@ Applications manage communication between a simulator and broker using the MQTT 
 .. autoclass:: nost_tools.application.Application
   :members:
   :show-inheritance:
+
+.. _toolsMgdApp:
 
 .. autoclass:: nost_tools.managed_application.ManagedApplication
   :members:

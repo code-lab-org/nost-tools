@@ -29,19 +29,16 @@ if __name__ == "__main__":
     # create the managed application
     app = ManagedApplication("satellite")
 
-    # Name of Satellite for reference orbit from Celestrak database
-    name = PARAMETERS['name']
+    # Name(s) of satellite(s) used in Celestrak database
+    name = "SUOMI NPP"
 
     activesats_url = "https://celestrak.com/NORAD/elements/active.txt"
     activesats = load.tle_file(activesats_url, reload=False)
     by_name = {sat.name: sat for sat in activesats}
+    
+    satellite = Satellite(app, 0, 'satellite', ES=by_name[name])
 
-    field_of_regard = PARAMETERS["field_of_regard"]
-
-    satellite = Satellite(app, 0, 'satellite', field_of_regard,
-                          PARAMETERS['GROUND'], ES=by_name[name])
-
-    # add the Satellite entity to the application's simulator
+    # add the Constellation entity to the application's simulator
     app.simulator.add_entity(satellite)
 
     # add a shutdown observer to shut down after a single test case
@@ -49,8 +46,7 @@ if __name__ == "__main__":
 
     # add a position publisher to update satellite state every 5 seconds of wallclock time
     app.simulator.add_observer(
-        StatusPublisher(app, satellite, timedelta(
-            seconds=1))
+        StatusPublisher(app, satellite, timedelta(seconds=5))
     )
 
     # start up the application on PREFIX, publish time status every 10 seconds of wallclock time
@@ -59,8 +55,7 @@ if __name__ == "__main__":
         config,
         True,
         time_status_step=timedelta(seconds=5)*PARAMETERS['SCALE'],
-        time_status_init=datetime.fromtimestamp(
-            PARAMETERS['SCENARIO_START']).replace(tzinfo=utc),
+        time_status_init=datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc),
         time_step=timedelta(seconds=1) * PARAMETERS['SCALE'],
     )
 
