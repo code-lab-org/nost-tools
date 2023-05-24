@@ -152,6 +152,8 @@ These two functions, ``check_in_view`` and ``check_in_range``, affirm if the ele
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
 	:lines: 112-159
 
+.. _tutorialConstellation:
+
 Constellation class
 ~~~~~~~~~~~~~~~~~~~
 
