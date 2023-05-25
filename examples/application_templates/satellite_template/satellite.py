@@ -22,8 +22,7 @@ class Satellite(Entity):
 
         self.id = id
         self.name = name
-        self.satellites = []
-
+        # self.satellites = []
         self.geocentric = self.next_geocentric = None
         self.geocentricPos = self.next_geocentricPos = None
         self.vel = self.next_vel = None
@@ -37,9 +36,8 @@ class Satellite(Entity):
         self.geocentric = self.ES.at(self.ts.from_datetime(init_time))
         self.geocentricPos = self.geocentric.position.m
         self.vel = self.geocentric.velocity.m_per_s
-        self.geographicPos = self.next_geographicPos = [
-            wgs84.subpoint(satellite.at(self.ts.from_datetime(init_time)))
-            for satellite in self.satellites
+        self.geographicPos = [
+            wgs84.subpoint(self.ES.at(self.ts.from_datetime(init_time)))
         ]
 
     def tick(self, time_step):  # computes
@@ -48,13 +46,10 @@ class Satellite(Entity):
             self.ts.from_datetime(self.get_time() + time_step))
         self.next_geocentricPos = self.next_geocentric.position.m
         self.next_vel = self.next_geocentric.velocity.m_per_s
-        self.next_geographicPos =         self.next_positions = [
-            wgs84.subpoint(
-                satellite.at(self.ts.from_datetime(self.get_time() + time_step))
+        self.next_geographicPos = [
+            wgs84.subpoint(self.ES.at(self.ts.from_datetime(self.get_time() + time_step))
             )
-            for satellite in self.satellites
         ]
-
 
     def tock(self):
         self.geocentric = self.next_geocentric
@@ -67,33 +62,31 @@ class Satellite(Entity):
 
 
 # define a publisher to report satellite status
-class StatusPublisher(WallclockTimeIntervalPublisher):
+class StatusPublisher(WallclockTimeIntervalPublisher): 
 
     def __init__(
-        self, app, satellite, time_status_step=None, time_status_init=None
+        self, app, time_status_step=None, time_status_init=None
     ):
         super().__init__(app, time_status_step, time_status_init)
-        self.satellite = satellite
+        #self.satellite = satellite
         self.isInRange = False
 
     def publish_message(self):
-        # if self.satellite.att==None:
-        #     return
-        next_time = self.satellite.ts.from_datetime(
-            self.satellite.get_time() + 60 * self.time_status_step
+        next_time = self.ES.at(self.ts.from_datetime(
+            self.get_time() + 60 * self.time_status_step)
         )
-        satSpaceTime = self.satellite.ES.at(next_time)
+        satSpaceTime = self.ES.at(next_time)
         subpoint = wgs84.subpoint(satSpaceTime)
 
 
         self.app.send_message(
             "state",
             SatelliteStatus(
-                id=self.satellite.id,
-                name=self.satellite.name,
-                geocentric_position=list(self.satellite.geocentricPos),
-                geographic_position=list(self.satellite.geographicPos),
-                velocity=list(self.satellite.vel),
-                time=self.satellite.get_time(),
+                id=self.id,
+                name=self.name,
+                geocentric_position=list(self.geocentricPos),
+                geographic_position=list(self.subpoint.latitude.degrees),
+                velocity=list(self.vel),
+                time=self.get_time(),
             ).json(),
         )
