@@ -6,11 +6,12 @@ from nost_tools.entity import Entity
 from nost_tools.publisher import WallclockTimeIntervalPublisher
 
 from schemas import *
+from config import PARAMETERS
 
 
 class Satellite(Entity):
 
-    def __init__(self, app, id, name, ES=None, tle=None):
+    def __init__(self, app, name, ES=None, tle=None):
         super().__init__(name)
         self.app = app
         self.ts = load.timescale()
@@ -20,7 +21,7 @@ class Satellite(Entity):
         if tle is not None:
             self.ES = EarthSatellite(tle[0], tle[1], name)
 
-        self.id = id
+        # self.id = id
         self.name = name
         # self.satellites = []
         self.geocentric = self.next_geocentric = None
@@ -50,6 +51,7 @@ class Satellite(Entity):
             wgs84.subpoint(self.ES.at(self.ts.from_datetime(self.get_time() + time_step))
             )
         ]
+        print("THE LAT IS!!!!!!!", self.next_geographicPos)
 
     def tock(self):
         self.geocentric = self.next_geocentric
@@ -65,28 +67,28 @@ class Satellite(Entity):
 class StatusPublisher(WallclockTimeIntervalPublisher): 
 
     def __init__(
-        self, app, time_status_step=None, time_status_init=None
+        self, app, satellite, time_status_step=None, time_status_init=None
     ):
         super().__init__(app, time_status_step, time_status_init)
-        #self.satellite = satellite
+        self.satellite = satellite
         self.isInRange = False
 
     def publish_message(self):
-        next_time = self.ES.at(self.ts.from_datetime(
-            self.get_time() + 60 * self.time_status_step)
-        )
-        satSpaceTime = self.ES.at(next_time)
-        subpoint = wgs84.subpoint(satSpaceTime)
+        # next_time = self.ES.at(self.ts.from_datetime(
+        #     self.get_time() + SCALE * self.time_status_step)
+        # )
+        # satSpaceTime = self.ES.at(next_time)
+        # subpoint = wgs84.subpoint(satSpaceTime)
 
-
+# self.satellite.ES?
         self.app.send_message(
             "state",
             SatelliteStatus(
-                id=self.id,
-                name=self.name,
-                geocentric_position=list(self.geocentricPos),
-                geographic_position=list(self.subpoint.latitude.degrees),
-                velocity=list(self.vel),
-                time=self.get_time(),
+                # id=self.satellite.id,
+                name=self.satellite.name,
+                geocentric_position=list(self.satellite.geocentricPos),
+                geographic_position=(self.satellite.geographicPos.latitude.degrees),
+                velocity=list(self.satellite.vel),
+                time=self.satellite.get_time(),
             ).json(),
         )

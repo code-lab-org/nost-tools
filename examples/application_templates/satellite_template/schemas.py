@@ -4,7 +4,7 @@ from numpy import ndarray
 
 
 class SatelliteStatus(BaseModel):
-    id: int = Field(..., description="Unique satellite identifier")
+    # id: int = Field(..., description="Unique satellite identifier")
     name: str = Field(..., description="Satellite name for labeling.")
     geocentric_position: list = Field(
         ..., description="Position in inertial XYZ coordinates"

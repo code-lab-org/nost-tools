@@ -49,6 +49,6 @@ if __name__ == "__main__":
             2020, 1, 1, 7, 21, 0, tzinfo=timezone.utc
         ),                                                     # optional initial scenario datetime to start publishing time status 'heartbeat' messages
         command_lead=timedelta(
-            seconds=5
+            seconds=2
         ),                                                     # lead time before a scheduled update or stop command
     )
