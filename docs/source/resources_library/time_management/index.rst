@@ -3,27 +3,23 @@
 Time Management
 ===============
 
-When developing a scenario for executing on the NOS testbed, it is crucial to understand how the applications in 
-the scenario will interact with time. Will the applications rely on real-time progression? Will time be scaled up to run simulations faster than real time?
-This section will detail the methods of time management for a variety of user scenarios, including selection metrics, management best practices, and code templates. 
+When developing a scenario for executing on the NOS testbed, it is crucial to understand how time progresses in the applications. Will they rely on real-time progression? Will time be scaled up to run simulations faster than real time? This section will detail the methods of time management for a variety of user scenarios, including selection metrics, management best practices, and descriptions of how varying parameters affect time progression in code templates. 
 
 Real Time
 ---------
 
-One choice for managing time with NOS-T is to simply run applications in real time. In a real-time scenario, the applications iterate in line with the actual progression of time. Applications that may benefit from a real-time progression 
-would be applications relying on external data, for example in-situ sensors, or those that want to propagate current satellite orbits. While there are many ways to manage time across a distributed network
+One choice for managing time with NOS-T is to simply run applications in real time. In a real-time scenario, the applications iterate in line with the actual progression of time. Applications that may benefit from a real-time progression  would be applications relying on external data, for example in-situ sensors, or those that want to propagate current satellite orbits. While these scenarios will generally rely on each application's internal system clock for time progression, it is recommended for these clocks to be synchronized using a Network Time Protocol (NTP) server.
 
 Scaled Time
 -----------
 
+The other choice for timing tests over NOS-T is to scale time either faster or slower than real time. This can be done by having the applications activate their internal representations of time in response to events from an exterior "metronome" simulation clock.  These are called *managed* applications and there are tools provided to perform this function. 
+
+
 NOS-T Manager Timing Parameters 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-For both of the commonly used time management techniques, the NOS-T Tools library has all controls needed to manage a user defined scenario.
-
-To define the time parameters of a scenario, best practices encourange drafting a test plan modelled after the parameters defined by the manager tool. 
-
-The variables that comprise the test plan are passed into the manager application upon execution. By defining these variables, a user can better understand the management of their scenario, and ensure that the goals of the project are met. 
+There are sets of time paramters in both the NOS-T manager and example codes that can be adjusted to give a wide variety of time scales and updates. 
 
 .. code-block:: python3
 
