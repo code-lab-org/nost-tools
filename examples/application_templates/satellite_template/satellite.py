@@ -1,4 +1,3 @@
-from scipy.spatial.transform import Rotation as R
 import numpy as np
 
 from skyfield.api import load, wgs84, EarthSatellite
@@ -51,7 +50,7 @@ class Satellite(Entity):
             wgs84.subpoint(self.ES.at(self.ts.from_datetime(self.get_time() + time_step))
             )
         ]
-        print("THE LAT IS!!!!!!!", self.next_geographicPos)
+        print("THE LAT IS!!!!!!!", self.ES.next_geographicPos.latlonof(geocentric))
 
     def tock(self):
         self.geocentric = self.next_geocentric

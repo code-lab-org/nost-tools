@@ -7,7 +7,7 @@ This section contains some common technical issues the development team encounte
 
 .. dropdown:: Why can't I connect to the broker?
 
-    If you are having trouble connecting with the broker there are several possible causes. Not having the proper credentials to log in is a likely cause. Depending on how your organization handles these credentials, one of these would be if your IP address is not recognized by the broker host. Make sure that your broker administrator has your IP address on a whitelist. Relatedly, if you generally connect to the use a VPN make sure that it's turned on.
+    If you are having trouble connecting with the broker there are several possible causes. Not having the proper credentials to log in is a likely cause. Depending on how your organization handles these credentials, one of these would be if your IP address is not recognized by the broker host. Make sure that your broker administrator has your IP address on a whitelist. Relatedly, if you generally connect to the use a VPN make sure that it's turned on. You might see a ``timeout: timed out`` error message if your VPN is not turned on.
   
 .. dropdown:: Why can't I see my messages being published?
 
