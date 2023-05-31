@@ -9,6 +9,6 @@ class SatelliteStatus(BaseModel):
     geocentric_position: list = Field(
         ..., description="Position in inertial XYZ coordinates"
     )
-    geographic_position: list = Field(..., description="Position in geographical latitude-longitude-altitude")
+    # geographic_position: list = Field(..., description="Position in geographical latitude-longitude-altitude")
     velocity: list = Field(..., description="Velocity in intertial XYZ coordinates")
     time: datetime = Field(..., description="Time in satellite reference frame")

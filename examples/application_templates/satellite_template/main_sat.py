@@ -10,7 +10,7 @@ from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
 from nost_tools.managed_application import ManagedApplication
 
 from config import PARAMETERS
-from satellite2 import *
+from satellite import *
 
 logging.basicConfig(level=logging.INFO)
 
@@ -36,7 +36,7 @@ if __name__ == "__main__":
     activesats = load.tle_file(activesats_url, reload=False)
     by_name = {sat.name: sat for sat in activesats}
     
-    satellite = Satellite("template", app, [0], name, ES=by_name[name]) 
+    satellite = Satellite(app, name, ES=by_name[name]) 
 
     # add the Constellation entity to the application's simulator
     app.simulator.add_entity(satellite)

@@ -50,7 +50,7 @@ class Satellite(Entity):
             wgs84.subpoint(self.ES.at(self.ts.from_datetime(self.get_time() + time_step))
             )
         ]
-        print("THE LAT IS!!!!!!!", self.ES.next_geographicPos.latlonof(geocentric))
+        print("THE LAT IS!!!!!!!", self.next_geographicPos.latitude.degrees)
 
     def tock(self):
         self.geocentric = self.next_geocentric
@@ -73,20 +73,19 @@ class StatusPublisher(WallclockTimeIntervalPublisher):
         self.isInRange = False
 
     def publish_message(self):
-        # next_time = self.ES.at(self.ts.from_datetime(
-        #     self.get_time() + SCALE * self.time_status_step)
+        # next_time = self.satellite.ts.from_datetime(
+        #     self.satellite.get_time() + PARAMETERS["SCALE"] * self.time_status_step
         # )
-        # satSpaceTime = self.ES.at(next_time)
+        # satSpaceTime = satellite.at(next_time)
         # subpoint = wgs84.subpoint(satSpaceTime)
-
-# self.satellite.ES?
+    # self.satellite.ES?
         self.app.send_message(
             "state",
             SatelliteStatus(
                 # id=self.satellite.id,
                 name=self.satellite.name,
                 geocentric_position=list(self.satellite.geocentricPos),
-                geographic_position=(self.satellite.geographicPos.latitude.degrees),
+                # geographic_position=subpoint.latitude.degrees,
                 velocity=list(self.satellite.vel),
                 time=self.satellite.get_time(),
             ).json(),
