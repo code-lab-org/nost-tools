@@ -77,14 +77,25 @@ class Satellite(Entity):
         self.names = names
         self.grounds = None
         self.satellite = []
+        # if ES is not None:
+        #     #for sat in ES:
+        #    self.satellite=ES
+        # if tles is not None:
+        #     for i, tle in enumerate(tles):
+        #         self.satellites.append(
+        #             EarthSatellite(tle[0], tle[1], self.names[i], self.ts)
+        #         )
+                
+        self.satellites = []
         if ES is not None:
-            #for sat in ES:
-           self.satellite=ES
+            for satellite in ES:
+                self.satellites.append(satellite)
         if tles is not None:
             for i, tle in enumerate(tles):
                 self.satellites.append(
                     EarthSatellite(tle[0], tle[1], self.names[i], self.ts)
                 )
+        self.positions = self.next_positions = [None for satellite in self.satellites]
         self.geocentric = self.next_geocentric = None
         self.geocentricPos = self.next_geocentricPos = None
         self.vel = self.next_vel = None
@@ -133,7 +144,7 @@ class Satellite(Entity):
                 self.satellite.at(self.ts.from_datetime(self.get_time() + time_step))
             )
         ]
-        print("THE LAT IS!!!!!!!", self.satellite.latitude.degrees)
+
         # for i, satellite in enumerate(self.satellites):
         #     then = self.ts.from_datetime(self.get_time() + time_step)
         #     isInRange, groundId = check_in_range(then, satellite, self.grounds)
