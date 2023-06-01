@@ -1,7 +1,9 @@
 from scipy.spatial.transform import Rotation as R
 import numpy as np
+import pandas as pd
+from datetime import datetime, timedelta, timezone
 
-from skyfield.api import load, wgs84, EarthSatellite
+from skyfield.api import load, wgs84, EarthSatellite, utc
 from nost_tools.entity import Entity
 from nost_tools.publisher import WallclockTimeIntervalPublisher
 
@@ -16,6 +18,14 @@ initialQuat = PARAMETERS["initialQuat"]
 T_c = PARAMETERS["initialT"]
 I = PARAMETERS["I"]
 dt = PARAMETERS["dt"]
+
+# times for culmination
+ts = load.timescale()
+t_start = ts.from_datetime(datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc))
+t_end = ts.from_datetime(datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc) + timedelta(hours=PARAMETERS['SCENARIO_LENGTH']))
+
+# dummy location
+hoboken = wgs84.latlon(40.7440, -74.0324)
 
 class Satellite(Entity):
 
@@ -46,10 +56,10 @@ class Satellite(Entity):
     def initialize(self, init_time):
 
         super().initialize(init_time)
+        self.target = [40.7440, -74.0324]            # lat/lon of Hoboken, NJ in degrees
         self.geocentric = self.ES.at(self.ts.from_datetime(init_time))
         self.pos = self.geocentric.position.m
         self.vel = self.geocentric.velocity.m_per_s
-        self.target = [40.7440, -74.0324]            # lat/lon of Hoboken, NJ in degrees
         
         # initial rotation from inertial to body coordinates
         posMag = np.linalg.norm(self.pos)            # position magnitude
@@ -66,15 +76,17 @@ class Satellite(Entity):
 
     def tick(self, time_step): # computes
         super().tick(time_step)
+        self.next_target = self.target #update_target(self, t_start, t_end)
         self.next_geocentric = self.ES.at(self.ts.from_datetime(self.get_time() + time_step))
         self.next_pos = self.next_geocentric.position.m
         self.next_vel = self.next_geocentric.velocity.m_per_s
         self.next_att = self.update_attitude(self)
         self.next_omega = self.omega
-        self.next_target = self.target 
+
 
 
     def tock(self):
+        self.target = self.next_target
         self.geocentric = self.next_geocentric
         self.pos = self.next_pos
         self.vel = self.next_vel
@@ -191,6 +203,14 @@ class Satellite(Entity):
                     break
         return isInRange, groundId
     
+    # find target quaternion at culmination from ground location
+    def update_target(self, hoboken, t_start, t_end):
+       
+        t, events = ES.find_events(hoboken, t_start, t_end, altitude_degrees=30.0)
+        eventZip = list(zip(t,events))
+        df = pd.DataFrame(eventZip, columns = ["Time", "Event"])
+        culmTimes = df.loc[df["Event"]==2]
+    
     # Calculate error between current quat and desired quat (Wie style)
     def att_error(self):
         qT = np.array(
@@ -238,7 +258,20 @@ class Satellite(Entity):
         return self.att
     
     def update_attitude(self, time_step):
-        
+       
+        # t, events = self.ES.find_events(hoboken, t_start, t_end, altitude_degrees=0.0)
+        # event_names = 'rise above 30°', 'culminate', 'set below 30°'
+        # for ti, event in zip(t, events):
+        #    name = event_names[event]
+        #    print(ti.utc_strftime('%Y %b %d %H:%M:%S'), name)
+        #    print(type(event)) 
+           
+        t, events = self.ES.find_events(hoboken, t_start, t_end, altitude_degrees=30.0)
+        eventZip = list(zip(t,events))
+        df = pd.DataFrame(eventZip, columns = ["Time", "Event"])
+        culmTimes = df.loc[df["Event"]==2]
+        print(events)
+       
         # Calculate error quaternion
         errorQuat = self.att_error()
         
