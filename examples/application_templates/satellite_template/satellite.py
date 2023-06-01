@@ -20,13 +20,13 @@ class Satellite(Entity):
         if tle is not None:
             self.ES = EarthSatellite(tle[0], tle[1], name)
 
-        # self.id = id
+
         self.name = name
-        # self.satellites = []
         self.geocentric = self.next_geocentric = None
         self.geocentricPos = self.next_geocentricPos = None
-        self.vel = self.next_vel = None
         self.geographicPos = self.next_geographicPos = None
+        self.vel = self.next_vel = None
+
 
 
 
@@ -35,58 +35,46 @@ class Satellite(Entity):
         super().initialize(init_time)
         self.geocentric = self.ES.at(self.ts.from_datetime(init_time))
         self.geocentricPos = self.geocentric.position.m
+        self.geographicPos = wgs84.geographic_position_of(self.geocentric)
         self.vel = self.geocentric.velocity.m_per_s
-        self.geographicPos = [
-            wgs84.subpoint(self.ES.at(self.ts.from_datetime(init_time)))
-        ]
 
-    def tick(self, time_step):  # computes
+        
+    def tick(self, time_step):  
         super().tick(time_step)
         self.next_geocentric = self.ES.at(
             self.ts.from_datetime(self.get_time() + time_step))
         self.next_geocentricPos = self.next_geocentric.position.m
+        self.next_geographicPos = wgs84.geographic_position_of(self.next_geocentric)
         self.next_vel = self.next_geocentric.velocity.m_per_s
-        self.next_geographicPos = [
-            wgs84.subpoint(self.ES.at(self.ts.from_datetime(self.get_time() + time_step))
-            )
-        ]
-        print("THE LAT IS!!!!!!!", self.next_geographicPos.latitude.degrees)
+
 
     def tock(self):
         self.geocentric = self.next_geocentric
         self.geocentricPos = self.next_geocentricPos
-        self.vel = self.next_vel
         self.geographicPos = self.next_geographicPos
-
+        self.vel = self.next_vel
         super().tock()
 
-
-
-# define a publisher to report satellite status
+# define a publisher to report ES status
 class StatusPublisher(WallclockTimeIntervalPublisher): 
 
     def __init__(
-        self, app, satellite, time_status_step=None, time_status_init=None
+        self, app, ES, time_status_step=None, time_status_init=None
     ):
         super().__init__(app, time_status_step, time_status_init)
-        self.satellite = satellite
+        self.ES = ES
         self.isInRange = False
 
     def publish_message(self):
-        # next_time = self.satellite.ts.from_datetime(
-        #     self.satellite.get_time() + PARAMETERS["SCALE"] * self.time_status_step
-        # )
-        # satSpaceTime = satellite.at(next_time)
-        # subpoint = wgs84.subpoint(satSpaceTime)
-    # self.satellite.ES?
         self.app.send_message(
             "state",
             SatelliteStatus(
-                # id=self.satellite.id,
-                name=self.satellite.name,
-                geocentric_position=list(self.satellite.geocentricPos),
-                # geographic_position=subpoint.latitude.degrees,
-                velocity=list(self.satellite.vel),
-                time=self.satellite.get_time(),
+                name=self.ES.name,
+                geocentric_position=list(self.ES.geocentricPos),
+                latitude=self.ES.geographicPos.latitude.degrees,
+                longitude=self.ES.geographicPos.longitude.degrees,
+                altitude=self.ES.geographicPos.elevation.m,
+                velocity=list(self.ES.vel),
+                time=self.ES.get_time(),
             ).json(),
         )
