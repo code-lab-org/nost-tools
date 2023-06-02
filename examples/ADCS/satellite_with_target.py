@@ -1,7 +1,9 @@
 from scipy.spatial.transform import Rotation as R
 import numpy as np
+import pandas as pd
+from datetime import datetime, timedelta, timezone
 
-from skyfield.api import load, wgs84, EarthSatellite
+from skyfield.api import load, wgs84, EarthSatellite, utc
 from nost_tools.entity import Entity
 from nost_tools.publisher import WallclockTimeIntervalPublisher
 
@@ -16,6 +18,14 @@ initialQuat = PARAMETERS["initialQuat"]
 T_c = PARAMETERS["initialT"]
 I = PARAMETERS["I"]
 dt = PARAMETERS["dt"]
+
+# times for culmination
+ts = load.timescale()
+t_start = ts.from_datetime(datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc))
+t_end = ts.from_datetime(datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc) + timedelta(hours=PARAMETERS['SCENARIO_LENGTH']))
+
+# dummy location
+hoboken = wgs84.latlon(40.7440, -74.0324)
 
 class Satellite(Entity):
 
@@ -46,10 +56,10 @@ class Satellite(Entity):
     def initialize(self, init_time):
 
         super().initialize(init_time)
+        self.target = [40.7440, -74.0324]            # lat/lon of Hoboken, NJ in degrees
         self.geocentric = self.ES.at(self.ts.from_datetime(init_time))
         self.pos = self.geocentric.position.m
         self.vel = self.geocentric.velocity.m_per_s
-        self.target = [40.7440, -74.0324]            # lat/lon of Hoboken, NJ in degrees
         
         # initial rotation from inertial to body coordinates
         posMag = np.linalg.norm(self.pos)            # position magnitude
@@ -66,15 +76,17 @@ class Satellite(Entity):
 
     def tick(self, time_step): # computes
         super().tick(time_step)
+        self.next_target = self.target #update_target(self, t_start, t_end)
         self.next_geocentric = self.ES.at(self.ts.from_datetime(self.get_time() + time_step))
         self.next_pos = self.next_geocentric.position.m
         self.next_vel = self.next_geocentric.velocity.m_per_s
         self.next_att = self.update_attitude(self)
         self.next_omega = self.omega
-        self.next_target = self.target 
+
 
 
     def tock(self):
+        self.target = self.next_target
         self.geocentric = self.next_geocentric
         self.pos = self.next_pos
         self.vel = self.next_vel
@@ -191,7 +203,54 @@ class Satellite(Entity):
                     break
         return isInRange, groundId
     
-    # Calculate error between current quat and desired quat (from Wie)
+    # find target quaternion at culmination from ground location
+    def update_target_attitude(self, hoboken, t_start, t_end):
+       
+        t, events = satellite.find_events(hoboken, t0, t1, altitude_degrees=15.0)
+        eventZip = list(zip(t,events))
+        df = pd.DataFrame(eventZip, columns = ["Time", "Event"])
+        culmTimes = df.loc[df["Event"]==1]
+        
+        geocentric = satellite.at(culmTimes.iloc[0]["Time"])
+        
+        culmTime = (culmTimes.iloc[0]["Time"]).utc_iso()
+        culmPos = geocentric.position.m
+        targetPos = hoboken.at(culmTimes.iloc[0]["Time"]).position.m
+        culmVel = geocentric.velocity.m_per_s
+        
+        h = np.cross(culmPos, culmVel)
+        # Calculate the unit vectors for the body x, y, and z axes
+        b_y = h / np.linalg.norm(h)
+        b_z = culmPos / np.linalg.norm(culmPos)
+        b_x0 = np.cross(b_y, b_z)
+        b_x = b_x0 / np.linalg.norm(b_x0)
+        
+        # Calculate the rotation matrix from the body to the inertial frame
+        R_bi = np.vstack((b_x, b_y, b_z)).T
+        
+        # Calculate the rotation matrix from the inertial to the body frame
+        R_ib = R_bi.T
+        
+        # Convert the rotation matrix to a quaternion
+        iQuat = R.from_matrix(R_bi).as_quat()
+        
+        print("iQuat", iQuat[0], ",", iQuat[1], ",", iQuat[2], ",", iQuat[3])
+        
+        # find roll angle between nadir vector and target
+        culmUnitVec = culmPos/np.linalg.norm(culmPos)
+        targetUnitVec = targetPos/np.linalg.norm(targetPos)
+        
+        direction = culmPos - targetPos
+        dirUnit = direction/np.linalg.norm(direction)
+        
+        rollAngle = np.arccos(np.dot(dirUnit, culmUnitVec))
+        
+        targetRot = R.from_matrix(R_bi)*R.from_euler('x',rollAngle)
+targetQuat = targetRot.as_quat()
+        
+        return targetQuat
+            
+    # Calculate error between current quat and desired quat (Wie style)
     def att_error(self):
         qT = np.array(
             [
@@ -238,7 +297,15 @@ class Satellite(Entity):
         return self.att
     
     def update_attitude(self, time_step):
-        
+       
+        # t, events = self.ES.find_events(hoboken, t_start, t_end, altitude_degrees=0.0)
+        # event_names = 'rise above 30°', 'culminate', 'set below 30°'
+        # for ti, event in zip(t, events):
+        #    name = event_names[event]
+        #    print(ti.utc_strftime('%Y %b %d %H:%M:%S'), name)
+        #    print(type(event)) 
+           
+      
         # Calculate error quaternion
         errorQuat = self.att_error()
         

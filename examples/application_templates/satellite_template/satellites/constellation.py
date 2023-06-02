@@ -1,30 +1,45 @@
-import os
-import sys
+# -*- coding: utf-8 -*-
+"""
+    *This application demonstrates a constellation of satellites for imgaing floods propagated from Two-Line Elements (TLEs)*
+
+    The application contains one :obj:`Constellation` (:obj:`Entity`) object class, one :obj:`PositionPublisher` (:obj:`WallclockTimeIntervalPublisher`), and two :obj:`Observer` object classes to monitor for :obj:`FloodDetected` and :obj:`FloodReported` events, respectively. The application also contains several methods outside of these classes, which contain standardized calculations sourced from Ch. 5 of *Space Mission Analysis and Design* by Wertz and Larson.
+
+"""
+
+from datetime import datetime, timezone, timedelta
 import logging
 import numpy as np
 import pandas as pd
 import copy
-import datetime
+from dotenv import dotenv_values
 
-from skyfield.api import load, wgs84, EarthSatellite
-from skyfield import almanac
+# import time
+
+from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
 from nost_tools.entity import Entity
 from nost_tools.observer import Observer
+from nost_tools.managed_application import ManagedApplication
 from nost_tools.publisher import WallclockTimeIntervalPublisher
+from skyfield.api import load, wgs84, EarthSatellite
 
-# getting the name of the directory
-# where the this file is present.
-current = os.path.dirname(os.path.realpath(__file__))
- 
-# Getting the parent directory name
-# where the current directory is present.
-parent = os.path.dirname(current)
-superparent = os.path.dirname(parent)
+# import schema here
+from constellation_config_files.schemas import (
+    FloodStarted,
+    FloodImaged,
+    FloodDownlinked,
+    SatelliteStatus,
+    GroundLocation,
+)
+from constellation_config_files.config import (
+    PREFIX,
+    NAME,
+    SCALE,
+    TLES,
+    FIELD_OF_REGARD,
+    names
+)
 
-sys.path.append(superparent)
-sys.path.append(parent)
-
-from schemas import *
+logging.basicConfig(level=logging.INFO)
 
 
 def compute_min_elevation(altitude, field_of_regard):
@@ -32,12 +47,12 @@ def compute_min_elevation(altitude, field_of_regard):
     Computes the minimum elevation angle required for a satellite to observe a point from current location.
 
     Args:
-        altitude (float): Altitude (meters) above surface of the observation
-        field_of_regard (float): Angular width (degrees) of observation
+        altitude (float): Altitude (meters) above surface of the observation.
+        field_of_regard (float): Angular width (degrees) of observation.
 
     Returns:
         float : min_elevation
-            The minimum elevation angle (degrees) for observation
+            The minimum elevation angle (degrees) for observation.
     """
     earth_equatorial_radius = 6378137.000000000
     earth_polar_radius = 6356752.314245179
@@ -59,12 +74,12 @@ def compute_sensor_radius(altitude, min_elevation):
     Computes the sensor radius for a satellite at current altitude given minimum elevation constraints.
 
     Args:
-        altitude (float): Altitude (meters) above surface of the observation
-        min_elevation (float): Minimum angle (degrees) with horizon for visibility
+        altitude (float): Altitude (meters) above surface of the observation.
+        min_elevation (float): Minimum angle (degrees) with horizon for visibility.
 
     Returns:
         float : sensor_radius
-            The radius (meters) of the nadir pointing sensors circular view of observation
+            The radius (meters) of the nadir pointing sensors circular view of observation.
     """
     earth_equatorial_radius = 6378137.0
     earth_polar_radius = 6356752.314245179
@@ -82,7 +97,7 @@ def compute_sensor_radius(altitude, min_elevation):
 
 def get_elevation_angle(t, sat, loc):
     """
-    Returns the elevation angle (degrees) of satellite with respect to the topocentric horizon.
+    Returns the elevation angle (degrees) of satellite with respect to the topocentric horizon
 
     Args:
         t (:obj:`Time`): Time object of skyfield.timelib module
@@ -102,7 +117,7 @@ def get_elevation_angle(t, sat, loc):
 
 def check_in_view(t, satellite, topos, min_elevation):
     """
-    Checks if the elevation angle of the satellite with respect to the ground location is greater than the minimum elevation angle constraint.
+    Checks if the elevation angle of the satellite with respect to the ground location is greater than the minimum elevation angle constraint
 
     Args:
         t (:obj:`Time`): Time object of skyfield.timelib module
@@ -115,15 +130,15 @@ def check_in_view(t, satellite, topos, min_elevation):
             True/False indicating visibility of ground location to satellite
     """
     isInView = False
-    elevationFromEvent = get_elevation_angle(t, satellite, topos)
-    if elevationFromEvent >= min_elevation:
+    elevationFromFlood = get_elevation_angle(t, satellite, topos)
+    if elevationFromFlood >= min_elevation:
         isInView = True
     return isInView
 
 
 def check_in_range(t, satellite, grounds):
     """
-    Checks if the satellite is in range of any of the operational ground stations.
+    Checks if the satellite is in range of any of the operational ground stations
 
     Args:
         t (:obj:`Time`): Time object of skyfield.timelib module
@@ -156,82 +171,64 @@ class Constellation(Entity):
     *This object class inherits properties from the Entity object class in the NOS-T tools library*
 
     Args:
-        cName (:obj:`str`): A string containing the name for the constellation application
+        cName (str): A string containing the name for the constellation application
         app (:obj:`ManagedApplication`): An application containing a test-run namespace, a name and description for the app, client credentials, and simulation timing instructions
-        field_of_regard (:obj:`List`): A list of the fields of regard for each satellite in the constellation
-        night_sight (:obj:`bool`): A boolean value specifying whether or not the constellation can observe events at night. default=True
-        ES (list): Optional list of :obj:`EarthSatellite` objects to be included in the constellation (NOTE: at least one of **ES** or **tles** MUST be specified, or an exception will be thrown)\n
-        tles (list): Optional list of Two-Line Element *str* to be converted into :obj:`EarthSatellite` objects and included in the simulation
-        
+        id (:obj:`list`): List of unique *int* ids for each satellite in the constellation
+        names (:obj:`list`): List of unique *str* for each satellite in the constellation (must be same length as **id**)
+        ES (:obj:`list`): Optional list of :obj:`EarthSatellite` objects to be included in the constellation (NOTE: at least one of **ES** or **tles** MUST be specified, or an exception will be thrown)
+        tles (:obj:`list`): Optional list of Two-Line Element *str* to be converted into :obj:`EarthSatellite` objects and included in the simulation
+
     Attributes:
-        events (:obj:`DataFrame`): Events with unique eventId (:obj:`int`), latitude (:obj:`float`), longitude (:obj:`float`) and day/night status (:obj:`bool`) - *NOTE:* initialized as empty :obj:`DataFrame`
+        floods (:obj:`list`): List of floods with unique floodId (*int*), ignition (:obj:`datetime`), and latitude-longitude location (:obj:`GeographicPosition`) - *NOTE:* initialized as [ ]
         grounds (:obj:`DataFrame`): Dataframe containing information about ground stations with unique groundId (*int*), latitude-longitude location (:obj:`GeographicPosition`), min_elevation (*float*) angle constraints, and operational status (*bool*) - *NOTE:* initialized as **None**
-        satellites (:obj:`list`): List of :obj:`EarthSatellite` objects included in the constellation
-        sat_data (:obj:`list`): List of the ids of detected events not yet reported. Is set to [ ] when events are reported to groundstation
-        new_detect (:obj:`list`): List of events detected at the current timestep with unique eventId (*int*), detected :obj:`datetime`, and name (*str*) of detecting satellite - *NOTE:* initialized as [ ]
-        new_report (:obj:`list`): List of events reported at the current timestep with unique eventId (*int*), reported :obj:`datetime`, name (*str*) of reporting satellite, and groundId (*int*) of ground station reported to - *NOTE:* initialized as [ ]
-        positions (:obj:`list`): List of current latitude-longitude-altitude locations (:obj:`GeographicPosition`) of each satellite in the constellation
-        next_positions (:obj:`list`): List of next latitude-longitude-altitude locations (:obj:`GeographicPosition`) of each satellite in the constellation
-        min_elevations_event (:obj:`list`): List of :obj:`float` indicating current elevation angle (degrees) constraint for visibility by each satellite
+        satellites (:obj:`list`): List of :obj:`EarthSatellite` objects included in the constellation - *NOTE:* must be same length as **id**
+        detect (:obj:`list`): List of detected floods with unique floodId (*int*), detected :obj:`datetime`, and name (*str*) of detecting satellite - *NOTE:* initialized as [ ]
+        report (:obj:`list`): List of reported floods with unique floodId (*int*), reported :obj:`datetime`, name (*str*) of reporting satellite, and groundId (*int*) of ground station reported to - *NOTE:* initialized as [ ]
+        positions (:obj:`list`): List of current latitude-longitude-altitude locations (:obj:`GeographicPosition`) of each satellite in the constellation - *NOTE:* must be same length as **id**
+        next_positions (:obj:`list`): List of next latitude-longitude-altitude locations (:obj:`GeographicPosition`) of each satellite in the constellation - *NOTE:* must be same length as **id**
+        min_elevations_flood (:obj:`list`): List of *floats* indicating current elevation angle (degrees) constraint for visibility by each satellite - *NOTE:* must be same length as **id**, updates every time step
+
     """
 
-    # Parameters used for internal Skyfield calculations
     ts = load.timescale()
-    eph = load('de421.bsp')
+    PROPERTY_FLOOD_IMAGED = "imageTaken"
+    PROPERTY_FLOOD_DOWNLINKED = "imageDownlinked"
+    PROPERTY_POSITION = "position"
 
-
-    def __init__(self, cName, app, field_of_regard, night_sight=True, ES=None, tles=None):
+    def __init__(self, cName, app, id, names, ES=None, tles=None):
         super().__init__(cName)
         self.app = app
-        self.tles=tles
-        self.field_of_regard = field_of_regard
-        self.night_sight = night_sight
-
-        # Initalize empty event DataFrame
-        self.events = pd.DataFrame(
-            data={
-                "eventId": [],
-                "latitude": [],
-                "longitude": [],
-                "isDay": [],
-            }
-        )
-        # Set DataFrame index to eventId column
-        self.events.set_index("eventId", inplace=True)
+        self.id = id
+        self.names = names
+        self.floods = []
         self.grounds = None
-
-        # Checks whether tles or EarthSatellite objects were provided, and builds self.satellites from either
         self.satellites = []
         if ES is not None:
             for satellite in ES:
                 self.satellites.append(satellite)
-        if self.tles is not None:
-            for name in self.tles.keys():
+        if tles is not None:
+            for i, tle in enumerate(tles):
                 self.satellites.append(
-                    EarthSatellite(self.tles[name][0], self.tles[name][1], name, self.ts)
+                    EarthSatellite(tle[0], tle[1], self.names[i], self.ts)
                 )
-        print(self.tles)
-        print(self.satellites)
-        self.sat_data = {sat.name: [] for sat in self.satellites}
-        self.new_detect = []
-        self.new_report = []
-        self.positions = self.next_positions = [None for _ in self.satellites]
-        self.min_elevations_event = [
+        self.image = []
+        self.downlink = []
+        self.positions = self.next_positions = [None for satellite in self.satellites]
+        self.min_elevations_flood = [
             compute_min_elevation(
                 wgs84.subpoint(satellite.at(satellite.epoch)).elevation.m,
-                self.field_of_regard[i],
+                FIELD_OF_REGARD,
             )
             for i, satellite in enumerate(self.satellites)
         ]
         # # Two print lines below can be used as sanity check that SMAD Ch. 5 equations implemented properly
         # print("\nInitial elevation angles:\n")
-        # print(self.min_elevations_event)
-
+        # print(self.min_elevations_flood)
 
     def initialize(self, init_time):
         """
         Activates the :obj:`Constellation` at a specified initial scenario time
-        
+
         Args:
             init_time (:obj:`datetime`): Initial scenario time for simulating propagation of satellites
         """
@@ -250,173 +247,137 @@ class Constellation(Entity):
             for satellite in self.satellites
         ]
 
-
     def tick(self, time_step):
         """
         Computes the next :obj:`Constellation` state after the specified scenario duration and the next simulation scenario time
-        
+
         Args:
             time_step (:obj:`timedelta`): Duration between current and next simulation scenario time
         """
-
+        # tik = time.time()
         super().tick(time_step)
-
-        # Calculate all satellite positions at the following timestep
         self.next_positions = [
             wgs84.subpoint(
                 satellite.at(self.ts.from_datetime(self.get_time() + time_step))
             )
             for satellite in self.satellites
         ]
-
-        # Loop over satellites
         for i, satellite in enumerate(self.satellites):
             then = self.ts.from_datetime(self.get_time() + time_step)
-            now = self.ts.from_datetime(self.get_time())
-
-            # Compute elevation angle required for satellite to be able to observe an event
-            self.min_elevations_event[i] = compute_min_elevation(
-                float(self.next_positions[i].elevation.m), self.field_of_regard[i]
+            self.min_elevations_flood[i] = compute_min_elevation(
+                float(self.next_positions[i].elevation.m), FIELD_OF_REGARD
             )
-
-            # Checks if satellite is in range of any ground stations
-            isInRange, groundId = check_in_range(then, satellite, self.grounds)
-
-            # Loop over events
-            for eventId, event in self.events.iterrows():
-
-                # Checks if events can be observed based on night sight and time of day
-                if self.night_sight == True or event["isDay"] == 1:
-
-                    # Calculates whether event is in view of satellite at current and next timestep
-                    topos = wgs84.latlon(event["latitude"], event["longitude"])
-                    isInViewCurr = check_in_view(now, satellite, topos, self.min_elevations_event[i-1])
-                    isInViewNext = check_in_view(then, satellite, topos, self.min_elevations_event[i])
-
-                    # If event is not in view currently but will be the next timestep, log detection of event
-                    if isInViewNext and not isInViewCurr:
-                        event_change = {}
-                        event_change["eventId"]=eventId
-                        event_change["detected"]=self.get_time() + time_step
-                        event_change["detected_by"]=satellite.name
-                        self.new_detect.append(event_change)
-                        self.sat_data[satellite.name].append(eventId)
-
-            # If satellite is in range of a ground station and has data to downlink, log the reported data 
-            if (isInRange and self.sat_data[satellite.name]):
-                for j in self.sat_data[satellite.name]:
-                    event_change = {}
-                    event_change["eventId"]=j
-                    event_change["reported"]=self.get_time() + time_step
-                    event_change["reported_by"]=satellite.name
-                    event_change["reported_to"]=groundId
-                    self.new_report.append(event_change)
-                self.sat_data[satellite.name] = []
-
+            for j, flood in enumerate(self.floods):
+                if self.image[j][self.names[i]] is None:
+                    topos = wgs84.latlon(flood["latitude"], flood["longitude"])
+                    isInView = check_in_view(
+                        then, satellite, topos, self.min_elevations_flood[i]
+                    )
+                    if isInView:
+                        self.image[j][self.names[i]] = (
+                            self.get_time() + time_step
+                        )  # TODO could use event times
+                        if self.image[j]["firstImager"] is None:
+                            self.image[j]["firstImage"] = True
+                            self.image[j]["firstImager"] = self.names[i]
+                if (self.image[j][self.names[i]] is not None) and (
+                    self.downlink[j][self.names[i]] is None
+                ):
+                    isInRange, groundId = check_in_range(then, satellite, self.grounds)
+                    if isInRange:
+                        self.downlink[j][self.names[i]] = self.get_time() + time_step
+                        if self.downlink[j]["firstDownlinker"] is None:
+                            self.downlink[j]["firstDownlink"] = True
+                            self.downlink[j]["firstDownlinker"] = self.names[i]
+                            self.downlink[j]["firstDownlinkedTo"] = groundId
+        # tok = time.time() - tik
+        # print(f"The tick took {tok} seconds to filter \n")
 
     def tock(self):
         """
-            Publishes new detections and reports and advances simulation scenario time
-        
+        Commits the next :obj:`Constellation` state and advances simulation scenario time
+
         """
-
-        # Advances positions
+        # tik = time.time()
         self.positions = self.next_positions
-        
-        # Notifies observers of each newly detected event
-        for event_change in self.new_detect:
-            self.notify_observers(
-                'detected',
-                None,
-                {
-                    "eventId": event_change["eventId"],
-                    "detected": event_change["detected"],
-                    "detected_by": event_change["detected_by"]
-                }
-            )
-
-        # Notifies observers of each newly detected event
-        for event_change in self.new_report:
-            self.notify_observers(
-                "reported",
-                None,
-                {
-                    "eventId": event_change["eventId"],
-                    "reported": event_change["reported"],
-                    "reported_by": event_change["reported_by"],
-                    "reported_to": event_change["reported_to"]
-                }
-            )
-        
-        # Reset detection and report lists for next timestep
-        self.new_detect = []
-        self.new_report = []
-
+        for i, newly_imaged_flood in enumerate(self.image):
+            if newly_imaged_flood["firstImage"]:
+                imager = newly_imaged_flood["firstImager"]
+                self.notify_observers(
+                    self.PROPERTY_FLOOD_IMAGED,
+                    None,
+                    {
+                        "floodId": newly_imaged_flood["floodId"],
+                        "imaged": newly_imaged_flood[imager],
+                        "imagedBy": imager,
+                    },
+                )
+                self.image[i]["firstImage"] = False
+        for i, newly_downlinked_flood in enumerate(self.downlink):
+            if newly_downlinked_flood["firstDownlink"]:
+                downlinker = newly_downlinked_flood["firstDownlinker"]
+                self.notify_observers(
+                    self.PROPERTY_FLOOD_DOWNLINKED,
+                    None,
+                    {
+                        "floodId": newly_downlinked_flood["floodId"],
+                        "downlinked": newly_downlinked_flood[downlinker],
+                        "downlinkedBy": downlinker,
+                        "downlinkedTo": newly_downlinked_flood["firstDownlinkedTo"],
+                    },
+                )
+            self.downlink[i]["firstDownlink"] = False
+        # tok = time.time() - tik
+        # print(f"The tock took {tok} seconds \n")
         super().tock()
 
+    # on flood
+    def on_flood(self, client, userdata, message):
+        """
+        Callback function appends a dictionary of information for a new flood to floods :obj:`list` when message detected on the *PREFIX/NWISdemo/floodWarning* topic
 
-    def on_manager_init(self, client, userdata, message):
-        """
-            *PREFIX/manager/init* callback to publish constellation Two-Line Elements to be recorded for repeatability in future simulations
-            
-            Args:
-                client (:obj:`MQTT Client`): Client that connects application to the event broker using the MQTT protocol. Includes user credentials, tls certificates, and host server-port information.
-                userdata: User defined data of any type (not currently used)
-                message (:obj:`message`): Contains *topic* the client subscribed to and *payload* message content as attributes 
-        """
-        self.app.send_message("tles", self.tles.to_json())
-
-    def on_event_start(self, client, userdata, message):
-        """
-        *PREFIX/events/start* callback function appends a dictionary of information for a new event to events :obj:`DataFrame`
-        
         Args:
             client (:obj:`MQTT Client`): Client that connects application to the event broker using the MQTT protocol. Includes user credentials, tls certificates, and host server-port information.
             userdata: User defined data of any type (not currently used)
-            message (:obj:`message`): Contains *topic* the client subscribed to and *payload* message content as attributes 
-            
-        """
-        started = EventStarted.parse_raw(message.payload)
-        self.events.loc[started.eventId] = {
-            "latitude": started.latitude,
-            "longitude": started.longitude,
-            "isDay": started.isDay
-        }
+            message (:obj:`message`): Contains *topic* the client subscribed to and *payload* message content as attributes
 
-    def on_event_day_change(self, client, userdata, message):
         """
-            *PREFIX/event/dayChange* callback to update event day/night status
-
-            Args:
-                client (:obj:`MQTT Client`): Client that connects application to the event broker using the MQTT protocol. Includes user credentials, tls certificates, and host server-port information.
-                userdata: User defined data of any type (not currently used)
-                message (:obj:`message`): Contains *topic* the client subscribed to and *payload* message content as attributes 
-        """
-        change = EventDayChange.parse_raw(message.payload)
-        self.events["isDay"][change.eventId] = change.isDay
-
-    def on_event_finish(self, client, userdata, message):
-        """
-            *PREFIX/event/finish* callback to remove finished events from events :obj:`DataFrame`
-
-            Args:
-                client (:obj:`MQTT Client`): Client that connects application to the event broker using the MQTT protocol. Includes user credentials, tls certificates, and host server-port information.
-                userdata: User defined data of any type (not currently used)
-                message (:obj:`message`): Contains *topic* the client subscribed to and *payload* message content as attributes 
-        """
-        finished = EventFinished.parse_raw(message.payload)
-        self.events.drop(finished.eventId)
-
+        started = FloodStarted.parse_raw(message.payload)
+        self.floods.append(
+            {
+                "floodId": started.floodId,
+                "start": started.startTime,
+                "latitude": started.latitude,
+                "longitude": started.longitude,
+            },
+        )
+        satelliteDictionary = dict.fromkeys(
+            self.names
+        )  # Creates dictionary where keys are satellite names and values are defaulted to NoneType
+        satelliteDictionary[
+            "floodId"
+        ] = (
+            started.floodId
+        )  # Adds floodId to dictionary, which will coordinate with position of dictionary in list of dictionaries
+        imageDictionary = copy.deepcopy(satelliteDictionary)
+        imageDictionary["firstImage"] = False
+        imageDictionary["firstImager"] = None
+        self.image.append(imageDictionary)
+        downlinkDictionary = copy.deepcopy(satelliteDictionary)
+        downlinkDictionary["firstDownlink"] = False
+        downlinkDictionary["firstDownlinker"] = None
+        downlinkDictionary["firstDownlinkedTo"] = None
+        self.downlink.append(downlinkDictionary)
 
     def on_ground(self, client, userdata, message):
         """
-            *PREFIX/ground/location* callback function appends a dictionary of information for a new ground station to grounds :obj:`list`. Ground station information is published at beginning of simulation, and the :obj:`list` is converted to a :obj:`DataFrame` when the Constellation is initialized.
-        
-            Args:
-                client (:obj:`MQTT Client`): Client that connects application to the event broker using the MQTT protocol. Includes user credentials, tls certificates, and host server-port information.
-                userdata: User defined data of any type (not currently used)
-                message (:obj:`message`): Contains *topic* the client subscribed to and *payload* message content as attributes 
-            
+        Callback function appends a dictionary of information for a new ground station to grounds :obj:`list` when message detected on the *PREFIX/ground/location* topic. Ground station information is published at beginning of simulation, and the :obj:`list` is converted to a :obj:`DataFrame` when the Constellation is initialized.
+
+        Args:
+            client (:obj:`MQTT Client`): Client that connects application to the event broker using the MQTT protocol. Includes user credentials, tls certificates, and host server-port information.
+            userdata: User defined data of any type (not currently used)
+            message (:obj:`message`): Contains *topic* the client subscribed to and *payload* message content as attributes
+
         """
         location = GroundLocation.parse_raw(message.payload)
         if location.groundId in self.grounds.groundId:
@@ -432,6 +393,7 @@ class Constellation(Entity):
             self.grounds[
                 self.grounds.groundId == location.groundId
             ].operational = location.operational
+            print(f"Station {location.groundId} updated at time {self.get_time()}.")
         else:
             self.grounds = self.grounds.append(
                 {
@@ -443,21 +405,22 @@ class Constellation(Entity):
                 },
                 ignore_index=True,
             )
+            print(f"Station {location.groundId} registered at time {self.get_time()}.")
 
 
 # define a publisher to report satellite status
 class PositionPublisher(WallclockTimeIntervalPublisher):
     """
     *This object class inherits properties from the WallclockTimeIntervalPublisher object class from the publisher template in the NOS-T tools library*
-    
-    The user can optionally specify the wallclock :obj:`timedelta` between message publications and the scenario :obj:`datetime` when the first of these messages should be published. 
+
+    The user can optionally specify the wallclock :obj:`timedelta` between message publications and the scenario :obj:`datetime` when the first of these messages should be published.
 
     Args:
         app (:obj:`ManagedApplication`): An application containing a test-run namespace, a name and description for the app, client credentials, and simulation timing instructions
         constellation (:obj:`Constellation`): Constellation :obj:`Entity` object class
         time_status_step (:obj:`timedelta`): Optional duration between time status 'heartbeat' messages
         time_status_init (:obj:`datetime`): Optional scenario :obj:`datetime` for publishing the first time status 'heartbeat' message
-                
+
     """
 
     def __init__(
@@ -466,35 +429,35 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
         super().__init__(app, time_status_step, time_status_init)
         self.constellation = constellation
         self.isInRange = [
-            False for _ in self.constellation.satellites
+            False for i, satellite in enumerate(self.constellation.satellites)
         ]
 
     def publish_message(self):
         """
         *Abstract publish_message method inherited from the WallclockTimeIntervalPublisher object class from the publisher template in the NOS-T tools library*
-        
+
         This method sends a message to the *PREFIX/constellation/location* topic for each satellite in the constellation (:obj:`Constellation`), including:
-            
+
         Args:
-            id (list): list of unique *int* ids for each satellite in the constellation
-            names (list): list of unique *str* for each satellite in the constellation - *NOTE:* must be same length as **id**
-            positions (list): list of current latitude-longitude-altitude locations (:obj:`GeographicPosition`) of each satellite in the constellation - *NOTE:* must be same length as **id**
-            radius (list): list of the radius (meters) of the nadir pointing sensors circular view of observation for each satellite in the constellation - *NOTE:* must be same length as **id**
-            commRange (list): list of *bool* indicating each satellites visibility to *any* ground station - *NOTE:* must be same length as **id**
+            id (:obj:`list`): list of unique *int* ids for each satellite in the constellation
+            names (:obj:`list`): list of unique *str* for each satellite in the constellation - *NOTE:* must be same length as **id**
+            positions (:obj:`list`): list of current latitude-longitude-altitude locations (:obj:`GeographicPosition`) of each satellite in the constellation - *NOTE:* must be same length as **id**
+            radius (:obj:`list`): list of the radius (meters) of the nadir pointing sensors circular view of observation for each satellite in the constellation - *NOTE:* must be same length as **id**
+            commRange (:obj:`list`): list of *bool* indicating each satellites visibility to *any* ground station - *NOTE:* must be same length as **id**
             time (:obj:`datetime`): current scenario :obj:`datetime`
 
         """
         for i, satellite in enumerate(self.constellation.satellites):
-            next_time = self.constellation.ts.from_datetime(
-                self.constellation.get_time() + 60 * self.time_status_step
+            next_time = constellation.ts.from_datetime(
+                constellation.get_time() + SCALE * self.time_status_step
             )
             satSpaceTime = satellite.at(next_time)
             subpoint = wgs84.subpoint(satSpaceTime)
             sensorRadius = compute_sensor_radius(
-                subpoint.elevation.m, self.constellation.min_elevations_event[i]
+                subpoint.elevation.m, constellation.min_elevations_flood[i]
             )
             self.isInRange[i], groundId = check_in_range(
-                next_time, satellite, self.constellation.grounds
+                next_time, satellite, constellation.grounds
             )
             self.app.send_message(
                 "location",
@@ -506,19 +469,19 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
                     altitude=subpoint.elevation.m,
                     radius=sensorRadius,
                     commRange=self.isInRange[i],
-                    time=self.constellation.get_time(),
+                    time=constellation.get_time(),
                 ).json(),
             )
 
 
-# define an observer to send event detection events
-class EventDetectedObserver(Observer):
+# define an observer to send flood imaging events
+class FloodImagedObserver(Observer):
     """
     *This object class inherits properties from the Observer object class from the observer template in the NOS-T tools library*
 
     Args:
         app (:obj:`ManagedApplication`): An application containing a test-run namespace, a name and description for the app, client credentials, and simulation timing instructions
-          
+
     """
 
     def __init__(self, app):
@@ -528,28 +491,28 @@ class EventDetectedObserver(Observer):
         """
         *Standard on_change callback function format inherited from Observer object class in NOS-T tools library*
 
-        In this instance, the callback function checks for notification of the "detected" property and publishes :obj:`EventDetected` message to *PREFIX/constellation/detected* topic:
+        In this instance, the callback function checks for notification of the "detected" property and publishes :obj:`FloodDetected` message to *PREFIX/constellation/detected* topic:
 
         """
-        if property_name == "detected":
+        if property_name == Constellation.PROPERTY_FLOOD_IMAGED:
             self.app.send_message(
-                "detected",
-                EventDetected(
-                    eventId=new_value["eventId"],
-                    detected=new_value["detected"],
-                    detected_by=new_value["detected_by"],
+                "imageTaken",
+                FloodImaged(
+                    floodId=new_value["floodId"],
+                    imaged=str(datetime.now()),#new_value["imaged"],
+                    imagedBy=new_value["imagedBy"],
                 ).json(),
             )
 
 
-# define an observer to send event reporting events
-class EventReportedObserver(Observer):
+# define an observer to send flood reporting events
+class FloodDownlinkedObserver(Observer):
     """
     *This object class inherits properties from the Observer object class from the observer template in the NOS-T tools library*
 
     Args:
         app (:obj:`ManagedApplication`): An application containing a test-run namespace, a name and description for the app, client credentials, and simulation timing instructions
-              
+
     """
 
     def __init__(self, app):
@@ -559,16 +522,63 @@ class EventReportedObserver(Observer):
         """
         *Standard on_change callback function format inherited from Observer object class in NOS-T tools library*
 
-        In this instance, the callback function checks for notification of the "reported" property and publishes :obj:`EventReported` message to *PREFIX/constellation/reported* topic:
+        In this instance, the callback function checks for notification of the "reported" property and publishes :obj:`FloodReported` message to *PREFIX/constellation/reported* topic:
 
         """
-        if property_name == "reported":
+        if property_name == Constellation.PROPERTY_FLOOD_DOWNLINKED:
             self.app.send_message(
-                "reported",
-                EventReported(
-                    eventId=new_value["eventId"],
-                    reported=new_value["reported"],
-                    reported_by=new_value["reported_by"],
-                    reported_to=new_value["reported_to"],
+                "imageDownlinked",
+                FloodDownlinked(
+                    floodId=new_value["floodId"],
+                    downlinked=str(datetime.now()),#new_value["downlinked"],
+                    downlinkedBy=new_value["downlinkedBy"],
+                    downlinkedTo=new_value["downlinkedTo"],
                 ).json(),
             )
+
+
+# name guard used to ensure script only executes if it is run as the __main__
+if __name__ == "__main__":
+    # Note that these are loaded from a .env file in current working directory
+    credentials = dotenv_values(".env")
+    HOST, PORT = credentials["HOST"], int(credentials["PORT"])
+    USERNAME, PASSWORD = credentials["USERNAME"], credentials["PASSWORD"]
+    # set the client credentials
+    config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, True)
+
+    # create the managed application
+    app = ManagedApplication(NAME)
+
+    ES=[]
+
+    # initialize the Constellation object class (in this example from EarthSatellite type)
+    constellation = Constellation("constellation", app, [0,1,2,3,4,5,6,7,8,9], names, ES, TLES)
+
+    # add observer classes to the Constellation object class
+    constellation.add_observer(FloodImagedObserver(app))
+    constellation.add_observer(FloodDownlinkedObserver(app))
+
+    # add the Constellation entity to the application's simulator
+    app.simulator.add_entity(constellation)
+
+    # add a shutdown observer to shut down after a single test case
+    app.simulator.add_observer(ShutDownObserver(app))
+
+    # add a position publisher to update satellite state every 5 seconds of wallclock time
+    app.simulator.add_observer(
+        PositionPublisher(app, constellation, timedelta(seconds=5))
+    )
+
+    # start up the application on PREFIX, publish time status every 10 seconds of wallclock time
+    app.start_up(
+        PREFIX,
+        config,
+        True,
+        time_status_step=timedelta(seconds=1) * SCALE,
+        time_status_init=datetime(2020, 1, 1, 7, 20, tzinfo=timezone.utc),
+        time_step=timedelta(seconds=1) * SCALE,
+    )
+
+    # add message callbacks
+    app.add_message_callback("streamGauge", "floodWarning", constellation.on_flood)
+    app.add_message_callback("ground", "location", constellation.on_ground)

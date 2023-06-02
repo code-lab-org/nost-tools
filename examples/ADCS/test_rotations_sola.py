@@ -88,8 +88,8 @@ def control_torque(errorQuat, Kp, Kd, w):  #Sidi
     T_c[1] = -(2 * Kp[1] * errorQuat[1] * errorQuat[3] + Kd[1] * w[1])
     T_c[2] = -(2 * Kp[2] * errorQuat[2] * errorQuat[3] + Kd[2] * w[2])
     
-    # if T_c[0] > .01:
-    #     T_c[0] = .01
+    if T_c[0] > .01:
+        T_c[0] = .01
 
     return T_c
 
