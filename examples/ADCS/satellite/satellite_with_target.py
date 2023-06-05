@@ -7,8 +7,8 @@ from skyfield.api import load, wgs84, EarthSatellite, utc
 from nost_tools.entity import Entity
 from nost_tools.publisher import WallclockTimeIntervalPublisher
 
-from schemas_with_target import *
-from config import PARAMETERS
+from satellite_config_files.schemas import *
+from satellite_config_files.config import PARAMETERS
 
 # initialize
 # targetQuat = PARAMETERS["targetQuat"]
@@ -61,19 +61,19 @@ class Satellite(Entity):
         self.pos = self.geocentric.position.m
         self.vel = self.geocentric.velocity.m_per_s
         
-        # initial rotation from inertial to body coordinates
-        posMag = np.linalg.norm(self.pos)            # position magnitude
-        velMag = np.linalg.norm(self.vel)            # velocity magnitude  
-        b_x = self.vel/velMag                        # body x-axis along velocity vector
-        b_z = self.pos/posMag                        # body z-axis nadir pointing
-        b_y = np.cross(b_x,b_z)                      # body y-axis normal to orbital plane
-        dcm_0 = np.stack([b_x, b_y, b_z])            # initial dcm from inertial to body coordinates
-        r = R.from_matrix(dcm_0)                     # creating rotation in scipy rotations library
-        # self.att = r.as_quat()                     # initial quaternion from inertial to body coordinates
-        self.att = np.array([0,0,0,1])               # attitude quaternion
+        # 
+        # initial nadir-pointing attitude 
+        h = np.cross(self.pos, self.vel)
+        # Calculate the unit vectors for the body x, y, and z axes
+        b_y = h / np.linalg.norm(h)                   # body y-axis normal to orbital plane
+        b_z = self.pos / np.linalg.norm(self.pos)              # body z-axis nadir pointing
+        b_x0 = np.cross(b_y, b_z)
+        b_x = b_x0 / np.linalg.norm(b_x0)             # body x-axis along velocity vector
+        # Create the rotation matrix from the body to the inertial frame
+        R_bi = np.vstack((b_x, b_y, b_z)).T
+        self.att = R.from_matrix(R_bi).as_quat()     # initial nadir-pointing quaternion from inertial to body coordinates
         self.omega = np.array([0,0,0])               # initial rotational velocity
-
-
+        
     def tick(self, time_step): # computes
         super().tick(time_step)
         self.next_target = self.target #update_target(self, t_start, t_end)
@@ -91,6 +91,8 @@ class Satellite(Entity):
         self.pos = self.next_pos
         self.vel = self.next_vel
         self.att = self.next_att
+        
+        print("ATTTTTTTTTTTTTTTTT", self.att)
 
         super().tock()
 
@@ -204,15 +206,6 @@ class Satellite(Entity):
         return isInRange, groundId
     
     # find target quaternion at culmination from ground location
-<<<<<<< HEAD
-    def update_target(self, hoboken, t_start, t_end):
-       
-        t, events = ES.find_events(hoboken, t_start, t_end, altitude_degrees=30.0)
-        eventZip = list(zip(t,events))
-        df = pd.DataFrame(eventZip, columns = ["Time", "Event"])
-        culmTimes = df.loc[df["Event"]==2]
-    
-=======
     def update_target_attitude(self, pos, vel, targetLoc, t_start, t_end):
         
         #nadir-pointing attitude 
@@ -224,38 +217,41 @@ class Satellite(Entity):
         b_x = b_x0 / np.linalg.norm(b_x0)
         # Create the rotation matrix from the body to the inertial frame
         R_bi = np.vstack((b_x, b_y, b_z)).T
-        nadirQuat = R.from_matrix(R_bi).as_quat()
+        targetQuat = R.from_matrix(R_bi).as_quat()
+        
+        print("The TARGET QUAT ISSSSS!!!!!",targetQuat)
         
         # Find culmination times and positions
-        t, events = self.ES.find_events(targetLoc, t_start, t_end, altitude_degrees=15.0)
-        eventZip = list(zip(t,events))
-        df = pd.DataFrame(eventZip, columns = ["Time", "Event"])
-        culmTimes = df.loc[df["Event"]==1]
+        # t, events = self.ES.find_events(targetLoc, t_start, t_end, altitude_degrees=15.0)
+        # eventZip = list(zip(t,events))
+        # df = pd.DataFrame(eventZip, columns = ["Time", "Event"])
+        # culmTimes = df.loc[df["Event"]==1]
         
-        geocentric = self.ES.at(culmTimes.iloc[0]["Time"])
+        # culmGeo = self.ES.at(culmTimes.iloc[0]["Time"])    # skyfield Geocentric Position object at first culmination time
         
-        culmTime = (culmTimes.iloc[0]["Time"]).utc_iso()
-        culmPos = geocentric.position.m
-        targetPos = targetLoc.at(culmTimes.iloc[0]["Time"]).position.m
-        culmVel = geocentric.velocity.m_per_s
+        # culmTime = (culmTimes.iloc[0]["Time"]).utc_iso()
+        # culmPos = culmGeo.position.m
+        # targetPos = targetLoc.at(culmTimes.iloc[0]["Time"]).position.m
+        # culmVel = culmGeo.velocity.m_per_s
         
-        # find roll angle between nadir vector and target
-        culmUnitVec = culmPos/np.linalg.norm(culmPos)      
-        direction = culmPos - targetPos
-        dirUnit = direction/np.linalg.norm(direction)
+        # # find roll angle between nadir vector and target
+        # culmUnitVec = culmPos/np.linalg.norm(culmPos)      
+        # direction = culmPos - targetPos
+        # dirUnit = direction/np.linalg.norm(direction)
         
-        rollAngle = np.arccos(np.dot(dirUnit, culmUnitVec))
+        # rollAngle = 0 #np.arccos(np.dot(dirUnit, culmUnitVec))
         
-        targetRot = R.from_matrix(R_bi)*R.from_euler('x',rollAngle)
-        targetQuat = targetRot.as_quat()
+        # targetRot = R.from_matrix(R_bi)#*R.from_euler('x',rollAngle)
+        #targetQuat = nadirQuat#targetRot.as_quat()
         
         return targetQuat
             
->>>>>>> parent of 4c9baab (Revert "Sat pointing at single target")
     # Calculate error between current quat and desired quat (Wie style)
     def att_error(self, pos, vel):
         
         targetQuat = self.update_target_attitude(pos, vel, targetLoc, t_start, t_end)
+        print("The TARGET QUAT ISSSSS!!!!!",targetQuat)
+        
         
         qT = np.array(
             [
@@ -266,6 +262,8 @@ class Satellite(Entity):
             ]
         )
         qB = np.array([self.att[0], self.att[1], self.att[2], self.att[3]])
+        
+        
         errorQuat = np.matmul(qT, qB)
         
         print("ERROR QUAT IS!!!!!!!!!", errorQuat)
@@ -304,26 +302,8 @@ class Satellite(Entity):
     
         return self.att
     
-<<<<<<< HEAD
-    def update_attitude(self, time_step):
-       
-        # t, events = self.ES.find_events(hoboken, t_start, t_end, altitude_degrees=0.0)
-        # event_names = 'rise above 30°', 'culminate', 'set below 30°'
-        # for ti, event in zip(t, events):
-        #    name = event_names[event]
-        #    print(ti.utc_strftime('%Y %b %d %H:%M:%S'), name)
-        #    print(type(event)) 
-           
-        t, events = self.ES.find_events(hoboken, t_start, t_end, altitude_degrees=30.0)
-        eventZip = list(zip(t,events))
-        df = pd.DataFrame(eventZip, columns = ["Time", "Event"])
-        culmTimes = df.loc[df["Event"]==2]
-        print(events)
-       
-=======
     def update_attitude(self, time_step, pos, vel):         
       
->>>>>>> parent of 4c9baab (Revert "Sat pointing at single target")
         # Calculate error quaternion
         errorQuat = self.att_error(pos, vel)
         
