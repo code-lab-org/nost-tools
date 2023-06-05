@@ -8,10 +8,8 @@ class SatelliteStatus(BaseModel):
     name: str = Field(..., description="Satellite name for labeling.")
     position: list = Field(..., description="Geocentric position")
     velocity: list = Field(..., description="Geocentric velocity")
-    attitude: list = Field(..., description="Attitude quaternion")
-    angular_velocity: list = Field(..., description="Angular velocity in body frame")
-    # target_quaternion: list = Field(..., description="Desired attitude quaternion")
-    # error_quaternion: list = Field(..., description="Error between current attitude and desired attitude")
+    attitude: list = Field(..., description="Attitude quaternion in geocentric frame")
+    omega: list = Field(..., description="Angular velocity in body frame")
     radius: float = Field(..., description="Radius of nadir pointing cone of vision")
     commRange: bool = Field(
         False, description="Boolean for if satellite is in ground stations view"

@@ -11,7 +11,7 @@ from schemas_with_target import *
 from config import PARAMETERS
 
 # initialize
-# targetQuat = PARAMETERS["targetQuat"]
+targetQuat = PARAMETERS["targetQuat"]
 Kp = PARAMETERS["Kp"]
 Kd = PARAMETERS["Kd"]
 initialQuat = PARAMETERS["initialQuat"]
@@ -24,8 +24,8 @@ ts = load.timescale()
 t_start = ts.from_datetime(datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc))
 t_end = ts.from_datetime(datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc) + timedelta(hours=PARAMETERS['SCENARIO_LENGTH']))
 
-# dummy location 
-targetLoc = wgs84.latlon(40.7440, -74.0324)
+# dummy location
+hoboken = wgs84.latlon(40.7440, -74.0324)
 
 class Satellite(Entity):
 
@@ -56,7 +56,7 @@ class Satellite(Entity):
     def initialize(self, init_time):
 
         super().initialize(init_time)
-        self.target = [targetLoc]            # lat/lon of Hoboken, NJ in degrees
+        self.target = [40.7440, -74.0324]            # lat/lon of Hoboken, NJ in degrees
         self.geocentric = self.ES.at(self.ts.from_datetime(init_time))
         self.pos = self.geocentric.position.m
         self.vel = self.geocentric.velocity.m_per_s
@@ -69,8 +69,8 @@ class Satellite(Entity):
         b_y = np.cross(b_x,b_z)                      # body y-axis normal to orbital plane
         dcm_0 = np.stack([b_x, b_y, b_z])            # initial dcm from inertial to body coordinates
         r = R.from_matrix(dcm_0)                     # creating rotation in scipy rotations library
-        # self.att = r.as_quat()                     # initial quaternion from inertial to body coordinates
-        self.att = np.array([0,0,0,1])               # attitude quaternion
+        # self.att = r.as_quat()                       # initial quaternion from inertial to body coordinates
+        self.att = np.array([0,0,0,1])
         self.omega = np.array([0,0,0])               # initial rotational velocity
 
 
@@ -80,7 +80,7 @@ class Satellite(Entity):
         self.next_geocentric = self.ES.at(self.ts.from_datetime(self.get_time() + time_step))
         self.next_pos = self.next_geocentric.position.m
         self.next_vel = self.next_geocentric.velocity.m_per_s
-        self.next_att = self.update_attitude(self, self.pos, self.vel)
+        self.next_att = self.update_attitude(self)
         self.next_omega = self.omega
 
 
@@ -204,49 +204,54 @@ class Satellite(Entity):
         return isInRange, groundId
     
     # find target quaternion at culmination from ground location
-    def update_target_attitude(self, pos, vel, targetLoc, t_start, t_end):
-        
-        #nadir-pointing attitude 
-        h = np.cross(pos, vel)
-        # Calculate the unit vectors for the body x, y, and z axes
-        b_y = h / np.linalg.norm(h)
-        b_z = pos / np.linalg.norm(pos)
-        b_x0 = np.cross(b_y, b_z)
-        b_x = b_x0 / np.linalg.norm(b_x0)
-        # Create the rotation matrix from the body to the inertial frame
-        R_bi = np.vstack((b_x, b_y, b_z)).T
-        nadirQuat = R.from_matrix(R_bi).as_quat()
-        
-        # Find culmination times and positions
-        t, events = self.ES.find_events(targetLoc, t_start, t_end, altitude_degrees=15.0)
+    def update_target_attitude(self, hoboken, t_start, t_end):
+       
+        t, events = satellite.find_events(hoboken, t0, t1, altitude_degrees=15.0)
         eventZip = list(zip(t,events))
         df = pd.DataFrame(eventZip, columns = ["Time", "Event"])
         culmTimes = df.loc[df["Event"]==1]
         
-        geocentric = self.ES.at(culmTimes.iloc[0]["Time"])
+        geocentric = satellite.at(culmTimes.iloc[0]["Time"])
         
         culmTime = (culmTimes.iloc[0]["Time"]).utc_iso()
         culmPos = geocentric.position.m
-        targetPos = targetLoc.at(culmTimes.iloc[0]["Time"]).position.m
+        targetPos = hoboken.at(culmTimes.iloc[0]["Time"]).position.m
         culmVel = geocentric.velocity.m_per_s
         
+        h = np.cross(culmPos, culmVel)
+        # Calculate the unit vectors for the body x, y, and z axes
+        b_y = h / np.linalg.norm(h)
+        b_z = culmPos / np.linalg.norm(culmPos)
+        b_x0 = np.cross(b_y, b_z)
+        b_x = b_x0 / np.linalg.norm(b_x0)
+        
+        # Calculate the rotation matrix from the body to the inertial frame
+        R_bi = np.vstack((b_x, b_y, b_z)).T
+        
+        # Calculate the rotation matrix from the inertial to the body frame
+        R_ib = R_bi.T
+        
+        # Convert the rotation matrix to a quaternion
+        iQuat = R.from_matrix(R_bi).as_quat()
+        
+        print("iQuat", iQuat[0], ",", iQuat[1], ",", iQuat[2], ",", iQuat[3])
+        
         # find roll angle between nadir vector and target
-        culmUnitVec = culmPos/np.linalg.norm(culmPos)      
+        culmUnitVec = culmPos/np.linalg.norm(culmPos)
+        targetUnitVec = targetPos/np.linalg.norm(targetPos)
+        
         direction = culmPos - targetPos
         dirUnit = direction/np.linalg.norm(direction)
         
         rollAngle = np.arccos(np.dot(dirUnit, culmUnitVec))
         
         targetRot = R.from_matrix(R_bi)*R.from_euler('x',rollAngle)
-        targetQuat = targetRot.as_quat()
+targetQuat = targetRot.as_quat()
         
         return targetQuat
             
     # Calculate error between current quat and desired quat (Wie style)
-    def att_error(self, pos, vel):
-        
-        targetQuat = self.update_target_attitude(pos, vel, targetLoc, t_start, t_end)
-        
+    def att_error(self):
         qT = np.array(
             [
                 [targetQuat[3], targetQuat[2], -targetQuat[1], -targetQuat[0]],
@@ -257,8 +262,6 @@ class Satellite(Entity):
         )
         qB = np.array([self.att[0], self.att[1], self.att[2], self.att[3]])
         errorQuat = np.matmul(qT, qB)
-        
-        print("ERROR QUAT IS!!!!!!!!!", errorQuat)
 
         return errorQuat
 
@@ -274,7 +277,6 @@ class Satellite(Entity):
     
     
     def quaternion_product(self, qwdt):
-       
         x0 = self.att[0]
         y0 = self.att[1]
         z0 = self.att[2]
@@ -294,10 +296,18 @@ class Satellite(Entity):
     
         return self.att
     
-    def update_attitude(self, time_step, pos, vel):         
+    def update_attitude(self, time_step):
+       
+        # t, events = self.ES.find_events(hoboken, t_start, t_end, altitude_degrees=0.0)
+        # event_names = 'rise above 30°', 'culminate', 'set below 30°'
+        # for ti, event in zip(t, events):
+        #    name = event_names[event]
+        #    print(ti.utc_strftime('%Y %b %d %H:%M:%S'), name)
+        #    print(type(event)) 
+           
       
         # Calculate error quaternion
-        errorQuat = self.att_error(pos, vel)
+        errorQuat = self.att_error()
         
         # Calculate torque produced by reaction wheels
         T_c = self.control_torque(errorQuat, Kp, Kd)
@@ -318,8 +328,6 @@ class Satellite(Entity):
 
         self.att = self.quaternion_product(qwdt)
         
-        print("ATT QUAT IS!!!!!!!!!", self.att)
-
         return self.att
 
 
@@ -336,7 +344,11 @@ class StatusPublisher(WallclockTimeIntervalPublisher):
     def publish_message(self):
         # if self.satellite.att==None:
         #     return
-
+        next_time = self.satellite.ts.from_datetime(
+            self.satellite.get_time() + self.time_status_step
+            )
+        satSpaceTime = self.satellite.ES.at(next_time)
+        subpoint = wgs84.subpoint(satSpaceTime)
         sensorRadius = self.satellite.get_sensor_radius()
 
         self.isInRange, groundId = self.satellite.check_in_range(self.satellite.grounds)
@@ -349,9 +361,7 @@ class StatusPublisher(WallclockTimeIntervalPublisher):
                 position=list(self.satellite.pos),
                 velocity=list(self.satellite.vel),
                 attitude=list(self.satellite.att),
-                angular_velocity = list(self.satellite.omega),
-                # target_quaternion = list(self.targetQuat),
-                # error_quaternion = list(self.errorQuat),
+                omega = list(self.satellite.omega), #if self.satellite.att!=None else None,
                 radius=sensorRadius,
                 commRange=self.isInRange,
                 time=self.satellite.get_time(),

@@ -47,7 +47,7 @@
       $(document).ready(function () {
         Cesium.Ion.defaultAccessToken = CESIUM_ACCESS_TOKEN;
         var clock = new Cesium.Clock({
-          currentTime: Cesium.JulianDate.fromIso8601("2014-01-23T05:11:59Z"),
+          currentTime: Cesium.JulianDate.fromIso8601("1900-01-01"),
           clockStep: Cesium.ClockStep.SYSTEM_CLOCK_MULTIPLIER,
           multiplier: 0, // how much time to advance each SYSTEM CLOCK tick
           shouldAnimate: false,
@@ -65,8 +65,8 @@
           imageryProvider: new Cesium.IonImageryProvider({ assetId: 3845 }),
           clockViewModel: new Cesium.ClockViewModel(clock),
         });
-        const position = new Cesium.Cartesian3(-3.58736e6, 3.84621e6, 4.7532e6);
-        const orientation = new Cesium.Quaternion(0, 0, 0, 1);
+        const position = Cesium.Cartesian3.fromDegrees(180, 90, 1100000.0);
+        const orientation = Cesium.Quaternion(0, 0, 0, 1);
         const blueBox = viewer.entities.add({
           name: "Blue box",
           position: position,
@@ -87,12 +87,27 @@
             ),
           },
         });
-
         var point = viewer.entities.add({
-          position: new Cesium.Cartesian3.fromDegrees(-74.0324, 40.744),
+          position: new Cesium.Cartesian3(10000000, 0, 0),
           point: {
             pixelSize: 10,
-            color: Cesium.Color.WHITE,
+            color: Cesium.Color.RED,
+          },
+        });
+
+        var point = viewer.entities.add({
+          position: new Cesium.Cartesian3(0, 10000000, 0),
+          point: {
+            pixelSize: 10,
+            color: Cesium.Color.GREEN,
+          },
+        });
+
+        var point = viewer.entities.add({
+          position: new Cesium.Cartesian3(0, 0, 10000000),
+          point: {
+            pixelSize: 10,
+            color: Cesium.Color.YELLOW,
           },
         });
 
@@ -159,11 +174,6 @@
                 payload.attitude[1],
                 payload.attitude[2],
                 payload.attitude[3]
-              );
-              blueBox.position = new Cesium.Cartesian3(
-                payload.position[0],
-                payload.position[1],
-                payload.position[2]
               );
             } else if (topic == "BCtest/ground/location") {
               payload = JSON.parse(message.payloadString);
