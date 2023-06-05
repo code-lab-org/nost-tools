@@ -5,7 +5,7 @@ from skyfield.api import load, wgs84, EarthSatellite
 from nost_tools.entity import Entity
 from nost_tools.publisher import WallclockTimeIntervalPublisher
 
-from satellite_config_files.schemas import *
+from satellite_config_files.schemas_nadir import *
 
 
 class Satellite(Entity):

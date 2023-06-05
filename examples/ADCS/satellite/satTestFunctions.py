@@ -1,3 +1,16 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Wed May 31 15:55:14 2023
+
+@author: brian
+"""
+
+from skyfield.api import EarthSatellite, load, wgs84
+import numpy as np
+import pandas as pd
+from scipy.spatial.transform import Rotation as R
+
+
 from scipy.spatial.transform import Rotation as R
 import numpy as np
 import pandas as pd
@@ -10,22 +23,42 @@ from nost_tools.publisher import WallclockTimeIntervalPublisher
 from satellite_config_files.schemas import *
 from satellite_config_files.config import PARAMETERS
 
-# initialize
-# targetQuat = PARAMETERS["targetQuat"]
-Kp = PARAMETERS["Kp"]
-Kd = PARAMETERS["Kd"]
-initialQuat = PARAMETERS["initialQuat"]
-T_c = PARAMETERS["initialT"]
-I = PARAMETERS["I"]
-dt = PARAMETERS["dt"]
+culm = []
 
-# times for culmination
+# Name(s) of satellite(s) used in Celestrak database
+name = "TERRA"
+
+activesats_url = "https://celestrak.com/NORAD/elements/active.txt"
+activesats = load.tle_file(activesats_url, reload=False)
+by_name = {sat.name: sat for sat in activesats}
+
+satellite=by_name[name]
+
 ts = load.timescale()
-t_start = ts.from_datetime(datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc))
-t_end = ts.from_datetime(datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc) + timedelta(hours=PARAMETERS['SCENARIO_LENGTH']))
 
-# dummy location 
-targetLoc = wgs84.latlon(40.7440, -74.0324)
+hoboken = wgs84.latlon(40.7440, -74.0324)
+t0 = ts.utc(2014, 1, 23)
+t1 = ts.utc(2014, 2, 30)
+
+t, events = satellite.find_events(hoboken, t0, t1, altitude_degrees=15.0)
+eventZip = list(zip(t,events))
+df = pd.DataFrame(eventZip, columns = ["Time", "Event"])
+culmTimes = df.loc[df["Event"]==1]
+
+# for i in range(culmTimes):
+#     df["culmPosX"] = satellite.at(culmTimes)(culmTimes.iloc[0]["Time"]).position.m[0]
+
+culmTime = (culmTimes.iloc[0]["Time"]).utc_iso()
+culmPos = satellite.at(culmTimes.iloc[0]["Time"]).position.m
+targetPos = hoboken.at(culmTimes.iloc[0]["Time"]).position.m
+
+culmUnitVec = culmPos/np.linalg.norm(culmPos)
+targetUnitVec = targetPos/np.linalg.norm(targetPos)
+
+angle = np.arccos(np.dot(culmUnitVec, targetUnitVec))
+
+r = R.from_euler('x',angle)
+targetQuat = r.as_quat()
 
 class Satellite(Entity):
 
@@ -79,9 +112,11 @@ class Satellite(Entity):
         self.next_geocentric = self.ES.at(self.ts.from_datetime(self.get_time() + time_step))
         self.next_pos = self.next_geocentric.position.m
         self.next_vel = self.next_geocentric.velocity.m_per_s
-        self.next_att = self.update_attitude(self, self.next_pos, self.next_vel)
+        self.next_att = self.update_attitude(self, self.pos, self.vel)
         self.next_omega = self.omega
-    
+
+
+
     def tock(self):
         self.target = self.next_target
         self.geocentric = self.next_geocentric
@@ -89,6 +124,8 @@ class Satellite(Entity):
         self.vel = self.next_vel
         self.att = self.next_att
         
+        print("ATTTTTTTTTTTTTTTTT", self.att)
+
         super().tock()
 
 
@@ -214,7 +251,7 @@ class Satellite(Entity):
         R_bi = np.vstack((b_x, b_y, b_z)).T
         targetQuat = R.from_matrix(R_bi).as_quat()
         
-        # print("The TARGET QUAT ISSSSS!!!!!",targetQuat)
+        print("The TARGET QUAT ISSSSS!!!!!",targetQuat)
         
         # Find culmination times and positions
         # t, events = self.ES.find_events(targetLoc, t_start, t_end, altitude_degrees=15.0)
@@ -245,7 +282,7 @@ class Satellite(Entity):
     def att_error(self, pos, vel):
         
         targetQuat = self.update_target_attitude(pos, vel, targetLoc, t_start, t_end)
-        # print("The TARGET QUAT ISSSSS!!!!!",targetQuat)
+        print("The TARGET QUAT ISSSSS!!!!!",targetQuat)
         
         
         qT = np.array(
@@ -325,41 +362,4 @@ class Satellite(Entity):
 
         return self.att
 
-
-# define a publisher to report satellite status
-class StatusPublisher(WallclockTimeIntervalPublisher):
-
-    def __init__(
-        self, app, satellite, time_status_step=None, time_status_init=None
-    ):
-        super().__init__(app, time_status_step, time_status_init)
-        self.satellite = satellite
-        self.isInRange = False
-
-    def publish_message(self):
-        # if self.satellite.att==None:
-        #     return
-
-        sensorRadius = self.satellite.get_sensor_radius()
-
-        self.isInRange, groundId = self.satellite.check_in_range(self.satellite.grounds)
-        
-        self.app.send_message(
-            "state",
-            SatelliteStatus(
-                id=self.satellite.id,
-                name=self.satellite.name,
-                position=list(self.satellite.pos),
-                velocity=list(self.satellite.vel),
-                attitude=list(self.satellite.att),
-                angular_velocity = list(self.satellite.omega),
-                # target_quaternion = list(self.satellite.targetQuat),
-                # error_quaternion = list(self.satellite.errorQuat),
-                # if self.satellite.att!=None else None,
-                radius=sensorRadius,
-                commRange=self.isInRange,
-                time=self.satellite.get_time(),
-            ).json(),
-        )
-        
-
+                       
