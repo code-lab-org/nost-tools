@@ -36,7 +36,7 @@ PARAMETERS = pd.Series(
         # Define initial state of satellite
         "cubeMass": 2,  # mass of single cubesat cube (kg)
         "cubeLength": 0.1,  # length of single cubesat cube (m)
-        "I": np.diag([1000, 1000, 1000]),
+        "I": np.diag([100, 100, 100]),
         "initialQuat": np.array([0.0, 0.0, 0.0, 1.0]),  # x,y,z,w
         "targetQuat": np.array([0.382683, 0, 0, 0.92388]),
         "initialT": np.zeros(3),

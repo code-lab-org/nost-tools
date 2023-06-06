@@ -217,27 +217,27 @@ class Satellite(Entity):
         # print("The TARGET QUAT ISSSSS!!!!!",targetQuat)
         
         # Find culmination times and positions
-        # t, events = self.ES.find_events(targetLoc, t_start, t_end, altitude_degrees=15.0)
-        # eventZip = list(zip(t,events))
-        # df = pd.DataFrame(eventZip, columns = ["Time", "Event"])
-        # culmTimes = df.loc[df["Event"]==1]
+        t, events = self.ES.find_events(targetLoc, t_start, t_end, altitude_degrees=15.0)
+        eventZip = list(zip(t,events))
+        df = pd.DataFrame(eventZip, columns = ["Time", "Event"])
+        culmTimes = df.loc[df["Event"]==1]
         
-        # culmGeo = self.ES.at(culmTimes.iloc[0]["Time"])    # skyfield Geocentric Position object at first culmination time
+        culmGeo = self.ES.at(culmTimes.iloc[0]["Time"])    # skyfield Geocentric Position object at first culmination time
         
-        # culmTime = (culmTimes.iloc[0]["Time"]).utc_iso()
-        # culmPos = culmGeo.position.m
-        # targetPos = targetLoc.at(culmTimes.iloc[0]["Time"]).position.m
-        # culmVel = culmGeo.velocity.m_per_s
+        culmTime = (culmTimes.iloc[0]["Time"]).utc_iso()
+        culmPos = culmGeo.position.m
+        targetPos = targetLoc.at(culmTimes.iloc[0]["Time"]).position.m
+        culmVel = culmGeo.velocity.m_per_s
         
-        # # find roll angle between nadir vector and target
-        # culmUnitVec = culmPos/np.linalg.norm(culmPos)      
-        # direction = culmPos - targetPos
-        # dirUnit = direction/np.linalg.norm(direction)
+        # find roll angle between nadir vector and target
+        culmUnitVec = culmPos/np.linalg.norm(culmPos)      
+        direction = culmPos - targetPos
+        dirUnit = direction/np.linalg.norm(direction)
         
-        # rollAngle = 0 #np.arccos(np.dot(dirUnit, culmUnitVec))
+        rollAngle = np.arccos(np.dot(dirUnit, culmUnitVec))
         
-        # targetRot = R.from_matrix(R_bi)#*R.from_euler('x',rollAngle)
-        #targetQuat = nadirQuat#targetRot.as_quat()
+        targetRot = R.from_matrix(R_bi)*R.from_euler('x',0)
+        targetQuat = targetRot.as_quat()
         
         return targetQuat
             
@@ -272,6 +272,8 @@ class Satellite(Entity):
         T_c[0] = -(2 * Kp[0] * errorQuat[0] * errorQuat[3] + Kd[0] * self.omega[0])
         T_c[1] = -(2 * Kp[1] * errorQuat[1] * errorQuat[3] + Kd[1] * self.omega[1])
         T_c[2] = -(2 * Kp[2] * errorQuat[2] * errorQuat[3] + Kd[2] * self.omega[2])
+        
+        print("TTOTOTOTOTOTOTORQUE", T_c)
     
         return T_c
     
