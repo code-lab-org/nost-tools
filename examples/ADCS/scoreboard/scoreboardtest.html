@@ -66,15 +66,15 @@
           clockViewModel: new Cesium.ClockViewModel(clock),
         });
         const position = new Cesium.Cartesian3(
-          2083394.71382535,
-          -1393861.93701975,
-          -6762990.23568068
+          2072206.7344265764,
+          -1336644.5366487724,
+          -6778158.390419393
         );
         const orientation = new Cesium.Quaternion(
-          0.85482762,
-          -0.48795715,
-          0.17609921,
-          0.012515
+          0.7570884,
+          -0.34001677,
+          0.38454302,
+          -0.40414406
         );
         const blueBox = viewer.entities.add({
           name: "Blue box",
@@ -192,19 +192,19 @@
               payload = JSON.parse(message.payloadString);
               viewer.clockViewModel.multiplier =
                 payload.taskingParameters.timeScalingFactor;
-            } else if (topic == "BCtest/satellite/state") {
-              payload = JSON.parse(message.payloadString);
-              blueBox.orientation = new Cesium.Quaternion(
-                payload.attitude[0],
-                payload.attitude[1],
-                payload.attitude[2],
-                payload.attitude[3]
-              );
-              blueBox.position = new Cesium.Cartesian3(
-                payload.position[0],
-                payload.position[1],
-                payload.position[2]
-              );
+              // } else if (topic == "BCtest/satellite/state") {
+              //  payload = JSON.parse(message.payloadString);
+              //  blueBox.orientation = new Cesium.Quaternion(
+              //    payload.attitude[0],
+              //   payload.attitude[1],
+              //    payload.attitude[2],
+              //   payload.attitude[3]
+              //  );
+              //   blueBox.position = new Cesium.Cartesian3(
+              //     payload.position[0],
+              //    payload.position[1],
+              //    payload.position[2]
+              //   );
             } else if (topic == "BCtest/ground/location") {
               payload = JSON.parse(message.payloadString);
               activeCheck = payload.operational;

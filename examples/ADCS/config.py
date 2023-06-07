@@ -13,7 +13,7 @@ PARAMETERS = pd.Series(
         "PREFIX": "BCtest",
         "SCALE": 60,
         "SCENARIO_START": datetime(2023, 1, 1, 7, 0, 0).timestamp(),
-        "SCENARIO_LENGTH": 10,
+        "SCENARIO_LENGTH": 2,
         # Name of satellite for reference orbit from Celestrak database SUOMI NPP, GOES 18, NAVSTAR 72 (USA 258)
         "name": "SUOMI NPP",
         # satellite field of regard
@@ -40,7 +40,7 @@ PARAMETERS = pd.Series(
         "initialQuat": np.array([0.0, 0.0, 0.0, 1.0]),  # x,y,z,w
         "targetQuat": np.array([0.382683, 0, 0, 0.92388]),
         "initialT": np.zeros(3),
-        "dt": 0.01,
+        "dt": 0.1,
         # Actuators
         "rxnwl_mass": 226e-3,
         "rxnwl_radius": 0.5 * 65e-3,

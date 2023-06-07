@@ -7,8 +7,8 @@ from skyfield.api import load, wgs84, EarthSatellite, utc
 from nost_tools.entity import Entity
 from nost_tools.publisher import WallclockTimeIntervalPublisher
 
-from satellite_config_files.schemas import *
-from satellite_config_files.config import PARAMETERS
+from satellite.satellite_config_files.schemas import *
+from config import PARAMETERS
 
 # initialize
 # targetQuat = PARAMETERS["targetQuat"]
@@ -69,7 +69,8 @@ class Satellite(Entity):
         b_x = b_x0 / np.linalg.norm(b_x0)             # body x-axis along velocity vector
         # Create the rotation matrix from the body to the inertial frame
         R_bi = np.vstack((b_x, b_y, b_z)).T
-        self.att = self.targetQuat = R.from_matrix(R_bi).as_quat()     # initial nadir-pointing quaternion from inertial to body coordinates
+        self.att = R.from_matrix(R_bi).as_quat() # np.array([0,0,0,1])
+        self.targetQuat = R.from_matrix(R_bi).as_quat()     # initial nadir-pointing quaternion from inertial to body coordinates
         self.omega = np.array([0,0,0])               # initial rotational velocity
         
     def tick(self, time_step): # computes
@@ -216,8 +217,6 @@ class Satellite(Entity):
         R_bi = np.vstack((b_x, b_y, b_z)).T
         #targetQuat = R.from_matrix(R_bi).as_quat()
         
-        # print("The TARGET QUAT ISSSSS!!!!!",targetQuat)
-        
         # Find culmination times and positions
         t, events = self.ES.find_events(targetLoc, t_start, t_end, altitude_degrees=15.0)
         eventZip = list(zip(t,events))
@@ -238,17 +237,18 @@ class Satellite(Entity):
         
         rollAngle = np.arccos(np.dot(dirUnit, culmUnitVec))
         
-        targetRot = R.from_matrix(R_bi)*R.from_euler('x',0)
+        targetRot = R.from_matrix(R_bi)*R.from_euler('x', rollAngle)
         targetQuat = targetRot.as_quat()
+        print("ROLLLLLLLLLLLLLLLLLLLLLL!!!!!",rollAngle)
+        # euler = targetRot.as_euler('xyz')
+        # print("EULERRRRRRRRRRRRRRRRRRRR!!!!!",euler)
         
         return targetQuat
             
     # Calculate error between current quat and desired quat (Wie style)
     def att_error(self, next_pos, next_vel):
         
-        targetQuat = self.update_target_attitude(self.next_pos, next_vel, targetLoc, t_start, t_end)
-        # print("The TARGET QUAT ISSSSS!!!!!",targetQuat)
-        
+        targetQuat = self.update_target_attitude(self.next_pos, next_vel, targetLoc, t_start, t_end)      
         
         qT = np.array(
             [
@@ -263,9 +263,6 @@ class Satellite(Entity):
         
         errorQuat = np.matmul(qT, qB)
         
-        print("ERROR QUAT IS!!!!!!!!!", errorQuat)
-        print("ATT QUAT IS1!!!!!!!!!", self.att)
-
         return errorQuat
 
 
@@ -275,8 +272,7 @@ class Satellite(Entity):
         T_c[0] = -(2 * Kp[0] * errorQuat[0] * errorQuat[3] + Kd[0] * self.omega[0])
         T_c[1] = -(2 * Kp[1] * errorQuat[1] * errorQuat[3] + Kd[1] * self.omega[1])
         T_c[2] = -(2 * Kp[2] * errorQuat[2] * errorQuat[3] + Kd[2] * self.omega[2])
-        
-        # print("TTOTOTOTOTOTOTORQUE", T_c)
+    
     
         return T_c
     
@@ -299,8 +295,6 @@ class Satellite(Entity):
         wn = w0 * w1 - x0 * x1 - y0 * y1 - z0 * z1
         
         self.att = np.array([xn,yn,zn,wn])
-        
-        print("ATT QUAT IS2!!!!!!!!!", self.att)
     
         return self.att
     
@@ -327,8 +321,6 @@ class Satellite(Entity):
         )
 
         self.att = self.quaternion_product(qwdt)
-        
-        print("ATT QUAT IS3!!!!!!!!!", self.att)
 
         return self.att
 
