@@ -15,7 +15,7 @@ from datetime import timedelta
 culm = []
 
 # Name(s) of satellite(s) used in Celestrak database
-name = "TERRA"
+name = "SUOMI NPP"
 
 activesats_url = "https://celestrak.com/NORAD/elements/active.txt"
 activesats = load.tle_file(activesats_url, reload=False)
@@ -25,13 +25,13 @@ satellite=by_name[name]
 
 ts = load.timescale()
 
-hoboken = wgs84.latlon(40.7440, -74.0324)
+hoboken = wgs84.latlon(40.7440, -64.0324)
 t_start = ts.utc(2014, 1, 23)
-t_length = timedelta(minutes=2400)
+t_length = timedelta(hours=24)
 t_end = t_start + t_length
 
 
-t, events = satellite.find_events(hoboken, t_start, t_end, altitude_degrees=15.0)
+t, events = satellite.find_events(hoboken, t_start, t_end, altitude_degrees=0.0)
 eventZip = list(zip(t,events))
 df = pd.DataFrame(eventZip, columns = ["Time", "Event"])
 culmTimes = df.loc[df["Event"]==1]
@@ -39,21 +39,7 @@ culmTimes = df.loc[df["Event"]==1]
 # for i in range(culmTimes):
 #     df["culmPosX"] = satellite.at(culmTimes)(culmTimes.iloc[0]["Time"]).position.m[0]
 
-time = t_start
 
-for i in 1000:
-
-    culmTime = (culmTimes.iloc[0]["Time"]).utc_iso()
-    culmPos = satellite.at(culmTimes.iloc[0]["Time"]).position.m
-    targetPos = hoboken.at(culmTimes.iloc[0]["Time"]).position.m
-    culmUnitVec = culmPos/np.linalg.norm(culmPos)
-    targetUnitVec = targetPos/np.linalg.norm(targetPos)
-    angle = np.arccos(np.dot(culmUnitVec, targetUnitVec))
-    
-    r = R.from_euler('x',angle)
-    targetQuat = r.as_quat()
-    
-    time = time + timedelta(minutes=1)
     
 
     
