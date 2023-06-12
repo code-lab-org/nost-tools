@@ -7,8 +7,8 @@ from skyfield.api import load, wgs84, EarthSatellite, utc
 from nost_tools.entity import Entity
 from nost_tools.publisher import WallclockTimeIntervalPublisher
 
-from satellite_config_files.schemas import *
-from satellite_config_files.config import PARAMETERS
+from satellite.satellite_config_files.schemas import *
+from config import PARAMETERS
 
 # initialize
 # targetQuat = PARAMETERS["targetQuat"]
@@ -69,7 +69,9 @@ class Satellite(Entity):
         b_x = b_x0 / np.linalg.norm(b_x0)             # body x-axis along velocity vector
         # Create the rotation matrix from the body to the inertial frame
         R_bi = np.vstack((b_x, b_y, b_z)).T
-        self.att = self.targetQuat = R.from_matrix(R_bi).as_quat()     # initial nadir-pointing quaternion from inertial to body coordinates
+        self.att = R.from_matrix(R_bi).as_quat() # np.array([0,0,0,1])
+        self.targetQuat = R.from_matrix(R_bi).as_quat()     # initial nadir-pointing quaternion from inertial to body coordinates
+        # print("ATT QUAT IS0!!!!!!!!!", self.att)
         self.omega = np.array([0,0,0])               # initial rotational velocity
         
     def tick(self, time_step): # computes
@@ -216,8 +218,6 @@ class Satellite(Entity):
         R_bi = np.vstack((b_x, b_y, b_z)).T
         #targetQuat = R.from_matrix(R_bi).as_quat()
         
-        # print("The TARGET QUAT ISSSSS!!!!!",targetQuat)
-        
         # Find culmination times and positions
         t, events = self.ES.find_events(targetLoc, t_start, t_end, altitude_degrees=15.0)
         eventZip = list(zip(t,events))
@@ -238,8 +238,11 @@ class Satellite(Entity):
         
         rollAngle = np.arccos(np.dot(dirUnit, culmUnitVec))
         
-        targetRot = R.from_matrix(R_bi)*R.from_euler('x',0)
+        targetRot = R.from_matrix(R_bi)*R.from_euler('x', rollAngle)
         targetQuat = targetRot.as_quat()
+        print("ROLLLLLLLLLLLLLLLLLLLLLL!!!!!",rollAngle)
+        
+        print("The TARGET QUAT ISSSSS!!!!!",targetQuat)
         
         return targetQuat
             
@@ -264,7 +267,7 @@ class Satellite(Entity):
         errorQuat = np.matmul(qT, qB)
         
         print("ERROR QUAT IS!!!!!!!!!", errorQuat)
-        print("ATT QUAT IS1!!!!!!!!!", self.att)
+        # print("ATT QUAT IS1!!!!!!!!!", self.att)
 
         return errorQuat
 

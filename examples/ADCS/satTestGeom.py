@@ -5,39 +5,55 @@ Created on Wed May 31 15:55:14 2023
 @author: brian
 """
 
-from skyfield.api import EarthSatellite, load, wgs84
+from skyfield.api import EarthSatellite, load, wgs84, utc,  N, S, E, W
 import numpy as np
 import pandas as pd
 from scipy.spatial.transform import Rotation as R
-from datetime import timedelta
+from datetime import datetime, timedelta
+from config import PARAMETERS
 
 # Name(s) of satellite(s) used in Celestrak database
-name = "SUOMI NPP"
+# name = "SUOMI NPP"
+# activesats_url = "https://celestrak.com/NORAD/elements/active.txt"
+# activesats = load.tle_file(activesats_url, reload=False)
+# by_name = {sat.name: sat for sat in activesats}
+# satellite=by_name[name]
 
-activesats_url = "https://celestrak.com/NORAD/elements/active.txt"
-activesats = load.tle_file(activesats_url, reload=False)
-by_name = {sat.name: sat for sat in activesats}
 
-satellite=by_name[name]
+
+tle = """
+SUOMI NPP
+1 37849U 11061A   23159.44417251  .00000119  00000+0  77201-4 0  9999
+2 37849  98.7042  98.3103 0000923  74.2604  58.9205 14.19566569601697
+"""
+lines = tle.strip().splitlines()
+
+satellite = EarthSatellite(lines[1], lines[2], lines[0])
+
+
 
 ts = load.timescale()
 
-hoboken = wgs84.latlon(40.7440, -74.0324)
-t_start = ts.utc(2023, 1, 1, 7)
-t_length = timedelta(hours=24)
-t_end = t_start + t_length
+targetLoc = wgs84.latlon(-34.9055, -56.1851)
+t_start = datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc)
+t_end  = datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc) + timedelta(hours=PARAMETERS['SCENARIO_LENGTH'])
 
-
-# finding time, position, velocity of culmination events
-t, events = satellite.find_events(hoboken, t_start, t_end, altitude_degrees=15.0)
+# finding time, position, velocity of rise/culmination/set events
+t, events = satellite.find_events(targetLoc, ts.from_datetime(t_start), ts.from_datetime(t_end), altitude_degrees=35.0)
 eventZip = list(zip(t,events))
 df = pd.DataFrame(eventZip, columns = ["Time", "Event"])
+# removing rise/set events
 culmTimes = df.loc[df["Event"]==1]
-culmGeocentric = satellite.at(culmTimes.iloc[0]["Time"])
-culmTime = (culmTimes.iloc[0]["Time"]).utc_iso()
+# finding time of first culmination
+culmTime = culmTimes.iloc[0]["Time"]
+# finding satellite position and velocity at first culmination time
+culmGeocentric = satellite.at(culmTime)
 culmPos = culmGeocentric.position.m
-targetPos = hoboken.at(culmTimes.iloc[0]["Time"]).position.m
+targetPos = targetLoc.itrs_xyz.m
 culmVel = culmGeocentric.velocity.m_per_s
+
+sat_geographical = wgs84.geographic_position_of(culmGeocentric)
+print(sat_geographical)
 
 h = np.cross(culmPos, culmVel)
 # Calculate the unit vectors for the body x, y, and z axes
@@ -69,6 +85,7 @@ rollAngle = np.arccos(np.dot(dirUnit, culmUnitVec))
 targetRot = R.from_matrix(R_bi)*R.from_euler('x',rollAngle)
 targetQuat = targetRot.as_quat()
 
+print(culmTime.utc_iso())
 print("culmPos", [culmPos])
 print("targetQuat", targetQuat[0], ",", targetQuat[1], ",", targetQuat[2], ",", targetQuat[3])
 
