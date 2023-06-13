@@ -31,15 +31,25 @@ if __name__ == "__main__":
     # Name(s) of satellite(s) used in Celestrak database
     name = PARAMETERS["name"]
 
-    activesats_url = "https://celestrak.com/NORAD/elements/active.txt"
-    activesats = load.tle_file(activesats_url, reload=False)
-    by_name = {sat.name: sat for sat in activesats}
+    # activesats_url = "https://celestrak.com/NORAD/elements/active.txt"
+    # activesats = load.tle_file(activesats_url, reload=False)
+    # by_name = {sat.name: sat for sat in activesats}
+    
+    tle = """
+    NOAA 21 (JPSS-2)        
+    1 54234U 22150A   23163.90962243  .00000111  00000+0  73435-4 0  9996
+    2 54234  98.7164 101.9278 0001563  84.6643 275.4712 14.19552572 30449
+    """
+    lines = tle.strip().splitlines()
+
+    ES = EarthSatellite(lines[1], lines[2], lines[0])
 
     field_of_regard = PARAMETERS["field_of_regard"]
 
     satellite = Satellite(
-        app, 0, "satellite", field_of_regard, PARAMETERS["GROUND"], ES=by_name[name]
-    )
+        app, 0, "satellite", field_of_regard, PARAMETERS["GROUND"], ES)
+    
+    print(satellite)
 
     # add the Constellation entity to the application's simulator
     app.simulator.add_entity(satellite)

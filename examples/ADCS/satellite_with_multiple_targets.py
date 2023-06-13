@@ -21,16 +21,10 @@ dt = PARAMETERS["dt"]
 
 # times for culmination
 ts = load.timescale()
-t_start = ts.from_datetime(
-    datetime.fromtimestamp(PARAMETERS["SCENARIO_START"]).replace(tzinfo=utc)
-)
-t_end = ts.from_datetime(
-    datetime.fromtimestamp(PARAMETERS["SCENARIO_START"]).replace(tzinfo=utc)
-    + timedelta(hours=PARAMETERS["SCENARIO_LENGTH"])
-)
-
+t_start = datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc)
+t_end  = datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc) + timedelta(hours=PARAMETERS['SCENARIO_LENGTH'])
 # dummy location
-targetLoc = wgs84.latlon(-34.9055, -56.1851)
+targetLoc = wgs84.latlon(20, 20)
 
 
 class Satellite(Entity):
@@ -39,10 +33,13 @@ class Satellite(Entity):
         self.app = app
         self.ts = load.timescale()
 
-        if ES is not None:
-            self.ES = ES
-        if tle is not None:
-            self.ES = EarthSatellite(tle[0], tle[1], name)
+        # if ES is not None:
+        self.ES = ES
+
+        # if tle is not None:
+        #     self.ES = EarthSatellite(tle[0], tle[1], name)
+            
+
 
         self.id = id
         self.name = name
@@ -64,7 +61,7 @@ class Satellite(Entity):
         self.geocentric = self.ES.at(self.ts.from_datetime(init_time))
         self.pos = self.geocentric.position.m
         self.vel = self.geocentric.velocity.m_per_s
-
+        
         # initial nadir-pointing attitude
         h = np.cross(self.pos, self.vel)
         # Calculate the unit vectors for the body x, y, and z axes
@@ -216,6 +213,8 @@ class Satellite(Entity):
 
     # find target quaternion at culmination from ground location
     def update_target_attitude(self, next_pos, next_vel, targetLoc, t_start, t_end):
+        
+        print("EARTH SATELLITE ISSSSSSSSSSSSSSS",self.ES)
         # nadir-pointing attitude
         h = np.cross(next_pos, next_vel)
         # Calculate the unit vectors for the body x, y, and z axes
@@ -227,22 +226,20 @@ class Satellite(Entity):
         R_bi = np.vstack((b_x, b_y, b_z)).T
         # targetQuat = R.from_matrix(R_bi).as_quat()
 
-        # Find culmination times and positions
-        t, events = self.ES.find_events(targetLoc, t_start, t_end, altitude_degrees=35.0)
-        eventZip = list(zip(t, events))
-        df = pd.DataFrame(eventZip, columns=["Time", "Event"])
-        culmTimes = df.loc[df["Event"] == 1]
-
-        culmTime = culmTimes.iloc[0]["Time"]  # time of first culmination
-        culmGeo = self.ES.at(
-            culmTime
-        )  # skyfield Geocentric Position object at first culmination time
-        
-        print(culmTime.utc_iso())
-
-        culmPos = culmGeo.position.m
+        # finding time, position, velocity of rise/culmination/set events
+        t, events = self.ES.find_events(targetLoc, ts.from_datetime(t_start), ts.from_datetime(t_end), altitude_degrees=1.0)
+        eventZip = list(zip(t,events))
+        print(eventZip)
+        df = pd.DataFrame(eventZip, columns = ["Time", "Event"])
+        # removing rise/set events
+        culmTimes = df.loc[df["Event"]==1]
+        # finding time of first culmination
+        culmTime = culmTimes.iloc[0]["Time"]
+        # finding satellite position and velocity at first culmination time
+        culmGeocentric = self.ES.at(culmTime)
+        culmPos = culmGeocentric.position.m
         targetPos = targetLoc.itrs_xyz.m
-        culmVel = culmGeo.velocity.m_per_s
+        culmVel = culmGeocentric.velocity.m_per_s
 
         # find roll angle between nadir vector and target
         culmUnitVec = culmPos / np.linalg.norm(culmPos)
