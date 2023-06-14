@@ -7,39 +7,40 @@
 """
 
 import json
-from dash import dash, dcc, html
-import dash_daq as daq
-from dash.dependencies import Input, Output
-import plotly.express as px
-import pandas as pd
+from dash import dash, dcc, html # type:ignore
+import dash_daq as daq # type:ignore
+from dash.dependencies import Input, Output # type:ignore
+import plotly.express as px # type:ignore
+import pandas as pd # type:ignore
 # from datetime import datetime, timedelta
-from dotenv import dotenv_values
+from dotenv import dotenv_values # type:ignore
 
-from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
+from nost_tools.application_utils import ConnectionConfig, ShutDownObserver # type:ignore
 # from nost_tools.simulator import Simulator, Mode
 # from nost_tools.observer import Observer, Observable
-from nost_tools.managed_application import ManagedApplication
+from nost_tools.managed_application import ManagedApplication # type:ignore
 
-from downlinkDashboard_config_files.config import PREFIX, NAME
+from downlinkDashboard_config_files.config import PREFIX, NAME # type:ignore
 
 def on_message(mqttc, obj, msg):
     """ Callback to process an incoming message."""
     # setting up list of dictionaries
     messageIn = json.loads(msg.payload.decode("utf-8"))
-    if msg.topic == "downlink/constellation/location":
+    print(messageIn)
+    if msg.topic == f"{PREFIX}/constellation/location":
         capacityLOD.append(messageIn)   
         update_capacity(n_capacity)
         update_cost(n_cost)
-    elif msg.topic == "downlink/constellation/linkCharge" or msg.topic == "downlink/ground/linkCharge":
+    elif msg.topic == f"{PREFIX}/constellation/linkCharge" or msg.topic == f"{PREFIX}/ground/linkCharge":
         # if not state_cost:
         print(msg.topic)
         print("\n\n linkCharge \n\n")
         print(messageIn)
         costLOD.append(messageIn)
-    elif msg.topic == "downlink/manager/start":
+    elif msg.topic == f"{PREFIX}/manager/start":
         print("\n\nDid the manager start trigger work?!!\n\n")
         print(msg.topic)        
-    elif msg.topic == "downlink/manager/stop":
+    elif msg.topic == f"{PREFIX}/manager/stop":
         print("\n\nDid the manager stop trigger work?!!\n\n")
         print(msg.topic)
         app.shut_down()
@@ -73,8 +74,8 @@ def disable_dash(state_switch):
 if __name__ == "__main__":
     # Note that these are loaded from a .env file in current working directory
     credentials = dotenv_values(".env")
-    HOST, PORT = credentials["SMCE_HOST"], int(credentials["SMCE_PORT"])
-    USERNAME, PASSWORD = credentials["SMCE_USERNAME"], credentials["SMCE_PASSWORD"]
+    HOST, PORT = credentials["HOST"], int(credentials["PORT"]) # type:ignore
+    USERNAME, PASSWORD = credentials["USERNAME"], credentials["PASSWORD"]
     # set the client credentials
     config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, True)
     # create the managed application
@@ -112,7 +113,7 @@ if __name__ == "__main__":
     state_switch = False
 
     n_capacity=0
-    capacityLOD = []
+    capacityLOD = [] # type:ignore
     state_capacity = True
     
     df1 = pd.DataFrame()
@@ -128,7 +129,7 @@ if __name__ == "__main__":
     df1["cumulativeCosts"] = 0
 
     n_cost=0
-    costLOD = []
+    costLOD = [] # type:ignore
     state_cost = True
     
     downlinkDashboard = dash.Dash(__name__)
