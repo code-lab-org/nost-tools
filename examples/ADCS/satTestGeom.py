@@ -19,27 +19,23 @@ from config import PARAMETERS
 # by_name = {sat.name: sat for sat in activesats}
 # satellite=by_name[name]
 
-
-
 tle = """
-SUOMI NPP
-1 37849U 11061A   23159.44417251  .00000119  00000+0  77201-4 0  9999
-2 37849  98.7042  98.3103 0000923  74.2604  58.9205 14.19566569601697
+NOAA 21 (JPSS-2)        
+1 54234U 22150A   23163.90962243  .00000111  00000+0  73435-4 0  9996
+2 54234  98.7164 101.9278 0001563  84.6643 275.4712 14.19552572 30449
 """
 lines = tle.strip().splitlines()
 
 satellite = EarthSatellite(lines[1], lines[2], lines[0])
 
-
-
 ts = load.timescale()
 
-targetLoc = wgs84.latlon(-34.9055, -56.1851)
+targetLoc = wgs84.latlon(20, 20)
 t_start = datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc)
 t_end  = datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc) + timedelta(hours=PARAMETERS['SCENARIO_LENGTH'])
 
 # finding time, position, velocity of rise/culmination/set events
-t, events = satellite.find_events(targetLoc, ts.from_datetime(t_start), ts.from_datetime(t_end), altitude_degrees=35.0)
+t, events = satellite.find_events(targetLoc, ts.from_datetime(t_start), ts.from_datetime(t_end), altitude_degrees=1.0)
 eventZip = list(zip(t,events))
 df = pd.DataFrame(eventZip, columns = ["Time", "Event"])
 # removing rise/set events
@@ -49,11 +45,13 @@ culmTime = culmTimes.iloc[0]["Time"]
 # finding satellite position and velocity at first culmination time
 culmGeocentric = satellite.at(culmTime)
 culmPos = culmGeocentric.position.m
+abc = culmGeocentric.itrf_xyz
+
 targetPos = targetLoc.itrs_xyz.m
 culmVel = culmGeocentric.velocity.m_per_s
 
 sat_geographical = wgs84.geographic_position_of(culmGeocentric)
-print(sat_geographical)
+print("culmination geographic position",sat_geographical)
 
 h = np.cross(culmPos, culmVel)
 # Calculate the unit vectors for the body x, y, and z axes
@@ -85,9 +83,10 @@ rollAngle = np.arccos(np.dot(dirUnit, culmUnitVec))
 targetRot = R.from_matrix(R_bi)*R.from_euler('x',rollAngle)
 targetQuat = targetRot.as_quat()
 
-print(culmTime.utc_iso())
-print("culmPos", [culmPos])
+print("culmination time",culmTime.utc_iso())
+print("culmination geocentric position", [culmPos])
 print("targetQuat", targetQuat[0], ",", targetQuat[1], ",", targetQuat[2], ",", targetQuat[3])
+print(satellite)
 
                        
 

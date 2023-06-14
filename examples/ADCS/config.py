@@ -7,13 +7,15 @@ import numpy as np
 
 import pandas as pd
 
+# Historic SUOMI NPP TLE 2023-06-08T10:39:37Z
+
 PARAMETERS = pd.Series(
     data={
         # Global parameters
         "PREFIX": "BCtest",
         "SCALE": 60,
-        "SCENARIO_START": datetime(2023, 6, 8, 10, 39, 37).timestamp(),
-        "SCENARIO_LENGTH": 2,
+        "SCENARIO_START": datetime(2023, 6, 12, 21, 49, 51).timestamp(), 
+        "SCENARIO_LENGTH": 24,
         # Name of satellite for reference orbit from Celestrak database SUOMI NPP, GOES 18, NAVSTAR 72 (USA 258)
         "name": "SUOMI NPP",
         # satellite field of regard
