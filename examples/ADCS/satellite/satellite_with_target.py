@@ -8,7 +8,7 @@ from nost_tools.entity import Entity
 from nost_tools.publisher import WallclockTimeIntervalPublisher
 
 from satellite_config_files.schemas import *
-from satellite_config_files.config import PARAMETERS
+from config import PARAMETERS
 
 # initialize
 # targetQuat = PARAMETERS["targetQuat"]

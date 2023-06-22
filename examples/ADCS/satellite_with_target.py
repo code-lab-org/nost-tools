@@ -36,7 +36,7 @@ class Satellite(Entity):
         self.ts = load.timescale()
 
         if ES is not None: self.ES = ES
-        if tle is not None: self.ES = EarthSatellite(tle[0], tle[1], name)
+        # if tle is not None: self.ES = EarthSatellite(tle[0], tle[1], name)
 
         self.id = id
         self.name = name
@@ -204,7 +204,6 @@ class Satellite(Entity):
         return isInRange, groundId
     
     # find target quaternion at culmination from ground location
-<<<<<<< HEAD
     def update_target(self, hoboken, t_start, t_end):
        
         t, events = ES.find_events(hoboken, t_start, t_end, altitude_degrees=30.0)
@@ -212,7 +211,6 @@ class Satellite(Entity):
         df = pd.DataFrame(eventZip, columns = ["Time", "Event"])
         culmTimes = df.loc[df["Event"]==2]
     
-=======
     def update_target_attitude(self, pos, vel, targetLoc, t_start, t_end):
         
         #nadir-pointing attitude 
@@ -251,7 +249,6 @@ class Satellite(Entity):
         
         return targetQuat
             
->>>>>>> parent of 4c9baab (Revert "Sat pointing at single target")
     # Calculate error between current quat and desired quat (Wie style)
     def att_error(self, pos, vel):
         
@@ -303,8 +300,7 @@ class Satellite(Entity):
         self.att = np.array([xn,yn,zn,wn])
     
         return self.att
-    
-<<<<<<< HEAD
+
     def update_attitude(self, time_step):
        
         # t, events = self.ES.find_events(hoboken, t_start, t_end, altitude_degrees=0.0)
@@ -320,10 +316,8 @@ class Satellite(Entity):
         culmTimes = df.loc[df["Event"]==2]
         print(events)
        
-=======
     def update_attitude(self, time_step, pos, vel):         
       
->>>>>>> parent of 4c9baab (Revert "Sat pointing at single target")
         # Calculate error quaternion
         errorQuat = self.att_error(pos, vel)
         
