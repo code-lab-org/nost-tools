@@ -10,46 +10,50 @@
 
 import time
 import random
-import os
-import sys
+# import os
+# import sys
 import logging
-import datetime
+from datetime import datetime, timezone, timedelta
 from dotenv import dotenv_values
-import pandas as pd
-from pytz import timezone
-from skyfield import almanac
-from skyfield.api import N, W, wgs84, load
+import numpy as np  # type: ignore
+from scipy.stats import beta as bt # type: ignore
+# import matplotlib.pyplot as plt # type: ignore
+import pandas as pd # type:ignore
+# from pytz import timezone
+from skyfield import almanac # type:ignore
+from skyfield.api import wgs84, load # type:ignore
 
 pd.options.mode.chained_assignment = None
 
-from nost_tools.simulator import Mode
-from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
-from nost_tools.observer import Observer
-from nost_tools.managed_application import ManagedApplication
+from nost_tools.simulator import Mode # type:ignore
+from nost_tools.application_utils import ConnectionConfig, ShutDownObserver # type:ignore
+from nost_tools.entity import Entity # type:ignore
+# from nost_tools.observer import Observer # type:ignore
+from nost_tools.managed_application import ManagedApplication # type:ignore
+from nost_tools.publisher import ScenarioTimeIntervalPublisher #type:ignore
 
-# getting the name of the directory
-# where the this file is present.
-current = os.path.dirname(os.path.realpath(__file__))
+from events_config_files.schemas import EventStarted, EventDetected, EventReported, EventDayChange, EventFinished, Utility # type:ignore
+from events_config_files.config import PREFIX, SCALE, EVENT_COUNT, ALPHA, BETA, DELAY, DURATION, SCENARIO_START, SCENARIO_LENGTH, SEED # type:ignore 
+
+# # getting the name of the directory
+# # where the this file is present.
+# current = os.path.dirname(os.path.realpath(__file__))
  
-# Getting the parent directory name
-# where the current directory is present.
-parent = os.path.dirname(current)
-superparent = os.path.dirname(parent)
+# # Getting the parent directory name
+# # where the current directory is present.
+# parent = os.path.dirname(current)
+# superparent = os.path.dirname(parent)
 
-sys.path.append(superparent)
-sys.path.append(parent)
-
-from schemas import EventState, EventStarted, EventDetected, EventReported, EventDayChange, EventFinished
-from config import PARAMETERS
-
+# sys.path.append(superparent)
+# sys.path.append(parent)
 
 logging.basicConfig(level=logging.INFO)
 
 
 # define an observer to manage event updates and record to a dataframe events
-class Environment(Observer):
+class EventGenerator(Entity):
     """
-    *The Environment object class inherits properties from the Observer object class in the NOS-T tools library*
+    *The EventGenerator object class inherits properties from the Observer object class in the NOS-T tools library*
 
     Attributes:
         app (:obj:`ManagedApplication`): An application containing a test-run namespace, a name and description for the app, client credentials, and simulation timing instructions 
@@ -61,11 +65,13 @@ class Environment(Observer):
         seed (:obj:`any`): A value specifying the seed used for pseudorandom number generation for event locations and start times
     """
 
-    def __init__(self, app, event_count, event_length, event_start_range, scenario_start, scenario_length, seed):
+    def __init__(self, app, event_count, alpha_range, beta_range, delay_range, duration_range, scenario_start, scenario_length, seed):
         self.app = app
         self.event_count = event_count
-        self.event_length = event_length
-        self.event_start_range = event_start_range
+        self.alpha_range = alpha_range
+        self.beta_range = beta_range
+        self.delay_range = delay_range
+        self.duration_range = duration_range
         self.scenario_start = scenario_start
         self.scenario_length = scenario_length
         self.seed = seed
@@ -89,30 +95,50 @@ class Environment(Observer):
         eventIds = [id for id in range(0, int(self.event_count))]
 
         # Initalizes event attribute lists
+        alphaPredict = []
+        alphaReal = []
+        betaPredict = []
+        betaReal = []
+        delayPredict = []
+        delayReal = []
+        durationPredict = []
+        durationReal = []
         eventStarts = []
         eventFinishes = []
         eventLats = []
         eventLongs = []
         eventSunriseSunsets = []
         eventIsDays = []
+        # viewOpportunities = []
 
         # Iterates over event Ids and generates random start times and locations. Also calculates finish times and
         # relevant sunrise and sunset times for each event.
         for eventId in eventIds:
 
+            # Random Uniform Distribution draws for each of 4 parameters            
+            alphaPredict.append(random.uniform(self.alpha_range[0],self.alpha_range[1]))
+            betaPredict.append(random.uniform(self.beta_range[0],self.beta_range[1]))
+            delayPredict.append(random.uniform(self.delay_range[0],self.delay_range[1]))
+            durationPredict.append(random.uniform(self.duration_range[0],self.duration_range[1]))
+            alphaReal.append(np.random.default_rng().normal(alphaPredict[-1], 0.05*(self.alpha_range[1]-self.alpha_range[0]), size=None))
+            betaReal.append(np.random.default_rng().normal(betaPredict[-1],  0.05*(self.beta_range[1]-self.beta_range[0]), size=None))
+            delayReal.append(np.random.default_rng().normal(delayPredict[-1],  0.05*(self.delay_range[1]-self.delay_range[0]), size = None))
+            durationReal.append(np.random.default_rng().normal(durationPredict[-1],  0.25*(self.duration_range[1]-self.duration_range[0]), size = None))
+
+
             # Create random event start time within self.event_start_range, add it to list of start times
-            eventStart = self.scenario_start + datetime.timedelta(minutes=random.randrange(self.event_start_range[0]*60, self.event_start_range[1]*60))
+            eventStart = self.scenario_start + timedelta(minutes=random.randrange(0, self.scenario_length*60))
             eventStarts.append(eventStart)
 
             # Calculate event finish time based on above start time and self.event_length
-            eventFinishes.append(eventStart + datetime.timedelta(hours=self.event_length))
+            eventFinishes.append(eventStart + timedelta(hours=max(durationPredict[-1],durationReal[-1])))
 
             # Generate random latitude for event, not too close to poles, and add to list of latitudes
-            eventLat = random.randrange(-60, 60)
+            eventLat = np.random.uniform(-60.00, 60.00)
             eventLats.append(eventLat)
 
             # Generate random longitude for event, anywhere on the planet, and add to list of longitudes
-            eventLong = random.randrange(-180, 180)
+            eventLong = np.random.uniform(-180.00, 180.00)
             eventLongs.append(eventLong)
 
             # Calculate lower bound of time range for sunrise/sunset calculation for this event, either the start time of the event
@@ -125,8 +151,8 @@ class Environment(Observer):
             # Calculate upper bound of time range for sunrise/sunset calculation for this event, either the end time of the event or 
             # the end of the scenario (some events end times may be after the scenario ends)
             day_change_range_end = min(
-                    self.scenario_start+datetime.timedelta(hours=self.scenario_length), 
-                    eventStart + datetime.timedelta(hours=self.event_length)
+                    self.scenario_start+timedelta(hours=self.scenario_length), 
+                    eventStart + timedelta(hours=durationReal[-1])
                 )
 
             # Calculates all sunrise and sunset times during the 24 hours prior to the start of the event.
@@ -134,7 +160,7 @@ class Environment(Observer):
             # in t0 is a sunset(1) or sunrise(0), respectively.
             # NOTE: This is necessary to determine the sun state at the start of the event.
             t0, y0 = almanac.find_discrete(
-                ts.from_datetime(day_change_range_start - datetime.timedelta(hours=24)),
+                ts.from_datetime(day_change_range_start - timedelta(hours=24)),
                 ts.from_datetime(day_change_range_start),
                 almanac.sunrise_sunset(eph, wgs84.latlon(eventLat, eventLong)
                 )
@@ -168,11 +194,19 @@ class Environment(Observer):
         events = pd.DataFrame(
             data={
                 "eventId": eventIds,
-                "started": [False for _ in eventIds],
-                "start": eventStarts,
-                "finish": eventFinishes,
                 "latitude": eventLats,
                 "longitude": eventLongs,
+                "alphaPredict": alphaPredict,
+                "alphaReal": alphaReal,
+                "betaPredict": betaPredict,
+                "betaReal": betaReal,
+                "delayPredict": delayPredict,
+                "delayReal": delayReal,
+                "durationPredict": durationPredict,
+                "durationReal": durationReal,
+                "started": [False for _ in eventIds],
+                "eventStart": eventStarts,
+                "eventFinish": eventFinishes,
                 "sunriseSunset": eventSunriseSunsets,
                 "isDay": eventIsDays
             }
@@ -244,44 +278,103 @@ class Environment(Observer):
                         ).json(),
                     )
 
+def UtilityPublisher(ScenarioTimeIntervalPublisher):
+    """
+    *This object class inherits properties from the ScenarioTimeIntervalPublisher object class from the publisher template in the NOS-T tools library*
+
+    Args:
+        app (:obj:`ManagedApplication`): An application containing a test-run namespace, a name and description for the app, client credentials, and simulation timing instructions
+
+    """
+    def __init__(self, app, eventDict, time_status_step=timedelta(seconds=1)*SCALE, time_status_init=SCENARIO_START):
+        super().__init__(app, time_status_step, time_status_init)
+        self.app = app
+        eventId = self.eventDict["eventId"]
+        self.topic = f"{PREFIX}/eventGenerator/event{eventId}"
+        self.eventDict = eventDict
+        self.tPredict = np.linspace(
+            min(0,self.eventDict["delayPredict"]),
+            max(self.eventDict["durationPredict"],self.scenario_length),
+            round((max(self.eventDict["durationPredict"],self.scenario_length)-min(0,self.eventDict["delayPredict"]))/(time_status_step/timedelta(seconds=1)))           
+        )
+        ytempPredict = bt.pdf(self.tPredict, self.eventDict["alphaPredict"], self.eventDict["betaPredict"], self.eventDict["delayPredict"], self.eventDict["durationPredict"])
+        self.uPredict = bt.pdf(self.tPredict, self.eventDict["alphaPredict"], self.eventDict["betaPredict"], self.eventDict["delayPredict"], self.eventDict["durationPredict"])/max(ytempPredict)
+        
+        self.tReal = np.linspace(
+            min(0,self.eventDict["delayReal"]),
+            max(self.eventDict["durationReal"],self.scenario_length),
+            round((max(self.eventDict["durationReal"],self.scenario_length)-min(0,self.eventDict["delayReal"]))/(time_status_step/timedelta(seconds=1)))           
+        )
+        ytempReal = bt.pdf(self.tReal, self.eventDict["alphaReal"], self.eventDict["betaReal"], self.eventDict["delayReal"], self.eventDict["durationReal"])
+        self.uReal = bt.pdf(self.tReal, self.eventDict["alphaReal"], self.eventDict["betaReal"], self.eventDict["delayReal"], self.eventDict["durationReal"])/max(ytempReal)
+        self.timePredict = [self.eventDict["eventStart"] + timedelta(hours=tP) for tP in self.tPredict]
+        self.timeReal = [self.eventDict["eventStart"] + timedelta(hours=tR) for tR in self.tReal]
+        
+    def publish_message(self):
+        """
+        *Abstract publish_message method inherited from the ScenarioTimeIntervalPublisher object class from the publisher template in the NOS-T tools library*
+
+        This method sends a message to the *PREFIX/* topic for each satellite in the constellation (:obj:`Constellation`), including:
+
+        Args:
+            id (:obj:`list`): list of unique *int* ids for each satellite in the constellation
+
+        """
+        currentTime = self.app.simulator.get_time()
+        if (currentTime > self.timePredict[0]) && (currentTime < self.timePredict[-1]):
+            # if in range, publish message, otherwise don't
+            for index, time in self.timePredict:
+                if index == 0:
+                    # publish t0, u(t0)
+                else if (currentTime < time) && (currentTime > self.timePredict[index-1]):
+                    # publish t, u(t)
+            
+        if (currentTime > self.timeReal[0]) && (currentTime < self.timeReal[-1]):
+            # if in range, publish message, otherwise don't
+        
 
 # name guard used to ensure script only executes if it is run as the __main__
 if __name__ == "__main__":
 
     # Note that these are loaded from a .env file in current working directory
     credentials = dotenv_values(".env")
-    HOST, PORT = credentials["SMCE_HOST"], int(credentials["SMCE_PORT"])
-    USERNAME, PASSWORD = credentials["SMCE_USERNAME"], credentials["SMCE_PASSWORD"]
+    HOST, PORT = credentials["HOST"], int(credentials["PORT"])
+    USERNAME, PASSWORD = credentials["USERNAME"], credentials["PASSWORD"]
 
     # set the client credentials
     config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, True)
 
     # create the managed application
-    app = ManagedApplication("event")
+    app = ManagedApplication("eventGenerator")
 
-    # Create environment that generates events
-    environment = Environment(app, 
-        PARAMETERS['EVENT_COUNT'], 
-        PARAMETERS['EVENT_LENGTH'], 
-        PARAMETERS['EVENT_START_RANGE'], 
-        datetime.datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=datetime.timezone.utc), 
-        PARAMETERS['SCENARIO_LENGTH'],
-        PARAMETERS['SEED'])
+    # generate events
+    events = EventGenerator(
+        app, 
+        EVENT_COUNT, 
+        ALPHA, 
+        BETA, 
+        DELAY, 
+        DURATION, 
+        SCENARIO_START, 
+        SCENARIO_LENGTH,
+        SEED
+    )
+       
 
     # add the environment observer to monitor for event status events
-    app.simulator.add_observer(environment)
+    app.simulator.add_observer(events)
 
     # add a shutdown observer to shut down after a single test case
     app.simulator.add_observer(ShutDownObserver(app))
 
     # start up the application on PREFIX, publish time status every 10 seconds of wallclock time
     app.start_up(
-        PARAMETERS['PREFIX'],
+        PREFIX,
         config,
         True,
-        time_status_step=datetime.timedelta(seconds=10) * PARAMETERS['SCALE'],
-        time_status_init=datetime.datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=datetime.timezone.utc),
-        time_step=datetime.timedelta(seconds=0.5) * PARAMETERS['SCALE'],
+        time_status_step=timedelta(seconds=10) * SCALE,
+        time_status_init=SCENARIO_START,
+        time_step=timedelta(seconds=1) * SCALE,
     )
 
     # Ensures the application hangs until the simulation is terminated, to allow background threads to run

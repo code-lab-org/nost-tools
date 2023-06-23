@@ -1,9 +1,9 @@
-import pandas as pd
-import numpy as np
-from skyfield.api import load, wgs84
-from skyfield.framelib import itrs
-import matplotlib.pyplot as plt
-from mpl_toolkits import mplot3d
+import pandas as pd # type:ignore
+import numpy as np # type:ignore
+from skyfield.api import load, wgs84 # type:ignore
+from skyfield.framelib import itrs # type:ignore
+import matplotlib.pyplot as plt # type:ignore
+from mpl_toolkits import mplot3d # type:ignore
 
 df = pd.read_csv("examples/utility/outputs/outputs/MatthewTest.csv", header=0)
 

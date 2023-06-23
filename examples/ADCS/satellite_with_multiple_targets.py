@@ -35,7 +35,7 @@ class Satellite(Entity):
 
         # if ES is not None:
         self.ES = ES
-
+        print(self.ES)
         # if tle is not None:
         #     self.ES = EarthSatellite(tle[0], tle[1], name)
             

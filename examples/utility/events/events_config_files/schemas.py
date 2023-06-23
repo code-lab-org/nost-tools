@@ -4,16 +4,18 @@ Example script to specify object schemas for the EventSat test case.
 
 """
 
-from pydantic import BaseModel, Field, confloat # type:ignore
-from typing import Optional # type:ignore
-from datetime import datetime # type:ignore
-# from enum import Enum
+from pydantic import BaseModel, Field, confloat
+from typing import Optional
+from datetime import datetime
+from enum import Enum
 
 
-# class EventState(str, Enum):
-#     undefined = "undefined"
-#     started = "started"
-#     finished = "finished"
+class EventState(str, Enum):
+    undefined = "undefined"
+    started = "started"
+    finished = "finished"
+    detected = "detected"
+    reported = "reported"
 
 
 class EventStarted(BaseModel):
@@ -52,12 +54,6 @@ class EventDayChange(BaseModel):
 
 class EventFinished(BaseModel):
     eventId: int = Field(..., description="Unique event identifier.")
-    
-
-class Utility(BaseModel):
-    eventId: int = Field(..., description="Unique event identifier.")
-    eventTime: datetime = Field(..., description="Time input to u(t) function")
-    eventUtility: float = Field(..., description="Normalized science utility that is output of u(t)")
 
 
 class SatelliteStatus(BaseModel):
