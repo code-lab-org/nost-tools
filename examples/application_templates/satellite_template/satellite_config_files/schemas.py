@@ -11,6 +11,10 @@ class SatelliteStatus(BaseModel):
     )
     latitude: float = Field(..., description="Satellite subpoint latitude (degrees)")
     longitude: float = Field(..., description="Satellite subpoint longitude (degrees)")
-    altitude: float = Field(..., description="Satellite altitude above surface of Earth (m)")
-    velocity: list = Field(..., description="Velocity in intertial XYZ coordinates")
+    altitude: float = Field(
+        ..., description="Satellite altitude above surface of Earth (m)"
+    )
+    velocity: list = Field(
+        ..., description="Velocity in intertial XYZ coordinates (m/s)"
+    )
     time: datetime = Field(..., description="Time in satellite reference frame")

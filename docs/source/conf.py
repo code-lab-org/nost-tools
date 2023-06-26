@@ -37,6 +37,15 @@ sys.path.insert(
 sys.path.insert(
     0, os.path.abspath("../../examples/application_templates/manager_template")
 )
+sys.path.insert(
+    0, os.path.abspath("../../examples/application_templates/ground_station_template")
+)
+sys.path.insert(
+    0,
+    os.path.abspath(
+        "../../examples/application_templates/ground_station_template/ground_config_files"
+    ),
+)
 
 # -- Project information -----------------------------------------------------
 

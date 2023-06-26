@@ -5,5 +5,5 @@ The NOS-T manager configuration file contains a few parameters important for tes
 
 The four commented-out lines at the bottom of the following script allow for mid-test time scaling updates. 
 
-.. literalinclude:: /../../examples/application_templates/manager_template/config.py
+.. literalinclude:: /../../examples/application_templates/manager_template/manager_config_files/config.py
   :lines: 3-
