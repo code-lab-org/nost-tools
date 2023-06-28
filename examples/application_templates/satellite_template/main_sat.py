@@ -1,16 +1,15 @@
 import time
 import logging
-import pandas as pd
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta
 from dotenv import dotenv_values
 
-from skyfield.api import utc
+from skyfield.api import utc, load
 from nost_tools.simulator import Mode
 from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
 from nost_tools.managed_application import ManagedApplication
 
+from satellite import Satellite, StatusPublisher
 from satellite_config_files.config import PARAMETERS
-from satellite_config_files.schemas import SatelliteStatus
 
 logging.basicConfig(level=logging.INFO)
 
