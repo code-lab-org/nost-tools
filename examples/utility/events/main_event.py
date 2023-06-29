@@ -32,7 +32,7 @@ from nost_tools.entity import Entity # type:ignore
 from nost_tools.managed_application import ManagedApplication # type:ignore
 from nost_tools.publisher import ScenarioTimeIntervalPublisher #type:ignore
 
-from events_config_files.schemas import EventStarted, EventDetected, EventReported, EventDayChange, EventFinished, Utility # type:ignore
+from events_config_files.schemas import UtilityPub, EventStarted, EventDayChange, EventFinished # type:ignore
 from events_config_files.config import PREFIX, SCALE, EVENT_COUNT, ALPHA, BETA, DELAY, DURATION, SCENARIO_START, SCENARIO_LENGTH, SEED # type:ignore 
 
 # # getting the name of the directory
@@ -147,13 +147,15 @@ class EventGenerator(Entity):
                     self.scenario_start, 
                     eventStart
                 )
+            print(day_change_range_start)
             
             # Calculate upper bound of time range for sunrise/sunset calculation for this event, either the end time of the event or 
             # the end of the scenario (some events end times may be after the scenario ends)
             day_change_range_end = min(
                     self.scenario_start+timedelta(hours=self.scenario_length), 
-                    eventStart + timedelta(hours=durationReal[-1])
+                    eventStart + timedelta(hours=durationReal[eventId])
                 )
+            print(day_change_range_end)
 
             # Calculates all sunrise and sunset times during the 24 hours prior to the start of the event.
             # t0 is list of Skyfield Time objects, y0 is a list of 0s and 1s indicating if the corresponding time 
@@ -236,13 +238,13 @@ class EventGenerator(Entity):
             for eventId, event in self.events.iterrows():
                 
                 # If it's past the event start time and the event hasn't already started, send EventStart message
-                if event["start"] <= new_value and event["started"] == False:
+                if event["eventStart"] <= new_value and event["started"] == False:
                     self.events["started"][eventId] = True
                     self.app.send_message(
-                        "start",
+                        "eventStart",
                         EventStarted(
                             eventId=eventId,
-                            start=event["start"],
+                            eventStart=event["eventStart"],
                             latitude=event['latitude'],
                             longitude=event['longitude'],
                             isDay=event['isDay']
@@ -270,15 +272,15 @@ class EventGenerator(Entity):
                     pass
 
                 # If the eventFinish time is between the current and previous times, send EventFinished message
-                if event["finish"] <= new_value and event["finish"] > old_value:
+                if event["eventFinish"] <= new_value and event["eventFinish"] > old_value:
                     self.app.send_message(
-                        "finish",
+                        "eventFinish",
                         EventFinished(
                             eventId=eventId
                         ).json(),
                     )
 
-def UtilityPublisher(ScenarioTimeIntervalPublisher):
+class UtilityPublisher(ScenarioTimeIntervalPublisher):
     """
     *This object class inherits properties from the ScenarioTimeIntervalPublisher object class from the publisher template in the NOS-T tools library*
 
@@ -286,24 +288,28 @@ def UtilityPublisher(ScenarioTimeIntervalPublisher):
         app (:obj:`ManagedApplication`): An application containing a test-run namespace, a name and description for the app, client credentials, and simulation timing instructions
 
     """
-    def __init__(self, app, eventDict, time_status_step=timedelta(seconds=1)*SCALE, time_status_init=SCENARIO_START):
+    def __init__(
+        self, app, eventId, eventDict, scenario_length, time_status_step=timedelta(seconds=1)*SCALE, time_status_init=SCENARIO_START
+    ):
         super().__init__(app, time_status_step, time_status_init)
         self.app = app
-        eventId = self.eventDict["eventId"]
-        self.topic = f"{PREFIX}/eventGenerator/event{eventId}"
+        self.eventId = eventId
         self.eventDict = eventDict
+        self.scenario_length = scenario_length
         self.tPredict = np.linspace(
             min(0,self.eventDict["delayPredict"]),
-            max(self.eventDict["durationPredict"],self.scenario_length),
-            round((max(self.eventDict["durationPredict"],self.scenario_length)-min(0,self.eventDict["delayPredict"]))/(time_status_step/timedelta(seconds=1)))           
+            min(self.eventDict["durationPredict"],self.scenario_length),
+            100
+            # round((max(self.eventDict["durationPredict"],self.scenario_length)-min(0,self.eventDict["delayPredict"]))/(time_status_step/timedelta(seconds=1)))           
         )
         ytempPredict = bt.pdf(self.tPredict, self.eventDict["alphaPredict"], self.eventDict["betaPredict"], self.eventDict["delayPredict"], self.eventDict["durationPredict"])
         self.uPredict = bt.pdf(self.tPredict, self.eventDict["alphaPredict"], self.eventDict["betaPredict"], self.eventDict["delayPredict"], self.eventDict["durationPredict"])/max(ytempPredict)
         
         self.tReal = np.linspace(
             min(0,self.eventDict["delayReal"]),
-            max(self.eventDict["durationReal"],self.scenario_length),
-            round((max(self.eventDict["durationReal"],self.scenario_length)-min(0,self.eventDict["delayReal"]))/(time_status_step/timedelta(seconds=1)))           
+            min(self.eventDict["durationReal"],self.scenario_length),
+            100
+            # round((max(self.eventDict["durationReal"],self.scenario_length)-min(0,self.eventDict["delayReal"]))/(time_status_step/timedelta(seconds=1)))           
         )
         ytempReal = bt.pdf(self.tReal, self.eventDict["alphaReal"], self.eventDict["betaReal"], self.eventDict["delayReal"], self.eventDict["durationReal"])
         self.uReal = bt.pdf(self.tReal, self.eventDict["alphaReal"], self.eventDict["betaReal"], self.eventDict["delayReal"], self.eventDict["durationReal"])/max(ytempReal)
@@ -321,17 +327,41 @@ def UtilityPublisher(ScenarioTimeIntervalPublisher):
 
         """
         currentTime = self.app.simulator.get_time()
-        if (currentTime > self.timePredict[0]) && (currentTime < self.timePredict[-1]):
-            # if in range, publish message, otherwise don't
-            for index, time in self.timePredict:
-                if index == 0:
-                    # publish t0, u(t0)
-                else if (currentTime < time) && (currentTime > self.timePredict[index-1]):
-                    # publish t, u(t)
-            
-        if (currentTime > self.timeReal[0]) && (currentTime < self.timeReal[-1]):
-            # if in range, publish message, otherwise don't
         
+        if  (currentTime > self.timePredict[0]) & (currentTime < self.timePredict[-1]):
+            # if in range, publish message, otherwise don't
+            for indexP, timeP in enumerate(self.timePredict):
+                if indexP == 0:
+                    pass
+                elif (currentTime < timeP) & (currentTime > self.timePredict[indexP-1]):
+                    # publish t, u(t)
+                    print(self.uPredict[indexP])
+                    self.app.send_message(
+                        "utilityPredict",
+                        UtilityPub(
+                            eventId=self.eventId,
+                            eventTime=self.timePredict[indexP-1],
+                            eventUtility=self.uPredict[indexP-1]
+                        ).json()
+                    )
+                    break
+            
+        if (currentTime > self.timeReal[0]) & (currentTime < self.timeReal[-1]):
+            # if in range, publish message, otherwise don't
+            for indexR, timeR in enumerate(self.timeReal):
+                if indexR == 0:
+                    pass
+                elif (currentTime < timeR) & (currentTime > self.timeReal[indexR-1]):
+                    # publish t, u(t)
+                    self.app.send_message(
+                        "utilityReal",
+                        UtilityPub(
+                            eventId=self.eventId,
+                            eventTime=self.timeReal[indexR-1],
+                            eventUtility=self.uReal[indexR-1]
+                        ).json()
+                    )
+                    break
 
 # name guard used to ensure script only executes if it is run as the __main__
 if __name__ == "__main__":
@@ -363,6 +393,14 @@ if __name__ == "__main__":
 
     # add the environment observer to monitor for event status events
     app.simulator.add_observer(events)
+    
+    # add UtilityPublisher
+    for eventId, event in events.events.iterrows():
+        print(eventId)
+        print(event)
+        app.simulator.add_observer(
+            UtilityPublisher(app,eventId,event,SCENARIO_LENGTH,timedelta(seconds=1)*SCALE, event["eventStart"])    
+        )
 
     # add a shutdown observer to shut down after a single test case
     app.simulator.add_observer(ShutDownObserver(app))

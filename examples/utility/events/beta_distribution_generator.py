@@ -6,8 +6,8 @@ Created on Tue Jun  6 09:14:36 2023
 """
 
 import numpy as np  # type: ignore
-from scipy.stats import beta as bt # type: ignore
-import matplotlib.pyplot as plt # type: ignore
+from scipy.stats import beta as bt # type:ignore
+import matplotlib.pyplot as plt # type:ignore
 
 
 class BetaGen():
@@ -31,7 +31,7 @@ class BetaGen():
             # self.ax.hist(self.r, density=True, bins='auto', histtype='stepfilled', alpha = 0.2)
             self.ax.set_xlim([self.t[0], self.t[-1]])
             self.ax.legend(loc='best', frameon=False)
-            plt.show()
+            # plt.show()
         self.vals = bt.ppf([0, t_end/100, t_end], alpha, beta, t_start, t_end)/max(y)
         np.allclose([0, t_end/100, t_end], bt.cdf(self.vals, alpha, beta, t_start, t_end)/max(y))
         self.r = bt.rvs(alpha, beta, t_start, t_end, size=1000)
@@ -44,7 +44,7 @@ class BetaGen():
         self.t_end_actual = np.random.default_rng().normal(self.t_end, 24, size = None)
         
         if self.plotBool:
-            plt.close()
+            # plt.close()
             self.t_actual = np.linspace(0, self.t_end_actual, 100)
             if self.t_actual[-1] > self.t[-1]:
                 self.ax.set_xlim(self.t_actual[0], self.t_actual[-1])

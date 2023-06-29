@@ -48,6 +48,7 @@ def on_message(mqttc, obj, msg):
         
 def update_capacity(n_capacity):
     df0 = pd.DataFrame(capacityLOD)
+    print(df0)
     capacityFig = px.line(df0, x="time", y='capacity_used', color='name', markers=True,
                           labels={"time":"time (UTC)", "capacity_used":"Amount of Data in HD (GB)", "name":"Satellite Name"},
                           title="Hard Drive Space Used")

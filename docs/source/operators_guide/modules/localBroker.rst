@@ -14,7 +14,7 @@ This tutorial specifically makes use of a Docker container for setting up the br
 	
 	* `Docker Desktop for Mac <https://docs.docker.com/desktop/install/mac-install/>`_ with at least 2 GiB of memory dedicated to Docker Engine.
 	
-	* `Docker Desktop for Linux <https://docs.docker.com/desktop/install/linux-install/>`_ with at least 2 GiB of memory dedicated to Docker Engine?
+	* `Docker Desktop for Linux <https://docs.docker.com/desktop/install/linux-install/>`_ with at least 2 GiB of memory dedicated to Docker Engine.
 	
 Each of the latter includes the Docker Compose tool. To check if Docker Compose is running correctly, open an elevated command prompt and enter the following:
 
