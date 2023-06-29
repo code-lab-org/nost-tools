@@ -6,7 +6,7 @@ The schemas.py file defines the message contents and data types that the ground 
 Ground Station Location
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-.. autopydantic_settings:: examples.application_templates.ground_station_template.schemas.GroundLocation
+.. autopydantic_settings:: examples.application_templates.ground_station_template.ground_config_files.schemas.GroundLocation
    :noindex:
    :settings-show-config-member: True
    :validator-list-fields: True

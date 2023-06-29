@@ -36,7 +36,7 @@ class Environment(Observer):
         """
         *Standard on_change callback function format inherited from Observer object class*
 
-        In this instance, the callback function checks when the **PROPERTY_MODE** switches to **EXECUTING** to send a :obj:`GroundLocation` message to the *PREFIX/ground/location* topic:
+        In this instance, the callback function checks when the **PROPERTY_MODE** switches to **EXECUTING** to send a :obj:`GroundLocation` message to the *PREFIX/ground/location* topic. These locations are published as soon as the execution starts. As modeled here, the number, location, and elevation angle for each ground station will not change throughout the test case.
 
             .. literalinclude:: /../../examples/application_templates/ground_station_template/main_ground.py
                 :lines: 45-55
