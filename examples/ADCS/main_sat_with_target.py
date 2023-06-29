@@ -26,7 +26,7 @@ if __name__ == "__main__":
     config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, True)
 
     # create the managed application
-    app = ManagedApplication("Satellite1")
+    app = ManagedApplication("satellite")
 
     # Name(s) of satellite(s) used in Celestrak database
     # name = PARAMETERS["name"]

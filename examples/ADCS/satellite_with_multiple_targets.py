@@ -25,7 +25,8 @@ ts = load.timescale()
 t_start = datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc)
 t_end  = datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc) + timedelta(hours=PARAMETERS['SCENARIO_LENGTH'])
 # dummy location
-targetLoc = wgs84.latlon(17.9757, 102.6331)
+targetLoc = wgs84.latlon(-35, -2)
+targetPos = targetLoc.itrs_xyz.m
 
 
 class Satellite(Entity):
@@ -47,9 +48,12 @@ class Satellite(Entity):
         self.name = name
         self.field_of_regard = field_of_regard
 
-        self.geocentric = None
+        self.geocentric = self.next_geocentric = None
+        self.pos_vel = self.next_pos_vel = None
         self.pos = self.next_pos = None
         self.vel = self.next_vel = None
+        self.satLat = self.next_satLat = None
+        self.satLon = self.next_satLon = None
         self.att = self.next_att = None
         self.omega = self.next_omega = None
 
@@ -62,8 +66,11 @@ class Satellite(Entity):
         print(type(self.ES))
         self.target = [targetLoc]  
         self.geocentric = self.ES.at(self.ts.from_datetime(init_time))
-        self.pos = self.geocentric.position.m
-        self.vel = self.geocentric.velocity.m_per_s
+        self.pos_vel= self.geocentric.frame_xyz_and_velocity(itrs)
+        self.pos = self.pos_vel[0].m
+        self.vel = self.pos_vel[1].m_per_s
+        self.satLat = wgs84.geographic_position_of(self.geocentric).latitude.degrees
+        self.satLon = wgs84.geographic_position_of(self.geocentric).longitude.degrees
         
         # initial nadir-pointing attitude
         h = np.cross(self.pos, self.vel)
@@ -85,8 +92,12 @@ class Satellite(Entity):
         self.next_geocentric = self.ES.at(
             self.ts.from_datetime(self.get_time() + time_step)
         )
-        self.next_pos = self.next_geocentric.position.m
-        self.next_vel = self.next_geocentric.velocity.m_per_s
+        self.next_pos_vel = self.next_geocentric.frame_xyz_and_velocity(itrs)
+        self.next_pos = self.next_pos_vel[0].m
+        self.next_vel = self.next_pos_vel[1].m_per_s
+        self.next_satLat = wgs84.geographic_position_of(self.next_geocentric).latitude.degrees
+        self.next_satLon = wgs84.geographic_position_of(self.next_geocentric).longitude.degrees
+        self.next_subpoint = wgs84.geographic_position_of(self.next_geocentric)
         self.next_att = self.update_attitude(time_step, self.next_pos, self.next_vel)
         self.next_omega = self.omega
         self.next_targetQuat = self.update_target_attitude(
@@ -96,8 +107,12 @@ class Satellite(Entity):
     def tock(self):
         self.target = self.next_target
         self.geocentric = self.next_geocentric
+        self.pos_vel = self.next_pos_vel
         self.pos = self.next_pos
         self.vel = self.next_vel
+        self.satLat = self.next_satLat
+        self.satLon = self.next_satLon
+        self.subpoint = self.next_subpoint
         self.att = self.next_att
         # self.omega = self.next_omega
         self.targetQuat = self.next_targetQuat
@@ -370,6 +385,8 @@ class StatusPublisher(WallclockTimeIntervalPublisher):
                 name=self.satellite.name,
                 position=list(self.satellite.pos),
                 velocity=list(self.satellite.vel),
+                latitude = self.satellite.satLat,
+                longitude = self.satellite.satLon,
                 attitude=list(self.satellite.att),
                 angular_velocity=list(self.satellite.omega),
                 target_quaternion=list(self.satellite.targetQuat),

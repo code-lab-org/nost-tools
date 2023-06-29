@@ -8,6 +8,8 @@ class SatelliteStatus(BaseModel):
     name: str = Field(..., description="Satellite name for labeling.")
     position: list = Field(..., description="Geocentric position")
     velocity: list = Field(..., description="Geocentric velocity")
+    latitude: float = Field(..., description="Satellite latitude")
+    longitude: float = Field(..., description="Satellite longitude")
     attitude: list = Field(..., description="Attitude quaternion")
     angular_velocity: list = Field(..., description="Angular velocity in body frame")
     target_quaternion: list = Field(..., description="Desired attitude quaternion")
