@@ -130,11 +130,11 @@ the state of the application (location, field of regard, elevation angle, etc.).
 Time Synchronization
 --------------------
 
-One such method is used in the provided examples -- iteration functions that operate in parallel to wallclock requests. The National Institute of Standards and Technology (NIST) offers a pooled service that allows 
+One such method is used in the provided examples -- iteration functions that operate in parallel to wallclock requests. The National Institute of Standards and Technology (NIST) Internet Time Service Network Time Protocol (NTP) offers a pooled service that allows 
 a user to standardize their computer's internal clock. When this standardization is used across a distributed network (applications running across mutliple distributed machines), it mitigates local system errors. A millisecond of difference 
 each iteration can grow over long simulations and cause complications, thus the importance of instantiating a time-management system.
 
-The following code block shows an example of real-time management in the Scalability example:
+The following code block shows an example of real-time management in the :ref:`Scalability example <scalability>`:
 
 .. code-block:: python3
 
@@ -152,7 +152,6 @@ The following code block shows an example of real-time management in the Scalabi
             )
             time.sleep(retry_delay_s)
 
-The 'query_nist' function calls "pool.ntp.org", which will submit a request for the time to the NIST servers. When the time was returned, this 'real' time is compared to the local time, and the offset is accounted for. 
-By constantly monitoring the offset of the internal local clock on each individual machine, the user can ensure that each application is running synchronisly across a scenario. This function aids in time mangement in a dispersed system where applications mimic
-behaviors of a system in real time.
+The 'query_nist' function calls "pool.ntp.org", which will submit a request for the time to the NIST NTP servers. When the time was returned, this 'real' time is compared to the local system time, and the offset is accounted for. 
+By constantly monitoring the offset of the internal local clock on each individual machine, the user can ensure that each application is running synchronously across a scenario. This function aids in time mangement in a dispersed system where applications mimic behaviors of a system in real time.
  
