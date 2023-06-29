@@ -1,3 +1,5 @@
+.. _toolsAppObj:
+
 Application Objects
 ===================
 
