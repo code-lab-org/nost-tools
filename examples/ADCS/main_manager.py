@@ -5,7 +5,7 @@
 """
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from dotenv import dotenv_values
 from skyfield.api import utc
 

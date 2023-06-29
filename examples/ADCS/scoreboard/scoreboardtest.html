@@ -47,7 +47,7 @@
       $(document).ready(function () {
         Cesium.Ion.defaultAccessToken = CESIUM_ACCESS_TOKEN;
         var clock = new Cesium.Clock({
-          currentTime: Cesium.JulianDate.fromIso8601("2023-06-12T22:35:55Z"),
+          currentTime: Cesium.JulianDate.fromIso8601("2023-06-12T22:28:03Z"),
           clockStep: Cesium.ClockStep.SYSTEM_CLOCK_MULTIPLIER,
           multiplier: 0, // how much time to advance each SYSTEM CLOCK tick
           shouldAnimate: false,
@@ -65,16 +65,16 @@
           imageryProvider: new Cesium.IonImageryProvider({ assetId: 3845 }),
           clockViewModel: new Cesium.ClockViewModel(clock),
         });
-        const position = new Cesium.Cartesian3.fromDegrees(
-          44.5353,
-          16.2618,
-          828909.0
+        const position = new Cesium.Cartesian3(
+          -6875669.71584508,
+          1693556.03223594,
+          -1349646.70206704
         );
         const orientation = new Cesium.Quaternion(
-          0.5175330979010796,
-          0.27787008999682933,
-          -0.6830436529421523,
-          0.43404962140002645
+          0.34883616099262615,
+          0.7180327209694906,
+          0.2160717146233359,
+          -0.5621880099582417
         );
         const blueBox = viewer.entities.add({
           name: "Blue box",
@@ -94,6 +94,19 @@
               0.0,
               12500000000.5
             ),
+          },
+        });
+        const blueCyl = viewer.entities.add({
+          name: "Blue cylinder",
+          position: position,
+          orientation: orientation,
+          cylinder: {
+            length: 1000000.0,
+            topRadius: 200000.0,
+            bottomRadius: 0.0,
+            material: Cesium.Color.BLUE,
+            outline: true,
+            outlineWidth: 1.0,
           },
         });
         var point = viewer.entities.add({
@@ -121,10 +134,18 @@
         });
 
         var point = viewer.entities.add({
-          position: new Cesium.Cartesian3.fromDegrees(20, 20),
+          position: new Cesium.Cartesian3.fromDegrees(171.1628, -10.8537),
           point: {
             pixelSize: 10,
             color: Cesium.Color.WHITE,
+          },
+        });
+
+        var point = viewer.entities.add({
+          position: new Cesium.Cartesian3.fromDegrees(-41.4163, -46.0242),
+          point: {
+            pixelSize: 10,
+            color: Cesium.Color.GRAY,
           },
         });
 

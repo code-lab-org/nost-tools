@@ -65,8 +65,17 @@
           imageryProvider: new Cesium.IonImageryProvider({ assetId: 3845 }),
           clockViewModel: new Cesium.ClockViewModel(clock),
         });
-        const position = new Cesium.Cartesian3(-3.58736e6, 3.84621e6, 4.7532e6);
-        const orientation = new Cesium.Quaternion(0, 0, 0, 1);
+        const position = new Cesium.Cartesian3(
+          -2920495.8827169,
+          711755.44266323,
+          -6413021.6800447
+        );
+        const orientation = new Cesium.Quaternion(
+          0.9741260768224563,
+          0.06173591628759279,
+          -0.20754860172355782,
+          -0.06473516059466645
+        );
         const blueBox = viewer.entities.add({
           name: "Blue box",
           position: position,
@@ -89,7 +98,7 @@
         });
 
         var point = viewer.entities.add({
-          position: new Cesium.Cartesian3.fromDegrees(-74.0324, 40.744),
+          position: new Cesium.Cartesian3.fromDegrees(-2, -35),
           point: {
             pixelSize: 10,
             color: Cesium.Color.WHITE,

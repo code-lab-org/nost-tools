@@ -9,7 +9,7 @@ from nost_tools.simulator import Mode
 from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
 from nost_tools.managed_application import ManagedApplication
 
-from satellite_config_files.config import PARAMETERS
+from config import PARAMETERS
 from satellite_nadir import *
 
 logging.basicConfig(level=logging.INFO)

@@ -1,13 +1,14 @@
 from scipy.spatial.transform import Rotation as R
 import numpy as np
 import pandas as pd
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
 from skyfield.api import load, wgs84, EarthSatellite, utc
+from skyfield.framelib import itrs
 from nost_tools.entity import Entity
 from nost_tools.publisher import WallclockTimeIntervalPublisher
 
-from satellite.satellite_config_files.schemas import *
+from schemas import SatelliteStatus
 from config import PARAMETERS
 
 # initialize
@@ -24,30 +25,35 @@ ts = load.timescale()
 t_start = datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc)
 t_end  = datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc) + timedelta(hours=PARAMETERS['SCENARIO_LENGTH'])
 # dummy location
-targetLoc = wgs84.latlon(20, 20)
+targetLoc = wgs84.latlon(-35, -2)
+targetPos = targetLoc.itrs_xyz.m
 
 
 class Satellite(Entity):
-    def __init__(self, app, id, name, field_of_regard, grounds, ES=None, tle=None):
+    def __init__(self, app, id, name, field_of_regard, grounds, tle):
         super().__init__(name)
         self.app = app
         self.ts = load.timescale()
 
         # if ES is not None:
-        self.ES = ES
-        print(self.ES)
+        # self.ES = ES
+        
         # if tle is not None:
-        #     self.ES = EarthSatellite(tle[0], tle[1], name)
+        lines = tle.strip().splitlines()
+        print(tle)
+        self.ES = EarthSatellite(lines[1], lines[2], lines[0])
+        print(EarthSatellite(lines[1], lines[2], lines[0]))
             
-
-
         self.id = id
         self.name = name
         self.field_of_regard = field_of_regard
 
-        self.geocentric = None
+        self.geocentric = self.next_geocentric = None
+        self.pos_vel = self.next_pos_vel = None
         self.pos = self.next_pos = None
         self.vel = self.next_vel = None
+        self.satLat = self.next_satLat = None
+        self.satLon = self.next_satLon = None
         self.att = self.next_att = None
         self.omega = self.next_omega = None
 
@@ -57,10 +63,14 @@ class Satellite(Entity):
 
     def initialize(self, init_time):
         super().initialize(init_time)
-        self.target = [targetLoc]  # lat/lon of Hoboken, NJ in degrees
+        print(type(self.ES))
+        self.target = [targetLoc]  
         self.geocentric = self.ES.at(self.ts.from_datetime(init_time))
-        self.pos = self.geocentric.position.m
-        self.vel = self.geocentric.velocity.m_per_s
+        self.pos_vel= self.geocentric.frame_xyz_and_velocity(itrs)
+        self.pos = self.pos_vel[0].m
+        self.vel = self.pos_vel[1].m_per_s
+        self.satLat = wgs84.geographic_position_of(self.geocentric).latitude.degrees
+        self.satLon = wgs84.geographic_position_of(self.geocentric).longitude.degrees
         
         # initial nadir-pointing attitude
         h = np.cross(self.pos, self.vel)
@@ -82,9 +92,13 @@ class Satellite(Entity):
         self.next_geocentric = self.ES.at(
             self.ts.from_datetime(self.get_time() + time_step)
         )
-        self.next_pos = self.next_geocentric.position.m
-        self.next_vel = self.next_geocentric.velocity.m_per_s
-        self.next_att = self.update_attitude(self, self.next_pos, self.next_vel)
+        self.next_pos_vel = self.next_geocentric.frame_xyz_and_velocity(itrs)
+        self.next_pos = self.next_pos_vel[0].m
+        self.next_vel = self.next_pos_vel[1].m_per_s
+        self.next_satLat = wgs84.geographic_position_of(self.next_geocentric).latitude.degrees
+        self.next_satLon = wgs84.geographic_position_of(self.next_geocentric).longitude.degrees
+        self.next_subpoint = wgs84.geographic_position_of(self.next_geocentric)
+        self.next_att = self.update_attitude(time_step, self.next_pos, self.next_vel)
         self.next_omega = self.omega
         self.next_targetQuat = self.update_target_attitude(
             self.next_pos, self.next_vel, targetLoc, t_start, t_end
@@ -93,10 +107,14 @@ class Satellite(Entity):
     def tock(self):
         self.target = self.next_target
         self.geocentric = self.next_geocentric
+        self.pos_vel = self.next_pos_vel
         self.pos = self.next_pos
         self.vel = self.next_vel
+        self.satLat = self.next_satLat
+        self.satLon = self.next_satLon
+        self.subpoint = self.next_subpoint
         self.att = self.next_att
-        self.omega = self.next_omega
+        # self.omega = self.next_omega
         self.targetQuat = self.next_targetQuat
 
         super().tock()
@@ -214,7 +232,6 @@ class Satellite(Entity):
     # find target quaternion at culmination from ground location
     def update_target_attitude(self, next_pos, next_vel, targetLoc, t_start, t_end):
         
-        print("EARTH SATELLITE ISSSSSSSSSSSSSSS",self.ES)
         # nadir-pointing attitude
         h = np.cross(next_pos, next_vel)
         # Calculate the unit vectors for the body x, y, and z axes
@@ -224,12 +241,12 @@ class Satellite(Entity):
         b_x = b_x0 / np.linalg.norm(b_x0)
         # Create the rotation matrix from the body to the inertial frame
         R_bi = np.vstack((b_x, b_y, b_z)).T
-        # targetQuat = R.from_matrix(R_bi).as_quat()
+        # iQuat = R.from_matrix(R_bi).as_quat()
+        # print("iQuat", iQuat[0], ",", iQuat[1], ",", iQuat[2], ",", iQuat[3])
 
         # finding time, position, velocity of rise/culmination/set events
         t, events = self.ES.find_events(targetLoc, ts.from_datetime(t_start), ts.from_datetime(t_end), altitude_degrees=1.0)
         eventZip = list(zip(t,events))
-        print(eventZip)
         df = pd.DataFrame(eventZip, columns = ["Time", "Event"])
         # removing rise/set events
         culmTimes = df.loc[df["Event"]==1]
@@ -237,16 +254,27 @@ class Satellite(Entity):
         culmTime = culmTimes.iloc[0]["Time"]
         # finding satellite position and velocity at first culmination time
         culmGeocentric = self.ES.at(culmTime)
-        culmPos = culmGeocentric.position.m
-        targetPos = targetLoc.itrs_xyz.m
-        culmVel = culmGeocentric.velocity.m_per_s
+
+        pos_vel= culmGeocentric.frame_xyz_and_velocity(itrs)
+        culm_pos = pos_vel[0].m
+        culm_vel = pos_vel[1].m_per_s
+        target_pos = targetLoc.itrs_xyz.m
 
         # find roll angle between nadir vector and target
-        culmUnitVec = culmPos / np.linalg.norm(culmPos)
-        direction = culmPos - targetPos
+        culmUnitVec = culm_pos / np.linalg.norm(culm_pos)
+        direction = culm_pos - target_pos
         dirUnit = direction / np.linalg.norm(direction)
 
         rollAngle = np.arccos(np.dot(dirUnit, culmUnitVec))
+        
+        sat_geographical = wgs84.geographic_position_of(culmGeocentric)
+        
+        # rollAngle is always positive - need to fix when target is to right
+        if culm_vel[2] > 0 and sat_geographical.longitude.degrees < targetLoc.longitude.degrees:
+            rollAngle = -rollAngle
+            
+        if culm_vel[2] < 0 and sat_geographical.longitude.degrees > targetLoc.longitude.degrees:
+            rollAngle = -rollAngle
 
         targetRot = R.from_matrix(R_bi) * R.from_euler("x", rollAngle)
         targetQuat = targetRot.as_quat()
@@ -255,8 +283,7 @@ class Satellite(Entity):
 
     # Calculate error between current quat and desired quat (Wie style)
     def att_error(self, next_pos, next_vel):
-        targetQuat = self.update_target_attitude(
-            self.next_pos, next_vel, targetLoc, t_start, t_end
+        targetQuat = self.update_target_attitude(next_pos, next_vel, targetLoc, t_start, t_end
         )
 
         qT = np.array(
@@ -301,13 +328,13 @@ class Satellite(Entity):
 
         return self.att
 
-    def update_attitude(self, time_step, pos, vel):
+    # changes the spacecraft's attitude
+    def update_attitude(self, time_step, next_pos, next_vel):
         # Calculate error quaternion
-        errorQuat = self.att_error(pos, vel)
+        errorQuat = self.att_error(next_pos, next_vel)
 
         # Calculate torque produced by reaction wheels
         T_c = self.control_torque(errorQuat, Kp, Kd)
-
         # Update angular velocity, euler angles, and quaternion
         alpha = np.matmul(np.linalg.inv(I), T_c)
         self.omega = self.omega + alpha * dt
@@ -358,6 +385,8 @@ class StatusPublisher(WallclockTimeIntervalPublisher):
                 name=self.satellite.name,
                 position=list(self.satellite.pos),
                 velocity=list(self.satellite.vel),
+                latitude = self.satellite.satLat,
+                longitude = self.satellite.satLon,
                 attitude=list(self.satellite.att),
                 angular_velocity=list(self.satellite.omega),
                 target_quaternion=list(self.satellite.targetQuat),
