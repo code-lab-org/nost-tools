@@ -25,7 +25,7 @@ ts = load.timescale()
 t_start = datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc)
 t_end  = datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc) + timedelta(hours=PARAMETERS['SCENARIO_LENGTH'])
 # dummy location
-targetLoc = wgs84.latlon(-35, -2)
+targetLoc = wgs84.latlon(-35, -8)
 targetPos = targetLoc.itrs_xyz.m
 
 
@@ -297,8 +297,12 @@ class Satellite(Entity):
         qB = np.array([self.att[0], self.att[1], self.att[2], self.att[3]])
 
         errorQuat = np.matmul(qT, qB)
+        errorRot = R.from_quat(errorQuat)
+        errorAngle = np.rad2deg((R.magnitude(errorRot)/(2*np.pi)))
+        
+        print("ERROR Angle IS",errorAngle)
 
-        return errorQuat
+        return errorQuat, errorAngle
 
     # Calculate torque produced by reaction wheels
     def control_torque(self, errorQuat, Kp, Kd):  # Sidi
@@ -331,7 +335,7 @@ class Satellite(Entity):
     # changes the spacecraft's attitude
     def update_attitude(self, time_step, next_pos, next_vel):
         # Calculate error quaternion
-        errorQuat = self.att_error(next_pos, next_vel)
+        errorQuat, errorAngle = self.att_error(next_pos, next_vel)
 
         # Calculate torque produced by reaction wheels
         T_c = self.control_torque(errorQuat, Kp, Kd)
