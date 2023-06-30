@@ -228,6 +228,18 @@ class Satellite(Entity):
                     groundId = k
                     break
         return isInRange, groundId
+    
+    def find_viewing_opportunities(self):
+        # finding time, position, velocity of rise/culmination/set events
+        t, events = self.ES.find_events(targetLoc, ts.from_datetime(t_start), ts.from_datetime(t_end), altitude_degrees=1.0)
+        eventZip = list(zip(t,events))
+        df = pd.DataFrame(eventZip, columns = ["Time", "Event"])
+        # removing rise/set events
+        culmTimes = df.loc[df["Event"]==1]
+        # finding time of first culmination
+        next_opportunity_time = culmTimes.iloc[0]["Time"]
+        
+        return next_opportunity_time
 
     # find target quaternion at culmination from ground location
     def update_target_attitude(self, next_pos, next_vel, targetLoc, t_start, t_end):
@@ -241,20 +253,9 @@ class Satellite(Entity):
         b_x = b_x0 / np.linalg.norm(b_x0)
         # Create the rotation matrix from the body to the inertial frame
         R_bi = np.vstack((b_x, b_y, b_z)).T
-        # iQuat = R.from_matrix(R_bi).as_quat()
-        # print("iQuat", iQuat[0], ",", iQuat[1], ",", iQuat[2], ",", iQuat[3])
-
-        # finding time, position, velocity of rise/culmination/set events
-        t, events = self.ES.find_events(targetLoc, ts.from_datetime(t_start), ts.from_datetime(t_end), altitude_degrees=1.0)
-        eventZip = list(zip(t,events))
-        df = pd.DataFrame(eventZip, columns = ["Time", "Event"])
-        # removing rise/set events
-        culmTimes = df.loc[df["Event"]==1]
-        # finding time of first culmination
-        culmTime = culmTimes.iloc[0]["Time"]
-        # finding satellite position and velocity at first culmination time
+        
+        # finding satellite position and velocity at next opportunity
         culmGeocentric = self.ES.at(culmTime)
-
         pos_vel= culmGeocentric.frame_xyz_and_velocity(itrs)
         culm_pos = pos_vel[0].m
         culm_vel = pos_vel[1].m_per_s
