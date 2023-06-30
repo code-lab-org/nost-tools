@@ -10,12 +10,12 @@ import logging
 from datetime import datetime, timezone, timedelta
 from dotenv import dotenv_values
 
-from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
-from nost_tools.simulator import Simulator, Mode
-from nost_tools.observer import Observer, Observable
-from nost_tools.managed_application import ManagedApplication
+from nost_tools.application_utils import ConnectionConfig, ShutDownObserver # type: ignore
+from nost_tools.simulator import Simulator, Mode # type: ignore
+from nost_tools.observer import Observer, Observable # type: ignore
+from nost_tools.managed_application import ManagedApplication # type: ignore
 
-from ground_config_files.schemas import (
+from ground_config_files.schemas import ( # type: ignore
     SatelliteReady,
     SatelliteStatus,
     GroundLocation,
@@ -24,7 +24,7 @@ from ground_config_files.schemas import (
     OutageReport,
     OutageRestore
 )
-from ground_config_files.config import (
+from ground_config_files.config import ( # type: ignore
     PREFIX,
     NAME,
     SCALE,
@@ -285,8 +285,8 @@ class LinkEndObserver(Observer):
 if __name__ == "__main__":
     # Note that these are loaded from a .env file in current working directory
     credentials = dotenv_values(".env")
-    HOST, PORT = credentials["SMCE_HOST"], int(credentials["SMCE_PORT"])
-    USERNAME, PASSWORD = credentials["SMCE_USERNAME"], credentials["SMCE_PASSWORD"]
+    HOST, PORT = credentials["HOST"], int(credentials["PORT"]) # type:ignore
+    USERNAME, PASSWORD = credentials["USERNAME"], credentials["PASSWORD"]
 
     # set the client credentials
     config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, True)

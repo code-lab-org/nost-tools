@@ -11,17 +11,17 @@
 
 import logging
 from datetime import datetime, timedelta, timezone
-from dotenv import dotenv_values
+from dotenv import dotenv_values # type:ignore
 
-from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
-from nost_tools.manager import Manager
+from nost_tools.application_utils import ConnectionConfig, ShutDownObserver # type:ignore
+from nost_tools.manager import Manager # type:ignore
 
 # client credentials should be saved to config.py file in manager_config_files directory
-from manager_config_files.config import (
+from manager_config_files.config import ( # type:ignore
     PREFIX,
     SCALE,
     UPDATE
-)
+) # type:ignore
 
 logging.basicConfig(level=logging.INFO)
     
@@ -29,8 +29,8 @@ logging.basicConfig(level=logging.INFO)
 if __name__ == "__main__":
     # Note that these are loaded from a .env file in current working directory
     credentials = dotenv_values(".env")
-    HOST, PORT = credentials["SMCE_HOST"], int(credentials["SMCE_PORT"])
-    USERNAME, PASSWORD = credentials["SMCE_USERNAME"], credentials["SMCE_PASSWORD"]
+    HOST, PORT = credentials["HOST"], int(credentials["PORT"]) # type:ignore
+    USERNAME, PASSWORD = credentials["USERNAME"], credentials["PASSWORD"]
 
     # set the client credentials from the config file
     config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, True)

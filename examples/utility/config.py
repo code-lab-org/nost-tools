@@ -4,7 +4,7 @@ import string
 import random
 from datetime import datetime, timezone, timedelta
 
-import pandas as pd
+import pandas as pd # type:ignore 
 
 # Name of next simulation run
 sim_name = "DemoDesign"
@@ -20,7 +20,7 @@ if param_file == None:
             # Global parameters
             "PREFIX": "utility",
             "SCALE": 60,
-            "SCENARIO_START": datetime(2022, 1, 22, 16, 0, 0, tzinfo=timezone.utc).timestamp(),
+            "SCENARIO_START": datetime(2023, 8, 2, 7, 20, 0, tzinfo=timezone.utc).timestamp(),
             "SCENARIO_LENGTH": 6,
             "SIM_NAME": sim_name,
 

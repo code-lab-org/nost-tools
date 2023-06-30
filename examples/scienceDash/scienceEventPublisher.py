@@ -29,35 +29,23 @@ if __name__ == "__main__":
     client.connect(HOST, PORT)
     # start a background thread to let MQTT do things
     client.loop_start()
+    
+    # for loop
+    t = 0
+    
 
     while True:
 
-        # event trigger
-        eventRand = random.randint(100)
-        if eventRand <= 99:
+        # publish event utility message
+        eventMessage = {"time":currentTime,
+                        "latitude":eventLat,
+                        "longitude":eventLon,
+                        "utility":utility}
+        client.publish("BCtest/ADCS/heartbeat", payload=json.dumps(eventMessage))
+        print(eventMessage)
 
-            # event location
-            eventLat = random.uniform(-180,180)
-            eventLon = random.uniform(-90,90)
-
-            # loop for utility function
-            for i in range(10):
-
-                # science utility funciton
-                utility = -((i/10)**2)+1
-                currentTime = datetime.now()
-                currentTime = currentTime.strftime('%H:%M:%S')
-
-                # publish event utility message
-                eventMessage = {"time":currentTime,
-                                "latitude":eventLat,
-                                "longitude":eventLon,
-                                "utility":utility}
-                client.publish("BCtest/AIAA/eventUtility", payload=json.dumps(eventMessage))
-                print(eventMessage)
-
-                #wait for next utility step
-                time.sleep(1)
+        #wait for next utility step
+        time.sleep(1)
 
         # time step between possible events
         next_step = datetime.now() + timedelta(seconds=1)

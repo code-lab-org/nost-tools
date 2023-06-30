@@ -12,7 +12,7 @@ import logging
 from datetime import datetime, timezone, timedelta
 from dotenv import dotenv_values
 # import numpy as np
-import pandas as pd
+import pandas as pd # type: ignore
 # import copy
 # import matplotlib.pyplot as plt
 # import matplotlib.patches as mpatches
@@ -22,13 +22,13 @@ import pandas as pd
 
 # import time
 
-from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
-from nost_tools.entity import Entity
+from nost_tools.application_utils import ConnectionConfig, ShutDownObserver # type: ignore
+from nost_tools.entity import Entity # type: ignore
 # from nost_tools.observer import Observer
-from nost_tools.managed_application import ManagedApplication
-from nost_tools.publisher import WallclockTimeIntervalPublisher
+from nost_tools.managed_application import ManagedApplication # type: ignore
+from nost_tools.publisher import WallclockTimeIntervalPublisher # type: ignore
 
-from skyfield.api import load, wgs84, EarthSatellite
+from skyfield.api import load, wgs84, EarthSatellite # type: ignore
 
 from constellation_config_files.schemas import (
     SatelliteReady,
@@ -463,8 +463,8 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
 if __name__ == "__main__":
     # Note that these are loaded from a .env file in current working directory
     credentials = dotenv_values(".env")
-    HOST, PORT = credentials["SMCE_HOST"], int(credentials["SMCE_PORT"])
-    USERNAME, PASSWORD = credentials["SMCE_USERNAME"], credentials["SMCE_PASSWORD"]
+    HOST, PORT = credentials["HOST"], int(credentials["PORT"]) # type:ignore
+    USERNAME, PASSWORD = credentials["USERNAME"], credentials["PASSWORD"]
 
     # set the client credentials
     config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, True)
@@ -475,9 +475,10 @@ if __name__ == "__main__":
     # load current TLEs for active satellites from Celestrak (NOTE: User has option to specify their own TLE instead)
     activesats_url = "https://celestrak.com/NORAD/elements/active.txt"
     activesats = load.tle_file(activesats_url, reload=True)
+    by_name = {sat.name: sat for sat in activesats}
 
     # keys for CelesTrak TLEs used in this example, but indexes often change over time)
-    names = ["SUOMI NPP (VIIRS)", "NOAA 20 (VIIRS)"]
+    names = ["SUOMI NPP", "NOAA 20"]
     ES = []
     indices = []
     for name_i, name in enumerate(names):
