@@ -35,11 +35,21 @@ If actively running the Docker Desktop client, the Containers tab should include
 
 .. image:: Docker_Desktop_Containers.png
 	:width: 800
+	:align: center
+	
+
+|
+
 
 Similarly, the Volumes tab should include a single, in-use **template_storage-group**:
 	
 .. image:: Docker_Desktop_Volumes.png
 	:width: 800
+	:align: center
+	
+
+|
+
 	
 Note that the names of both the container and the storage-group can be customized by editing the :obj:`.yml` file accordingly.
 
@@ -50,32 +60,90 @@ The :obj:`PubSubStandard_singleNode.yml` file contains a list of port mappings f
 
 .. image:: Solace_PubSub_Manager_Login.png
 	:width: 800
+	:align: center
 	
-After logging in you will see a single default VPN.
+|
+
+After logging in you will see a single default VPN. While more VPNs can be setup from within this menu, the default VPN serves as the locally hosted event broker.
+
+.. image:: Solace_PubSub_default_VPN.png
+	:width: 400
+	:align: center
+	
+
+|
+
 
 Customizing your Solace Event Broker
 ------------------------------------
 
-Coming soon.
+Selecting this VPN expands the **Messaging** sidebar menu for various event broker customizations, a few of which are covered below.
+
+Message VPN
+^^^^^^^^^^^
+
+.. image:: Solace_Message_VPN_Overview.png
+	:width: 800
+	:align: center
+	
+	
+|
+
+
+This is the homepage for the VPN that was just started. The Summary tab lists the number of client connections and rate of messages. The Settings tab allows you to Enable and Disable the event broker and define an allotment of memory for message spooling. The Services tab allows you to customize the broker behavior with respect to different messaging protocols. While NOS-T does not make use of all of these protocols, the ability of Solace PubSub+ Event Brokers to handle all of these different protocols lends itself to flexibility beyond the MQTT clients typically employed in the testbed.
 
 Clients
 ^^^^^^^
 
-Coming soon.
+.. image:: Solace_Client_Summary.png
+	:width: 800
+	:align: center
+	
+
+|
+
+
+The Clients menu allows you to get an overview of the number and type of client connections as separated by messaging protocol. In the latter screenshot, there is only one client currently connected to this event broker, which is actually the PubSub+ Manager currently being used. This is an SMF (Solace Messaging Format) client that is unique to Solace products and provide the user interface for the event-broker (although a command-line interface is also possible). All other clients and sessions that are used by NOS-T typically are constrained to MQTT protocol. The Clients menu provides a convenient for checking which MQTT clients are actively connected to the broker and to which topics they are subscribed.
 
 Queues
 ^^^^^^
 
-Coming soon.
+The original MQTT protocol was not designed to retain messages or spool a queue of messages, but Solace PubSub+ event brokers allow for clients with persistent sessions and remembered subscriptions. This can add to the reliability of a system where a subscriber may have been temporarily disconnected when the payload actually arrived to the topic endpoint. Queuing is discussed in greater detail :ref:`here <retainQueue>`.
 
 Access Control
 ^^^^^^^^^^^^^^
 
-Coming soon.
+.. image:: Solace_Client_Usernames.png
+	:width: 800
+	:align: center
+	
+
+|
+
+
+The Access Control menu provides several different methods for customizing authentication methods and client permissions. The **Client Authentication** tab provides ways to integrate third-party authentication, but Solace defaults to Basic Authentication via a username and a password. The admin can directly add new **Client Usernames** under the corresponding tab. **Client Profiles** and **ACL Profiles** allow for custom security groups with different levels of privileges. Client profiles set whether or not the user can create topic endpoints, whereas ACL profiles define default allow/deny behavior that gives the admin more granular control over access to topics through the use of exceptions. 
+
+.. image:: Solace_ACL_Profiles.png
+	:width: 800
+	:align: center
+
+	
+|
+
+
+For example, if a test case will involve clients with full access to publish and subscribe to all topics and other clients that may only publish/subscribe to select topics, it may be convenient to define two ACL profiles. One ACL profile would default allow connections, publishing, and subscribing (like the **default** profile in the latter screenshot). The second ACL profile would by default deny publishing messages and subscribing to topics (like the **unverified** profile in the latter screenshot), but with specific topics listed under the exceptions.
 
 Cache
 ^^^^^
 
-Coming soon.
+.. image:: Solace_New_MQTT_Retain_Cache.png
+	:width: 800
+	:align: center
+
+
+|
+
+
+The cache menu is important if you intend to use some the advanced features such as retaining MQTT messages. Without enabling a cache and alloting some memory, none of the MQTT Retain features will work.
 
 

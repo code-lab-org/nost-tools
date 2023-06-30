@@ -26,11 +26,9 @@ def on_message(mqttc, obj, msg):
     messageIn = json.loads(msg.payload.decode("utf-8"))
     print(messageIn)
     if msg.topic == f"{PREFIX}/eventGenerator/utilityPredict":
-        # capacityLOD.append(messageIn)   
-        # update_capacity(n_capacity)
-        # update_cost(n_cost)
+        
     elif msg.topic == f"{PREFIX}/eventGenerator/utilityReal":
-        # print(messageIn)
+        
     
 def update_utility(n_utility):
     df0 = pd.DataFrame(utilityLOD)
@@ -77,7 +75,7 @@ if __name__ == "__main__":
         config
     )
     # Add on_message callbacks, sort through with if statements for now
-    app.add_message_callback("eventGenerator", "eventStart", on_message)
+    # app.add_message_callback("eventGenerator", "eventStart", on_message)
     app.add_message_callback("eventGenerator", "utilityPredict", on_message)
     app.add_message_callback("eventGenerator", "utilityReal", on_message)
     app.add_message_callback("manager", "start", on_message)
