@@ -19,6 +19,6 @@ class SatelliteStatus(BaseModel):
         ..., description="Satellite altitude above surface of Earth (m)"
     )
     velocity: list = Field(
-        ..., description="Velocity in intertial XYZ coordinates (m/s)"
+        ..., description="Velocity in inertial XYZ coordinates (m/s)"
     )
     time: datetime = Field(..., description="Time in satellite reference frame")
