@@ -4,27 +4,31 @@ Example script to specify object schemas for the EventSat test case.
 
 """
 
-from pydantic import BaseModel, Field, confloat
-from typing import Optional
-from datetime import datetime
-from enum import Enum
+from pydantic import BaseModel, Field, confloat # type:ignore
+from typing import Optional # type:ignore
+from datetime import datetime # type:ignore
+# from enum import Enum
 
 
-class EventState(str, Enum):
-    undefined = "undefined"
-    started = "started"
-    finished = "finished"
-    detected = "detected"
-    reported = "reported"
+# class EventState(str, Enum):
+#     undefined = "undefined"
+#     started = "started"
+#     finished = "finished"
+
+
+class UtilityPub(BaseModel):
+    eventId: int = Field(..., description="Unique event identifier.")
+    eventTime: datetime = Field(..., description="Time input to u(t) function")
+    eventUtility: float = Field(..., description="Normalized science utility that is output of u(t)")
 
 
 class EventStarted(BaseModel):
     eventId: int = Field(..., description="Unique event identifier.")
     start: Optional[datetime] = Field(description="Time event started.")
-    latitude: Optional[confloat(ge=-90, le=90)] = Field(
+    latitude: Optional[confloat(ge=-90, le=90)] = Field( # type:ignore 
         description="Latitude (deg) of event location."
     )
-    longitude: Optional[confloat(ge=-180, le=180)] = Field(
+    longitude: Optional[confloat(ge=-180, le=180)] = Field( # type:ignore
         description="Longitude (deg) of event location."
     )
     isDay: Optional[int] = Field()
@@ -54,15 +58,15 @@ class EventDayChange(BaseModel):
 
 class EventFinished(BaseModel):
     eventId: int = Field(..., description="Unique event identifier.")
-
+    
 
 class SatelliteStatus(BaseModel):
     id: int = Field(..., description="Unique satellite identifier")
     name: str = Field(..., description="Satellite name for labeling.")
-    latitude: confloat(ge=-90, le=90) = Field(
+    latitude: confloat(ge=-90, le=90) = Field( # type:ignore
         ..., description="Latitude (deg) of satellite subpoint location."
     )
-    longitude: confloat(ge=-180, le=180) = Field(
+    longitude: confloat(ge=-180, le=180) = Field( # type:ignore
         ..., description="Longitude (deg) of satellite subpoint location."
     )
     altitude: float = Field(
@@ -77,10 +81,10 @@ class SatelliteStatus(BaseModel):
 
 class GroundLocation(BaseModel):
     groundId: int = Field(..., description="Unique ground station identifier.")
-    latitude: confloat(ge=-90, le=90) = Field(
+    latitude: confloat(ge=-90, le=90) = Field( # type:ignore
         ..., description="Latitude (deg) of ground station."
     )
-    longitude: confloat(ge=-180, le=180) = Field(
+    longitude: confloat(ge=-180, le=180) = Field( # type:ignore
         ..., description="Longitude (deg) of ground station."
     )
     elevAngle: float = Field(

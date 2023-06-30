@@ -9,10 +9,10 @@ import sys
 import logging
 from datetime import datetime, timedelta, timezone
 from dotenv import dotenv_values
-from skyfield.api import utc
+from skyfield.api import utc # type:ignore
 
-from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
-from nost_tools.manager import Manager
+from nost_tools.application_utils import ConnectionConfig, ShutDownObserver # type:ignore
+from nost_tools.manager import Manager # type:ignore
 
 # getting the name of the directory
 # where the this file is present.
@@ -20,14 +20,14 @@ current = os.path.dirname(os.path.realpath(__file__))
  
 # Getting the parent directory name
 # where the current directory is present.
-parent = os.path.dirname(current)
-superparent = os.path.dirname(parent)
+# parent = os.path.dirname(current)
+# superparent = os.path.dirname(parent)
 
-sys.path.append(superparent)
-sys.path.append(parent)
+# sys.path.append(superparent)
+# sys.path.append(parent)
 
 # client credentials should be saved to config.py file in manager_config_files directory
-from config import PARAMETERS
+from manager_config_files.config import PREFIX, SCALE, SCENARIO_START, SCENARIO_LENGTH # type:ignore
 
 logging.basicConfig(level=logging.INFO)
 
@@ -36,8 +36,8 @@ logging.basicConfig(level=logging.INFO)
 if __name__ == "__main__":
     # Note that these are loaded from a .env file in current working directory
     credentials = dotenv_values(".env")
-    HOST, PORT = credentials["SMCE_HOST"], int(credentials["SMCE_PORT"])
-    USERNAME, PASSWORD = credentials["SMCE_USERNAME"], credentials["SMCE_PASSWORD"]
+    HOST, PORT = credentials["HOST"], int(credentials["PORT"])
+    USERNAME, PASSWORD = credentials["USERNAME"], credentials["PASSWORD"]
     
     # set the client credentials from the config file
     config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, True)
@@ -49,21 +49,17 @@ if __name__ == "__main__":
     manager.simulator.add_observer(ShutDownObserver(manager))
 
     # start up the manager on PREFIX from config file
-    manager.start_up(PARAMETERS['PREFIX'], config, True)
+    manager.start_up(PREFIX, config, True)
 
     # execute a test plan
     manager.execute_test_plan(
-        datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc),                                         # scenario start datetime
-        datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc) + timedelta(hours=PARAMETERS['SCENARIO_LENGTH']),                                           # scenario end datetime
+        SCENARIO_START,                                         # scenario start datetime
+        SCENARIO_START + timedelta(hours=SCENARIO_LENGTH),      # scenario end datetime
         start_time=None,                                        # optionally specify a wallclock start datetime for synchronization
-        time_step=timedelta(seconds=1),                         # wallclock time resolution for simulation
-        time_scale_factor=PARAMETERS['SCALE'],                                # initial scale between wallclock and scenario clock (e.g. if SCALE = 60.0 then  1 wallclock second = 1 scenario minute)
-        time_scale_updates=PARAMETERS['UPDATE'],                              # optionally schedule changes to the time_scale_factor at a specified scenario time
-        time_status_step=timedelta(seconds=1)
-        * PARAMETERS['SCALE'],                                                # optional duration between time status 'heartbeat' messages
-        time_status_init=
-            datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc) + timedelta(minutes=1),                                                      # optional initial scenario datetime to start publishing time status 'heartbeat' messages
-        command_lead=timedelta(
-            seconds=5
-        ),                                                      # lead time before a scheduled update or stop command
+        time_step=timedelta(seconds=1)*SCALE,                         # wallclock time resolution for simulation
+        time_scale_factor=SCALE,                                # initial scale between wallclock and scenario clock (e.g. if SCALE = 60.0 then  1 wallclock second = 1 scenario minute)
+        time_scale_updates=[],                              # optionally schedule changes to the time_scale_factor at a specified scenario time
+        time_status_step=timedelta(seconds=1)*SCALE,                                                # optional duration between time status 'heartbeat' messages
+        time_status_init=SCENARIO_START + timedelta(hours=1),                                                      # optional initial scenario datetime to start publishing time status 'heartbeat' messages
+        command_lead=timedelta(seconds=5)                                                      # lead time before a scheduled update or stop command
     )

@@ -110,6 +110,8 @@ For more information on FireSat+, please see the following:
 
 NOS-T test suites are made up of applications communicating over the broker. Next, the tutorial will detail two of the FireSat+ apps to give you a better idea of how they work. 
 
+.. _tutorialSat:
+
 The **Satellites** application - main_constellation.py
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -149,6 +151,8 @@ These two functions, ``check_in_view`` and ``check_in_range``, affirm if the ele
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
 	:lines: 112-159
+
+.. _tutorialConstellation:
 
 Constellation class
 ~~~~~~~~~~~~~~~~~~~

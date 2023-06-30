@@ -61,9 +61,7 @@ class ShutDownObserver(Observer):
         app (:obj:`Application`): application to be shut down after termination
     """
 
-    def __init__(
-        self, app: Application
-    ):
+    def __init__(self, app: Application):
         """
         Initializes a new shut down observer.
 
@@ -128,9 +126,7 @@ class ModeStatusObserver(Observer):
         app (:obj:`Application`): application to publish mode status messages
     """
 
-    def __init__(
-        self, app: Application
-    ):
+    def __init__(self, app: Application):
         """
         Initializes a new mode status observer.
         """

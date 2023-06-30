@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-    *This application demonstrates a network of ground stations given geospatial locations, minimum elevation angle constraints, and operational status*
+    *This application models a ground stations at the Svalbard Satellite Station location with minimum elevation angle constraints.*
 
-    The application contains a single class, the :obj:`Environment` class, which waits for a message from the manager that indicates the beginning of the simulation execution. The application publishes all of the ground station information once, at the beginning of the simulation.
+    The application contains one class, the :obj:`Environment` class, which waits for a message from the manager that indicates the beginning of the simulation execution. The application publishes the ground station information once, at the beginning of the simulation.
 
 """
 
+from datetime import timedelta
 import logging
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from dotenv import dotenv_values
 
 from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
@@ -44,8 +45,8 @@ class Environment(Observer):
 
         In this instance, the callback function checks when the **PROPERTY_MODE** switches to **EXECUTING** to send a :obj:`GroundLocation` message to the *PREFIX/ground/location* topic:
 
-            .. literalinclude:: /../../examples/firesat/grounds/main_ground.py
-                :lines: 51-62
+            .. literalinclude:: /../../NWISdemo/grounds/main_ground.py
+                :lines: 56-67
 
         """
         if property_name == Simulator.PROPERTY_MODE and new_value == Mode.EXECUTING:
@@ -68,7 +69,6 @@ if __name__ == "__main__":
     credentials = dotenv_values(".env")
     HOST, PORT = credentials["HOST"], int(credentials["PORT"])
     USERNAME, PASSWORD = credentials["USERNAME"], credentials["PASSWORD"]
-
     # set the client credentials
     config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, True)
 

@@ -1,3 +1,5 @@
+.. _retainQueue:
+
 Configuring a Solace Broker for Message Queueing
 ================================================
 

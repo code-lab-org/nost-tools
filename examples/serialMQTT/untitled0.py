@@ -28,7 +28,7 @@ mqtt_subscription = 'serial/event/trigger'
 # Serial port device to bridge to the network (e.g. Arduino).
 # On Windows, this will usually be similar to 'COM5'.
 # On macOS, this will usually be similar to '/dev/cu.usbmodem333101'
-serial_portname = 'COM5'
+serial_portname = 'COM7'
 
 ################################################################
 ################################################################
@@ -47,11 +47,11 @@ import sys, time, signal
 
 # Import the MQTT client library.
 # documentation: https://www.eclipse.org/paho/clients/python/docs/
-import paho.mqtt.client as mqtt
+import paho.mqtt.client as mqtt # type: ignore
 
 # Import the pySerial library.
 # documentation: https://pyserial.readthedocs.io/en/latest/
-import serial
+import serial # type: ignore
 
 ################################################################
 # Global script variables.
@@ -67,7 +67,7 @@ a Python or text editor and set the variables appropriately in the Configuration
 section at the top of the file.
 """)
     if serial_portname == '':
-        import serial.tools.list_ports
+        import serial.tools.list_ports # type: ignore
         print("All available serial ports:")
         for p in serial.tools.list_ports.comports():
             print(" ", p.device)

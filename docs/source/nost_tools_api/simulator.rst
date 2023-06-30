@@ -1,3 +1,5 @@
+.. _toolsSimObj:
+
 Simulator Objects
 =================
 

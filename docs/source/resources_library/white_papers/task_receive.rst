@@ -1,4 +1,4 @@
-API driven Tasking-Receiving of Data
+API-driven Tasking-Receiving of Data
 ====================================
 
 With the increasing remote sensing capabilities and availabilities of commercial satellite constellations, there are great opportunities for researchers to leverage these commercial assets. Much like what is occurring in other areas of the new space economy, services that were traditionally done by NASA or other government agencies are being outsourced to commercial enterprises. Rather than needing to design an entire space mission architecture, a project investigator (PI) can save considerable life-cycle time and costs by using these commercial providers as a customer.
