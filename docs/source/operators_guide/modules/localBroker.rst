@@ -46,7 +46,12 @@ Note that the names of both the container and the storage-group can be customize
 Logging into the Solace Event Broker
 ------------------------------------
 
-Coming soon.
+The :obj:`PubSubStandard_singleNode.yml` file contains a list of port mappings for different protocols, including the 8080 port for SEMP (Solace Element Management Protocol). SEMP is a RESTful management API for configuring and administrating your Solace PubSub+ event broker. Once the docker container has been started up, open a browser and navigate to `http://localhost:8080/ <http://localhost:8080/>`_ to login to this new broker as an admin (Username: admin, Password: admin).
+
+.. image:: Solace_PubSub_Manager_Login.png
+	:width: 800
+	
+After logging in you will see a single default VPN.
 
 Customizing your Solace Event Broker
 ------------------------------------
