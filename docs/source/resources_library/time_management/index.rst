@@ -134,7 +134,7 @@ One such method is used in the provided examples -- iteration functions that ope
 a user to standardize their computer's internal clock. When this standardization is used across a distributed network (applications running across mutliple distributed machines), it mitigates local system errors. A millisecond of difference 
 each iteration can grow over long simulations and cause complications, thus the importance of instantiating a time-management system.
 
-The following code block shows the `NOS-T Tools function` in the :ref:`Scalability example <scalability>`:
+The :ref:`nostTools <NOS-T tools library>` contains a function for synchronizing applications with the NTP. The following code block shows an example of real-time management in the :ref:`Scalability example <scalability>`:
 
 .. code-block:: python3
 
