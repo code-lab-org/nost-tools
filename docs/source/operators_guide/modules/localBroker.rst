@@ -144,6 +144,6 @@ Cache
 |
 
 
-The cache menu is important if you intend to use some the advanced features such as retaining MQTT messages. Without enabling a cache and alloting some memory, none of the MQTT Retain features will work.
+The cache menu is important if you intend to use some of the advanced features such as retaining MQTT messages. Without enabling a cache and alloting some memory, none of the MQTT Retain features will work.
 
 
