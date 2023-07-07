@@ -114,7 +114,7 @@ class Satellite(Entity):
         self.satLon = self.next_satLon
         self.subpoint = self.next_subpoint
         self.att = self.next_att
-        # self.omega = self.next_omega
+        self.omega = self.next_omega
         self.targetQuat = self.next_targetQuat
 
         super().tock()
@@ -227,17 +227,22 @@ class Satellite(Entity):
                     isInRange = True
                     groundId = k
                     break
+                
         return isInRange, groundId
     
-    def find_viewing_opportunities(self):
+    def find_next_opportunity(self):
         # finding time, position, velocity of rise/culmination/set events
         t, events = self.ES.find_events(targetLoc, ts.from_datetime(t_start), ts.from_datetime(t_end), altitude_degrees=1.0)
-        eventZip = list(zip(t,events))
+        event_times = t.utc_datetime()
+        eventZip = list(zip(event_times,events))
         df = pd.DataFrame(eventZip, columns = ["Time", "Event"])
         # removing rise/set events
         culmTimes = df.loc[df["Event"]==1]
-        # finding time of first culmination
-        next_opportunity_time = culmTimes.iloc[0]["Time"]
+        # finding time of next opportunity
+        next_opp_df = culmTimes["Time"] > self.get_time()
+        # next_opp_df = culmTimes.iloc["Time"].utc_datetime() > self.get_time()
+        print(next_opp_df)
+        next_opportunity_time = next_opp_df.iloc[0]["Time"]
         
         return next_opportunity_time
 
@@ -255,7 +260,8 @@ class Satellite(Entity):
         R_bi = np.vstack((b_x, b_y, b_z)).T
         
         # finding satellite position and velocity at next opportunity
-        culmGeocentric = self.ES.at(culmTime)
+        next_opportunity_time = self.find_next_opportunity()
+        culmGeocentric = self.ES.at(next_opportunity_time)
         pos_vel= culmGeocentric.frame_xyz_and_velocity(itrs)
         culm_pos = pos_vel[0].m
         culm_vel = pos_vel[1].m_per_s
