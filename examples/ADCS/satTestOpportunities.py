@@ -54,13 +54,25 @@ culmTimes = df.loc[df["Event"]==1]
 
 # next_opp_df = culmTimes["Time"] < datetime.now(tz=utc)
 
-culmTimes.loc[culmTimes["Time"] < datetime.now(tz=utc), "Future"] = "True" 
-culmTimes.loc[culmTimes["Time"] > datetime.now(tz=utc), "Future"] = "False" 
+# df['equal_or_lower_than_4?'] = df['set_of_numbers'].apply(lambda x: 'True' if x <= 4 else 'False')
 
+# culmTimes['Future'] = culmTimes["Time"].apply(lambda x: 'True' if x <= datetime.now(tz=utc) else 'False')
 
-culmTime = culmTimes.iloc[0]["Time"]
+next_opportunities_df = culmTimes.loc[culmTimes.Time < datetime.now(tz=utc)].copy()
+# culmTimes.loc[culmTimes.Time > datetime.now(tz=utc), "Future?"] = "False" 
+
+# rows = culmTimes["Time"] < datetime.now(tz=utc)
+# newColumn = "Future"
+# culmTimes.loc[rows, newColumn] = "True"
+
+# culmTimes["Future?"] = np.where(culmTimes["Time"] < datetime.now(tz=utc), 'green', 'red')
+
+# dropping past culmination times
+# next_opportunity_df = culmTimes[culmTimes["Time"] < datetime.now(tz=utc)]
+next_opportunity_time = next_opportunities_df.iloc[0]["Time"]
+
 # finding satellite position and velocity at first culmination time
-culmGeocentric = satellite.at(ts.from_datetime(culmTime))
+culmGeocentric = satellite.at(ts.from_datetime(next_opportunity_time))
 # culmPos = culmGeocentric.position.m
 # targetLoc2 = targetLoc.at(culmTime)
 

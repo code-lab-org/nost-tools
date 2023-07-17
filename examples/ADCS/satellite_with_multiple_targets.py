@@ -238,11 +238,10 @@ class Satellite(Entity):
         df = pd.DataFrame(eventZip, columns = ["Time", "Event"])
         # removing rise/set events
         culmTimes = df.loc[df["Event"]==1]
-        # finding time of next opportunity
-        next_opp_df = culmTimes["Time"] > self.get_time()
-        # next_opp_df = culmTimes.iloc["Time"].utc_datetime() > self.get_time()
-        print(next_opp_df)
-        next_opportunity_time = next_opp_df.iloc[0]["Time"]
+        # dropping past culmination times from df
+        next_opportunities_df = culmTimes[culmTimes["Time"] > self.get_time()].copy
+        # setting first possible culmination time as next opportunity
+        next_opportunity_time = ts.from_datetime(next_opportunities_df.iloc[0]["Time"])
         
         return next_opportunity_time
 
@@ -343,7 +342,6 @@ class Satellite(Entity):
     def update_attitude(self, time_step, next_pos, next_vel):
         # Calculate error quaternion
         errorQuat, errorAngle = self.att_error(next_pos, next_vel)
-
         # Calculate torque produced by reaction wheels
         T_c = self.control_torque(errorQuat, Kp, Kd)
         # Update angular velocity, euler angles, and quaternion
