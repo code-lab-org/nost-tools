@@ -2,7 +2,7 @@
 """
     *This application demonstrates a network of ground stations given geospatial locations, minimum elevation angle constraints, and operational status*
 
-    The application contains one class, the :obj:`Environment` class, which waits for a message from the manager that indicates the beginning of the simulation execution. The application publishes all of the ground station information once, at the beginning of the simulation.
+    The application contains a :obj:`GroundNetwork` (:obj:`Observer`) object class to track the state of each constituent ground station, as well as the :obj:`LinkStartObserver` and :obj:`LinkEndObserver` object classes that monitor Acquisition of Signal (AOS) and Loss of Signal (LOS) events, respectively.
 
 """
 

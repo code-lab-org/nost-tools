@@ -20,7 +20,6 @@ class FireState(str, Enum):
         :lines: 15,24-27
 
     """
-
     undefined = "undefined"
     started = "started"
     detected = "detected"

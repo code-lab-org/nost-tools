@@ -25,29 +25,38 @@ def on_message(mqttc, obj, msg):
     # setting up list of dictionaries
     messageIn = json.loads(msg.payload.decode("utf-8"))
     print(messageIn)
-    if msg.topic == f"{PREFIX}/eventGenerator/utilityPredict":
-        
-    elif msg.topic == f"{PREFIX}/eventGenerator/utilityReal":
+    if (msg.topic == f"{PREFIX}/eventGenerator/utilityPredict") | (msg.topic == f"{PREFIX}/eventGenerator/utilityReal"):
+        utilityLOD.append(messageIn)
+        update_utility(n_utility)
+    elif msg.topic == f"{PREFIX}/manager/start":
+        print("\n\nDid the manager start trigger work?!!\n\n")
+        print(msg.topic)        
+    elif msg.topic == f"{PREFIX}/manager/stop":
+        print("\n\nDid the manager stop trigger work?!!\n\n")
+        print(msg.topic)
+        print("\nAll done?\n")
         
     
 def update_utility(n_utility):
     df0 = pd.DataFrame(utilityLOD)
-    
-    return
+    utilityFig = px.line(df0, x="time", y="utility", color="eventId", linestyle="type", markers=True,
+                          labels={"time":"time (UTC)", "utility":"Expected science utility returned, u(t)", "eventId":"eventId"},
+                          title="Utility v. Time")
+    return utilityFig
 
-def update_predict(n_predict):
-    df0 = pd.DataFrame(utilityPredictLOD)
-    predictFig = px.line(df0, x="timePredict", y="utilityPredict", color="eventId", markers=True,
-                          labels={"time":"time (UTC)", "utilityPredict":"Expected science utility returned, u(t)", "eventId":"eventId"},
-                          title="Predicted Utility v. Time")
-    return predictFig
+# def update_predict(n_predict):
+#     df0 = pd.DataFrame(utilityPredictLOD)
+#     predictFig = px.line(df0, x="timePredict", y="utilityPredict", color="eventId", markers=True,
+#                           labels={"time":"time (UTC)", "utilityPredict":"Expected science utility returned, u(t)", "eventId":"eventId"},
+#                           title="Predicted Utility v. Time")
+#     return predictFig
 
-def update_real(n_real):
-    df0 = pd.DataFrame(utilityRealLOD)
-    realFig = px.area(df0, x="timReal", y="utilityReal", color="eventId", markers=False,
-                      labels={"time":"time (UTC)", "utilityReal":"Actual science utility returned, u(t)", "eventId":"eventId"},
-                      title="Real Utility v. Time")
-    return realFig
+# def update_real(n_real):
+#     df0 = pd.DataFrame(utilityRealLOD)
+#     realFig = px.area(df0, x="timReal", y="utilityReal", color="eventId", markers=False,
+#                       labels={"time":"time (UTC)", "utilityReal":"Actual science utility returned, u(t)", "eventId":"eventId"},
+#                       title="Real Utility v. Time")
+#     return realFig
 
 def disable_dash(state_switch):
     if state_switch:
@@ -84,9 +93,12 @@ if __name__ == "__main__":
     # initialize df0
     df0 = pd.DataFrame()
     df0["eventId"] = 0
+    df0["latitude"] = 0
+    df0["logitude"] = 0
     df0["time"] = 0
+    df0["isDay"] = 0
     df0["utility"] = 0
-    df0["type"] = 0
+    df0["isReal"] = 0
 
     state_switch = False
 

@@ -20,8 +20,16 @@ class EventState(str, Enum):
     
 class UtilityPub(BaseModel):
     eventId: int = Field(..., description="Unique event identifier.")
-    eventTime: datetime = Field(..., description="Time input to u(t) function")
-    eventUtility: float = Field(..., description="Normalized science utility that is output of u(t)")
+    latitude: Optional[confloat(ge=-90, le=90)] = Field( # type:ignore 
+        description="Latitude (deg) of event location."
+    )
+    longitude: Optional[confloat(ge=-180, le=180)] = Field( # type:ignore
+        description="Longitude (deg) of event location."
+    )
+    time: datetime = Field(..., description="Time input to u(t) function")
+    isDay: bool = Field(..., description="True = Day, False = Night")
+    utility: float = Field(..., description="Normalized science utility that is output of u(t)")
+    isReal: bool = Field(..., description="True = Real Event Utility, False = Predicted Event Utility") 
 
 
 class EventStarted(BaseModel):

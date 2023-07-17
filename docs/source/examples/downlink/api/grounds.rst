@@ -1,11 +1,13 @@
 Grounds
 =======
 
-examples.downlink.grounds.main_ground.py module
------------------------------------------------
-
 .. automodule:: examples.downlink.grounds.main_ground
-	:exclude-members: Environment
+	:exclude-members: GroundNetwork
+		
+|
+
+GroundNetwork
+-------------
 
 .. autoclass:: examples.downlink.grounds.main_ground.GroundNetwork
   :show-inheritance:
@@ -23,6 +25,11 @@ examples.downlink.grounds.main_ground.py module
 .. automethod:: examples.downlink.grounds.main_ground.GroundNetwork.on_restore
 
 .. automethod:: examples.downlink.grounds.main_ground.GroundNetwork.fixedCost
+
+|
+
+Event Observers
+---------------
 
 .. autoclass:: examples.downlink.grounds.main_ground.LinkStartObserver
   :show-inheritance:

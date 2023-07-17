@@ -60,27 +60,6 @@ class Scheduler(Observer):
 
         """
         location = GroundLocation.parse_raw(message.payload)
-        # if location.groundId in self.grounds.groundId:
-        #     self.grounds[
-        #         self.grounds.groundId == location.groundId
-        #     ].latitude = location.latitude
-        #     self.grounds[
-        #         self.grounds.groundId == location.groundId
-        #     ].longitude = location.longitude
-        #     self.grounds[
-        #         self.grounds.groundId == location.groundId
-        #     ].elevAngle = location.elevAngle
-        #     self.grounds[
-        #         self.grounds.groundId == location.groundId
-        #     ].operational = location.operational
-        #     self.grounds[
-        #         self.grounds.groundId == location.groundId
-        #     ].downlinkRate = location.downlinkRate
-        #     self.grounds[
-        #         self.grounds.groundId == location.groundId
-        #     ].costPerSecond = location.costPerSecond
-        #     print(f"Station {location.groundId} updated at time {self.get_time()}.")
-        # else:
         self.grounds.append(
             {
                 "groundId": location.groundId,
@@ -184,8 +163,8 @@ class Randomizer(ScenarioTimeIntervalPublisher):
 if __name__ == "__main__":
     # Note that these are loaded from a .env file in current working directory
     credentials = dotenv_values(".env")
-    HOST, PORT = credentials["SMCE_HOST"], int(credentials["SMCE_PORT"])
-    USERNAME, PASSWORD = credentials["SMCE_USERNAME"], credentials["SMCE_PASSWORD"]
+    HOST, PORT = credentials["HOST"], int(credentials["PORT"])
+    USERNAME, PASSWORD = credentials["USERNAME"], credentials["PASSWORD"]
 
     # set the client credentials
     config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, True)

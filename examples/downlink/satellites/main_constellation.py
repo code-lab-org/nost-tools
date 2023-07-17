@@ -4,31 +4,21 @@
 
     The application contains one :obj:`Constellation` (:obj:`Entity`) object class and one :obj:`PositionPublisher` (:obj:`WallclockTimeIntervalPublisher`). The application also contains two global methods outside of these classes, which contain standardized calculations sourced from Ch. 5 of *Space Mission Analysis and Design* by Wertz and Larson.
     
-    *NOTE:* For example code demonstrating how the constellation application is started up and how the :obj:`Constellation` :obj:`Entity` object class is initialized and added to the simulator, see the FireSat+ example.
+    *NOTE:* For example code demonstrating how the constellation application is started up and how the :obj:`Constellation` (:obj:`Entity`) and :obj:`PositionPublisher` (:obj:`WallclockTimeIntervalPublisher`) object classes are initialized and added to the simulator, see :ref:`FireSat+ Constellations <fireSatConstellations>`.
 
 """
 
 import logging
 from datetime import datetime, timezone, timedelta
 from dotenv import dotenv_values
-# import numpy as np
-import pandas as pd # type: ignore
-# import copy
-# import matplotlib.pyplot as plt
-# import matplotlib.patches as mpatches
-# import seaborn as sns
+import pandas as pd # type:ignore
 
-# from scipy import stats
+from nost_tools.application_utils import ConnectionConfig, ShutDownObserver # type:ignore
+from nost_tools.entity import Entity # type:ignore
+from nost_tools.managed_application import ManagedApplication # type:ignore
+from nost_tools.publisher import WallclockTimeIntervalPublisher # type:ignore
 
-# import time
-
-from nost_tools.application_utils import ConnectionConfig, ShutDownObserver # type: ignore
-from nost_tools.entity import Entity # type: ignore
-# from nost_tools.observer import Observer
-from nost_tools.managed_application import ManagedApplication # type: ignore
-from nost_tools.publisher import WallclockTimeIntervalPublisher # type: ignore
-
-from skyfield.api import load, wgs84, EarthSatellite # type: ignore
+from skyfield.api import load, wgs84, EarthSatellite # type:ignore
 
 from constellation_config_files.schemas import (
     SatelliteReady,
@@ -421,8 +411,8 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
         Args:
             id (int): Unique id for satellite in constellation
             name (str): Unique *str* name for satellite in constellation
-            latitude (:obj:`confloat`): Latitude in degrees for satellite in constellation at current scenario time
-            longitude (:obj:`confloat`): Longitude in degrees for satellite in constellation at current scenario time
+            latitude (float): Latitude in degrees for satellite in constellation at current scenario time
+            longitude (float): Longitude in degrees for satellite in constellation at current scenario time
             altitude (float): Altitude above sea-level in meters for satellite in constellation at current scenario time
             capacity_used (float): Fraction of solid-state recorder capacity used for satellite in constellation at current scenario time
             commRange (bool): Boolean state variable indicating if satellite in constellaton is in view of a ground station at current scenario time

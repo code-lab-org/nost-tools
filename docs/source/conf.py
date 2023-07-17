@@ -21,6 +21,7 @@ sys.path.insert(0, os.path.abspath("../../examples/firesat/fires"))
 sys.path.insert(0, os.path.abspath("../../examples/firesat/fires/fire_config_files"))
 sys.path.insert(0, os.path.abspath("../../examples/firesat/grounds"))
 sys.path.insert(0, os.path.abspath("../../examples/firesat/satellites"))
+sys.path.insert(0, os.path.abspath("../../examples/firesat/satellites/constellation_config_files"))
 sys.path.insert(0, os.path.abspath("../../examples/firesat/manager"))
 sys.path.insert(0, os.path.abspath("../../examples/realtime"))
 sys.path.insert(0, os.path.abspath("../../examples/scalability"))
@@ -29,6 +30,7 @@ sys.path.insert(0, os.path.abspath("../../examples/scalability/heartbeat"))
 sys.path.insert(0, os.path.abspath("../../examples/downlink"))
 sys.path.insert(0, os.path.abspath("../../examples/downlink/satellites"))
 sys.path.insert(0, os.path.abspath("../../examples/downlink/grounds"))
+sys.path.insert(0, os.path.abspath("../../examples/downlink/grounds/ground_config_files"))
 sys.path.insert(0, os.path.abspath("../../examples/downlink/outages"))
 sys.path.insert(0, os.path.abspath("../../examples/downlink/scoreboard"))
 sys.path.insert(
@@ -84,8 +86,9 @@ napoleon_use_admonition_for_references = False
 napoleon_use_ivar = False
 napoleon_use_param = True
 napoleon_use_rtype = True
-autodoc_pydantic_model_show_json = False
+autodoc_pydantic_model_show_json = True
 autodoc_pydantic_model_show_config = False
+add_module_names = False
 trim_footnote_reference_space = True
 copybutton_prompt_text = "myinputprompt"
 copybutton_prompt_text = ">>> "

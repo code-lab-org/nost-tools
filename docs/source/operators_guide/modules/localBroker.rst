@@ -103,7 +103,7 @@ Clients
 |
 
 
-The Clients menu allows you to get an overview of the number and type of client connections as separated by messaging protocol. In the latter screenshot, there is only one client currently connected to this event broker, which is actually the PubSub+ Manager currently being used. This is an SMF (Solace Messaging Format) client that is unique to Solace products and provide the user interface for the event-broker (although a command-line interface is also possible). All other clients and sessions that are used by NOS-T typically are constrained to MQTT protocol. The Clients menu provides a convenient for checking which MQTT clients are actively connected to the broker and to which topics they are subscribed.
+The Clients menu allows you to get an overview of the number and type of client connections as separated by messaging protocol. In the latter screenshot, there is only one client currently connected to this event broker, which is actually the PubSub+ Manager currently being used. This is an SMF (Solace Messaging Format) client that is unique to Solace products and provide the user interface for the event-broker (although a command-line interface is also possible). All other clients and sessions that are used by NOS-T typically are constrained to MQTT protocol. The Clients menu allows the operator to see which MQTT clients are actively connected to the broker and to which topics they are subscribed, which can be useful when trying to debug why a client isn't receiving messages.
 
 Queues
 ^^^^^^
