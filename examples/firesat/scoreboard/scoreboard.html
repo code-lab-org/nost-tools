@@ -80,6 +80,12 @@
         var grounds = {}; <!-- Surface position of ground stations as PINK points -->
         var updates = {};
 
+        /**
+         * Receive and parse messages on subscribed-to topics
+         * @param {string} message Incoming message.
+         * @param {string} message.payloadString Incoming message.
+         * @param {string} message.destinationName Incoming message.
+         */
         function handleMessage(message) {
           // get the message payload as a string
           <!-- console.log(message.payloadString); -->
