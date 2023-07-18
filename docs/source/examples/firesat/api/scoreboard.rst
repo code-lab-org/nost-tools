@@ -27,7 +27,6 @@ scoreboard.html
 ---------------
 
 .. js:autofunction:: handleMessage
-    :noindex:
 
 The first 19 lines of this code is the .html "head," which is the framework on which the JavaScript below fills in. The JavaScript "body" begins on line 21.
 

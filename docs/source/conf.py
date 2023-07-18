@@ -71,6 +71,7 @@ extensions = [
     "sphinx_search.extension",
     "sphinxcontrib.autodoc_pydantic",
     "sphinx_design",
+    "sphinx_js",
 ]
 
 napoleon_google_docstring = True
@@ -90,6 +91,7 @@ trim_footnote_reference_space = True
 copybutton_prompt_text = "myinputprompt"
 copybutton_prompt_text = ">>> "
 intersphinx_mapping = {"python": ("https://docs.python.org/3", None)}
+js_source_path = "../../examples/firesat/scoreboard/"
 
 # Add any paths that contain templates here, relative to this directory.
 # templates_path = ['_templates']
