@@ -3,27 +3,21 @@
 NOS-T Tools API
 ---------------
 
-This page contains descriptions of the NOS-T tools library features, and
-provides a detailed description of their functions. Within this library, there are
-templates to support both time-managed and time-agnostic applications.
+This page contains descriptions of the NOS-T tools library features, and provides a detailed description of their functions. Within this library, there are templates to support both time-managed and time-agnostic applications. These templates contain commonly-used functions for distributed space missions. The first step for using the tools library is to follow the :ref:`installation instructions <installation>`. 
 
-These templates allow a user to create an application with unique functionality,
-and easily ensure that the application will be compatible with the simulation as
-a whole.
+The tools have been split up into the three following sections:
 
-In this webpage, you can find the documentation for the provided templates, The
-FireSat+ example codes show how the templates can be integrated into user applications.
-The applications can be found in `this GitHub repository <https://github.com/code-lab-org/nost-tools/tree/main/nost_tools>`__.
+* **Message Schemas**:  These define the information carried in common message payloads and the format that information should take. They use the Pydantic data validation library. They consist of both command messages used by the manager to control time-managed scenarios and status messages used by all constituent applications.
+* **Simulator Objects**:  This collection of Python objects help manage state changes for simulation applications. They include functions that can compute (tick) and commit (tock) these state changes as well as those that control enumerate simulation modes and handle scenario timing.
+* **Applications Objects**:  These Python objects help the constituent applications communicate with the MQTT messaging protocol. They include functions that connect to a MQTT broker, publish messages and defined intervals, and help to develop applications that can interface with the NOS-T manager.
 
-Installation instructions are found at :ref:`this link <installation>`. A step-by-step guide for running FireSat+, including the installation 
-instructions, is in the :ref:`tutorial`.
+Clicking into the three sections listed above will bring you to the automatically-generated documentation. You can see which of the NOS-T tools Python scripts contains the given schema or object by looking at the top-level titles. For example, the ConnectionConfig function has the following title:  :code:`nost_tools.application_utils.ConnectionConfig`. This means that function is found, and can be imported from, the *application_utils.py* file.
 
-The tools library is an expansion of the NOS-T infrastructure project, intended to simplify
-component interoperability for distributed systems testing. A deep dive into the NOS-T project
-is in the :ref:`ICD`.
+The :ref:`NOS-T Example Test Suites <examples>` are a good place to see how the tools library can be implemented. In particular, all of the Python :ref:`FireSat+ <fireSatExampleTop>` applications use the tools. Furthermore, the :ref:`example application templates <appTemplates>` are a collection of bare-bones templates, similar to FireSat+, with some of the tools functionality built-in.
 
 .. toctree::
   :maxdepth: 1
+
 
   schemas
   simulator

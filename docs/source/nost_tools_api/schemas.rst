@@ -1,3 +1,5 @@
+.. _toolsMsg:
+
 Message Schemas
 ===============
 
