@@ -30,6 +30,7 @@ sys.path.insert(0, os.path.abspath("../../examples/scalability/heartbeat"))
 sys.path.insert(0, os.path.abspath("../../examples/downlink"))
 sys.path.insert(0, os.path.abspath("../../examples/downlink/satellites"))
 sys.path.insert(0, os.path.abspath("../../examples/downlink/grounds"))
+sys.path.insert(0, os.path.abspath("../../examples/downlink/grounds/ground_config_files"))
 sys.path.insert(0, os.path.abspath("../../examples/downlink/outages"))
 sys.path.insert(0, os.path.abspath("../../examples/downlink/scoreboard"))
 sys.path.insert(

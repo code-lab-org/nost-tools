@@ -35,7 +35,7 @@ class SatelliteAllReady(BaseModel):
     )
     
 
-class SatelliteStatus(BaseModel):
+class SatelliteState(BaseModel):
     """
     *Message schema object class with properties inherited from the pydantic library's BaseModel*
 

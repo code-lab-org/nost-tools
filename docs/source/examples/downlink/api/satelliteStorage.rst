@@ -1,14 +1,13 @@
 .. _downlinkConstellations:
 
-Constellations
-==============
-.. module:: examples.downlink.satellites.main_constellation
+SatelliteStorage
+================
 
-.. automodule:: examples.downlink.satellites.main_constellation
+.. automodule:: examples.downlink.satelliteStorage.main_satelliteStorage
   :noindex:
   :show-inheritance:
   :member-order: bysource
-  :exclude-members: examples.downlink.satellites.main_constellation.get_elevation_angle, examples.downlink.satellites.main_constellation.check_in_range, examples.downlink.satellites.main_constellation.Constellation, examples.downlink.satellites.main_constellation.PositionPublisher, examples.downlink.satellites.main_constellation
+  :exclude-members: examples.downlink.satelliteStorage.main_satelliteStorage.get_elevation_angle, examples.downlink.satelliteStorage.main_satelliteStorage.check_in_range, examples.downlink.satelliteStorage.main_satelliteStorage.SatelliteStorage, examples.downlink.satelliteStorage.main_satelliteStorage.SatelliteStorage.SatStatePublisher
 
 
 |
@@ -17,9 +16,9 @@ Constellations
 Methods
 -------
 	
-.. automethod:: examples.downlink.satellites.main_constellation.get_elevation_angle
+.. automethod:: examples.downlink.satelliteStorage.main_satelliteStorage.get_elevation_angle
 	
-.. automethod:: examples.downlink.satellites.main_constellation.check_in_range
+.. automethod:: examples.downlink.satelliteStorage.main_satelliteStorage.check_in_range
 
 
 |
@@ -28,39 +27,39 @@ Methods
 Classes
 -------
 
-While the latter methods are globally defined, the following classes have built-in methods that are unique to each object. The :obj:`Constellation` class tracks state transitions for the satellites in the constellation, while the :obj:`PositionPublisher` standardizes the message structure and frequency of published messages updating these states.
+While the latter methods are globally defined, the following classes have built-in methods that are unique to each object. The :obj:`SatelliteStorage` class tracks state transitions for the satellites in the constellation, while the :obj:`SatStatePublisher` standardizes the message structure and frequency of published messages updating these states.
 
-Constellation
-^^^^^^^^^^^^^
+SatelliteStorage
+^^^^^^^^^^^^^^^^
 
-.. autoclass:: examples.downlink.satellites.main_constellation.Constellation
+.. autoclass:: examples.downlink.satelliteStorage.main_satelliteStorage.SatelliteStorage
 	:show-inheritance:
 
-.. automethod:: examples.downlink.satellites.main_constellation.Constellation.initialize
+.. automethod:: examples.downlink.satelliteStorage.main_satelliteStorage.SatelliteStorage.initialize
 
-.. automethod:: examples.downlink.satellites.main_constellation.Constellation.tick
+.. automethod:: examples.downlink.satelliteStorage.main_satelliteStorage.SatelliteStorage.tick
 
-.. automethod:: examples.downlink.satellites.main_constellation.Constellation.tock
+.. automethod:: examples.downlink.satelliteStorage.main_satelliteStorage.SatelliteStorage.tock
 
-.. automethod:: examples.downlink.satellites.main_constellation.Constellation.on_ground
+.. automethod:: examples.downlink.satelliteStorage.main_satelliteStorage.SatelliteStorage.on_ground
 
-.. automethod:: examples.downlink.satellites.main_constellation.Constellation.on_linkStart
+.. automethod:: examples.downlink.satelliteStorage.main_satelliteStorage.SatelliteStorage.on_linkStart
 
-.. automethod:: examples.downlink.satellites.main_constellation.Constellation.on_linkCharge
+.. automethod:: examples.downlink.satelliteStorage.main_satelliteStorage.SatelliteStorage.on_linkCharge
 
-.. automethod:: examples.downlink.satellites.main_constellation.Constellation.on_outage
+.. automethod:: examples.downlink.satelliteStorage.main_satelliteStorage.SatelliteStorage.on_outage
 
-.. automethod:: examples.downlink.satellites.main_constellation.Constellation.on_restore
+.. automethod:: examples.downlink.satelliteStorage.main_satelliteStorage.SatelliteStorage.on_restore
 
 |
 
-PositionPublisher
+SatStatePublisher
 ^^^^^^^^^^^^^^^^^
 
-.. autoclass:: examples.downlink.satellites.main_constellation.PositionPublisher
+.. autoclass:: examples.downlink.satelliteStorage.main_satelliteStorage.SatStatePublisher
 	:show-inheritance:
 
-.. automethod:: examples.downlink.satellites.main_constellation.PositionPublisher.publish_message
+.. automethod:: examples.downlink.satelliteStorage.main_satelliteStorage.SatStatePublisher.publish_message
 
 
 |
@@ -80,42 +79,56 @@ Schema
 	:show-inheritance:
 	:settings-summary-list-order: bysource
 	:member-order: bysource
+
+|
 	
 .. autopydantic_settings:: examples.downlink.grounds.ground_config_files.schemas.SatelliteAllReady
 	:noindex:
 	:show-inheritance:
 	:settings-summary-list-order: bysource
 	:member-order: bysource
+
+|
 	
-.. autopydantic_settings:: examples.downlink.grounds.ground_config_files.schemas.SatelliteStatus
+.. autopydantic_settings:: examples.downlink.grounds.ground_config_files.schemas.SatelliteState
 	:noindex:
 	:show-inheritance:
 	:settings-summary-list-order: bysource
 	:member-order: bysource
+
+|
 	
 .. autopydantic_settings:: examples.downlink.grounds.ground_config_files.schemas.GroundLocation
 	:noindex:
 	:show-inheritance:
 	:settings-summary-list-order: bysource
 	:member-order: bysource
+
+|
 	
 .. autopydantic_settings:: examples.downlink.grounds.ground_config_files.schemas.LinkStart
 	:noindex:
 	:show-inheritance:
 	:settings-summary-list-order: bysource
 	:member-order: bysource
+
+|
 	
 .. autopydantic_settings:: examples.downlink.grounds.ground_config_files.schemas.LinkCharge
 	:noindex:
 	:show-inheritance:
 	:settings-summary-list-order: bysource
 	:member-order: bysource
+
+|
 	
 .. autopydantic_settings:: examples.downlink.grounds.ground_config_files.schemas.OutageReport
 	:noindex:
 	:show-inheritance:
 	:settings-summary-list-order: bysource
 	:member-order: bysource
+
+|
 	
 .. autopydantic_settings:: examples.downlink.grounds.ground_config_files.schemas.OutageRestore
 	:noindex:

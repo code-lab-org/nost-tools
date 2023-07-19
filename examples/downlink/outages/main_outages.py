@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-    *This application demonstrates a constellation of satellites for monitoring fires propagated from Two-Line Elements (TLEs)*
+    *This application implements scheduled and/or random outages at constituent ground stations.*
 
-    The application contains one :obj:`Constellation` (:obj:`Entity`) object class, one :obj:`PositionPublisher` (:obj:`WallclockTimeIntervalPublisher`), and two :obj:`Observer` object classes to monitor for :obj:`FireDetected` and :obj:`FireReported` events, respectively. The application also contains several methods outside of these classes, which contain standardized calculations sourced from Ch. 5 of *Space Mission Analysis and Design* by Wertz and Larson.
+    The application contains one :obj:`Scheduler` (:obj:`Observer`) object class to monitor the time for outages pre-defined before the simulation begins and one :obj:`Randomizer` (:obj:`ScenarioIntervalPublisher`) object class for executing random Bernoulli trials to trigger randomized outages dynamically during the simulation.
 
 """
 
@@ -36,7 +36,7 @@ random.seed(72)
 # define an observer to manage fire updates and record to a dataframe fires
 class Scheduler(Observer):
     """
-    *The Scheduler object class inherits properties from the Entity object class in the NOS-T tools library*
+    *The Scheduler object class inherits properties from the Observer object class in the NOS-T tools library*
 
     Attributes:
         app (:obj:`ManagedApplication`): An application containing a test-run namespace, a name and description for the app, client credentials, and simulation timing instructions
@@ -51,7 +51,7 @@ class Scheduler(Observer):
 
     def on_ground(self, client, userdata, message):
         """
-        Callback function appends a dictionary of information for a new ground station to grounds :obj:`list` when message detected on the *PREFIX/ground/location* topic. Ground station information is published at beginning of simulation, and the :obj:`list` is converted to a :obj:`DataFrame` when the Constellation is initialized.
+        Callback function appends a dictionary of information for a new ground station to grounds :obj:`list` when :obj:`GroundLocation` message detected on the *PREFIX/ground/location* topic. Ground station information is published at beginning of simulation, and the completed :obj:`list` is converted to a :obj:`DataFrame`.
 
         Args:
             client (:obj:`MQTT Client`): Client that connects application to the event broker using the MQTT protocol. Includes user credentials, tls certificates, and host server-port information.
@@ -78,7 +78,7 @@ class Scheduler(Observer):
         """
         *Standard on_change callback function format inherited from Observer object class*
 
-        In this instance, the callback function checks the simulation :obj:`datetime` against each scheduled outage :obj:`datetime` for the scenario. If past the scheduled start of an outage, a :obj:`OutageReport` message is sent to *PREFIX/outage/report*:
+        In this instance, the callback function checks the simulation :obj:`datetime` against each scheduled outage :obj:`datetime` for the scenario. If past the scheduled start of an outage, an :obj:`OutageReport` message is sent to *PREFIX/outage/report*:
 
         """
         if property_name == "time":
@@ -108,7 +108,11 @@ class Randomizer(ScenarioTimeIntervalPublisher):
     *This object class inherits properties from the ScenarioTimeIntervalPublisher object class from the publisher template in the NOS-T tools library*
 
     Args:
-        app (:obj:`ManagedApplication`): An application containing a test-run namespace, a name and description for the app, client credentials, and simulation timing instructions
+        app (:obj:`ManagedApplication`): An application containing a test-run namespace, a name and description for the app, client credentials, and simulation timing instructions.
+        scheduler (:obj:`Scheduler`): A Scheduler object class must be added to the publisher.
+        probOutage (float): A value between 0 and 1 that sets the probability of an outage for each random Bernoulli trial.
+        time_status_step (:obj:`timedelta`): Optional duration between time status 'heartbeat' messages.
+        time_status_init (:obj:`datetime`): Optional scenario :obj:`datetime` for publishing the first time status 'heartbeat' message.
 
     """
     def __init__(self, app, scheduler, probOutage, time_status_step=None, time_status_init=None):
@@ -121,15 +125,7 @@ class Randomizer(ScenarioTimeIntervalPublisher):
         """
         *Abstract publish_message method inherited from the ScenarioTimeIntervalPublisher object class from the publisher template in the NOS-T tools library*
 
-        This method sends a message to the *PREFIX/constellation/location* topic for each satellite in the constellation (:obj:`Constellation`), including:
-
-        Args:
-            id (:obj:`list`): list of unique *int* ids for each satellite in the constellation
-            names (:obj:`list`): list of unique *str* for each satellite in the constellation - *NOTE:* must be same length as **id**
-            positions (:obj:`list`): list of current latitude-longitude-altitude locations (:obj:`GeographicPosition`) of each satellite in the constellation - *NOTE:* must be same length as **id**
-            radius (:obj:`list`): list of the radius (meters) of the nadir pointing sensors circular view of observation for each satellite in the constellation - *NOTE:* must be same length as **id**
-            commRange (:obj:`list`): list of *bool* indicating each satellites visibility to *any* ground station - *NOTE:* must be same length as **id**
-            time (:obj:`datetime`): current scenario :obj:`datetime`
+        This method executes a random Bernoulli trial for *each* ground station at regular scenario time intervals. The probability of outage is typically set to a very low threshold and :obj:`OutageReport` messages are **only** sent when the random float between 0 and 1 is less than this defined threshold.
 
         """
         for i, ground in enumerate(self.scheduler.grounds):

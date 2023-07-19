@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-    *This application demonstrates a network of ground stations given geospatial locations, minimum elevation angle constraints, and operational status*
+    *This application demonstrates a network of ground stations given geospatial locations, minimum elevation angle constraints, and operational status.*
 
     The application contains a :obj:`GroundNetwork` (:obj:`Observer`) object class to track the state of each constituent ground station, as well as the :obj:`LinkStartObserver` and :obj:`LinkEndObserver` object classes that monitor Acquisition of Signal (AOS) and Loss of Signal (LOS) events, respectively.
 
@@ -17,7 +17,7 @@ from nost_tools.managed_application import ManagedApplication # type: ignore
 
 from ground_config_files.schemas import ( # type: ignore
     SatelliteReady,
-    SatelliteStatus,
+    SatelliteState,
     GroundLocation,
     LinkStart,
     LinkCharge,
@@ -36,11 +36,11 @@ logging.basicConfig(level=logging.INFO)
 # define an observer to manage ground updates
 class GroundNetwork(Observable,Observer):
     """
-    *The GroundNetwork object class inherits properties from the Observer object class in the NOS-T tools library*
+    *The GroundNetwork object class inherits properties from the Observer object class in the NOS-T tools library.*
 
     Attributes:
-        app (:obj:`ManagedApplication`): An application containing a test-run namespace, a name and description for the app, client credentials, and simulation timing instructions
-        grounds (:obj:`DataFrame`): DataFrame of ground station information including groundId (*int*), latitude-longitude location (:obj:`GeographicPosition`), min_elevation (*float*) angle constraints, and operational status (*bool*)
+        app (:obj:`ManagedApplication`): An application containing a test-run namespace, a name and description for the app, client credentials, and simulation timing instructions.
+        grounds (:obj:`DataFrame`): DataFrame of ground station information including groundId (*int*), latitude-longitude location (:obj:`GeographicPosition`), min_elevation (*float*) angle constraints, and operational status (*bool*).
     """
 
     PROPERTY_IN_RANGE = "linkOn"
@@ -59,9 +59,9 @@ class GroundNetwork(Observable,Observer):
 
     def on_change(self, source, property_name, old_value, new_value):
         """
-        *Standard on_change callback function format inherited from Observer object class*
+        *Standard on_change callback function format inherited from Observer object class.*
 
-        In this instance, the callback function checks when the **PROPERTY_MODE** switches to **EXECUTING** to send a :obj:`GroundLocation` message to the *PREFIX/ground/location* topic:
+        In this instance, the callback function checks when the **PROPERTY_MODE** switches to **EXECUTING** to send a :obj:`GroundLocation` message to the *PREFIX/ground/location* topic.
 
         """
         if property_name == Simulator.PROPERTY_MODE and new_value == Mode.EXECUTING:
@@ -81,12 +81,34 @@ class GroundNetwork(Observable,Observer):
                 )
 
     def on_ready(self, client, userdata, message):
+        """
+        Callback function for subscribed messages on the *PREFIX/constellation/ready* topic.
+        
+        For each message received, appends a satellite and its specs to internal lists.
+
+        Args:
+            client (:obj:`MQTT Client`): Client that connects application to the event broker using the MQTT protocol. Includes user credentials, tls certificates, and host server-port information.
+            userdata: User defined data of any type (not currently used).
+            message (:obj:`message`): Contains *topic* the client subscribed to and *payload* message content as attributes.
+
+        """
         ready = SatelliteReady.parse_raw(message.payload)
         self.satelliteIds.append(ready.id)
         self.satelliteNames.append(ready.name)
         self.ssrCapacity.append(ready.ssr_capacity)
 
     def all_ready(self, client, userdata, message):
+        """
+        Callback function for subscribed messages on the *PREFIX/constellation/allReady* topic.
+        
+        This is a simple trigger that the list of constituent satellites have been finalized and appended to lists.
+
+        Args:
+            client (:obj:`MQTT Client`): Client that connects application to the event broker using the MQTT protocol. Includes user credentials, tls certificates, and host server-port information.
+            userdata: User defined data of any type (not currently used).
+            message (:obj:`message`): Contains *topic* the client subscribed to and *payload* message content as attributes.
+
+        """
         self.groundTimes = {j:[] for j in self.satelliteNames}
         self.satView = {k:{"on":False,"linkCount":0} for k in self.satelliteNames}
         self.cumulativeCostBySat = {l:0.00 for l in self.satelliteNames}
@@ -119,7 +141,18 @@ class GroundNetwork(Observable,Observer):
                 )
 
     def on_commRange(self, client, userdata, message):
-        satInView = SatelliteStatus.parse_raw(message.payload)
+        """
+        Callback function triggered by every :obj:`SatelliteState` message received on the *PREFIX/constellation/location* topic. 
+        
+        Checks for changes in switch states and records timestamps of state transitions. 
+
+        Args:
+            client (:obj:`MQTT Client`): Client that connects application to the event broker using the MQTT protocol. Includes user credentials, tls certificates, and host server-port information.
+            userdata: User defined data of any type (not currently used).
+            message (:obj:`message`): Contains *topic* the client subscribed to and *payload* message content as attributes.
+
+        """
+        satInView = SatelliteState.parse_raw(message.payload)
         if self.satView[satInView.name]["on"]:
             if not satInView.commRange:
                 self.groundTimes[satInView.name][self.satView[satInView.name]["linkCount"]]["end"] = satInView.time
@@ -183,6 +216,17 @@ class GroundNetwork(Observable,Observer):
                 )
             
     def on_outage(self, client, userdata, message):
+        """
+        Callback function triggered by every :obj:`OutageReport` message received on the *PREFIX/outages/report* topic. 
+        
+        Appends a new outage dictionary to a list of outage dictionaries. Used to indicate which ground station has become inoperable and the expected outage duration.
+
+        Args:
+            client (:obj:`MQTT Client`): Client that connects application to the event broker using the MQTT protocol. Includes user credentials, tls certificates, and host server-port information.
+            userdata: User defined data of any type (not currently used).
+            message (:obj:`message`): Contains *topic* the client subscribed to and *payload* message content as attributes.
+
+        """
         outageReport = OutageReport.parse_raw(message.payload)
         self.grounds["operational"][outageReport.groundId] = False
         self.outages.append(
@@ -195,6 +239,17 @@ class GroundNetwork(Observable,Observer):
         )
         
     def on_restore(self, client, userdata, message):
+        """
+        Callback function triggered by every :obj:`OutageRestore` message received on the *PREFIX/outages/restore* topic. 
+        
+        Notifies observers of restored service at a previously inoperable ground station. 
+
+        Args:
+            client (:obj:`MQTT Client`): Client that connects application to the event broker using the MQTT protocol. Includes user credentials, tls certificates, and host server-port information.
+            userdata: User defined data of any type (not currently used).
+            message (:obj:`message`): Contains *topic* the client subscribed to and *payload* message content as attributes.
+
+        """
         outageRestore = OutageRestore.parse_raw(message.payload)
         print(outageRestore)
         self.grounds["operational"][outageRestore.groundId] = True
@@ -207,6 +262,17 @@ class GroundNetwork(Observable,Observer):
         
     
     def fixedCost(self, client, userdata, message):
+        """
+        Callback function triggered by every :obj:`LinkCharge` message sent to the *PREFIX/constellation/linkCharge* topic. 
+        
+        Messages only apply to satellites operating under fixed contracts. These messages are intended to create a continuous cost curve for the visualizations.
+
+        Args:
+            client (:obj:`MQTT Client`): Client that connects application to the event broker using the MQTT protocol. Includes user credentials, tls certificates, and host server-port information.
+            userdata: User defined data of any type (not currently used).
+            message (:obj:`message`): Contains *topic* the client subscribed to and *payload* message content as attributes.
+
+        """
         fixedCharge = LinkCharge.parse_raw(message.payload)
         self.cumulativeCostBySat[fixedCharge.satName] = fixedCharge.cumulativeCostBySat
         self.cumulativeCosts = fixedCharge.cumulativeCosts
@@ -214,10 +280,10 @@ class GroundNetwork(Observable,Observer):
 
 class LinkStartObserver(Observer):
     """
-    *This object class inherits properties from the Observer object class from the observer template in the NOS-T tools library*
+    *This object class inherits properties from the Observer object class from the observer template in the NOS-T tools library.*
 
     Args:
-        app (:obj:`ManagedApplication`): An application containing a test-run namespace, a name and description for the app, client credentials, and simulation timing instructions
+        app (:obj:`ManagedApplication`): An application containing a test-run namespace, a name and description for the app, client credentials, and simulation timing instructions.
 
     """
 
@@ -226,9 +292,9 @@ class LinkStartObserver(Observer):
 
     def on_change(self, source, property_name, old_value, new_value):
         """
-        *Standard on_change callback function format inherited from Observer object class in NOS-T tools library*
+        *Standard on_change callback function format inherited from Observer object class in NOS-T tools library.*
 
-        In this instance, the callback function checks for notification of the "reported" property and publishes :obj:`FireReported` message to *PREFIX/constellation/reported* topic:
+        In this instance, the callback function checks for notification of the PROPERTY_IN_RANGE and publishes :obj:`LinkStart` message to *PREFIX/ground/linkStart* topic.
 
         """
         if property_name == GroundNetwork.PROPERTY_IN_RANGE:
@@ -246,10 +312,10 @@ class LinkStartObserver(Observer):
 
 class LinkEndObserver(Observer):
     """
-    *This object class inherits properties from the Observer object class from the observer template in the NOS-T tools library*
+    *This object class inherits properties from the Observer object class from the observer template in the NOS-T tools library.*
 
     Args:
-        app (:obj:`ManagedApplication`): An application containing a test-run namespace, a name and description for the app, client credentials, and simulation timing instructions
+        app (:obj:`ManagedApplication`): An application containing a test-run namespace, a name and description for the app, client credentials, and simulation timing instructions.
 
     """
 
@@ -260,7 +326,7 @@ class LinkEndObserver(Observer):
         """
         *Standard on_change callback function format inherited from Observer object class in NOS-T tools library*
 
-        In this instance, the callback function checks for notification of the "reported" property and publishes :obj:`FireReported` message to *PREFIX/constellation/reported* topic:
+        In this instance, the callback function checks for notification of the PROPERTY_OUT_OF_RANGE and publishes :obj:`LinkCharge` message to *PREFIX/ground/linkCharge* topic.
 
         """
         if property_name == GroundNetwork.PROPERTY_OUT_OF_RANGE:

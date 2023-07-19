@@ -1,9 +1,6 @@
 Heartbeat
 =========
 
-main_heartbeat.py module
-------------------------
-
 .. automodule:: scalability.heartbeat.main_heartbeat
 
 .. autoclass:: CustomHeartbeat
