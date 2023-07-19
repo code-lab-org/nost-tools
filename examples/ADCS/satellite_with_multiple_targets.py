@@ -239,11 +239,11 @@ class Satellite(Entity):
         # removing rise/set events
         culmTimes = df.loc[df["Event"]==1]
         # dropping past culmination times from df
-        next_opportunities_df = culmTimes[culmTimes["Time"] > self.get_time()].copy
+        next_opportunities_df = culmTimes.loc[culmTimes.Time > self.get_time()].copy()
         # setting first possible culmination time as next opportunity
         next_opportunity_time = ts.from_datetime(next_opportunities_df.iloc[0]["Time"])
         
-        return next_opportunity_time
+        return next_opportunity_time 
 
     # find target quaternion at culmination from ground location
     def update_target_attitude(self, next_pos, next_vel, targetLoc, t_start, t_end):
