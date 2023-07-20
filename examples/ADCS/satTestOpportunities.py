@@ -38,8 +38,18 @@ satellite = EarthSatellite(lines[1], lines[2], lines[0])
 print(satellite)
 
 ts = load.timescale()
-
+targetList = [{"Latitude":1.5,"Longitude":-115}]
 targetLoc = wgs84.latlon(1.5, -115)
+
+def new_target_location():
+    new_lat = np.random.random()*180-90
+    new_lon = np.random.random()*360-180
+    new_targetList = {"Latitude":new_lat,"Longitude":new_lon}
+    targetList.append(new_targetList)
+    targetLoc = wgs84.latlon(new_lat,new_lon)
+    return targetLoc
+
+
 t_start = datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc)
 t_end  = datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc) + timedelta(hours=PARAMETERS['SCENARIO_LENGTH'])
 
@@ -50,34 +60,18 @@ eventZip = list(zip(event_times,events))
 df = pd.DataFrame(eventZip, columns = ["Time", "Event"])
 # removing rise/set events
 culmTimes = df.loc[df["Event"]==1]
+
 # finding time of next opportunity
+next_opportunities_df = culmTimes.loc[culmTimes.Time > datetime.now(tz=utc)].copy()
 
-# next_opp_df = culmTimes["Time"] < datetime.now(tz=utc)
-
-# df['equal_or_lower_than_4?'] = df['set_of_numbers'].apply(lambda x: 'True' if x <= 4 else 'False')
-
-# culmTimes['Future'] = culmTimes["Time"].apply(lambda x: 'True' if x <= datetime.now(tz=utc) else 'False')
-
-next_opportunities_df = culmTimes.loc[culmTimes.Time < datetime.now(tz=utc)].copy()
-# culmTimes.loc[culmTimes.Time > datetime.now(tz=utc), "Future?"] = "False" 
-
-# rows = culmTimes["Time"] < datetime.now(tz=utc)
-# newColumn = "Future"
-# culmTimes.loc[rows, newColumn] = "True"
-
-# culmTimes["Future?"] = np.where(culmTimes["Time"] < datetime.now(tz=utc), 'green', 'red')
+if next_opportunities_df.empty:
+    targetLoc = new_target_location()  # doesn't go back to 57 function will work
 
 # dropping past culmination times
-# next_opportunity_df = culmTimes[culmTimes["Time"] < datetime.now(tz=utc)]
 next_opportunity_time = next_opportunities_df.iloc[0]["Time"]
 
-# finding satellite position and velocity at first culmination time
+# finding satellite position and velocity at next culmination time
 culmGeocentric = satellite.at(ts.from_datetime(next_opportunity_time))
-# culmPos = culmGeocentric.position.m
-# targetLoc2 = targetLoc.at(culmTime)
-
-
-
 pos_vel= culmGeocentric.frame_xyz_and_velocity(itrs)
 culm_pos = pos_vel[0].m
 culm_vel = pos_vel[1].m_per_s
@@ -112,12 +106,12 @@ print("iQuat", iQuat[0], ",", iQuat[1], ",", iQuat[2], ",", iQuat[3])
 culmUnitVec = culm_pos/np.linalg.norm(culm_pos)
 targetUnitVec = targetPos/np.linalg.norm(targetPos)
 
-direction =   culm_pos - targetPos
+direction = culm_pos - targetPos
 dirUnit = direction/np.linalg.norm(direction)
 
 rollAngle = np.arccos(np.dot(dirUnit, culmUnitVec)) 
 
-# rollAngle is always positive - need to fix when target is to right
+# making roll in correct direction
 if culm_vel[2] > 0 and sat_geographical.longitude.degrees < targetLoc.longitude.degrees:
     rollAngle = -rollAngle
     
