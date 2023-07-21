@@ -15,6 +15,7 @@
       integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2"
       crossorigin="anonymous"
     />
+    <!––Pull in credentials from env.js-->
     <script type="text/javascript" src="env.js"></script>
   </head>
 
@@ -38,6 +39,7 @@
       crossorigin="anonymous"
     ></script>
     <script>
+      // Line 19 pulls in the credentials, the following 5 lines access them
       var CESIUM_ACCESS_TOKEN = TOKEN;
       var BROKER_HOST = HOST;
       var BROKER_PORT = PORT;
@@ -45,7 +47,7 @@
       var BROKER_CLIENT_PASSWORD = PASSWORD;
 
       $(document).ready(function () {
-        Cesium.Ion.defaultAccessToken = CESIUM_ACCESS_TOKEN;
+        Cesium.Ion.defaultAccessToken = CESIUM_ACCESS_TOKEN; // get Cesium access token
         var clock = new Cesium.Clock({
           currentTime: Cesium.JulianDate.fromIso8601("1900-01-01"),
           clockStep: Cesium.ClockStep.SYSTEM_CLOCK_MULTIPLIER,
@@ -53,6 +55,7 @@
           shouldAnimate: false,
         });
         const viewer = new Cesium.Viewer("cesiumContainer", {
+          // sets up viewer
           terrainProvider: Cesium.createWorldTerrain(),
           baseLayerPicker: false,
           homeButton: false,
@@ -62,7 +65,7 @@
           navigationHelpButton: false,
           navigationInstructionsInitiallyVisible: false,
           timeline: true,
-          imageryProvider: new Cesium.IonImageryProvider({ assetId: 3845 }),
+          imageryProvider: new Cesium.IonImageryProvider({ assetId: 3845 }), // pulls in Blue Marble asset
           clockViewModel: new Cesium.ClockViewModel(clock),
         });
         <!-- viewer.scene.globe.enableLighting = true; -->
@@ -80,20 +83,16 @@
         var grounds = {}; <!-- Surface position of ground stations as PINK points -->
         var updates = {};
 
-        /**
-         * Receive and parse messages on subscribed-to topics
-         * @param {string} message Incoming message.
-         * @param {string} message.payloadString Incoming message.
-         * @param {string} message.destinationName Incoming message.
-         */
+        // the handleMessage function subscribes to all of the relevant topics - these if statements are largely in sequential order
         function handleMessage(message) {
           // get the message payload as a string
           <!-- console.log(message.payloadString); -->
           var payload = message.payloadString;
           var topic = message.destinationName;
-          // try to parse and stringify a JSON string
+          // parse and stringify a JSON string
           try {
             if (topic == "greenfield/manager/init") {
+              // initialize the viewer
               payload = JSON.parse(message.payloadString);
               viewer.clockViewModel.currentTime = Cesium.JulianDate.fromIso8601(
                 payload.taskingParameters.simStartTime
@@ -110,6 +109,7 @@
                 viewer.clockViewModel.stopTime
               );
             } else if (topic == "greenfield/manager/start") {
+              // start command from manager
               payload = JSON.parse(message.payloadString);
               viewer.clockViewModel.multiplier =
                 payload.taskingParameters.timeScalingFactor;
