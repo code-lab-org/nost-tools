@@ -2,7 +2,7 @@
 """
     *This application demonstrates a plotly dashboard for tracking hard-drive state and cumulative costs for the downlink example case.*
 
-    This application is under development.
+    The application is an implementation of the :obj:`dash` Python package similar to the ScienceDash example but with some additional plot types and other customizations.
 
 """
 
@@ -12,12 +12,9 @@ import dash_daq as daq # type:ignore
 from dash.dependencies import Input, Output # type:ignore
 import plotly.express as px # type:ignore
 import pandas as pd # type:ignore
-# from datetime import datetime, timedelta
 from dotenv import dotenv_values # type:ignore
 
 from nost_tools.application_utils import ConnectionConfig, ShutDownObserver # type:ignore
-# from nost_tools.simulator import Simulator, Mode
-# from nost_tools.observer import Observer, Observable
 from nost_tools.managed_application import ManagedApplication # type:ignore
 
 from downlinkDashboard_config_files.config import PREFIX, NAME # type:ignore

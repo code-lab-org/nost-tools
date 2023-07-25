@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-    *This application monitors a subset of satellites with continuous data collection and is used to track the state of each satellite's solid-state recorder while its orbital position is propagated from Two-Line Elements (TLEs)*
+    *This application monitors a subset of satellites with continuous data collection and is used to track the state of each satellite's solid-state recorder while its orbital position is propagated from Two-Line Elements (TLEs).*
 
     The application contains one :obj:`SatelliteStorage` (:obj:`Entity`) object class and one :obj:`SatStatePublisher` (:obj:`WallclockTimeIntervalPublisher`) object. The application also contains two global methods outside of these classes, which contain standardized calculations sourced from Ch. 5 of *Space Mission Analysis and Design* by Wertz and Larson.
     
-    *NOTE:* For example code demonstrating how the constellation application is started up and how the :obj:`Entity` and :obj:`WallclockTimeIntervalPublisher` object classes are initialized and added to the simulator, see :ref:`FireSat+ Constellations <fireSatConstellations>`.
+    *NOTE:* For example code demonstrating how an application is started up and how the :obj:`Entity` and :obj:`WallclockTimeIntervalPublisher` object classes are initialized and added to the simulator, see :ref:`FireSat+ Constellations <fireSatConstellations>`.
 
 """
 
@@ -20,7 +20,7 @@ from nost_tools.publisher import WallclockTimeIntervalPublisher # type:ignore
 
 from skyfield.api import load, wgs84, EarthSatellite # type:ignore
 
-from satellite_config_files.schemas import (
+from satelliteStorage_config_files.schemas import (
     SatelliteReady,
     SatelliteAllReady,
     SatelliteState,
@@ -30,7 +30,7 @@ from satellite_config_files.schemas import (
     OutageReport,
     OutageRestore
 )
-from satellite_config_files.config import (
+from satelliteStorage_config_files.config import (
     PREFIX,
     NAME,
     SCALE,
@@ -106,7 +106,7 @@ class SatelliteStorage(Entity):
         tles (:obj:`list`): Optional list of Two-Line Element *str* to be converted into :obj:`EarthSatellite` objects and included in the simulation
 
     Attributes:
-        groundTimes (:obj:`dict`): Dictionary with keys corresponding to unique satellite name and values corresponding to sequential list of ground access opportunities - *NOTE:* each value is initialized as an empty **:obj:`list`** and opportunities are appended chronologically
+        groundTimes (:obj:`dict`): Dictionary with keys corresponding to unique satellite name and values corresponding to sequential list of ground access opportunities - *NOTE:* each value is initialized as an empty :obj:`list` and opportunities are appended chronologically
         grounds (:obj:`DataFrame`): Dataframe containing information about ground stations with unique groundId (*int*), latitude-longitude location (:obj:`GeographicPosition`), min_elevation (*float*) angle constraints, and operational status (*bool*) - *NOTE:* initialized as **None**
         satellites (:obj:`list`): List of constituent :obj:`EarthSatellite` objects - *NOTE:* must be same length as **id**
         positions (:obj:`list`): List of current latitude-longitude-altitude locations (:obj:`GeographicPosition`) of each constituent satellite - *NOTE:* must be same length as **id**

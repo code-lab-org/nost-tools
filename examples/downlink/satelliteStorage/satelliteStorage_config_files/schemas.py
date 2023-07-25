@@ -23,7 +23,7 @@ class SatelliteAllReady(BaseModel):
     )
     
 
-class SatelliteStatus(BaseModel):
+class SatelliteState(BaseModel):
     id: int = Field(..., description="Unique satellite identifier")
     name: str = Field(..., description="Satellite name for labeling")
     latitude: confloat(ge=-90, le=90) = Field(
