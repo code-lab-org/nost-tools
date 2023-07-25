@@ -59,13 +59,15 @@ class Satellite(Entity):
         self.omega = self.next_omega = None
 
         self.grounds = grounds
-        self.target = self.next_target = None
+        self.targetLoc = self.next_targetLoc = None
+        self.opportunity_time = self.next_opportunity_time = None
         self.targetQuat = self.next_targetQuat = None
 
     def initialize(self, init_time):
         super().initialize(init_time)
         print(type(self.ES))
-        self.target = [targetLoc]  
+        self.targetLoc = [targetLoc]  
+        # self.opportunity_time = None
         self.geocentric = self.ES.at(self.ts.from_datetime(init_time))
         self.pos_vel= self.geocentric.frame_xyz_and_velocity(itrs)
         self.pos = self.pos_vel[0].m
@@ -89,7 +91,8 @@ class Satellite(Entity):
 
     def tick(self, time_step):  # computes
         super().tick(time_step)
-        self.next_target = self.target
+        self.next_targetLoc = self.targetLoc
+        self.next_opportunity_time = self.find_opportunity_time(self.targetLoc)
         self.next_geocentric = self.ES.at(
             self.ts.from_datetime(self.get_time() + time_step)
         )
@@ -99,14 +102,15 @@ class Satellite(Entity):
         self.next_satLat = wgs84.geographic_position_of(self.next_geocentric).latitude.degrees
         self.next_satLon = wgs84.geographic_position_of(self.next_geocentric).longitude.degrees
         self.next_subpoint = wgs84.geographic_position_of(self.next_geocentric)
-        self.next_att = self.update_attitude(self.next_pos, self.next_vel, time_step)
+        self.next_att = self.update_attitude(self.next_pos, self.next_vel, self.next_opportunity_time, time_step)
         self.next_omega = self.omega
         self.next_targetQuat = self.update_target_attitude(
             self.next_pos, self.next_vel, targetLoc, t_start, t_end
         )
 
     def tock(self):
-        self.target = self.next_target
+        self.targetLoc = self.next_targetLoc
+        self.opportunity_time = self.next_opportunity_time
         self.geocentric = self.next_geocentric
         self.pos_vel = self.next_pos_vel
         self.pos = self.next_pos
@@ -242,8 +246,9 @@ class Satellite(Entity):
         return targetLoc
         
     
-    def find_next_opportunity_time(self):
+    def find_opportunity_time(self, targetLoc):
         # finding time, position, velocity of rise/culmination/set events
+        print("OPP TIME TARGET LOC",targetLoc)
         t, events = self.ES.find_events(targetLoc, ts.from_datetime(t_start), ts.from_datetime(t_end), altitude_degrees=1.0)
         event_times = t.utc_datetime()
         eventZip = list(zip(event_times,events))
@@ -251,11 +256,11 @@ class Satellite(Entity):
         # removing rise/set events
         culmTimes = df.loc[df["Event"]==1]
         # dropping past culmination times from df
-        next_opportunities_df = culmTimes.loc[culmTimes.Time > self.get_time()].copy()
+        opportunities_df = culmTimes.loc[culmTimes.Time > self.get_time()].copy()
         # setting first possible culmination time as next opportunity
-        next_opportunity_time = ts.from_datetime(next_opportunities_df.iloc[0]["Time"])
+        opportunity_time = ts.from_datetime(opportunities_df.iloc[0]["Time"])
         
-        return next_opportunity_time 
+        return opportunity_time 
 
     # find target quaternion at culmination from ground location
     def update_target_attitude(self, next_pos, next_vel, targetLoc, t_start, t_end):
@@ -270,9 +275,9 @@ class Satellite(Entity):
         # Create the rotation matrix from the body to the inertial frame
         R_bi = np.vstack((b_x, b_y, b_z)).T
         
-        # finding satellite position and velocity at next opportunity
-        next_opportunity_time = self.find_next_opportunity_time()
-        culmGeocentric = self.ES.at(next_opportunity_time)
+        # finding satellite position and velocity at opportunity
+        opportunity_time = self.find_opportunity_time()
+        culmGeocentric = self.ES.at(opportunity_time)
         pos_vel= culmGeocentric.frame_xyz_and_velocity(itrs)
         culm_pos = pos_vel[0].m
         culm_vel = pos_vel[1].m_per_s

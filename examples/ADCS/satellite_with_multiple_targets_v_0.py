@@ -228,20 +228,11 @@ class Satellite(Entity):
                     groundId = k
                     break
                 
-        return isInRange, groundId
-    
-    def find_new_target_location(self):
-        
-        ts = load.timescale()
-        t_start = datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc)
-        t_end  = datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc) + timedelta(hours=PARAMETERS['SCENARIO_LENGTH'])
-        # dummy location
-        targetLoc = wgs84.latlon(-35, -8)
-        # targetPos = targetLoc.itrs_xyz.m
-        
+        return isInRange, groundId     
     
     def find_next_opportunity_time(self):
         # finding time, position, velocity of rise/culmination/set events
+        print("OPP TIME TARGET LOC",targetLoc)
         t, events = self.ES.find_events(targetLoc, ts.from_datetime(t_start), ts.from_datetime(t_end), altitude_degrees=1.0)
         event_times = t.utc_datetime()
         eventZip = list(zip(event_times,events))
@@ -325,6 +316,7 @@ class Satellite(Entity):
         T_c[0] = -(2 * Kp[0] * errorQuat[0] * errorQuat[3] + Kd[0] * self.omega[0])
         T_c[1] = -(2 * Kp[1] * errorQuat[1] * errorQuat[3] + Kd[1] * self.omega[1])
         T_c[2] = -(2 * Kp[2] * errorQuat[2] * errorQuat[3] + Kd[2] * self.omega[2])
+        print("TORQUE VECTOR", T_c)
 
         return T_c
 
