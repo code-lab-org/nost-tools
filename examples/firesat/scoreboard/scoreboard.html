@@ -15,7 +15,7 @@
       integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2"
       crossorigin="anonymous"
     />
-    <!––Pull in credentials from env.js-->
+    <!––Load credentials from env.js-->
     <script type="text/javascript" src="env.js"></script>
   </head>
 
@@ -39,7 +39,7 @@
       crossorigin="anonymous"
     ></script>
     <script>
-      // Line 19 pulls in the credentials, the following 5 lines access them
+      // Line 19 loads the credentials, the following 5 lines sets the correct variables
       var CESIUM_ACCESS_TOKEN = TOKEN;
       var BROKER_HOST = HOST;
       var BROKER_PORT = PORT;
@@ -55,7 +55,7 @@
           shouldAnimate: false,
         });
         const viewer = new Cesium.Viewer("cesiumContainer", {
-          // sets up viewer
+          // sets up CesiumJS viewer - further documented here:  https://cesium.com/learn/cesiumjs/ref-doc/Viewer.html
           terrainProvider: Cesium.createWorldTerrain(),
           baseLayerPicker: false,
           homeButton: false,
@@ -70,7 +70,7 @@
         });
         <!-- viewer.scene.globe.enableLighting = true; -->
 
-        // create a MQTT client
+        // create a MQTT client - creating empty sets for the variables that will come from over the testbed
         var client = new Paho.MQTT.Client(BROKER_HOST, BROKER_PORT, "");
         var satellites = {}; <!-- Positions of satellites as points at altitude, BLUE out of comms range, GREEN in comms range -->
         var sensorCircles = {}; <!-- Circles showing views of nadir pointed satellites -->
@@ -83,7 +83,7 @@
         var grounds = {}; <!-- Surface position of ground stations as PINK points -->
         var updates = {};
 
-        // the handleMessage function subscribes to all of the relevant topics - these if statements are largely in sequential order
+        // the handleMessage function subscribes to all of the relevant topics - the if statements are largely in sequential order
         function handleMessage(message) {
           // get the message payload as a string
           <!-- console.log(message.payloadString); -->
@@ -117,30 +117,35 @@
               topic == "greenfield/manager/time" ||
               topic == "greenfield/manager/status/time"
             ) {
+              // message from manager that progresses the the simulation time
               payload = JSON.parse(message.payloadString);
               viewer.clockViewModel.currentTime = Cesium.JulianDate.fromIso8601(
                 payload.properties.simTime
               );
               viewer.timeline.updateFromClock();
             } else if (topic == "greenfield/manager/update") {
+              // updates time scale factor from manager
               payload = JSON.parse(message.payloadString);
               viewer.clockViewModel.multiplier =
                 payload.taskingParameters.timeScalingFactor;
             } else if (topic == "greenfield/constellation/location") {
               payload = JSON.parse(message.payloadString);
               commRange = payload.commRange;
+              // changes satellite color when in (GREEN) or out (BLUE) of communications range
               if (commRange) {
                 satColor = Cesium.Color.GREEN;
               } else {
                 satColor = Cesium.Color.BLUE;
               }
               if (satellites[payload.id]) {
+                // updates location of satellite points
                 satellites[payload.id].position = Cesium.Cartesian3.fromDegrees(
                   payload.longitude,
                   payload.latitude,
                   payload.altitude
                 );
                 satellites[payload.id].point.color = satColor;
+                // creates sensing footprint on Earth surface
                 sensorCircles[payload.id].ellipse.semiMajorAxis =
                   payload.radius;
                 sensorCircles[payload.id].ellipse.semiMinorAxis =
@@ -161,6 +166,7 @@
                     pixelSize: 8,
                     color: satColor,
                   },
+                  // adds satellite labels next to points
                   label: {
                     text: payload.name,
                     font: "12px Georgia",
@@ -169,6 +175,7 @@
                     outlineWidth: 2,
                     style: Cesium.LabelStyle.FILL_AND_OUTLINE,
                     pixelOffset: new Cesium.Cartesian2(40.0, 8.0),
+                    // scales font for zooming in/out
                     pixelOffsetScaleByDistance: new Cesium.NearFarScalar(
                       1.5e2,
                       3.0,
@@ -202,6 +209,7 @@
                   },
                 });
               }
+              // handles fire points and colors
             } else if (topic == "greenfield/fire/location") {
               <!-- Cesium suggests using PointPrimitives when have large collection of points, applies to fires -->
               payload = JSON.parse(message.payloadString);
@@ -220,9 +228,11 @@
             } else if (topic == "greenfield/constellation/reported") {
               payload = JSON.parse(message.payloadString);
               fires.get(payload.fireId).color = Cesium.Color.YELLOW;
+              // handles ground station(s)
             } else if (topic == "greenfield/ground/location") {
               payload = JSON.parse(message.payloadString);
               activeCheck = payload.operational;
+              // sets up colors for ground station viewing cone
               if (activeCheck) {
                 groundColor = Cesium.Color.PINK;
                 groundMaterial = Cesium.Color.PINK.withAlpha(0.1);
@@ -267,7 +277,7 @@
             console.log("An error was caught somewhere...");
           }
         }
-
+        // connects to testbed
         client.connect({
           userName: BROKER_CLIENT_USERNAME,
           password: BROKER_CLIENT_PASSWORD,

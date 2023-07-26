@@ -3,6 +3,8 @@ Scoreboard
 
 *Unmanaged application written in JavaScript leveraging the CesiumJS platform to visualize FireSat+ test cases.*
 
+The **Scoreboard** application gives a geospatial view of the mission. This and other mission visualization appliations have been essential for ensuring that test cases are behaving as intended. Running the **Scoreboard** requires a CesiumJS account, access token, and the Blue Marble asset.
+
 Cesium Access Token and Assets
 ------------------------------
 
@@ -16,8 +18,7 @@ After creating an account, you *must* add the Asset “Blue Marble Next Generati
 env.js file
 -----------
 
-The Scoreboard application pulls credentials from a JavaScript file. To set this up create a text file with the name
-"env.js" containing the following information:
+The Scoreboard application pulls credentials from a JavaScript file. To set this up create a text file with the name "env.js" containing the following information:
 
 ::
 
@@ -30,7 +31,7 @@ The Scoreboard application pulls credentials from a JavaScript file. To set this
 scoreboard.html
 ---------------
 
-This is the main file for the **Scoreboard** application. There isn't a separate config file like the other FireSat+ applications. The description for scoreboard.html is commented in the code itself.
+This is the main file for the **Scoreboard** application and can be run in a regular web browser. There isn't a separate config file like the other FireSat+ applications. The detailed description for scoreboard.html is commented in the code.
 
 Cesium resources
 ----------------
