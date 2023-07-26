@@ -3,6 +3,8 @@ Message Schemas
 
 Message schemas define the payload syntax and semantics for messages published or subscribed using the MQTT protocol.
 
+|
+
 Command Messages
 ----------------
 
@@ -39,6 +41,8 @@ Command messages are published by the manager application during scenario execut
 .. autopydantic_model:: nost_tools.schemas.UpdateCommand
   :members:
   :inherited-members: BaseModel
+
+|
   
 Status Messages
 ---------------
