@@ -10,4 +10,5 @@ These applications contain the scaffolding for a test suite so that users do not
 
    satellite_template/modules
    ground_station_template/modules
+   random_global_event_template/modules
    manager_template/modules

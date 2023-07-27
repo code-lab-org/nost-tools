@@ -3,9 +3,8 @@
 Application Objects
 ===================
 
-Applications manage communication between a simulator and broker using the MQTT messaging protocol.
+These object classes manage communication between a simulator and broker using the MQTT messaging protocol.
 
-|
 
 Utilities
 ---------

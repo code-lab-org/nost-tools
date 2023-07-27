@@ -2,7 +2,7 @@
 """
     *This application demonstrates a plotly dashboard for tracking hard-drive state and cumulative costs for the downlink example case.*
 
-    The application is an implementation of the :obj:`dash` Python package similar to the ScienceDash example but with some additional plot types and other customizations.
+    The application is an implementation of the :obj:`dash` Python package similar to the :ref:`Science Event Dashboard <scienceDash>` but with some additional plot types and other customizations.
 
 """
 
@@ -20,30 +20,23 @@ from nost_tools.managed_application import ManagedApplication # type:ignore
 from downlinkDashboard_config_files.config import PREFIX, NAME # type:ignore
 
 def on_message(mqttc, obj, msg):
-    """ Callback to process an incoming message."""
+    """ Callback method that processes messages on relevant topic endpoints for regularly updating dashboard display."""
     # setting up list of dictionaries
     messageIn = json.loads(msg.payload.decode("utf-8"))
     print(messageIn)
-    if msg.topic == f"{PREFIX}/constellation/location":
+    if msg.topic == f"{PREFIX}/satelliteStorage/location":
         capacityLOD.append(messageIn)   
         update_capacity(n_capacity)
         update_cost(n_cost)
-    elif msg.topic == f"{PREFIX}/constellation/linkCharge" or msg.topic == f"{PREFIX}/ground/linkCharge":
+    elif msg.topic == f"{PREFIX}/satelliteStorage/linkCharge" or msg.topic == f"{PREFIX}/ground/linkCharge":
         # if not state_cost:
         print(msg.topic)
         print("\n\n linkCharge \n\n")
         print(messageIn)
         costLOD.append(messageIn)
-    elif msg.topic == f"{PREFIX}/manager/start":
-        print("\n\nDid the manager start trigger work?!!\n\n")
-        print(msg.topic)        
-    elif msg.topic == f"{PREFIX}/manager/stop":
-        print("\n\nDid the manager stop trigger work?!!\n\n")
-        print(msg.topic)
-        app.shut_down()
-        print("\nAll done?\n")
         
 def update_capacity(n_capacity):
+    """ Updates the capacity plot with most recent states as reported along with location data on the *{PREFIX}/satelliteStorage/location* topic endpoint."""
     df0 = pd.DataFrame(capacityLOD)
     print(df0)
     capacityFig = px.line(df0, x="time", y='capacity_used', color='name', markers=True,
@@ -53,6 +46,7 @@ def update_capacity(n_capacity):
     return capacityFig
 
 def update_cost(n_cost):
+    """ Updates the cost plot with most recent states as reported along with location data on the *{PREFIX}/satelliteStorage/location* topic endpoint."""
     df0 = pd.DataFrame(capacityLOD)
     costFig = px.area(df0, x="time", y='cumulativeCostBySat', color='name', markers=False,
                       labels={"time":"time (UTC)", "cumulativeCostBySat":"Cumulative Costs ($)", "name":"Satellite Name"},
@@ -60,6 +54,7 @@ def update_cost(n_cost):
     return costFig
 
 def disable_dash(state_switch):
+    """ Boolean switch for enabling/disabling the dashboard plots from updating."""
     if state_switch:
         state_capacity = False
         state_cost = False
@@ -77,7 +72,7 @@ if __name__ == "__main__":
     # set the client credentials
     config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, True)
     # create the managed application
-    app = ManagedApplication(NAME)
+    app = Application(NAME)
     # add a shutdown observer to shut down after a single test case
     app.simulator.add_observer(ShutDownObserver(app))   
     # start up the application on PREFIX, publish time status every 10 seconds of wallclock time
@@ -86,11 +81,9 @@ if __name__ == "__main__":
         config
     )
     # Add on_message callbacks, sort through with if statements for now
-    app.add_message_callback("constellation", "location", on_message)
-    app.add_message_callback("constellation", "linkCharge", on_message)
+    app.add_message_callback("satelliteStorage", "location", on_message)
+    app.add_message_callback("satelliteStorage", "linkCharge", on_message)
     app.add_message_callback("ground", "linkCharge", on_message)
-    app.add_message_callback("manager", "start", on_message)
-    app.add_message_callback("manager", "stop", on_message)
 
     # initialize df0
     df0 = pd.DataFrame()
@@ -170,7 +163,7 @@ if __name__ == "__main__":
             id="interval-cost",
             interval=1*1000,
             n_intervals=n_cost,
-            disabled=state_capacity
+            disabled=state_cost
         ),
         daq.BooleanSwitch(id="disable-switch", on=state_switch)
     ])

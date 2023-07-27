@@ -1,7 +1,7 @@
 import os
 
 PREFIX = os.getenv("PREFIX", "downlink")
-NAME = "constellation"
+NAME = "satelliteStorage"
 LOG = f"\x1b[1m[\x1b[34m{NAME}\x1b[37m]\x1b[0m"
 HEADER = {
     "name": NAME,

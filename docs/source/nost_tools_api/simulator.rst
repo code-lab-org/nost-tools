@@ -3,7 +3,13 @@
 Simulator Objects
 =================
 
-Simulator objects manage entity state variables during scenario execution.
+These objects define observer behavior and manage state variables during scenario execution.
+
+
+Observer Objects
+----------------
+
+Observer objects are base classes that implement the observer pattern to loosely couple an observable and observer. 
 
 .. autoclass:: nost_tools.observer.Observer
   :members:
@@ -16,6 +22,13 @@ Simulator objects manage entity state variables during scenario execution.
 .. autoclass:: nost_tools.entity.Entity
   :members:
   :show-inheritance:
+  
+|
+  
+Scenario Objects
+----------------
+
+Scenario objects defines classes for executing a simulation.
 
 .. autoclass:: nost_tools.simulator.Mode
   :members:

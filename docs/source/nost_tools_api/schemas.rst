@@ -3,7 +3,6 @@ Message Schemas
 
 Message schemas define the payload syntax and semantics for messages published or subscribed using the MQTT protocol.
 
-|
 
 Command Messages
 ----------------

@@ -1,3 +1,5 @@
+.. _scienceDash:
+
 Science Event Dashboard
 =======================
 
