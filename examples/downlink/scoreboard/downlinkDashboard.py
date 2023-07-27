@@ -15,12 +15,19 @@ import pandas as pd # type:ignore
 from dotenv import dotenv_values # type:ignore
 
 from nost_tools.application_utils import ConnectionConfig, ShutDownObserver # type:ignore
-from nost_tools.managed_application import ManagedApplication # type:ignore
+from nost_tools.application import Application # type:ignore
 
 from downlinkDashboard_config_files.config import PREFIX, NAME # type:ignore
 
-def on_message(mqttc, obj, msg):
-    """ Callback method that processes messages on relevant topic endpoints for regularly updating dashboard display."""
+def on_message(self, mqttc, obj, msg):
+    """
+    Callback method that processes messages on relevant topic endpoints for regularly triggering dashboard display updates.
+
+    Args:
+        mqttc (:obj:`MQTT Client`): Client that connects application to the event broker using the MQTT protocol. Includes user credentials, tls certificates, and host server-port information.
+        obj: User defined data of any type (not currently used)
+        msg (:obj:`message`): Contains *topic* the client subscribed to and *payload* message content as attributes
+    """
     # setting up list of dictionaries
     messageIn = json.loads(msg.payload.decode("utf-8"))
     print(messageIn)
@@ -36,9 +43,11 @@ def on_message(mqttc, obj, msg):
         costLOD.append(messageIn)
         
 def update_capacity(n_capacity):
-    """ Updates the capacity plot with most recent states as reported along with location data on the *{PREFIX}/satelliteStorage/location* topic endpoint."""
+    """ 
+    Updates the capacity plot with most recent states as reported along with location data on the *{PREFIX}/satelliteStorage/location* topic endpoint.
+    
+    """
     df0 = pd.DataFrame(capacityLOD)
-    print(df0)
     capacityFig = px.line(df0, x="time", y='capacity_used', color='name', markers=True,
                           labels={"time":"time (UTC)", "capacity_used":"Amount of Data in HD (GB)", "name":"Satellite Name"},
                           title="Hard Drive Space Used")
@@ -46,7 +55,10 @@ def update_capacity(n_capacity):
     return capacityFig
 
 def update_cost(n_cost):
-    """ Updates the cost plot with most recent states as reported along with location data on the *{PREFIX}/satelliteStorage/location* topic endpoint."""
+    """ 
+    Updates the cost plot with most recent states as reported along with location data on the *{PREFIX}/satelliteStorage/location* topic endpoint.
+    
+    """
     df0 = pd.DataFrame(capacityLOD)
     costFig = px.area(df0, x="time", y='cumulativeCostBySat', color='name', markers=False,
                       labels={"time":"time (UTC)", "cumulativeCostBySat":"Cumulative Costs ($)", "name":"Satellite Name"},
@@ -54,7 +66,10 @@ def update_cost(n_cost):
     return costFig
 
 def disable_dash(state_switch):
-    """ Boolean switch for enabling/disabling the dashboard plots from updating."""
+    """ 
+    Boolean switch for enabling/disabling the dashboard plots from updating.
+    
+    """
     if state_switch:
         state_capacity = False
         state_cost = False

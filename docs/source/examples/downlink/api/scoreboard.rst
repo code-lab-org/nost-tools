@@ -1,6 +1,19 @@
 Visualizations
 ==============
 
+This test suite contains two types of dynamic visualizations, both of which are unmanaged applications. Although these are used in conjunction with the managed applications of this test suite, they do not subscribe to :obj:`Manager` messages. These applications are strictly subscribers, they do not publish any messages to any topic endpoints on the message broker.
+
+CesiumJS Scoreboard
+-------------------
+
+This is similar to the FireSat+ scoreboard.
+
+|
+
+
+SatelliteStorage State Dashboard
+--------------------------------
+
 .. automodule:: examples.downlink.scoreboard.downlinkDashboard
   :noindex:
   :show-inheritance:
