@@ -25,7 +25,6 @@ ts = load.timescale()
 t_start = datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc)
 t_end  = datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc) + timedelta(hours=PARAMETERS['SCENARIO_LENGTH'])
 # dummy location
-targetList = [{"Latitude":-35,"Longitude":-8}]
 targetLoc = wgs84.latlon(-35, -8)
 # targetPos = targetLoc.itrs_xyz.m
 
@@ -59,15 +58,13 @@ class Satellite(Entity):
         self.omega = self.next_omega = None
 
         self.grounds = grounds
-        self.targetLoc = self.next_targetLoc = None
-        self.opportunity_time = self.next_opportunity_time = None
+        self.target = self.next_target = None
         self.targetQuat = self.next_targetQuat = None
 
     def initialize(self, init_time):
         super().initialize(init_time)
         print(type(self.ES))
-        self.targetLoc = [targetLoc]  
-        # self.opportunity_time = None
+        self.target = [targetLoc]  
         self.geocentric = self.ES.at(self.ts.from_datetime(init_time))
         self.pos_vel= self.geocentric.frame_xyz_and_velocity(itrs)
         self.pos = self.pos_vel[0].m
@@ -91,8 +88,7 @@ class Satellite(Entity):
 
     def tick(self, time_step):  # computes
         super().tick(time_step)
-        self.next_targetLoc = self.targetLoc
-        self.next_opportunity_time = self.find_opportunity_time(self.targetLoc)
+        self.next_target = self.target
         self.next_geocentric = self.ES.at(
             self.ts.from_datetime(self.get_time() + time_step)
         )
@@ -102,15 +98,14 @@ class Satellite(Entity):
         self.next_satLat = wgs84.geographic_position_of(self.next_geocentric).latitude.degrees
         self.next_satLon = wgs84.geographic_position_of(self.next_geocentric).longitude.degrees
         self.next_subpoint = wgs84.geographic_position_of(self.next_geocentric)
-        self.next_att = self.update_attitude(self.next_pos, self.next_vel, self.next_opportunity_time, time_step)
+        self.next_att = self.update_attitude(time_step, self.next_pos, self.next_vel)
         self.next_omega = self.omega
         self.next_targetQuat = self.update_target_attitude(
             self.next_pos, self.next_vel, targetLoc, t_start, t_end
         )
 
     def tock(self):
-        self.targetLoc = self.next_targetLoc
-        self.opportunity_time = self.next_opportunity_time
+        self.target = self.next_target
         self.geocentric = self.next_geocentric
         self.pos_vel = self.next_pos_vel
         self.pos = self.next_pos
@@ -233,20 +228,9 @@ class Satellite(Entity):
                     groundId = k
                     break
                 
-        return isInRange, groundId
+        return isInRange, groundId     
     
-    def find_new_target_location(self):
-        
-        new_lat = np.random.random()*180-90
-        new_lon = np.random.random()*360-180
-        new_targetList = {"Latitude":new_lat,"Longitude":new_lon}
-        targetList.append(new_targetList)
-        targetLoc = wgs84.latlon(new_lat,new_lon)
-   
-        return targetLoc
-        
-    
-    def find_opportunity_time(self, targetLoc):
+    def find_next_opportunity_time(self):
         # finding time, position, velocity of rise/culmination/set events
         print("OPP TIME TARGET LOC",targetLoc)
         t, events = self.ES.find_events(targetLoc, ts.from_datetime(t_start), ts.from_datetime(t_end), altitude_degrees=1.0)
@@ -256,11 +240,11 @@ class Satellite(Entity):
         # removing rise/set events
         culmTimes = df.loc[df["Event"]==1]
         # dropping past culmination times from df
-        opportunities_df = culmTimes.loc[culmTimes.Time > self.get_time()].copy()
+        next_opportunities_df = culmTimes.loc[culmTimes.Time > self.get_time()].copy()
         # setting first possible culmination time as next opportunity
-        opportunity_time = ts.from_datetime(opportunities_df.iloc[0]["Time"])
+        next_opportunity_time = ts.from_datetime(next_opportunities_df.iloc[0]["Time"])
         
-        return opportunity_time 
+        return next_opportunity_time 
 
     # find target quaternion at culmination from ground location
     def update_target_attitude(self, next_pos, next_vel, targetLoc, t_start, t_end):
@@ -275,9 +259,9 @@ class Satellite(Entity):
         # Create the rotation matrix from the body to the inertial frame
         R_bi = np.vstack((b_x, b_y, b_z)).T
         
-        # finding satellite position and velocity at opportunity
-        opportunity_time = self.find_opportunity_time()
-        culmGeocentric = self.ES.at(opportunity_time)
+        # finding satellite position and velocity at next opportunity
+        next_opportunity_time = self.find_next_opportunity_time()
+        culmGeocentric = self.ES.at(next_opportunity_time)
         pos_vel= culmGeocentric.frame_xyz_and_velocity(itrs)
         culm_pos = pos_vel[0].m
         culm_vel = pos_vel[1].m_per_s
@@ -305,7 +289,7 @@ class Satellite(Entity):
         return targetQuat
 
     # Calculate error between current quat and desired quat (Wie style)
-    def att_error(self, next_pos, next_vel, next_opportunity_time, time_step):
+    def att_error(self, next_pos, next_vel):
         targetQuat = self.update_target_attitude(next_pos, next_vel, targetLoc, t_start, t_end
         )
 
@@ -321,10 +305,7 @@ class Satellite(Entity):
 
         errorQuat = np.matmul(qT, qB)
         errorRot = R.from_quat(errorQuat)
-        errorAngle = np.rad2deg(R.magnitude(errorRot))
-        
-        if errorAngle < 1 and next_opportunity_time < self.get_time() and next_opportunity_time > self.get_time() + time_step:
-            print("SUCCESS")
+        errorAngle = np.rad2deg((R.magnitude(errorRot)/(2*np.pi)))
         
         print("ERROR Angle IS",errorAngle)
 
@@ -335,6 +316,7 @@ class Satellite(Entity):
         T_c[0] = -(2 * Kp[0] * errorQuat[0] * errorQuat[3] + Kd[0] * self.omega[0])
         T_c[1] = -(2 * Kp[1] * errorQuat[1] * errorQuat[3] + Kd[1] * self.omega[1])
         T_c[2] = -(2 * Kp[2] * errorQuat[2] * errorQuat[3] + Kd[2] * self.omega[2])
+        print("TORQUE VECTOR", T_c)
 
         return T_c
 
@@ -359,9 +341,9 @@ class Satellite(Entity):
         return self.att
 
     # changes the spacecraft's attitude
-    def update_attitude(self, next_pos, next_vel, next_opportunity_time, time_step):
+    def update_attitude(self, time_step, next_pos, next_vel):
         # Calculate error quaternion
-        errorQuat, errorAngle = self.att_error(next_pos, next_vel, next_opportunity_time, time_step)
+        errorQuat, errorAngle = self.att_error(next_pos, next_vel)
         # Calculate torque produced by reaction wheels
         T_c = self.control_torque(errorQuat, Kp, Kd)
         # Update angular velocity, euler angles, and quaternion
