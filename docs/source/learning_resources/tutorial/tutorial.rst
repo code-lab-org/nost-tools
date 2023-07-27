@@ -314,9 +314,7 @@ file with the name ".env" containing the following text:
   USERNAME="your event broker username"
   PASSWORD="your event broker password"
 
-The Scoreboard application is .html, and therefore the environment needs
-to be set in a JavaScript file. To do this create a text file with the name
-"env.js" containing the following information:
+The Scoreboard application is in .html, and pulls in credentials from a JavaScript file. To do this create a text file with the name "env.js" containing the following information:
 
 ::
 
