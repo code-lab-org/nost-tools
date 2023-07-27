@@ -814,6 +814,8 @@ determines the end of the test case execution.
     - ISO-8601 datetime string
     - The earliest scenario time at which to end the test case execution (shall be within the bounds specified in the initialization event).
 
+.. _statusEvents:
+
 Status Events
 ~~~~~~~~~~~~~
 

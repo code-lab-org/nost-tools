@@ -1,3 +1,5 @@
+.. _appTemplates:
+
 Application Templates
 =====================
 
