@@ -19,14 +19,14 @@ from nost_tools.observer import Observer
 from nost_tools.managed_application import ManagedApplication
 from nost_tools.publisher import WallclockTimeIntervalPublisher
 
-from examples.firesat.satellites.constellation_config_files.schemas import (
+from constellation_config_files.schemas import (
     FireStarted,
     FireDetected,
     FireReported,
     SatelliteStatus,
     GroundLocation,
 )
-from examples.firesat.satellites.constellation_config_files.config import (
+from constellation_config_files.config import (
     PREFIX,
     NAME,
     SCALE,

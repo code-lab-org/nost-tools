@@ -3,12 +3,22 @@
 Common Interactions Library
 ===========================
 
-Here you will find descriptions and schema for interactions which are common for NOS-T test suites.
+Here you will find descriptions and schemas for interactions which are common for NOS-T test suites. 
 
 Connecting to the Solace Broker
 -------------------------------
 
-Coming Soon!
+Connecting to an MQTT broker is a basic requirement for NOS-T applications. The :ref:`nostTools` has a specific ``ConnectionConfig`` function for doing so. The basic code for using this function looks like the following:
+
+.. code-block:: python3
+
+    credentials = dotenv_values(".env")
+    HOST, PORT = credentials["HOST"], int(credentials["PORT"])
+    USERNAME, PASSWORD = credentials["USERNAME"], credentials["PASSWORD"]
+
+    config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, True)
+
+First you need an :ref:`environment file <envSetUp>` to set your credentials. Then the credentials are accessed from the file and used in the ``ConnectionConfig`` function.
 
 Publishing Status Messages
 --------------------------
@@ -63,7 +73,7 @@ Tasking a Commercial Satellite Observation
 
 With the pool of commerical satellite providers growing, there is an oppurtunity to leverage the data accesible by these satellites through tasking.
 However, understanding which satellites to task and how to task them can be difficult. This sequence diagram breaks down the general messaging process for 
-taskign a commerical provider, and understanding what data needs to be exchanged by RESTful messaging sequences.
+tasking a commerical provider, and understanding what data needs to be exchanged by RESTful messaging sequences.
 
 .. image:: media/CommercialSatelliteTasking.png
    :width: 600
