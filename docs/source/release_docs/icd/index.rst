@@ -1554,29 +1554,29 @@ References
   Accessed 2021-04-07.
 
 .. [3]
-   NASA Center for Climate Simulation, (2021). "SMCE System Overview."
-   URL: https://www.nccs.nasa.gov/systems/SMCE. Accessed 2021-04-07.
+  NASA Center for Climate Simulation, (2021). "SMCE System Overview."
+  URL: https://www.nccs.nasa.gov/systems/SMCE. Accessed 2021-04-07.
 
 .. [4]
-   OGC (2016). "SensorThings API Part 1: Sensing," Version 1.0, Open
-   Geospatial Consortium.
-   URL: http://www.opengis.net/doc/is/sensorthings/1.0
+  OGC (2016). "SensorThings API Part 1: Sensing," Version 1.0, Open
+  Geospatial Consortium.
+  URL: http://www.opengis.net/doc/is/sensorthings/1.0
 
 .. [5]
-   OGC (2019). "SensorThings API Part 2: Tasking Core," Version 1.0,
-   Open Geospatial Consortium.
-   URL: http://www.opengis.net/doc/IS/sensorthings-part2-TaskingCore/1.0
+  OGC (2019). "SensorThings API Part 2: Tasking Core," Version 1.0,
+  Open Geospatial Consortium.
+  URL: http://www.opengis.net/doc/IS/sensorthings-part2-TaskingCore/1.0
 
 .. [6]
-   Eclipse Foundation (2021). "Eclipse Paho Python Client," URL:
-   https://www.eclipse.org/paho/index.php?page=clients/python/index.php.
-   Accessed 2021-12-20.
+  Eclipse Foundation (2021). "Eclipse Paho Python Client," URL:
+  https://www.eclipse.org/paho/index.php?page=clients/python/index.php.
+  Accessed 2021-12-20.
 
 .. [7]
-   LeVine, M. J., Chell, B., Capra, L., Sellers, J. J., & Grogan, P. T. (2022, July). **Planning, Implementing, and Executing Test Campaigns with the New Observing Strategies Testbed (NOS-T): The Firesat+ Example**. In *IGARSS 2022-2022 IEEE International Geoscience and Remote Sensing Symposium* (pp. 5321-5324). IEEE.
+  LeVine, M. J., Chell, B., Capra, L., Sellers, J. J., & Grogan, P. T. (2022, July). **Planning, Implementing, and Executing Test Campaigns with the New Observing Strategies Testbed (NOS-T): The Firesat+ Example**. In *IGARSS 2022-2022 IEEE International Geoscience and Remote Sensing Symposium* (pp. 5321-5324). IEEE.
 
 .. [8]
-   Chell, B., LeVine, M. J., Capra, L., Sellers, J. J., & Grogan, P. T. (2023). **New observing strategies testbed: A digital prototyping platform for distributed space missions**. *Systems Engineering*.
+  Chell, B., LeVine, M. J., Capra, L., Sellers, J. J., & Grogan, P. T. (2023). **New observing strategies testbed: A digital prototyping platform for distributed space missions**. *Systems Engineering*.
 
 Appendices
 ----------
