@@ -11,7 +11,6 @@ This library contains information for NOS-T test suite issues and functionality.
    :maxdepth: 2
 
    common_issues/index
-   common_interactions/index
    white_papers/index
    application_templates/index
    time_management/index

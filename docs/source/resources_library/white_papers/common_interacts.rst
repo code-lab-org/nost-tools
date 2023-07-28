@@ -11,7 +11,7 @@ A good method for defining these interactions is to consider if the data transmi
 Each of these interaction types (one-way or multi-directional) will have a scenario-dependent strucutre, but for internal interactions such as application-to-broker, or application-to-application, there are general structural concepts that can be followed to simplify the design process. 
 
 The main group of interactions that will remain consistent across most scenarios are the application/broker interactions. 
-Many of these are detailed in the :ref:`Common Interactions <commonInteractions>` section, where general schema examples are provided. 
+
 In time-managed scenarios, a necessary interaction will be the time status, or 'heartbeat' messages. These messages are crucial for debugging and connectivity management. A standard heartbeat message contains the application's internal time, state variables, and updates on changes in connectivity.
 Having a record of these values as a test case progresses allows the user to affirm that all applications are in good standing and functioning as expected, and in the event that they are not, isolate the time and cause of the disconnect.
 
