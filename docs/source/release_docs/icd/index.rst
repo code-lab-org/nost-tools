@@ -80,8 +80,6 @@ Techniques <#tools-templates-and-techniques>`__
 
 `5.4 Ensuring NOS-T Compatibility <#ensuring-nos-t-compatibility>`__
 
-`5.5 Executing Test Campaigns <#executing-test-campaigns>`__
-
 `6 References <#references>`__
 
 `7 Appendices <#appendices>`__
@@ -1509,36 +1507,6 @@ required include:
    -  *Publish:* Update the end time of the simulation (possibly
       overwriting original simulation end time) and change mode from
       EXECUTING to TERMINATING and then TERMINATED.
-
-Executing Test Campaigns
-------------------------
-
-During development of a new user application, the application developer
-should orchestrate various test campaigns to verify compliance with the
-NOS-T interface and verify proper operation. The following timeline describes
-a notional “day in the life” example for executing a test campaign.
-
-* Write test script in compliance with user request. Check monitor for:
-
-  * Init time (UTC) (if requested differently than start time)
-  * Start time (UTC)
-  * Stop time (UTC)
-  * Time publish step (in seconds)
-  * Time scale rate
-* Use prewritten test script to ensure manager functionality on a testing
-  topic (i.e., lc-testing)
-* Before simulation start, make sure manager is logged in and connected
-  to the user-requested topic
-* Send out prewritten script several minutes before start time,
-  allowing all applications to receive the command – simulation will
-  begin at the indicated start time
-* Ensure on manager dashboard that messages are being received and
-  simulation clock has begun.
-* Keep close watch on user requests – a need to stop/restart the
-  simulation may be sent at any time, as well as debugging help
-
-  *  To stop simulation immediately, enter a time in the past (UTC)
-  *  To restart simulation, use same script with adjusted start time
 
 References
 ----------
