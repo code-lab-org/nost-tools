@@ -32,7 +32,7 @@ Utilities monitor and report on application connections, modes, and time statuse
 Publishers
 ----------
 
-Publishers are useful for state or status messages that update on regular time intervals.
+Publishers define patterns for publishing messages on regularly spaced time-intervals, which are useful for updating states or simple time-status messages.
 
 .. autoclass:: nost_tools.publisher.ScenarioTimeIntervalPublisher
   :members:

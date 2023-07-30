@@ -28,7 +28,7 @@ Observer objects are base classes that implement the observer pattern to loosely
 Scenario Objects
 ----------------
 
-Scenario objects defines classes for executing a simulation.
+Scenario objects define states and methods for executing a simulation.
 
 .. autoclass:: nost_tools.simulator.Mode
   :members:
