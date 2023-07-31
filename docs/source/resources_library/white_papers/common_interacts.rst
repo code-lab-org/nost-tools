@@ -8,7 +8,7 @@ Understanding how these common interactions can be used to simplify a new potent
 
 The first step when preparing a scenario using the NOS Testbed is identifying the components that are necessary, closely followed by identifying their interactions. Once all of the applications are identified, the user must consider how each application will interact with the other applications, external services, and the broker. 
 A good method for defining these interactions is to consider if the data transmissions are 'reports', where one application is sending data to another without prompting actions (data downlinks, etc.) or a 'conversation', where two or more applications are delivering data that prompts an action from either the sender or receiver (satellite tasking requests, data processing, state changes, etc.). 
-Each of these interaction types (one-way or multi-directional) will have a scenario-dependent strucutre, but for internal interactions such as application-to-broker, or application-to-application, there are general structural concepts that can be followed to simplify the design process. 
+Each of these interaction types (one-way or multi-directional) will have a scenario-dependent structure, but for internal interactions such as application-to-broker, or application-to-application, there are general structural concepts that can be followed to simplify the design process. 
 
 The main group of interactions that will remain consistent across most scenarios are the application/broker interactions. 
 Many of these are detailed in the :ref:`Common Interactions <commonInteractions>` section, where general schema examples are provided. 
