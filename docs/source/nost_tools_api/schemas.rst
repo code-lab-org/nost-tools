@@ -3,7 +3,7 @@
 Message Schemas
 ===============
 
-Message schemas define the payload syntax and semantics for messages published or subscribed using the MQTT protocol.
+Message schemas define the payload syntax and semantics for messages published or subscribed using the MQTT protocol. Schemas work like Python object classes that can easily be serialized to or deserialized from JavaScript Object Notation (JSON) for transmission in MQTT message payloads.
 
 
 Command Messages
