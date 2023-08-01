@@ -15,6 +15,7 @@
       integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2"
       crossorigin="anonymous"
     />
+    <!––Load credentials from env.js-->
     <script type="text/javascript" src="env.js"></script>
   </head>
 
@@ -38,6 +39,7 @@
       crossorigin="anonymous"
     ></script>
     <script>
+	  // Line 19 loads the credentials from env.js file, the following 5 lines sets the correct variables
       var CESIUM_ACCESS_TOKEN = TOKEN;
       var BROKER_HOST = HOST;
       var BROKER_PORT = PORT;
@@ -45,14 +47,16 @@
       var BROKER_CLIENT_PASSWORD = PASSWORD;
 
       $(document).ready(function () {
-        Cesium.Ion.defaultAccessToken = CESIUM_ACCESS_TOKEN;
+        Cesium.Ion.defaultAccessToken = CESIUM_ACCESS_TOKEN; // get Cesium access token
         var clock = new Cesium.Clock({
+		  // initializes the clock to January 1st, 1900 for loading scene before a simulation begins
           currentTime: Cesium.JulianDate.fromIso8601("1900-01-01"),
           clockStep: Cesium.ClockStep.SYSTEM_CLOCK_MULTIPLIER,
           multiplier: 0, // how much time to advance each SYSTEM CLOCK tick
           shouldAnimate: false,
         });
         const viewer = new Cesium.Viewer("cesiumContainer", {
+          // sets up CesiumJS viewer - further documented here:  https://cesium.com/learn/cesiumjs/ref-doc/Viewer.html
           terrainProvider: Cesium.createWorldTerrain(),
           baseLayerPicker: false,
           homeButton: false,
@@ -62,12 +66,12 @@
           navigationHelpButton: false,
           navigationInstructionsInitiallyVisible: false,
           timeline: true,
-          imageryProvider: new Cesium.IonImageryProvider({ assetId: 3845 }),
+          imageryProvider: new Cesium.IonImageryProvider({ assetId: 3845 }), // pulls in Blue Marble asset
           clockViewModel: new Cesium.ClockViewModel(clock),
         });
         <!-- viewer.scene.globe.enableLighting = true; -->
 
-        // create a MQTT client
+        // create a MQTT client and create empty sets for the variables defined at different topic endpoints
         var client = new Paho.MQTT.Client(BROKER_HOST, BROKER_PORT, "");
         var satellites = {}; <!-- Positions of satellites as points at altitude, BLUE out of comms range, GREEN in comms range -->
         var sensorCircles = {}; <!-- Circles showing views of nadir pointed satellites -->
@@ -80,14 +84,16 @@
         var grounds = {}; <!-- Surface position of ground stations as PINK points -->
         var updates = {};
 
+        // the handleMessage function subscribes to all of the relevant topics with if statements defining behavior in response to messages received on different topic endpoints
         function handleMessage(message) {
           // get the message payload as a string
           <!-- console.log(message.payloadString); -->
           var payload = message.payloadString;
           var topic = message.destinationName;
-          // try to parse and stringify a JSON string
+          // parse and stringify a JSON string
           try {
             if (topic == "greenfield/manager/init") {
+              // initialize the clock to the simulation start time as well as setting up a clamped timeline from simStart to simStop
               payload = JSON.parse(message.payloadString);
               viewer.clockViewModel.currentTime = Cesium.JulianDate.fromIso8601(
                 payload.taskingParameters.simStartTime
@@ -104,6 +110,7 @@
                 viewer.clockViewModel.stopTime
               );
             } else if (topic == "greenfield/manager/start") {
+              // start command from manager also updates time scale multiplier displayed in clock
               payload = JSON.parse(message.payloadString);
               viewer.clockViewModel.multiplier =
                 payload.taskingParameters.timeScalingFactor;
@@ -111,30 +118,35 @@
               topic == "greenfield/manager/time" ||
               topic == "greenfield/manager/status/time"
             ) {
+              // message from manager that updates the simulation clock and the timeline
               payload = JSON.parse(message.payloadString);
               viewer.clockViewModel.currentTime = Cesium.JulianDate.fromIso8601(
                 payload.properties.simTime
               );
               viewer.timeline.updateFromClock();
             } else if (topic == "greenfield/manager/update") {
+              // updates time scale factor from manager
               payload = JSON.parse(message.payloadString);
               viewer.clockViewModel.multiplier =
                 payload.taskingParameters.timeScalingFactor;
             } else if (topic == "greenfield/constellation/location") {
               payload = JSON.parse(message.payloadString);
               commRange = payload.commRange;
+              // changes satellite color when in (GREEN) or out (BLUE) of communications range
               if (commRange) {
                 satColor = Cesium.Color.GREEN;
               } else {
                 satColor = Cesium.Color.BLUE;
               }
               if (satellites[payload.id]) {
+                // updates location of satellite point if already exists in the satellites list
                 satellites[payload.id].position = Cesium.Cartesian3.fromDegrees(
                   payload.longitude,
                   payload.latitude,
                   payload.altitude
                 );
                 satellites[payload.id].point.color = satColor;
+                // projects circular sensing footprint on Earth surface
                 sensorCircles[payload.id].ellipse.semiMajorAxis =
                   payload.radius;
                 sensorCircles[payload.id].ellipse.semiMinorAxis =
@@ -145,6 +157,7 @@
                     payload.latitude
                   );
               } else {
+                // adds a new satellite and its sensorCircle to the respective lists if they do not already exist
                 satellites[payload.id] = viewer.entities.add({
                   position: Cesium.Cartesian3.fromDegrees(
                     payload.longitude,
@@ -155,6 +168,7 @@
                     pixelSize: 8,
                     color: satColor,
                   },
+                  // adds satellite labels next to points
                   label: {
                     text: payload.name,
                     font: "12px Georgia",
@@ -163,6 +177,7 @@
                     outlineWidth: 2,
                     style: Cesium.LabelStyle.FILL_AND_OUTLINE,
                     pixelOffset: new Cesium.Cartesian2(40.0, 8.0),
+                    // scales font for zooming in/out
                     pixelOffsetScaleByDistance: new Cesium.NearFarScalar(
                       1.5e2,
                       3.0,
@@ -184,7 +199,7 @@
                   },
                   show: true,
                 });
-                sensorCircles[payload.id] = viewer.entities.add({
+				sensorCircles[payload.id] = viewer.entities.add({
                   position: Cesium.Cartesian3.fromDegrees(
                     payload.longitude,
                     payload.latitude
@@ -196,6 +211,7 @@
                   },
                 });
               }
+              // adds a new fire to list and plots its location on Earth's surface with red point
             } else if (topic == "greenfield/fire/location") {
               <!-- Cesium suggests using PointPrimitives when have large collection of points, applies to fires -->
               payload = JSON.parse(message.payloadString);
@@ -208,15 +224,19 @@
                 color: Cesium.Color.RED,
                 show: true,
               });
+			  // changes existing fire from red to dark orange when fire is detected by a satellite
             } else if (topic == "greenfield/constellation/detected") {
               payload = JSON.parse(message.payloadString);
               fires.get(payload.fireId).color = Cesium.Color.DARKORANGE;
+			  // changes existing detected fire from dark orange to yellow when the detecting satellite reports to a ground station
             } else if (topic == "greenfield/constellation/reported") {
               payload = JSON.parse(message.payloadString);
               fires.get(payload.fireId).color = Cesium.Color.YELLOW;
+              // adds ground stations and inverted cone representing minimum elevation angle constraints
             } else if (topic == "greenfield/ground/location") {
               payload = JSON.parse(message.payloadString);
               activeCheck = payload.operational;
+              // sets up colors for ground station viewing cone, with pink meaning operational and light gray indicating the ground station services are not available
               if (activeCheck) {
                 groundColor = Cesium.Color.PINK;
                 groundMaterial = Cesium.Color.PINK.withAlpha(0.1);
@@ -261,7 +281,7 @@
             console.log("An error was caught somewhere...");
           }
         }
-
+        // connects to testbed broker, subscribes to all topics under the greenfield PREFIX and assigns the latter handleMessage callback function 
         client.connect({
           userName: BROKER_CLIENT_USERNAME,
           password: BROKER_CLIENT_PASSWORD,

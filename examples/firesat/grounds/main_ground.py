@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-    *This application demonstrates a network of ground stations given geospatial locations, minimum elevation angle constraints, and operational status*
+    *This application demonstrates a network of ground stations given geospatial locations, minimum elevation angle constraints, and operational status.*
 
     The application contains a single class, the :obj:`Environment` class, which waits for a message from the manager that indicates the beginning of the simulation execution. The application publishes all of the ground station information once, at the beginning of the simulation.
 

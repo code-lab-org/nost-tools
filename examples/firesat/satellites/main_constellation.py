@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-    *This application demonstrates a constellation of satellites for monitoring fires propagated from Two-Line Elements (TLEs)*
+    *This application demonstrates a constellation of satellites for monitoring fires propagated from Two-Line Elements (TLEs).*
 
-    The application contains one :obj:`Constellation` (:obj:`Entity`) object class, one :obj:`PositionPublisher` (:obj:`WallclockTimeIntervalPublisher`) class, and two :obj:`Observer` object classes to monitor for :obj:`FireDetected` and :obj:`FireReported` events, respectively. The application also adds several methods outside of these classes containing standardized calculations sourced from Ch. 5 of *Space Mission Analysis and Design* by Wertz and Larson, including:
+    The application contains one :obj:`Constellation` (:obj:`Entity`) object class, one :obj:`PositionPublisher` (:obj:`WallclockTimeIntervalPublisher`) class, and two :obj:`Observer` object classes to monitor for :obj:`FireDetected` and :obj:`FireReported` events, respectively. The application also adds several methods outside of these classes containing standardized calculations sourced from Ch. 5 of *Space Mission Analysis and Design* by Wertz and Larson. The example also includes a startup script that demonstrates how to add each of these objects to the simulator before executing the test case, as well as how to map callback functions to the newly started client.
 
 """
 import logging
@@ -19,14 +19,14 @@ from nost_tools.observer import Observer
 from nost_tools.managed_application import ManagedApplication
 from nost_tools.publisher import WallclockTimeIntervalPublisher
 
-from examples.firesat.satellites.constellation_config_files.schemas import (
+from constellation_config_files.schemas import (
     FireStarted,
     FireDetected,
     FireReported,
     SatelliteStatus,
     GroundLocation,
 )
-from examples.firesat.satellites.constellation_config_files.config import (
+from constellation_config_files.config import (
     PREFIX,
     NAME,
     SCALE,
@@ -420,17 +420,7 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
         """
         *Abstract publish_message method inherited from the WallclockTimeIntervalPublisher object class from the publisher template in the NOS-T tools library*
 
-        This method sends a message to the *PREFIX/constellation/location* topic for each satellite in the constellation (:obj:`Constellation`), including:
-
-        Args:
-            id (int): Unique id for satellite in constellation
-            names (str): Unique name for satellite in constellation
-            latitude (:obj:`confloat`): Latitude in degrees for satellite in constellation at current scenario time
-            longitude (:obj:`confloat`): Longitude in degrees for satellite in constellation at current scenario time
-            altitude (float): Altitude above sea-level in meters for satellite in constellation at current scenario time
-            radius (float): Radius (meters) of the nadir pointing sensors circular view of observation for satellite in constellation at current scenario time
-            commRange (bool): Boolean state variable indicating if satellite in constellaton is in view of a ground station at current scenario time
-            time (:obj:`datetime`): current scenario :obj:`datetime`
+        This method sends a :obj:`SatelliteStatus` message to the *PREFIX/constellation/location* topic for each satellite in the constellation (:obj:`Constellation`).
 
         """
         for i, satellite in enumerate(self.constellation.satellites):

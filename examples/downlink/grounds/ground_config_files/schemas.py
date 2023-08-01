@@ -1,15 +1,21 @@
 # -*- coding: utf-8 -*-
 """
-Example script to specify object schemas for the AWS Downlink test case.
+    *Schema are implemented using the pydantic library. The following schema define consistent message structures between this application and other observer applications:*
 
 """
 
-from pydantic import BaseModel, Field, confloat
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime, timedelta
 
 
 class SatelliteReady(BaseModel):
+    """
+    *Message schema object class with properties inherited from the pydantic library's BaseModel*
+
+    Standardized initializing message for each satellite in the constellation includes: 
+
+    """
     id: int = Field(..., description="Unique satellite identifier")
     name: str = Field(..., description="Satellite name for labeling")
     ssr_capacity: float = Field(
@@ -18,19 +24,31 @@ class SatelliteReady(BaseModel):
     
     
 class SatelliteAllReady(BaseModel):
+    """
+    *Message schema object class with properties inherited from the pydantic library's BaseModel*
+
+    Standardized trigger message indicating :obj:`SatelliteReady` messages have been received for all satellites in the constellation: 
+
+    """
     ready: str = Field(
         "allReady", description="Indicates completion of SatelliteReady messages"
     )
     
 
-class SatelliteStatus(BaseModel):
+class SatelliteState(BaseModel):
+    """
+    *Message schema object class with properties inherited from the pydantic library's BaseModel*
+
+    Standardized satellite status message includes: 
+        
+    """
     id: int = Field(..., description="Unique satellite identifier")
     name: str = Field(..., description="Satellite name for labeling")
-    latitude: confloat(ge=-90, le=90) = Field(
-        ..., description="Latitude (deg) of satellite subpoint location"
+    latitude: float = Field(
+        ..., ge=-90, le=90, description="Latitude (deg) of satellite subpoint location."
     )
-    longitude: confloat(ge=-180, le=180) = Field(
-        ..., description="Longitude (deg) of satellite subpoint location"
+    longitude: float = Field(
+        ..., ge=-180, le=180, description="Longitude (deg) of satellite subpoint location."
     )
     altitude: float = Field(
         ..., description="Altitude (meters) of satellite above sea level"
@@ -57,12 +75,18 @@ class SatelliteStatus(BaseModel):
 
 
 class GroundLocation(BaseModel):
+    """
+    *Message schema object class with properties inherited from the pydantic library's BaseModel*
+
+    Standardized message for ground station information includes:
+    
+    """
     groundId: int = Field(..., description="Unique ground station identifier")
-    latitude: confloat(ge=-90, le=90) = Field(
-        ..., description="Latitude (deg) of ground station"
+    latitude: float = Field(
+        ..., ge=-90, le=90, description="Latitude (deg) of ground station."
     )
-    longitude: confloat(ge=-180, le=180) = Field(
-        ..., description="Longitude (deg) of ground station"
+    longitude: float = Field(
+        ..., ge=-180, le=180, description="Longitude (deg) of ground station."
     )
     elevAngle: float = Field(
         ..., description="Minimum elevation angle (deg) for satellite-ground communications",
@@ -81,6 +105,12 @@ class GroundLocation(BaseModel):
     )
     
 class LinkStart(BaseModel):
+    """
+    *Message schema object class with properties inherited from the pydantic library's BaseModel*
+
+    Standardized message indicating the beginning of a downlink opportunity includes:
+    
+    """
     groundId: int = Field(..., description="Unique ground station identifier")
     satId: int = Field(..., description="Unique satellite identifier that performed the downlink")
     satName: str = Field(..., description="Name of satellite that performed the downlink")
@@ -95,6 +125,12 @@ class LinkStart(BaseModel):
     )
     
 class LinkCharge(BaseModel):
+    """
+    *Message schema object class with properties inherited from the pydantic library's BaseModel*
+
+    Standardized message indicating the end of a downlink opportunity and updating cost ledgers includes:
+    
+    """
     groundId: int = Field(..., description="Unique ground station identifier")
     satId: int = Field(..., description="Unique satellite identifier that performed the downlink")
     satName: str = Field(..., description="Name of satellite that performed the downlink")
@@ -122,6 +158,12 @@ class LinkCharge(BaseModel):
     )
     
 class OutageReport(BaseModel):
+    """
+    *Message schema object class with properties inherited from the pydantic library's BaseModel*
+
+    Standardized message indicating the beginning of an outage at a ground station includes:
+    
+    """
     groundId: int = Field(..., description="Unique ground station identifier experiencing outage")
     outageStart: datetime = Field(
         ..., description="Initial time of outage report"
@@ -134,6 +176,12 @@ class OutageReport(BaseModel):
     )
     
 class OutageRestore(BaseModel):
+    """
+    *Message schema object class with properties inherited from the pydantic library's BaseModel*
+
+    Standardized message indicating the end of an outage with restored service at a ground station includes:
+    
+    """
     groundId: int = Field(..., description="Unique ground station identifier")
     outageEnd: datetime = Field(
         ..., description = "outageStart + outageDuration"

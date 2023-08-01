@@ -10,7 +10,7 @@ from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
 from nost_tools.managed_application import ManagedApplication
 
 from config import PARAMETERS
-from satellite_with_multiple_targets import Satellite, StatusPublisher
+from satellite_with_multiple_targets_v_0 import Satellite, StatusPublisher
 
 logging.basicConfig(level=logging.INFO)
 

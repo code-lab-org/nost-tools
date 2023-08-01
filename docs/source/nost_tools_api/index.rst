@@ -3,28 +3,40 @@
 NOS-T Tools API
 ---------------
 
-This page contains descriptions of the NOS-T tools library features, and
-provides a detailed description of their functions. Within this library, there are
-templates to support both time-managed and time-agnostic applications.
+This page contains descriptions of the NOS-T tools library features, and provides a detailed description of their functions. Within this library, there are templates to support both time-managed and time-agnostic applications. The first step for using the tools library is to follow the :ref:`installation instructions <installation>`. 
 
-These templates allow a user to create an application with unique functionality,
-and easily ensure that the application will be compatible with the simulation as
-a whole.
+The tools consist of ten Python files defining useful methods and classes. For logical convenience they are categorized into the following three sections:
 
-In this webpage, you can find the documentation for the provided templates, The
-FireSat+ example codes show how the templates can be integrated into user applications.
-The applications can be found in `this GitHub repository <https://github.com/code-lab-org/nost-tools/tree/main/nost_tools>`__.
+* **Message Schemas**:  
+		Define the information carried in common message payloads and the format that information should take using the Pydantic data validation library.
+			
+			*	*Command messages*:  Used by the manager to control time-managed scenarios. These are further described in :ref:`this section <controlEvents>` of the Interface Control Document (ICD).
+			
+			*	*Status messages*:  Used by all constituent applications to update simulation time and modes. These are further described in :ref:`this section <statusEvents>` of the ICD.
 
-Installation instructions are found at :ref:`this link <installation>`. A step-by-step guide for running FireSat+, including the installation 
-instructions, is in the :ref:`tutorial`.
+* **Simulator Objects**:  
+		Manage state changes and internal clocks for simulation applications.
 
-The tools library is an expansion of the NOS-T infrastructure project, intended to simplify
-component interoperability for distributed systems testing. A deep dive into the NOS-T project
-is in the :ref:`ICD`.
+			*  *Observer Objects*:  Implement patterns for loosely coupling observables and observers.
+			
+			*  *Scenario Objects*:  Define states and methods for executing a simulation.
+
+* **Applications Objects**:  
+		Help constituent applications connect to the MQTT message broker and communicate with the MQTT messaging protocol.
+		
+			*  *Utilities*:  Monitor and report on application connections, modes, and time statuses.
+			
+			*  *Publishers*:  Define patterns for publishing messages on regularly spaced time-intervals.
+			
+			*  *Applications*:  Serve as templates or wrappers of basic MQTT client functionality and synchronization for simulation.
+			
 
 .. toctree::
   :maxdepth: 1
 
+
   schemas
   simulator
   application
+
+The :ref:`NOS-T Example Test Suites <examples>` feature many different implementations of the tools. In particular, all of the Python :ref:`FireSat+ <fireSatExampleTop>` applications make use of the NOS-T tools library for a faster than real-time simulation that requires coordination from a **Manager** application. Furthermore, the :ref:`example application templates <appTemplates>` include a collection of bare-bones templates, similar to *FireSat+*, with some of the tools functionality built-in.

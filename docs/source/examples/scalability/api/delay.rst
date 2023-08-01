@@ -1,9 +1,6 @@
 Delay
 =====
 
-main_delay.py module
---------------------
-
 .. automodule:: scalability.delay.main_delay
 	:members: query_nist, post_processing
 	:show-inheritance:

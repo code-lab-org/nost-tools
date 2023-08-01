@@ -16,6 +16,24 @@ Class
 
 |
 
+Schema
+------
+
+.. automodule:: examples.firesat.satellites.constellation_config_files.schemas
+	:noindex:
+	:show-inheritance:
+	:member-order: bysource
+	:exclude-members: examples.firesat.satellites.constellation_config_files.schemas.FireState, examples.firesat.satellites.constellation_config_files.schemas.FireStarted, examples.firesat.satellites.constellation_config_files.schemas.FireDetected, examples.firesat.satellites.constellation_config_files.schemas.FireReported, examples.firesat.satellites.constellation_config_files.schemas.SatelliteStatus, examples.firesat.satellites.constellation_config_files.schemas.GroundLocation
+
+.. autopydantic_settings:: examples.firesat.satellites.constellation_config_files.schemas.GroundLocation
+	:noindex:
+	:show-inheritance:
+	:settings-summary-list-order: bysource
+	:member-order: bysource
+	
+|
+
+
 Startup Script
 --------------
 
