@@ -1,3 +1,4 @@
+.. _webMonitor:
 
 NOS-T Web-based Monitor For Broker
 ==================================
