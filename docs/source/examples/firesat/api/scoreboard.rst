@@ -1,3 +1,5 @@
+.. _firesatScoreboard:
+
 Scoreboard
 ==========
 
@@ -38,10 +40,13 @@ Cesium resources
 
 The `CesiumJS documentation <https://cesium.com/learn/cesiumjs/ref-doc/index.html>`_ contains descriptions of the different functions. Also, the `Cesium "Sandcastle" <https://sandcastle.cesium.com/>`_ sandbox environment is useful for rapid testing of these functions. Note that you will not be able to copy-and-paste the Scoreboard code directly into Sandcastle due to fundamental differences between it and the NOS-T event-driven architecture. However, the Sandcastle envrionment is useful for testing out the different visualization functions statically, and generating code snippets, before implementing them into a NOS-T application.
 
-Finally, below is an example view of what the Scoreboard looks like. The yellow (detected) and red (ignited) dots represent fires.
-The pink dots and cones represent ground stations and their elevation angles. The blue dots and cones is a spacecraft
-and its field of regard.
-
-.. image:: media/fireSatScoreboard.png
+.. figure:: media/fireSatScoreboard.png
    :width: 600
    :align: center
+   
+   Screenshot of Scoreboard Displaying Fire States, Satellite Views, and Ground Locations
+
+The latter figure is an example view of the Scoreboard during a simulation. The yellow (detected) and red (ignited) dots represent fires.
+The pink dots and cones represent ground stations and their minimum elevation angles for establishing comms and data links. The blue dots represent the locations of the spacecraft and the blue circles projected on the Earth's surface show what is visible given the satellite instrument's field of view. The blue dots turn green when the satellite moves into view of a ground station.
+
+

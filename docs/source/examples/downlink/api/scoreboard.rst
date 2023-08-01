@@ -6,7 +6,7 @@ This test suite contains two types of dynamic visualizations, both of which are 
 CesiumJS Scoreboard
 -------------------
 
-This is similar to the FireSat+ scoreboard.
+This application is essentially the same as the :ref:`FireSat+ Scoreboard<firesatScoreboard>`. The same Cesium access token and **env.js** file can be used in conjunction with this scoreboard.
 
 |
 

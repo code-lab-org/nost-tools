@@ -39,4 +39,4 @@ The tools consist of ten Python files defining useful methods and classes. For l
   simulator
   application
 
-The :ref:`NOS-T Example Test Suites <examples>` feature many different implementations of the tools. In particular, all of the Python :ref:`FireSat+ <fireSatExampleTop>` applications make use of the NOS-T tools library for a faster than real-time simulation that requires coordination from a **Manager** application. Furthermore, the :ref:`example application templates <appTemplates>` include a collection of bare-bones templates, similar to FireSat+, with some of the tools functionality built-in.
+The :ref:`NOS-T Example Test Suites <examples>` feature many different implementations of the tools. In particular, all of the Python :ref:`FireSat+ <fireSatExampleTop>` applications make use of the NOS-T tools library for a faster than real-time simulation that requires coordination from a **Manager** application. Furthermore, the :ref:`example application templates <appTemplates>` include a collection of bare-bones templates, similar to *FireSat+*, with some of the tools functionality built-in.
