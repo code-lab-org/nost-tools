@@ -20,13 +20,13 @@ Useful Terminology/Nomenclature
 A deep understanding of the protocol is not necessary to start working with MQTT, but the following are some terms that will be used commonly to explain the NOS-T architecture:
 
   * broker: 
-				A server that receives and routes messages from publisher to subscribers. A broker can be hosted on a local server or in the cloud. NOS-T is hosted on an AWS E2 instance (will hyperlink to section on setting up cloud instance).
+				A server that receives and routes messages from publisher to subscribers. A broker can be hosted on a local server or in the cloud. NOS-T is hosted on an Amazon Elastic Compute Cloud (EC2) instance.
 
   * client: 
 				A device or application running an MQTT library and connecting to an MQTT broker over a network. These can range from simple sensors on the IoT to complex servers or even other message brokers.
 
   * session: 
-				An active or remembered (persistent) client connection to the broker with a list of subscriptions. Persistent client connections require a unique :obj:`client_id` and the :obj:`clean_start` = :obj:`False` option enabled on instantiation (see link to section on Configuring Queueing).
+				An active or remembered (persistent) client connection to the broker with a list of subscriptions. Persistent client connections require a unique :obj:`client_id` and the :obj:`clean_start` = :obj:`False` option enabled on instantiation, which would be necessary to enable asynchronous message queuing.
 
   * publish/subscribe (pub/sub):
 				An architectural pattern that decouples the clients that send messages from the clients that receive messages. In the pub/sub model, publishers and subscribers never contact each other directly. The connection is handled by a broker that filters all incoming messages and distributes them correctly to subscribers.

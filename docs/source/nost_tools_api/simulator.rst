@@ -3,7 +3,7 @@
 Simulator Objects
 =================
 
-These objects define observer behavior and manage state variables during scenario execution.
+Simulator objects structure observer behavior and manage state variables during scenario execution.
 
 
 Observer Objects
