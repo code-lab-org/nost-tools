@@ -15,7 +15,9 @@ The tools have been split up into the three following sections:
 
 * **Simulator Objects**:  This collection of Python objects help manage state changes for simulation applications. They include functions that can compute (tick) and commit (tock) these state changes as well as those that control enumerate simulation modes and handle scenario timing.
 
-* **Applications Objects**:  These Python objects help the constituent applications communicate with the MQTT messaging protocol. They include functions that connect to a MQTT broker, publish messages and defined intervals, and help to develop applications that can interface with the NOS-T manager.
+* **Utility Objects**:  These Python objects provide supporting functionality for the application templates below. They implement commonly-used data structures or behaviors.
+
+* **Application Templates**:  These Python objects help the constituent applications communicate with the MQTT messaging protocol. They include functions that connect to a MQTT broker, publish messages and defined intervals, and help to develop applications that can interface with the NOS-T manager.
 
 Clicking into the three sections listed above will bring you to the automatically-generated documentation. You can see which of the NOS-T tools Python scripts contains the given schema or object by looking at the top-level titles. For example, the ConnectionConfig function has the following title:  :code:`nost_tools.application_utils.ConnectionConfig`. This means that function is found, and can be imported from, the *application_utils.py* file.
 
@@ -27,4 +29,5 @@ The :ref:`NOS-T Example Test Suites <examples>` are a good place to see how the 
 
   schemas
   simulator
-  application
+  applications
+  utils
