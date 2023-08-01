@@ -19,7 +19,7 @@ from nost_tools.application import Application # type:ignore
 
 from downlinkDashboard_config_files.config import PREFIX, NAME # type:ignore
 
-def on_message(self, mqttc, obj, msg):
+def on_message(mqttc, obj, msg):
     """
     Callback method that processes messages on relevant topic endpoints for regularly triggering dashboard display updates.
 
