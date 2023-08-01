@@ -156,6 +156,7 @@
                     payload.latitude
                   );
               } else {
+                // the else statement can add satellites during a test run
                 satellites[payload.id] = viewer.entities.add({
                   position: Cesium.Cartesian3.fromDegrees(
                     payload.longitude,
