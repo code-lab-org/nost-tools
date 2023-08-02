@@ -52,6 +52,12 @@ sys.path.insert(
         "../../examples/application_templates/ground_station_template/ground_config_files"
     ),
 )
+sys.path.insert(
+    0, os.path.abspath("../../examples/application_templates/random_global_event_template")
+)
+sys.path.insert(
+    0, os.path.abspath("../../examples/application_templates/random_global_event_template/randEvents_config_files")
+)
 
 # -- Project information -----------------------------------------------------
 

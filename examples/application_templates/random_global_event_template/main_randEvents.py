@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-    *This application demonstrates a simulation of a set of randomly generated scientific events
+    *This application demonstrates a simulation of a set of randomly generated observable events.*
     
-    The application contains a single :obj:`Environment` class which generates the random events for the simulation in a 
+    This is the entry point script for the random global events, meaning that this is the one you need to execute. This is a managed application, so you need to execute this code before starting up the NOS-T Manager application. The application contains a single :obj:`EventGenerator` class which generates the random events for the simulation in a 
     :obj:`DataFrame` and listens to the time status published by the manager application and publishes event information 
-    at the specified start :obj:`datetime` sunrise/sunset :obj:`datetime` and event finish :obj:`datetime`.
+    at the specified start :obj:`datetime`, sunrise/sunset :obj:`datetime`, and event finish :obj:`datetime`.
 
 """
 
@@ -36,12 +36,15 @@ logging.basicConfig(level=logging.INFO)
 class EventGenerator(Observer):
     """
     *The EventGenerator object class inherits properties from the Observer object class in the NOS-T tools library*
-
+    
+    This object class initializes an array of events randomized by location, start-time, and duration. The observer watches the simulation clock and publishes :obj:`EventStarted`, :obj:`EventDayChange`, and :obj:`EventFinished` messages at the appropriate scenario times.
+    
     Attributes:
         app (:obj:`ManagedApplication`): An application containing a test-run namespace, a name and description for the app, client credentials, and simulation timing instructions 
-        event_count (:obj:`int`): An integer specifying the number of events to be generated
+        event_count (int): An integer specifying the number of events to be generated
+        max_event_duration (float): An upper bound for any random draw setting the duration of an event in hours 
         scenario_start (:obj:`datetime`): A datetime specifying the start date and time of the simulation
-        scenario_length (:obj:`float`): A float specifying the length of the simulation in hours
+        scenario_length (float): A float specifying the length of the simulation in hours
         seed (:obj:`any`): A value specifying the seed used for pseudorandom number generation for event locations and start times
     """
 
@@ -57,7 +60,7 @@ class EventGenerator(Observer):
 
     def generate_events(self):
         """
-            :obj:`Environment` method to generate events with ID, start time, finish time, latitude and longitude, 
+            A method called during object initialization to generate events with ID, start time, finish time, latitude and longitude, 
             list of sunrise/sunset times, and indicator of initial day/night status.    
         """
 

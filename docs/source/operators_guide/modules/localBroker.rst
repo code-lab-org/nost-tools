@@ -1,3 +1,5 @@
+.. _localBroker:
+
 Setting up Solace Broker on Local Host
 ======================================
 
@@ -56,6 +58,8 @@ Similarly, the Volumes tab should include a single, in-use **template_storage-gr
 Note that the names of both the container and the storage-group can be customized by editing the :obj:`.yml` file accordingly.
 
 |
+
+.. _PubSubManager:
 
 Logging into the Solace Event Broker
 ------------------------------------
