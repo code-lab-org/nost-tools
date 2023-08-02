@@ -132,18 +132,18 @@ A vertical layout stacking logs atop each other.
 Grid View 
 """""""""
 
-    A 2X inf. layout offering a coherent display of multiple logs.
+A 2X inf. layout offering a coherent display of multiple logs.
 
-    In conclusion, the testbed has been meticulously designed to bolster
-    the development and tuning of the project components, ensuring
-    they're primed for the ultimate deployment.
+In conclusion, the testbed has been meticulously designed to bolster
+the development and tuning of the project components, ensuring
+they're primed for the ultimate deployment.
 
 Getting Started 
 ---------------
 
-    This section elucidates the different test cases undertaken during
-    the project, emphasizing their importance and highlighting key
-    findings and results.
+This section elucidates the different test cases undertaken during
+the project, emphasizing their importance and highlighting key
+findings and results.
 
 Consumer Instructions
 ^^^^^^^^^^^^^^^^^^^^^
@@ -250,29 +250,27 @@ Browser* <https://www.google.com/chrome/bsem/download/en_us/?brand=RXQR&ds_kid=4
 Step 2: Download the Software
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-    Acquire the NOS-T Manager software from the provided source, which
-    should bundle the essential Docker files and code.
-
-    Should be on a git repository
+Acquire the NOS-T Manager software following :ref:`these instructions <installation>`, which
+will bundle the essential Docker files and code.
 
 Step 3: Environment Setup
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-    Launch your preferred code editor (Visual Studio Code is
-    recommended) and import the acquired software files.
+Launch your preferred code editor (Visual Studio Code is
+recommended) and import the acquired software files.
 
 Step 4: Application Configuration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-    If the application necessitates any specific configurations, ensure
-    they're correctly set up. Consult the software's documentation or
-    README for specific details.
+If the application necessitates any specific configurations, ensure
+they're correctly set up. Consult the software's documentation or
+README for specific details.
 
 Step 5: Initiate Docker Compose
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-    Open a terminal or command prompt within the software's root
-    directory (where the docker-compose.yml file is located).
+Open a terminal or command prompt within the software's root
+directory (where the docker-compose.yml file is located).
 
 Step 6: Build and Launch the Application
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -300,9 +298,9 @@ available documentation for guidance.
 Step 9: Halting the Application
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-    To terminate the application, return to the running Docker Compose
-    terminal and press Ctrl + C. This action will halt and remove the
-    active containers.
+To terminate the application, return to the running Docker Compose
+terminal and press Ctrl + C. This action will halt and remove the
+active containers.
 
 Step 10: Cleanup (Optional)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -340,35 +338,35 @@ has several important implications:
 Enhanced Transparency
 ^^^^^^^^^^^^^^^^^^^^^
 
-    The web-based monitor offers stakeholders an unprecedented level of
-    transparency into the flow and volume of communications within the
-    NOS-T system. This transparency is crucial for understanding the
-    system's behavior and ensuring that all components function
-    optimally.
+The web-based monitor offers stakeholders an unprecedented level of
+transparency into the flow and volume of communications within the
+NOS-T system. This transparency is crucial for understanding the
+system's behavior and ensuring that all components function
+optimally.
 
 Early Issue Detection
 ^^^^^^^^^^^^^^^^^^^^^
 
-    By providing a real-time view of the broker's messages, the monitor
-    enables users to identify potential issues and inefficiencies at an
-    early stage. This early detection can lead to timely interventions
-    and improvements, enhancing the overall performance and reliability
-    of the NOS-T system.
+By providing a real-time view of the broker's messages, the monitor
+enables users to identify potential issues and inefficiencies at an
+early stage. This early detection can lead to timely interventions
+and improvements, enhancing the overall performance and reliability
+of the NOS-T system.
 
 Optimization Opportunities
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-    The ability to analyze and export log messages for deeper analysis
-    and troubleshooting allows teams to optimize the performance of
-    NOS-T. By pinpointing areas that require improvement, developers and
-    stakeholders can fine-tune the system for better efficiency.
+The ability to analyze and export log messages for deeper analysis
+and troubleshooting allows teams to optimize the performance of
+NOS-T. By pinpointing areas that require improvement, developers and
+stakeholders can fine-tune the system for better efficiency.
 
 User Flexibility
 ^^^^^^^^^^^^^^^^
 
-    The monitor's customizable features, such as the ability to choose
-    log count and view options, ensure that users can adapt the
-    interface to suit their specific testing scenarios and requirements.
+The monitor's customizable features, such as the ability to choose
+log count and view options, ensure that users can adapt the
+interface to suit their specific testing scenarios and requirements.
 
 Future
 ^^^^^^
@@ -437,17 +435,13 @@ techniques will provide deeper insights into the NOS-T system's
 behavior.
 
 .. |image1| image:: media/WM2.png
-   :width: 5.52689in
-   :height: 3.04688in
+   :width: 8 in
 .. |image2| image:: media/WM3.png
-   :width: 6.50000in
-   :height: 1.68127in
+   :width: 8 in
 .. |image3| image:: media/WM4.png
-   :width: 6.47940in
-   :height: 1.21121in
+   :width: 8 in
 .. |image4| image:: media/WM5.png
-   :width: 6.50000in
-   :height: 1.23044in
+   :width: 8 in
 .. |image5| image:: media/WM6.png
    :width: 3.93229in
    :height: 1.66366in

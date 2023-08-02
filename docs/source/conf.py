@@ -21,7 +21,9 @@ sys.path.insert(0, os.path.abspath("../../examples/firesat/fires"))
 sys.path.insert(0, os.path.abspath("../../examples/firesat/fires/fire_config_files"))
 sys.path.insert(0, os.path.abspath("../../examples/firesat/grounds"))
 sys.path.insert(0, os.path.abspath("../../examples/firesat/satellites"))
-sys.path.insert(0, os.path.abspath("../../examples/firesat/satellites/constellation_config_files"))
+sys.path.insert(
+    0, os.path.abspath("../../examples/firesat/satellites/constellation_config_files")
+)
 sys.path.insert(0, os.path.abspath("../../examples/firesat/manager"))
 sys.path.insert(0, os.path.abspath("../../examples/realtime"))
 sys.path.insert(0, os.path.abspath("../../examples/scalability"))
@@ -30,7 +32,9 @@ sys.path.insert(0, os.path.abspath("../../examples/scalability/heartbeat"))
 sys.path.insert(0, os.path.abspath("../../examples/downlink"))
 sys.path.insert(0, os.path.abspath("../../examples/downlink/satelliteStorage"))
 sys.path.insert(0, os.path.abspath("../../examples/downlink/grounds"))
-sys.path.insert(0, os.path.abspath("../../examples/downlink/grounds/ground_config_files"))
+sys.path.insert(
+    0, os.path.abspath("../../examples/downlink/grounds/ground_config_files")
+)
 sys.path.insert(0, os.path.abspath("../../examples/downlink/outages"))
 sys.path.insert(0, os.path.abspath("../../examples/downlink/scoreboard"))
 sys.path.insert(
@@ -53,7 +57,7 @@ sys.path.insert(
 
 project = "NOS Testbed (NOS-T)"
 copyright = "2023, Stevens Institute of Technology"
-author = "NOS-T Team"
+author = "Systems Engineering Research Center, \n Stevens Institute of Technology"
 
 # The full version, including alpha/beta/rc tags
 release = nost_tools.__version__
