@@ -10,3 +10,4 @@ This section of the resources library contains white papers which describe more 
    task_receive
    common_interacts
    certificate_authorization
+   hardwareTestbed
