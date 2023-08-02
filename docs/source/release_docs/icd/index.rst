@@ -3,90 +3,6 @@
 Interface Control Document
 ==========================
 
-.. list-table:: Release History
-  :widths: 10 20 70
-  :header-rows: 1
-
-  * - Release
-    - Date
-    - Description
-  * - v.1.0
-    - Feb. 1, 2022
-    - Initial release of the ICD and documentation of NOS-T Tools library.
-
-
-**TABLE OF CONTENTS**
-
-`1 Preface <#preface>`__
-
-`1.1 NOS-T Introduction <#nos-t-introduction>`__
-
-`1.2 Purpose of this Document <#purpose-of-this-document>`__
-
-`1.3 Conventions used in this
-Document <#conventions-used-in-this-document>`__
-
-`1.4 Definitions and Glossary of
-Terms <#definitions-and-glossary-of-terms>`__
-
-`1.5 Obtaining Documentation, Tools,
-and Information <#obtaining-documentation-tools-and-information>`__
-
-`1.6 Disclaimers <#disclaimers>`__
-
-`2 Quickstart Guide <#overview-guide>`__
-
-`2.1 Investigator Journey <#investigator-journey>`__
-
-`2.2 Test Campaign Checklist <#test-campaign-checklist>`__
-
-`3 NOS-T Description <#nos-t-description>`__
-
-`3.1 System Architecture <#system-architecture>`__
-
-`3.2 System Interface <#system-interface>`__
-
-`3.2.1 Message Protocol <#message-protocol>`__
-
-`3.2.2 Message Format <#message-format>`__
-
-`3.2.3 Example MQTT Messaging Client <#example-mqtt-messaging-client>`__
-
-`3.3 Manager Events <#manager-events>`__
-
-`3.3.1 Control Events <#control-events>`__
-
-`3.3.2 Status Events <#status-events>`__
-
-`4 NOS-T Interface <#nos-t-interface>`__
-
-`4.1 Unmanaged Use Case <#unmanaged-use-case>`__
-
-`4.2 Managed Use Case <#managed-use-case>`__
-
-`4.3 Interface Requirements <#interface-requirements>`__
-
-`4.4 Test Case-Specific Execution
-Requirements <#test-case-specific-execution-requirements>`__
-
-`5 Detailed User's Guide <#detailed-users-guide>`__
-
-`5.1 Defining Test Campaigns <#defining-test-campaigns>`__
-
-`5.2 Developing Applications <#developing-applications>`__
-
-`5.3 Tools, Templates, and
-Techniques <#tools-templates-and-techniques>`__
-
-`5.4 Ensuring NOS-T Compatibility <#ensuring-nos-t-compatibility>`__
-
-`6 References <#references>`__
-
-`7 Appendices <#appendices>`__
-
-Preface
--------
-
 NOS-T Introduction
 ------------------
 
@@ -176,10 +92,7 @@ architecture discussed in this document.
 
 This Interface Control Document and User’s Guide provides information
 about the NOS-T system architecture, components, and key interfaces
-required for users to take full advantage of its capabilities. While
-further NOS-T tools and capabilities are still under development, this
-brief describes the fully functional features as of version 1.0 in
-February 2022.
+required for users to take full advantage of its capabilities. 
 
 Purpose of this Document
 ------------------------
@@ -275,7 +188,7 @@ document, please contact the principal investigator:
 | Babbio Center 517
 | Hoboken, NJ 07030
 | Phone: (201) 216-5378
-| Email: pgrogan@stevens.edu
+| GitHub: https://github.com/code-lab-org/nost-tools
 
 Disclaimers
 -----------
@@ -289,6 +202,8 @@ U.S. Department of Defense through the Combat Capabilities Development
 Command (CCDC) Armaments Center (AC) and NASA Goddard Space Flight
 Center (GSFC) under Contract W15QKN-18-D-0040 (Task Order
 W15QKN20F0551).
+
+This research has made use of NASA Goddard Science Managed Cloud Environment (SMCE), which is a service of the Computational & Information Sciences and Technology Office at the NASA Goddard Space Flight Center.
 
 Any views, opinions, findings and conclusions or recommendations
 expressed in this material are those of the author(s) and do not
@@ -421,18 +336,18 @@ to directly connect to every other application.
 
 While there are many alternative broker implementation options
 available, NOS-T adopts the Solace PubSub+ Standard Edition event broker
-[1]_, a proprietary but freely available commercial product supporting up
+[1], a proprietary but freely available commercial product supporting up
 to 1000 concurrent connections and 10,000 messages per second. PubSub+
 supports and interoperates among several protocols and several open
 protocols including Message Queuing Telemetry Transport (MQTT), Advanced
 Message Queuing Protocol (AMQP), and Representational State Transfer
-(REST) [2]_. All protocols share similar messaging constructs but exhibit
+(REST) [2]. All protocols share similar messaging constructs but exhibit
 some minor differences in implementation and library availability. To
 simplify its initial release, NOS-T only uses MQTT.
 
 NOS-T hosts an instance of PubSub+ on a server in the Science Managed
 Cloud Environment (SMCE), a managed cloud infrastructure for ESTO
-projects [3]_. SMCE both provides the flexibility of cloud services to
+projects [3]. SMCE both provides the flexibility of cloud services to
 customize configuration settings outside of a firewalled network and the
 security of required controls for a FISMA Low operating environment. The
 PubSub+ platform uses a publish-subscribe messaging pattern which
@@ -578,7 +493,7 @@ semantically readable data. While the object schemas (specification of
 required key names and expected value types) to structure JSON message
 payloads for new events depend on each application case, the NOS-T
 manager messages are loosely based on standardized object schemas for
-the SensorThings Sensing [4]_ and Tasking [5]_ APIs. The start event above
+the SensorThings Sensing [4] and Tasking [5] APIs. The start event above
 is based on the SensorThings *Task* entity with task-specific parameters
 (*startTime*, *simStartTime*, etc.) contained within the
 *taskingParameters* dictionary.
@@ -590,7 +505,7 @@ MQTT is the selected messaging protocol for new user applications
 because of its simplicity and broad support including high-quality
 open-source libraries for most languages. For example, the Eclipse Paho
 library (paho-mqtt) is publicly available under an open-source license
-for the Python language [6]_.
+for the Python language [6].
 
 A simple example below connects a client to the broker (using
 placeholders for client username and password and the broker host
@@ -629,7 +544,7 @@ prints out received messages to console using a callback function.
     while time.time() - t < 1.0:
       client.loop()
 
-Additional Eclipse Paho features described in the documentation [6]_
+Additional Eclipse Paho features described in the documentation [6]
 include background threads to process message events (rather than
 calling the *loop()* function directly), per-topic callback functions to
 simplify event handling, and additional configuration options to manage
@@ -668,7 +583,7 @@ The test case execution lifecycle follows the activity diagram in Figure
 Figure 6. Typical Managed Test Case Execution Lifecycle. (click to enlarge)
 
 The control event message payload builds on the *Task* entity object
-schema in the Sensor Things Tasking API [5]_ with a top-level key
+schema in the Sensor Things Tasking API [5] with a top-level key
 *taskingParameters* to group event-specific parameters. Table 2 lists
 the four manager control event types described in the following
 sections.
@@ -819,7 +734,7 @@ Status Events
 The manager issues status events to communicate state changes in its
 local model of the test case execution. The status event message payload
 builds on the *Thing* entity object schema in the Sensor Things Sensing
-API [4]_ with top-level keys for *name*, *description*, and *properties*
+API [4] with top-level keys for *name*, *description*, and *properties*
 to group event-specific parameters. Table 7 lists the two manager status
 event types described in the following sections.
 
@@ -950,7 +865,7 @@ example of a managed use case throughout this section. The example is
 based on the canonical FireSat mission, a fire-detecting spacecraft
 application case commonly used in space systems literature. *Firesat+* is
 a hypothetical mission to detect and monitor wildfires from low-Earth
-Orbit via a constellation of satellites rather than a single observer [7]_.
+Orbit via a constellation of satellites rather than a single observer [7].
 The *FireSat+* Test Campaign scenario demonstrates how user applications
 can model parts of a fire observation remote sensing system. This simple
 scenario assumes interactions between four user applications as shown in
@@ -1256,7 +1171,7 @@ overcome broker limitations. For example, some test cases may consider
 large data products that exceed the 30 MB maximum message payload. To
 exchange large data products, applications may establish an alternate
 hosting service (e.g., web server, repository, or network drive) and
-simply send an URI to the data in the message payload. Users also need to consider slowdowns due to overall message size, which are explored in the following reference [8]_.
+simply send an URI to the data in the message payload. Users also need to consider slowdowns due to overall message size, which are explored in the following reference [8].
 
 Detailed User's Guide
 ---------------------
@@ -1513,46 +1428,24 @@ required include:
 References
 ----------
 
-.. [1]
-  Solace Corporation (2021). " PubSub+ Event Broker: Software,"
-  URL:  https://solace.com/products/event-broker/software/. Accessed
-  2021-04-07.
+#. Solace Corporation (2021). " PubSub+ Event Broker: Software," URL:  https://solace.com/products/event-broker/software/. Accessed 2021-04-07.
 
-.. [2]
-  Solace Corporation (2021). "Open APIs & Protocols,"
-  URL:  https://docs.solace.com/Open-APIs-Protocols/Open-APIs-Protocols.htm.
-  Accessed 2021-04-07.
+#. Solace Corporation (2021). "Open APIs & Protocols," URL:  https://docs.solace.com/Open-APIs-Protocols/Open-APIs-Protocols.htm. Accessed 2021-04-07.
 
-.. [3]
-  NASA Center for Climate Simulation, (2021). "SMCE System Overview."
-  URL: https://www.nccs.nasa.gov/systems/SMCE. Accessed 2021-04-07.
+#.  NASA Center for Climate Simulation, (2021). "SMCE System Overview." URL: https://www.nccs.nasa.gov/systems/SMCE. Accessed 2021-04-07.
 
-.. [4]
-  OGC (2016). "SensorThings API Part 1: Sensing," Version 1.0, Open
-  Geospatial Consortium.
-  URL: http://www.opengis.net/doc/is/sensorthings/1.0
+#. OGC (2016). "SensorThings API Part 1: Sensing," Version 1.0, Open Geospatial Consortium. URL: http://www.opengis.net/doc/is/sensorthings/1.0
 
-.. [5]
-  OGC (2019). "SensorThings API Part 2: Tasking Core," Version 1.0,
-  Open Geospatial Consortium.
-  URL: http://www.opengis.net/doc/IS/sensorthings-part2-TaskingCore/1.0
+#.  OGC (2019). "SensorThings API Part 2: Tasking Core," Version 1.0, Open Geospatial Consortium. URL: http://www.opengis.net/doc/IS/sensorthings-part2-TaskingCore/1.0
 
-.. [6]
-  Eclipse Foundation (2021). "Eclipse Paho Python Client," URL:
-  https://www.eclipse.org/paho/index.php?page=clients/python/index.php.
-  Accessed 2021-12-20.
+#.  Eclipse Foundation (2021). "Eclipse Paho Python Client," URL: https://www.eclipse.org/paho/index.php?page=clients/python/index.php. Accessed 2021-12-20.
 
-.. [7]
-  LeVine, M. J., Chell, B., Capra, L., Sellers, J. J., & Grogan, P. T. (2022, July). **Planning, Implementing, and Executing Test Campaigns with the New Observing Strategies Testbed (NOS-T): The Firesat+ Example**. In *IGARSS 2022-2022 IEEE International Geoscience and Remote Sensing Symposium* (pp. 5321-5324). IEEE.
+#.  LeVine, M. J., Chell, B., Capra, L., Sellers, J. J., & Grogan, P. T. (2022, July). **Planning, Implementing, and Executing Test Campaigns with the New Observing Strategies Testbed (NOS-T): The Firesat+ Example**. In *IGARSS 2022-2022 IEEE International Geoscience and Remote Sensing Symposium* (pp. 5321-5324). IEEE.
 
-.. [8]
-  Chell, B., LeVine, M. J., Capra, L., Sellers, J. J., & Grogan, P. T. (2023). **New observing strategies testbed: A digital prototyping platform for distributed space missions**. *Systems Engineering*.
+#.  Chell, B., LeVine, M. J., Capra, L., Sellers, J. J., & Grogan, P. T. (2023). **New observing strategies testbed: A digital prototyping platform for distributed space missions**. *Systems Engineering*.
 
-Appendices
-----------
-
-Sample test campaign - Firesat+ - Objective 1
----------------------------------------------
+Appendix - Sample test campaign - Firesat+ - Objective 1
+--------------------------------------------------------
 
 This test campaign corresponds to Objective 1 in the Science
 Traceability Matrix in Table 12.
@@ -1633,8 +1526,8 @@ satellite in the constellation. These tests show that FOR constraints on
 the Sentinel spacecraft limit their contributions to the constellation
 performance relative to Suomi NPP.
 
-Blank Science Traceability Matrix Template
-------------------------------------------
+Appendix - Blank Science Traceability Matrix Template
+-----------------------------------------------------
 
 .. image:: media/blankSTM.png
    :width: 9in

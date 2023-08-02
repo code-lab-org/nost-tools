@@ -28,6 +28,8 @@ of Defense for Research and Engineering (ASD(R&E)) under Contract
 W15QKN-18-D-0040, Task Order W15QKN-20-F-0051, sponsored by the National
 Aeronautics and Space Administration's Earth Science Technology Office.
 
+This research has made use of NASA Goddard Science Managed Cloud Environment (SMCE), which is a service of the Computational & Information Sciences and Technology Office at the NASA Goddard Space Flight Center.
+
 Any views, opinions, findings and conclusions or recommendations
 expressed in this material are those of the author(s) and do not
 necessarily reflect the views of the United States Department of
@@ -47,28 +49,6 @@ infringement.
 This material has been approved for public release and unlimited
 distribution.
 
-Table of Contents
------------------
-
-`1 Introduction <#introduction>`__
-
-`2 NOS-T Overview <#nos-t-overview>`__
-
-`2.1 System Architecture <#system-architecture>`__
-
-`2.2 Interface Protocol <#interface-protocol>`__
-
-`2.3 Manager Events <#manager-events>`__
-
-`3 User Application Requirements <#user-application-requirements>`__
-
-`3.1 Example Test Case Context <#example-test-case-context>`__
-
-`3.2 NOS-T Execution Requirements <#nos-t-execution-requirements>`__
-
-`3.3 Test Case-Specific Execution Requirements <#test-case-specific-execution-requirements>`__
-
-`4 References <#references>`__
 
 Introduction
 ------------
@@ -77,11 +57,11 @@ The New Observing Strategies (NOS) initiative within the NASA Earth
 Science Technology Office (ESTO) Advanced Information Systems Technology
 (AIST) program envisions future Earth science missions with distributed
 sensors (nodes) interconnected by a communications fabric that enables
-dynamic and intelligent operations [2]_. Some NOS concepts resemble
+dynamic and intelligent operations [2]. Some NOS concepts resemble
 systems-of-systems or collaborative systems where operational authority
 is distributed among multiple systems, necessitating new methods for
 systems engineering and design to cope with more decentralized control
-over constituent systems [3]_.
+over constituent systems [3].
 
 The New Observing Strategies Testbed (NOS-T) is a computational environment to
 develop, test, mature, and socialize new operating concepts and technology for
@@ -132,8 +112,8 @@ The NOS-T design and development follows several guiding principles:
 
 As a result of these guiding principles, NOS-T adopts a simpler software
 architecture than existing distributed simulation standards like
-Distributed Interactive Simulation (DIS, IEEE Std. 1278) [4]_ and High
-Level Architecture (HLA, IEEE Std. 1516) [5]_. Most frequently used in
+Distributed Interactive Simulation (DIS, IEEE Std. 1278) [4] and High
+Level Architecture (HLA, IEEE Std. 1516) [5]. Most frequently used in
 defense applications, DIS and HLA provide comprehensive distributed
 simulation capabilities but also require substantial resources to learn,
 develop, and execute compliant applications. Initial NOS-T capabilities
@@ -152,7 +132,7 @@ NOS-T Overview
 --------------
 
 System Architecture
--------------------
+^^^^^^^^^^^^^^^^^^^
 
 The NOS-T system architecture follows a loosely-coupled event-driven
 architecture (EDA) where member applications communicate state changes
@@ -171,12 +151,12 @@ the communication structure because each member application (client)
 only directly connects to the broker, rather than requiring each
 application to directly connect to every other application. While there
 are many alternative broker implementation options available, NOS-T
-adopts the Solace PubSub+ Standard Edition event broker [6]_, a
+adopts the Solace PubSub+ Standard Edition event broker [6], a
 proprietary but freely available commercial product supporting up to
-1000 concurrent connections and 10,000 messages per second [1]_. NOS-T
+1000 concurrent connections and 10,000 messages per second [1]. NOS-T
 hosts an instance of PubSub+ on a server in the Science Managed Cloud
 Environment (SMCE), a managed cloud infrastructure for ESTO projects
-[7]_. PubSub+ uses a publish-subscribe messaging pattern which designates
+[7]. PubSub+ uses a publish-subscribe messaging pattern which designates
 applications (clients) as publishers (producers of events) and
 subscribers (consumers of events). Each application can publish or
 subscribe to multiple types of events.
@@ -211,7 +191,7 @@ software language, host platform, physical location, or other
 implementation details for user applications.
 
 Interface Protocol
-------------------
+^^^^^^^^^^^^^^^^^^
 
 The broker interconnects applications to allow distributed users to
 participate in test run executions. The interface between the User
@@ -225,9 +205,9 @@ Message Protocol
 All NOS-T events are communicated by sending or receiving messages using
 standard network messaging protocols. The Solace PubSub+ event broker
 supports and interoperates among several protocols including its own
-Solace Message Format (SMF) [8]_ and several open protocols including
+Solace Message Format (SMF) [8] and several open protocols including
 Message Queuing Telemetry Transport (MQTT), Advanced Message Queuing
-Protocol (AMQP), and Representational State Transfer (REST) [9]_. All
+Protocol (AMQP), and Representational State Transfer (REST) [9]. All
 protocols share similar messaging constructs but exhibit some minor
 differences in implementation and library availability.
 
@@ -301,7 +281,7 @@ semantically readable data. While the object schemas (specification of
 required key names and expected value types) to structure JSON message
 payloads for new events depend on each application case, the NOS-T
 manager messages are loosely based on standardized object schemas for
-the SensorThings Sensing [10]_ and Tasking [1]_ APIs. The start event
+the SensorThings Sensing [10] and Tasking [1] APIs. The start event
 above is based on the SensorThings *Task* entity with task-specific
 parameters (*startTime*, *simStartTime*, etc.) contained within the
 *taskingParameters* dictionary.
@@ -313,7 +293,7 @@ MQTT is a good messaging protocol choice for new user applications
 because of its simplicity and broad support including high-quality
 open-source libraries for most languages. For example, the Eclipse Paho
 library (*paho-mqtt*) is publicly available under an open-source license
-for the Python language [12]_.
+for the Python language [12].
 
 A simple example below connects a client to the broker (using
 placeholders for client username and password and the broker host
@@ -352,7 +332,7 @@ prints out received messages to console using a callback function.
     while time.time() - t < 1.0:
       client.loop()
 
-Additional Eclipse Paho features described in the documentation [11]_
+Additional Eclipse Paho features described in the documentation [11]
 include background threads to process message events (rather than
 calling the *loop()* function directly), per-topic callback functions to
 simplify event handling, and additional configuration options to manage
@@ -372,7 +352,7 @@ event type and use JSON for message payload encoding. This section
 briefly describes the topic and payload for each type of manager event.
 
 Control Events
-~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^
 
 The manager issues control events to orchestrate a test run execution.
 The test run execution lifecycle follows the activity diagram in Figure
@@ -383,7 +363,7 @@ The test run execution lifecycle follows the activity diagram in Figure
 Figure 4. Typical Test Run Execution Lifecycle.
 
 The control event message payload builds on the *Task* entity object
-schema in the Sensor Things Tasking API [10]_ with a top-level key
+schema in the Sensor Things Tasking API [10] with a top-level key
 *taskingParameters* to group event-specific parameters. Table 1 lists
 the four manager control event types described in the following
 sections.
@@ -531,7 +511,7 @@ Status Events
 The manager issues status events to communicate state changes in its
 local model of the test run execution. The status event message payload
 builds on the *Thing* entity object schema in the Sensor Things Sensing
-API [9]_ with top-level keys for *name*, *description*, and *properties*
+API [9] with top-level keys for *name*, *description*, and *properties*
 to group event-specific parameters. Table 6 lists the two manager status
 event types described in the following sections.
 
@@ -617,7 +597,7 @@ User Application Requirements
 -----------------------------
 
 Example Test Case Context
--------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 As touched upon in Section 2.1, the User System consists of contributed
 user applications as component models of an observing system to be
@@ -625,7 +605,7 @@ evaluated in a NOS-T test case. User applications must meet generic
 NOS-T execution requirements as well as test case-specific requirements.
 As an example, a FireSat application use case demonstrates how user
 applications can model parts of a fire observation remote sensing system
-[13]_. A simplified description includes interactions between three user
+[13]. A simplified description includes interactions between three user
 applications and the NOS-T manager application Figure 5.
 
 1. **Environment application:** models fire ignition and growth.
@@ -654,7 +634,7 @@ EDA principles, requirements define an interface protocol (contract)
 rather than other implementation details.
 
 NOS-T Execution Requirements
-----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 NOS-T execution requirements describe how user applications respond to
 manager events. Figure 6 illustrates the event-driven interface between
@@ -756,7 +736,7 @@ an execution run.
 Figure 9. Behavior of Time-managed User Applications.
 
 Test Case-Specific Execution Requirements
------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In addition to generic NOS-T interface requirements, each test case
 establishes specific requirements for its user applications. The test
@@ -778,7 +758,7 @@ the topic hierarchy outlined in the Section 2.2.
 
 In general, user applications are recommended to use text message
 payloads encoded in JSON. Some existing standards such as the
-SensorThings API [10]_ can provide guidance on object schema structure.
+SensorThings API [10] can provide guidance on object schema structure.
 SensorThings data event entities include a *name* field, *description*
 field, and *properties* sub-object in the JSON data. For example, the
 payload for a *Fire Status* event in the FireSat application case
@@ -811,70 +791,31 @@ simply send an URI to the data in the message payload.
 References
 ----------
 
-.. [1]
-   Solace PubSub+ is used for large-scale real-time information systems
-   including the Federal Aviation Administration's System-wide
-   Information Management (SWIM) Cloud Distribution Service (SCDS).
+#. Solace PubSub+ is used for large-scale real-time information systems including the Federal Aviation Administration's System-wide Information Management (SWIM) Cloud Distribution Service (SCDS).
 
-.. [2]
-   Jacqueline Le Moigne, Michael M. Little, Marjorie C. Cole (2019).
-   "New Observing Strategy (NOS) for Future Earth Science Missions,"
-   2019 IEEE Geoscience and Remote Sensing Symposium, Yokohama, Japan,
-   July 28-August 2. doi: 10.1109/IGARSS.2019.8898096
+#. Jacqueline Le Moigne, Michael M. Little, Marjorie C. Cole (2019). "New Observing Strategy (NOS) for Future Earth Science Missions," 2019 IEEE Geoscience and Remote Sensing Symposium, Yokohama, Japan, July 28-August 2. doi: 10.1109/IGARSS.2019.8898096
 
-.. [3]
-   Mark W. Maier (1998). "Architecting Principles for
-   Systems-of-Systems," *Systems Engineering* 1(4):267-284. doi:
-   10.1002/(SICI)1520-6858(1998)1:4<267::AID-SYS3>3.0.CO;2-D
+#. Mark W. Maier (1998). "Architecting Principles for Systems-of-Systems," *Systems Engineering* 1(4):267-284. doi: 10.1002/(SICI)1520-6858(1998 1:4<267::AID-SYS3>3.0.CO;2-D
 
-.. [4]
-   IEEE (2012). “IEEE Standard for Distributed Interactive Simulation –
-   Application Protocols. IEEE Std. 1278-2012.
+#. IEEE (2012). “IEEE Standard for Distributed Interactive Simulation – Application Protocols. IEEE Std. 1278-2012.
 
-.. [5]
-   IEEE (2010). “IEEE Standard for Modeling and Simulation (M&S) High
-   Level Architecture (HLA) – Framework and Rules. IEEE Std. 1516-2010.
+#. IEEE (2010). “IEEE Standard for Modeling and Simulation (M&S) High Level Architecture (HLA) – Framework and Rules. IEEE Std. 1516-2010.
 
-.. [6]
-   Solace Corporation (2021). " PubSub+ Event Broker: Software," URL:
-   https://solace.com/products/event-broker/software/. Accessed
-   2021-04-07.
+#. Solace Corporation (2021). " PubSub+ Event Broker: Software," URL: https://solace.com/products/event-broker/software/. Accessed 2021-04-07.
 
-.. [7]
-   NASA Center for Climate Simulation, (2021). "SMCE System Overview."
-   URL: https://www.nccs.nasa.gov/systems/SMCE. Accessed 2021-04-07.
+#. NASA Center for Climate Simulation, (2021). "SMCE System Overview." URL: https://www.nccs.nasa.gov/systems/SMCE. Accessed 2021-04-07.
 
-.. [8]
-   Solace Corporation (2021). "Solace Messaging APIs," URL:
-   https://docs.solace.com/Solace-PubSub-Messaging-APIs/Solace-APIs-Overview.htm.
-   Accessed 2021-04-07.
+#. Solace Corporation (2021). "Solace Messaging APIs," URL: https://docs.solace.com/Solace-PubSub-Messaging-APIs/Solace-APIs-Overview.htm. Accessed 2021-04-07.
 
-.. [9]
-   Solace Corporation (2021). "Open APIs & Protocols," URL:
-   https://docs.solace.com/Open-APIs-Protocols/Open-APIs-Protocols.htm.
-   Accessed 2021-04-07.
+#. Solace Corporation (2021). "Open APIs & Protocols," URL: https://docs.solace.com/Open-APIs-Protocols/Open-APIs-Protocols.htm. Accessed 2021-04-07.
 
-.. [10]
-   OGC (2016). "SensorThings API Part 1: Sensing," Version 1.0, Open
-   Geospatial Consortium. URL:
-   http://www.opengis.net/doc/is/sensorthings/1.0
+#. OGC (2016). "SensorThings API Part 1: Sensing," Version 1.0, Open Geospatial Consortium. URL: http://www.opengis.net/doc/is/sensorthings/1.0
 
-.. [11]
-   OGC (2019). "SensorThings API Part 2: Tasking Core," Version 1.0,
-   Open Geospatial Consortium. URL:
-   http://www.opengis.net/doc/IS/sensorthings-part2-TaskingCore/1.0
+#. OGC (2019). "SensorThings API Part 2: Tasking Core," Version 1.0, Open Geospatial Consortium. URL: http://www.opengis.net/doc/IS/sensorthings-part2-TaskingCore/1.0
 
-.. [12]
-   Eclipse Foundation (2020). "Eclipse Pago MQTT Python client
-   library," Version 1.5.1, Eclipse Foundation. URL:
-   https://pypi.org/project/paho-mqtt
+#. Eclipse Foundation (2020). "Eclipse Pago MQTT Python client library," Version 1.5.1, Eclipse Foundation. URL: https://pypi.org/project/paho-mqtt
 
-.. [13]
-   Paul T. Grogan, Hayden C. Daly, Matthew S. Brand, and Jerry J.
-   Sellers (2021). "New Observing Strategies Testbed (NOS-T)
-   Architecture: Evaluating Dynamic Response to Emergent Events," *IEEE
-   International Geoscience and Remote Sensing Symposium*, Virtual,
-   Online. (Accepted)
+#. Paul T. Grogan, Hayden C. Daly, Matthew S. Brand, and Jerry J. Sellers (2021). "New Observing Strategies Testbed (NOS-T) Architecture: Evaluating Dynamic Response to Emergent Events," *IEEE International Geoscience and Remote Sensing Symposium*, Virtual, Online. (Accepted)
 
 .. |image1| image:: media/image1.png
    :width: 6.28333in
