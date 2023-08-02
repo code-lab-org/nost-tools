@@ -11,7 +11,7 @@ NOS-T tools is a collection of tools for the New Observing Strategies Testbed
 (NOS-T). Installing `nost-tools` as an editable Python library requires `pip`
 version 23 or greater (install via `python -m pip install --upgrade pip`).
 
-To install `nost-tools`, run the following command from the project root 
+To install `nost-tools`, run the following command from the project root
 directory:
 
 ```
@@ -26,7 +26,7 @@ pip install -e .[examples]
 
 ## Contact
 
-Principal Investigator: Paul T. Grogan <pgrogan@stevens.edu>
+Principal Investigator: Paul T. Grogan <https://github.com/code-lab-org/nost-tools>
 
 ## Acknowledgements
 
@@ -39,15 +39,19 @@ Technology. Any opinions, findings, and conclusions or recommendations
 expressed in this material are those of the authors and do not necessarily
 reflect the views of the United States Department of Defense.
 
+This research has made use of NASA Goddard Science Managed Cloud Environment (SMCE), which is a service of the Computational & Information Sciences and Technology Office at the NASA Goddard Space Flight Center.
+
 Current project team:
- * PI: Paul T. Grogan <pgrogan@stevens.edu>
- * Brian Chell
- * Matthew LeVine
- * Leigha Capra
- * Theodore Sherman
- * Alex Yucra Castaneda
+
+- PI: Paul T. Grogan <pgrogan@stevens.edu>
+- Brian Chell
+- Matthew LeVine
+- Leigha Capra
+- Theodore Sherman
+- Alex Yucra Castaneda
 
 Project alumni:
- * Hayden Daly
- * Matthew Brand
- * Jerry Sellers
+
+- Hayden Daly
+- Matthew Brand
+- Jerry Sellers

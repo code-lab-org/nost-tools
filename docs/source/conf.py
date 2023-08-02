@@ -57,7 +57,7 @@ sys.path.insert(
 
 project = "NOS Testbed (NOS-T)"
 copyright = "2023, Stevens Institute of Technology"
-author = "Systems Engineering Research Center, \n Stevens Institute of Technology"
+author = "Systems Engineering Research Center, Stevens Institute of Technology"
 
 # The full version, including alpha/beta/rc tags
 release = nost_tools.__version__

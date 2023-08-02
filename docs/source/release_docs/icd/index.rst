@@ -188,7 +188,6 @@ document, please contact the principal investigator:
 | Babbio Center 517
 | Hoboken, NJ 07030
 | Phone: (201) 216-5378
-| Email: pgrogan@stevens.edu
 | GitHub: https://github.com/code-lab-org/nost-tools
 
 Disclaimers
@@ -203,6 +202,8 @@ U.S. Department of Defense through the Combat Capabilities Development
 Command (CCDC) Armaments Center (AC) and NASA Goddard Space Flight
 Center (GSFC) under Contract W15QKN-18-D-0040 (Task Order
 W15QKN20F0551).
+
+This research has made use of NASA Goddard Science Managed Cloud Environment (SMCE), which is a service of the Computational & Information Sciences and Technology Office at the NASA Goddard Space Flight Center.
 
 Any views, opinions, findings and conclusions or recommendations
 expressed in this material are those of the author(s) and do not

@@ -28,6 +28,8 @@ of Defense for Research and Engineering (ASD(R&E)) under Contract
 W15QKN-18-D-0040, Task Order W15QKN-20-F-0051, sponsored by the National
 Aeronautics and Space Administration's Earth Science Technology Office.
 
+This research has made use of NASA Goddard Science Managed Cloud Environment (SMCE), which is a service of the Computational & Information Sciences and Technology Office at the NASA Goddard Space Flight Center.
+
 Any views, opinions, findings and conclusions or recommendations
 expressed in this material are those of the author(s) and do not
 necessarily reflect the views of the United States Department of
