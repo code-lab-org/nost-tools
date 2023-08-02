@@ -350,7 +350,7 @@ event type and use JSON for message payload encoding. This section
 briefly describes the topic and payload for each type of manager event.
 
 Control Events
-~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^
 
 The manager issues control events to orchestrate a test run execution.
 The test run execution lifecycle follows the activity diagram in Figure
@@ -595,7 +595,7 @@ User Application Requirements
 -----------------------------
 
 Example Test Case Context
--------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 As touched upon in Section 2.1, the User System consists of contributed
 user applications as component models of an observing system to be
@@ -632,7 +632,7 @@ EDA principles, requirements define an interface protocol (contract)
 rather than other implementation details.
 
 NOS-T Execution Requirements
-----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 NOS-T execution requirements describe how user applications respond to
 manager events. Figure 6 illustrates the event-driven interface between
@@ -734,7 +734,7 @@ an execution run.
 Figure 9. Behavior of Time-managed User Applications.
 
 Test Case-Specific Execution Requirements
------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In addition to generic NOS-T interface requirements, each test case
 establishes specific requirements for its user applications. The test
