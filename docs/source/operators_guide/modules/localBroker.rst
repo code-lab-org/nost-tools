@@ -61,8 +61,8 @@ Note that the names of both the container and the storage-group can be customize
 
 .. _PubSubManager:
 
-Logging into the Solace Event Broker
-------------------------------------
+Logging into the Solace Event Broker Manager
+--------------------------------------------
 
 The :obj:`PubSubStandard_singleNode.yml` file contains a list of port mappings for different protocols, including the 8080 port for SEMP (Solace Element Management Protocol). SEMP is a RESTful management API for configuring and administrating your Solace PubSub+ event broker. Once the docker container has been started up, open a browser and navigate to `http://localhost:8080/ <http://localhost:8080/>`_ to login to this new broker as an admin (Username: admin, Password: admin).
 
@@ -83,10 +83,14 @@ After logging in you will see a single default VPN. While more VPNs can be setup
 
 |
 
+.. _CustomSolace:
+
 Customizing your Solace Event Broker
 ------------------------------------
 
 Selecting this VPN expands the **Messaging** sidebar menu for various event broker customizations, a few of which are covered below.
+
+.. _MessageVPN:
 
 Message VPN
 ^^^^^^^^^^^
@@ -124,6 +128,8 @@ Queues
 The original MQTT protocol was not designed to retain messages or spool a queue of messages, but Solace PubSub+ event brokers allow for clients with persistent sessions and remembered subscriptions. This can add to the reliability of a system where a subscriber may have been temporarily disconnected when the payload actually arrived to the topic endpoint. Queuing has not been implemented in the current version of NOS-T beyond tracking payload receipt timestamps, but both the Solace PubSub+ broker and version 5.0 of the MQTT protocol allow for future addition of this capability. It should be noted that queues require storage available on the message spool. Most of the example test suites included assume that all participant clients are continuously and reliably connected to the broker throughout the simulation execution, which would render queues unnecessary.
 
 |
+
+.. _AccessControl:
 
 Access Control
 ^^^^^^^^^^^^^^
