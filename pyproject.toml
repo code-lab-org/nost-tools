@@ -39,6 +39,7 @@ examples = [
     "seaborn ~= 0.12",
     "scipy",
     "skyfield ~= 1.45",
+    "dash-daq ~=0.5.0",
 ]
 docs = [
     "autodoc_pydantic ~= 1.8.0",
