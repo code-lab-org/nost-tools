@@ -42,7 +42,7 @@ PARAMETERS = pd.Series(
         "initialQuat": np.array([0.0, 0.0, 0.0, 1.0]),  # x,y,z,w
         "targetQuat": np.array([0.382683, 0, 0, 0.92388]),
         "initialT": np.zeros(3),
-        "dt": 0.5,
+        "dt": .05,
         # Actuators
         "rxnwl_mass": 226e-3,
         "rxnwl_radius": 0.5 * 65e-3,

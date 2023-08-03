@@ -72,11 +72,11 @@ TERRA
         PARAMETERS["PREFIX"],
         config,
         True,
-        time_status_step=timedelta(seconds=5) * PARAMETERS["SCALE"],
+        time_status_step=timedelta(seconds=.1) * PARAMETERS["SCALE"],
         time_status_init=datetime.fromtimestamp(PARAMETERS["SCENARIO_START"]).replace(
             tzinfo=utc
         ),
-        time_step=timedelta(seconds=.1) * PARAMETERS["SCALE"],
+        time_step=timedelta(seconds=.03) * PARAMETERS["SCALE"],
     )
 
     # Ensures the application hangs until the simulation is terminated, to allow background threads to run
