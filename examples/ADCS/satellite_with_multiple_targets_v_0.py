@@ -283,6 +283,10 @@ class Satellite(Entity):
         dirUnit = direction / np.linalg.norm(direction)
 
         rollAngle = np.arccos(np.dot(dirUnit, culmUnitVec))
+        if self.get_time() < datetime(2023, 6, 12, 22, 00, 55).replace(tzinfo=utc):
+            rollAngle = 0
+        if self.get_time() > datetime(2023, 6, 12, 22, 39, 10).replace(tzinfo=utc):
+            rollAngle = 0
         
         sat_geographical = wgs84.geographic_position_of(culmGeocentric)
         

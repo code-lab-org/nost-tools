@@ -39,7 +39,7 @@ print(satellite)
 
 ts = load.timescale()
 
-targetLoc = wgs84.latlon(37, -6)
+targetLoc = wgs84.latlon(65, -24)
 t_start = datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc)
 t_end  = datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc) + timedelta(hours=PARAMETERS['SCENARIO_LENGTH'])
 

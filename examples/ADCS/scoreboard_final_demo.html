@@ -85,16 +85,19 @@
           },
           box: {
             dimensions: new Cesium.Cartesian3(360000.0, 230000.0, 115000.0),
-            material: Cesium.Color.BLUE,
+            material: Cesium.Color.SNOW,
             distanceDisplayCondition: new Cesium.DistanceDisplayCondition(
               0.0,
               12500000000.5
             ),
+            outline: true,
+            outlineWidth: 5.0,
           },
           cylinder: {
             length: 190000.0,
             topRadius: 20000.0,
             bottomRadius: 0.0,
+            material: Cesium.Color.GOLD,
           },
         });
 
@@ -102,7 +105,7 @@
           position: new Cesium.Cartesian3.fromDegrees(-8, -35),
           point: {
             pixelSize: 10,
-            color: Cesium.Color.AQUA,
+            color: Cesium.Color.LIME,
           },
         });
 
@@ -110,7 +113,7 @@
           position: new Cesium.Cartesian3.fromDegrees(9, -2),
           point: {
             pixelSize: 10,
-            color: Cesium.Color.WHITE,
+            color: Cesium.Color.LIME,
           },
         });
 
@@ -118,7 +121,7 @@
           position: new Cesium.Cartesian3.fromDegrees(-16, 13),
           point: {
             pixelSize: 10,
-            color: Cesium.Color.PURPLE,
+            color: Cesium.Color.LIME,
           },
         });
 
@@ -126,7 +129,7 @@
           position: new Cesium.Cartesian3.fromDegrees(-6, 37),
           point: {
             pixelSize: 10,
-            color: Cesium.Color.CHARTREUSE,
+            color: Cesium.Color.LIME,
           },
         });
 
@@ -134,7 +137,7 @@
           position: new Cesium.Cartesian3.fromDegrees(-24, 65),
           point: {
             pixelSize: 10,
-            color: Cesium.Color.YELLOW,
+            color: Cesium.Color.LIME,
           },
         });
 
