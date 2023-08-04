@@ -251,9 +251,10 @@ class Manager(Application):
             }
         )
         logger.info(f"Sending initialize command {command.json(by_alias=True)}.")
-        self.client.publish(
+        msg_info = self.client.publish(
             f"{self.prefix}/{self.app_name}/init", command.json(by_alias=True)
         )
+        msg_info.wait_for_publish()
 
     def start(
         self,
@@ -266,7 +267,6 @@ class Manager(Application):
         time_status_init: datetime = None,
     ) -> None:
         """
-
         Command to start a test run execution by starting the simulator execution with all necessary parameters and publishing
         a start command, which can be received by the connected applications.
 
@@ -295,9 +295,10 @@ class Manager(Application):
             }
         )
         logger.info(f"Sending start command {command.json(by_alias=True)}.")
-        self.client.publish(
+        msg_info = self.client.publish(
             f"{self.prefix}/{self.app_name}/start", command.json(by_alias=True)
         )
+        msg_info.wait_for_publish()
         # start execution in a background thread
         threading.Thread(
             target=self.simulator.execute,
@@ -322,9 +323,10 @@ class Manager(Application):
             {"taskingParameters": {"simStopTime": sim_stop_time}}
         )
         logger.info(f"Sending stop command {command.json(by_alias=True)}.")
-        self.client.publish(
+        msg_info = self.client.publish(
             f"{self.prefix}/{self.app_name}/stop", command.json(by_alias=True)
         )
+        msg_info.wait_for_publish()
         # update the execution end time
         self.simulator.set_end_time(sim_stop_time)
 
@@ -347,8 +349,9 @@ class Manager(Application):
             }
         )
         logger.info(f"Sending update command {command.json(by_alias=True)}.")
-        self.client.publish(
+        msg_info = self.client.publish(
             f"{self.prefix}/{self.app_name}/update", command.json(by_alias=True)
         )
+        msg_info.wait_for_publish()
         # update the execution time scale factor
         self.simulator.set_time_scale_factor(time_scale_factor, sim_update_time)
