@@ -96,8 +96,8 @@ if __name__ == "__main__":
         config
     )
     # Add on_message callbacks, sort through with if statements for now
-    app.add_message_callback("satelliteStorage", "location", on_message)
-    app.add_message_callback("satelliteStorage", "linkCharge", on_message)
+    app.add_message_callback("constellation", "location", on_message)
+    app.add_message_callback("constellation", "linkCharge", on_message)
     app.add_message_callback("ground", "linkCharge", on_message)
 
     # initialize df0
