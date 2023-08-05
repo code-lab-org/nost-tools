@@ -122,7 +122,7 @@ def execute_text_plan(prefix: str, request: ExecuteRequest):
     """
     Executes a test plan to manage the end-to-end scenario execution.
     """
-    #TODO this manager function is synchronous
+    #TODO execute_test_plan is a blocking call; consider running in a background thread
     try:
         get_manager(prefix).execute_test_plan(
             request.sim_start_time,

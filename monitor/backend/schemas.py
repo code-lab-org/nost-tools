@@ -17,7 +17,7 @@ class InitRequest(APIModel):
         ...,
         description="Latest possible scenario end time."
     )
-    required_apps: List[str] = Field(
+    required_apps: Optional[List[str]] = Field(
         [],
         description="List of application names required to publish a `ready` message before starting the scenario execution."
     )
@@ -42,7 +42,7 @@ class StartRequest(APIModel):
         timedelta(seconds=1),
         description="Scenario time interval between state updates."
     )
-    time_scale_factor: float = Field(
+    time_scale_factor: Optional[float] = Field(
         1.0,
         description="Number of scenario seconds per wallclock second (greater than 1 is faster than real-time)."
     )
@@ -77,19 +77,6 @@ class UpdateRequest(APIModel):
         description="Scenario update time."
     )
 
-class TimeScaleUpdate(APIModel):
-    """
-    Specification of the new time scale factor and scenario time at which it should be changed.
-    """
-    time_scale_factor: float = Field(
-        ...,
-        description="Number of scenario seconds per wallclock second (greater than 1 is faster than real-time)."
-    )
-    sim_update_time: datetime = Field(
-        ...,
-        description="Scenario update time."
-    )
-
     def to_manager_format(self) -> manager.TimeScaleUpdate:
         """
         Transforms this time scale update to the NOS-T manager format.
@@ -102,23 +89,23 @@ class TimeScaleUpdate(APIModel):
             self.sim_update_time
         )
 
-class ExecuteRequest(StartRequest):
+class ExecuteRequest(InitRequest, StartRequest):
     """
     Request for the manager to execute a new end-to-end scenario execution.
     """
-    time_scale_updates: List[TimeScaleUpdate] = Field(
+    time_scale_updates: Optional[List[UpdateRequest]] = Field(
         [],
         description="List of time scale updates to process during the execution."
     )
-    command_lead: timedelta = Field(
+    command_lead: Optional[timedelta] = Field(
         timedelta(seconds=0),
         description="Wallclock time interval before command messages are published."
     )
-    init_retry_delay_s: int = Field(
+    init_retry_delay_s: Optional[int] = Field(
         5,
         description="Number of wallclock seconds to wait for required applications to publish a `ready` message before re-sending an `init` command."
     )
-    init_max_retry: int = Field(
+    init_max_retry: Optional[int] = Field(
         5,
         description="Number of `init` commands to re-try for required applications before exiting."
     )

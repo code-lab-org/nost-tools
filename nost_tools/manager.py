@@ -107,8 +107,8 @@ class Manager(Application):
             init_retry_delay_s (float): number of seconds to wait between initialization commands while waiting for required applications
             init_max_retry (int): number of initialization commands while waiting for required applications before continuing to execution
         """
-        if self.simulator.get_mode() != Mode.UNDEFINED or self.simulator.get_mode() != Mode.TERMINATED:
-            raise RuntimeError("Execute command requires undefined or terminated mode.")
+        if self.simulator.get_mode() != Mode.UNDEFINED and self.simulator.get_mode() != Mode.TERMINATED:
+            raise RuntimeError(f"Init command requires UNDEFINED or TERMINATED mode (not {self.simulator.get_mode()}).")
         # record ready status for required application names
         self.required_apps_status = dict(
             zip(required_apps, [False] * len(required_apps))
@@ -162,7 +162,7 @@ class Manager(Application):
             time.sleep(0.001)
         
         # sort time status updates by scenario time
-        time_scale_updates = sorted(time_scale_updates, lambda u: u.sim_update_time)
+        time_scale_updates.sort(key=lambda u: u.sim_update_time)
         # process the time scale updates during execution
         for update in time_scale_updates:
             update_time = self.simulator.get_wallclock_time_at_simulation_time(
