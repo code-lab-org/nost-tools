@@ -1,0 +1,4 @@
+nost_tools
+fastapi==0.100.1
+fastapi_utils==0.2.1
+uvicorn[standard]==0.23.2

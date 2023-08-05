@@ -10,7 +10,7 @@ import nost_tools
 from nost_tools.manager import Manager
 from nost_tools.application_utils import ConnectionConfig
 
-from schemas import InitRequest, StartRequest, StopRequest, UpdateRequest, ExecuteRequest
+from .schemas import InitRequest, StartRequest, StopRequest, UpdateRequest, ExecuteRequest
 
 # configure logging
 logging.basicConfig(level=logging.INFO)

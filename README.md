@@ -24,6 +24,37 @@ Alternatively, to install supplemental libraries required for examples, run
 pip install -e .[examples]
 ```
 
+## NOS-T Tools Monitor
+
+The NOS-T Tools Monitor application displays real-time log messages and provides access to manager commands from a browser-based interface. It consists of two components: a frontend (browser-based application) abd backend (manager API).
+
+### Frontend
+
+
+
+### Backend
+
+The backend application runs a FastAPI application. To install requirements, run from the project root:
+```
+pip install -r monitor/requirements.txt
+```
+To run the backend application, run from the project root:
+```
+uvicorn monitor.backend.main:app --host 0.0.0.0 --port 3000
+```
+Swagger documentation is available at http://localhost:3000/docs
+
+The backend application can also be run through Docker containers. To build the backend application container, run from the project root:
+```
+docker build -t monitor_backend --target monitor_backend .
+```
+
+To run the backend application container, run from the project root:
+```
+docker run -it -p 3000:3000 monitor_backend
+```
+Swagger documentation is available at http://localhost:3000/docs
+
 ## Contact
 
 Principal Investigator: Paul T. Grogan <pgrogan@stevens.edu>
