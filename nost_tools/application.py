@@ -33,8 +33,6 @@ class Application(object):
         client (:obj:`Client`): Application MQTT client
         app_name (str): Test run application name
         app_description (str): Test run application description (optional)
-        time_status_step (:obj:`timedelta`): Scenario duration between time status messages
-        time_status_init (:obj:`datetime`): Scenario time of first time status message
     """
 
     def __init__(self, app_name: str, app_description: str = None):
@@ -46,7 +44,7 @@ class Application(object):
             app_description (str): application description (optional)
         """
         self.simulator = Simulator()
-        self.client = mqtt.Client()
+        self.client = None
         self.prefix = None
         self.app_name = app_name
         self.app_description = app_description
@@ -67,10 +65,11 @@ class Application(object):
                 "properties": {"ready": True},
             }
         )
-        self.client.publish(
+        msg_info = self.client.publish(
             f"{self.prefix}/{self.app_name}/status/ready",
             status.json(by_alias=True, exclude_none=True),
         )
+        msg_info.wait_for_publish()
 
     def start_up(
         self,
@@ -99,6 +98,8 @@ class Application(object):
             self.set_wallclock_offset()
         # set test run prefix
         self.prefix = prefix
+        # create mqtt client
+        self.client = mqtt.Client()
         # set client username and password
         self.client.username_pw_set(username=config.username, password=config.password)
         # maybe configure transport layer security (encryption)
@@ -116,7 +117,7 @@ class Application(object):
         logger.info(f"Application {self.app_name} successfully started up.")
 
     def _create_time_status_publisher(
-        self, time_status_step: timedelta, time_status_init: datetime
+        self, time_status_step: timedelta, time_status_init: datetime = None
     ) -> None:
         """
         Creates a new time status publisher to publish the time status when it changes.
@@ -125,9 +126,12 @@ class Application(object):
             time_status_step (:obj:`timedelta`): scenario duration between time status messages
             time_status_init (:obj:`datetime`): scenario time for first time status message
         """
+        # clean up existing time status publisher, if necessary
+        if self._time_status_publisher is not None:
+            self.simulator.remove_observer(self._time_status_publisher)
+            self._time_status_publisher = None
+        # create new time status publisher, if necessary
         if time_status_step is not None:
-            if self._time_status_publisher is not None:
-                self.simulator.remove_observer(self._time_status_publisher)
             self._time_status_publisher = TimeStatusPublisher(
                 self, time_status_step, time_status_init
             )
@@ -137,8 +141,10 @@ class Application(object):
         """
         Creates a mode status observer to publish the mode status when it changes.
         """
+        # clean up existing mode status observer, if necessary
         if self._mode_status_observer is not None:
             self.simulator.remove_observer(self._mode_status_observer)
+        # create new mode status observer
         self._mode_status_observer = ModeStatusObserver(self)
         self.simulator.add_observer(self._mode_status_observer)
 
@@ -146,8 +152,10 @@ class Application(object):
         """
         Creates an observer to shut down the application when the simulation is terminated.
         """
+        # clean up existing shut down observer, if necessary
         if self._shut_down_observer is not None:
             self.simulator.remove_observer(self._shut_down_observer)
+        # create new shut down observer
         self._shut_down_observer = ShutDownObserver(self)
         self.simulator.add_observer(self._shut_down_observer)
 
@@ -155,8 +163,8 @@ class Application(object):
         """
         Shuts down the application by stopping the background event loop and disconnecting from the broker.
         """
+        # remove the time status publisher, if existing
         if self._time_status_publisher is not None:
-            # remove the time status observer
             self.simulator.remove_observer(self._time_status_publisher)
         self._time_status_publisher = None
         # stop background loop
@@ -178,7 +186,8 @@ class Application(object):
         """
         topic = f"{self.prefix}/{self.app_name}/{app_topic}"
         logger.info(f"Publishing to topic {topic}: {payload}")
-        self.client.publish(topic, payload)
+        msg_info = self.client.publish(topic, payload)
+        msg_info.wait_for_publish()
 
     def add_message_callback(
         self, app_name: str, app_topic: str, callback: Callable
