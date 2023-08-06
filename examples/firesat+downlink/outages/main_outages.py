@@ -171,7 +171,7 @@ if __name__ == "__main__":
     app = ManagedApplication(NAME)
     
     # import csv file from outages_scenarios subdirectory with scenario defining groundId and datetimes of outages
-    csvFile = importlib.resources.open_text("outages_scenarios", "only_random_outages.csv")
+    csvFile = importlib.resources.open_text("outages_scenarios", "scheduled_outages.csv")
     # Read the csv file and convert to a DataFrame with initial column defining the index
     df = pd.read_csv(csvFile, index_col=0)
     schedule = pd.DataFrame(
@@ -194,7 +194,7 @@ if __name__ == "__main__":
     app.simulator.add_observer(ShutDownObserver(app))
     
     # add a ScenarioTimeIntervalPublisher for publishing random outages
-    app.simulator.add_observer(Randomizer(app, outageScheduler, 0.003, time_status_step=timedelta(seconds=5)*SCALE, time_status_init=datetime(2023, 1, 23, 7, 20, tzinfo=timezone.utc)))
+    # app.simulator.add_observer(Randomizer(app, outageScheduler, 0.003, time_status_step=timedelta(seconds=3)*SCALE, time_status_init=datetime(2023, 8, 7, 7, 20, tzinfo=timezone.utc)))
 
     # start up the application on PREFIX, publish time status every 10 seconds of wallclock time
     app.start_up(

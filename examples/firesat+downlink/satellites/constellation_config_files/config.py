@@ -29,4 +29,4 @@ INSTRUMENT_RATES = [.0125, .0125] # Rate of data collection for all instruments 
 COST_MODE = ["discrete","discrete"] # Options per satellite are "discrete" (per downlink), "continuous" (fixed contract), or "both"
 FIXED_RATES = [0.09, 0.09] # Only used if "continuous" or "both" are the cost mode, otherwise costs reported by ground for "discrete"
 
-SCALE = 60							
+SCALE = 180							

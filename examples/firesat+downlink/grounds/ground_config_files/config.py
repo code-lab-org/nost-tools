@@ -11,7 +11,7 @@ HEADER = {
 
 DOWNLINK_RATE_AWS = 0.78156 # Gigabits/second
 MIN_ELEVATION_AWS = 20.0  # minimum view angle (degrees) for ground-satellite communications
-SCALE = 60.0
+SCALE = 180.0
 
 # define grounds in a Dataframe constructed from a Python dictionary
 GROUND = pd.DataFrame(

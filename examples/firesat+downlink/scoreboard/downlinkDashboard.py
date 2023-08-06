@@ -31,11 +31,11 @@ def on_message(mqttc, obj, msg):
     # setting up list of dictionaries
     messageIn = json.loads(msg.payload.decode("utf-8"))
     print(messageIn)
-    if msg.topic == f"{PREFIX}/satelliteStorage/location":
+    if msg.topic == f"{PREFIX}/constellation/location":
         capacityLOD.append(messageIn)   
         update_capacity(n_capacity)
         update_cost(n_cost)
-    elif msg.topic == f"{PREFIX}/satelliteStorage/linkCharge" or msg.topic == f"{PREFIX}/ground/linkCharge":
+    elif msg.topic == f"{PREFIX}/constellation/linkCharge" or msg.topic == f"{PREFIX}/ground/linkCharge":
         # if not state_cost:
         print(msg.topic)
         print("\n\n linkCharge \n\n")
@@ -107,6 +107,7 @@ if __name__ == "__main__":
     df0["latitude"] = 0
     df0["longitude"] = 0
     df0["altitude"] = 0
+    df0["radius"] = 0
     df0["capacity_used"] = 0
     df0["ssr_capacity"] = 0
     df0["commRange"] = 0

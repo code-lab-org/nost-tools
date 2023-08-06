@@ -8,4 +8,4 @@ HEADER = {
     "name": NAME,
     "description": "Publishes historical fire data from the VIIRS instrument.",
 }
-SCALE = 60.0
+SCALE = 180.0

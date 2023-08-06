@@ -9,4 +9,4 @@ HEADER = {
     "description": "Scheduler of outages for ground stations",
 }
 
-SCALE = 60							
+SCALE = 180							
