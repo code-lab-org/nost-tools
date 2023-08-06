@@ -25,6 +25,7 @@ ts = load.timescale()
 t_start = datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc)
 t_end  = datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc) + timedelta(hours=PARAMETERS['SCENARIO_LENGTH'])
 # dummy location
+global targetLoc
 targetLoc = wgs84.latlon(-35, -8)
 # targetPos = targetLoc.itrs_xyz.m
 
@@ -232,7 +233,16 @@ class Satellite(Entity):
     
     def find_next_opportunity_time(self):
         # finding time, position, velocity of rise/culmination/set events
-        print("OPP TIME TARGET LOC",targetLoc)
+        # print("GET TIME TYPE",type(self.get_time()))
+        global targetLoc
+        if self.get_time() > datetime(2023, 6, 12, 22, 11, 55).replace(tzinfo=utc):
+            targetLoc = wgs84.latlon(-2, 9)
+        if self.get_time() > datetime(2023, 6, 12, 22, 19, 52).replace(tzinfo=utc):
+            targetLoc = wgs84.latlon(13, -16)
+        if self.get_time() > datetime(2023, 6, 12, 22, 25, 17).replace(tzinfo=utc):
+            targetLoc = wgs84.latlon(37, -6)            
+        if self.get_time() > datetime(2023, 6, 12, 22, 31, 4).replace(tzinfo=utc):
+            targetLoc = wgs84.latlon(65, -24)
         t, events = self.ES.find_events(targetLoc, ts.from_datetime(t_start), ts.from_datetime(t_end), altitude_degrees=1.0)
         event_times = t.utc_datetime()
         eventZip = list(zip(event_times,events))
@@ -273,6 +283,10 @@ class Satellite(Entity):
         dirUnit = direction / np.linalg.norm(direction)
 
         rollAngle = np.arccos(np.dot(dirUnit, culmUnitVec))
+        if self.get_time() < datetime(2023, 6, 12, 22, 00, 55).replace(tzinfo=utc):
+            rollAngle = 0
+        if self.get_time() > datetime(2023, 6, 12, 22, 39, 10).replace(tzinfo=utc):
+            rollAngle = 0
         
         sat_geographical = wgs84.geographic_position_of(culmGeocentric)
         

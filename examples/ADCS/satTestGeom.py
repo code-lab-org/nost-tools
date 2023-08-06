@@ -39,18 +39,19 @@ print(satellite)
 
 ts = load.timescale()
 
-targetLoc = wgs84.latlon(1.5, -115)
+targetLoc = wgs84.latlon(65, -24)
 t_start = datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc)
 t_end  = datetime.fromtimestamp(PARAMETERS['SCENARIO_START']).replace(tzinfo=utc) + timedelta(hours=PARAMETERS['SCENARIO_LENGTH'])
 
 # finding time, position, velocity of rise/culmination/set events
-t, events = satellite.find_events(targetLoc, ts.from_datetime(t_start), ts.from_datetime(t_end), altitude_degrees=45.0)
+t, events = satellite.find_events(targetLoc, ts.from_datetime(t_start), ts.from_datetime(t_end), altitude_degrees=1.0)
 eventZip = list(zip(t,events))
 df = pd.DataFrame(eventZip, columns = ["Time", "Event"])
 # removing rise/set events
 culmTimes = df.loc[df["Event"]==1]
 # finding time of first culmination
 culmTime = culmTimes.iloc[0]["Time"]
+print("Culmination time 1 is",culmTime.utc)
 # finding satellite position and velocity at first culmination time
 culmGeocentric = satellite.at(culmTime)
 # culmPos = culmGeocentric.position.m

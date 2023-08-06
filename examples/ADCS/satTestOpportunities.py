@@ -39,7 +39,7 @@ print(satellite)
 
 ts = load.timescale()
 targetList = [{"Latitude":1.5,"Longitude":-115}]
-targetLoc = wgs84.latlon(1.5, -115)
+targetLoc = wgs84.latlon(-35,-8)
 
 def new_target_location():
     new_lat = np.random.random()*180-90
