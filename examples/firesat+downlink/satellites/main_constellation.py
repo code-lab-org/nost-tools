@@ -379,24 +379,24 @@ class Constellation(Entity):
                     },
                 )
             self.report[i]["firstReport"] = False
+        # for i, satellite in enumerate(self.satellites):
+        #     if self.cost_mode[i] == "continuous" or self.cost_mode[i] == "both":
+        #         self.app.send_message(
+        #                 "linkCharge",
+        #                 LinkCharge(
+        #                     groundId = 100,
+        #                     satId = self.id[i],
+        #                     satName = self.names[i],
+        #                     linkId = 0,
+        #                     end = self.get_time(),
+        #                     duration = 0,
+        #                     dataOffload = 0,
+        #                     downlinkCost = 0,
+        #                     cumulativeCostBySat = self.cumulativeCostBySat[self.names[i]],
+        #                     cumulativeCosts = self.cumulativeCosts
+        #                     ).json()
+        #                 )
         super().tock()
-        for i, satellite in enumerate(self.satellites):
-            if self.cost_mode[i] == "continuous" or self.cost_mode[i] == "both":
-                self.app.send_message(
-                        "linkCharge",
-                        LinkCharge(
-                            groundId = 100,
-                            satId = self.id[i],
-                            satName = self.names[i],
-                            linkId = 0,
-                            end = self.get_time(),
-                            duration = 0,
-                            dataOffload = 0,
-                            downlinkCost = 0,
-                            cumulativeCostBySat = self.cumulativeCostBySat[self.names[i]],
-                            cumulativeCosts = self.cumulativeCosts
-                            ).json()
-                        )
     
     
     def on_fire(self, client, userdata, message):
@@ -744,9 +744,9 @@ if __name__ == "__main__":
     # add a shutdown observer to shut down after a single test case
     app.simulator.add_observer(ShutDownObserver(app))
 
-    # add a position publisher to update satellite state every 5 seconds of wallclock time
+    # add a position publisher to update satellite state every 3 seconds of wallclock time
     app.simulator.add_observer(
-        SatStatePublisher(app, constellation, timedelta(seconds=1))
+        SatStatePublisher(app, constellation, timedelta(seconds=3))
     )
 
     # start up the application on PREFIX, publish time status every 10 seconds of wallclock time
@@ -754,7 +754,7 @@ if __name__ == "__main__":
         PREFIX,
         config,
         True,
-        time_status_step=timedelta(seconds=10) * SCALE,
+        time_status_step=timedelta(seconds=20) * SCALE,
         time_status_init=datetime(2023, 8, 7, 7, 21, tzinfo=timezone.utc),
         time_step=timedelta(seconds=1) * SCALE,
     )

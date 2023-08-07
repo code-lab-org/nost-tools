@@ -162,7 +162,7 @@ if __name__ == "__main__":
         ),
         dcc.Interval(
             id="interval-capacity",
-            interval=1*1000,
+            interval=3*1000,
             n_intervals=n_capacity,
             disabled=state_capacity
         ),
@@ -177,7 +177,7 @@ if __name__ == "__main__":
         ),
         dcc.Interval(
             id="interval-cost",
-            interval=1*1000,
+            interval=3*1000,
             n_intervals=n_cost,
             disabled=state_cost
         ),

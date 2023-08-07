@@ -378,9 +378,9 @@ if __name__ == "__main__":
         PREFIX,
         config,
         True,
-        time_status_step=timedelta(seconds=10) * SCALE,
+        time_status_step=timedelta(seconds=20) * SCALE,
         time_status_init=datetime(2023, 8, 7, 7, 21, tzinfo=timezone.utc),
-        time_step=timedelta(seconds=1) * SCALE,
+        time_step=timedelta(seconds=3) * SCALE,
     )
 
     # add message callbacks for constellation messages
