@@ -2,6 +2,7 @@
 # uvicorn monitor.backend.main:app --host 0.0.0.0 --port 3000 --reload
 # Load this page to read API documentation: http://localhost:3000/docs#/
 # Required modules and libraries
+
 import logging
 import os
 from typing import Union
@@ -10,12 +11,14 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse
+
 import nost_tools
-from nost_tools.manager import Manager
 from nost_tools.application_utils import ConnectionConfig
+from nost_tools.manager import Manager
 
 # Importing schemas for request data validation
-from .schemas import InitRequest, StartRequest, StopRequest, UpdateRequest, ExecuteRequest
+from .schemas import (ExecuteRequest, InitRequest, StartRequest, StopRequest,
+                      UpdateRequest)
 
 # Configuring logging at INFO level
 logging.basicConfig(level=logging.INFO)

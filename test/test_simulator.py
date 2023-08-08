@@ -1,10 +1,10 @@
-import unittest
-from datetime import datetime, timedelta, timezone
 import threading
 import time
+import unittest
+from datetime import datetime, timedelta, timezone
 
-from nost_tools.observer import Observer
 from nost_tools.entity import Entity
+from nost_tools.observer import Observer
 from nost_tools.simulator import Mode, Simulator
 
 

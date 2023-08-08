@@ -2,8 +2,10 @@ from datetime import datetime, timedelta
 from typing import List, Optional
 
 from fastapi_utils.api_model import APIModel
-from nost_tools import manager
 from pydantic import Field
+
+from nost_tools import manager
+
 
 class InitRequest(APIModel):
     """
