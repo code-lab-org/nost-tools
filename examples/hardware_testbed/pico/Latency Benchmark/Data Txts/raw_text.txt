@@ -1,0 +1,354 @@
+Latency for message: 64 ms
+Current time: 13:51:40
+Latency for message: 1025 ms
+Current time: 13:51:41
+Latency for message: 1019 ms
+Current time: 13:51:42
+Latency for message: 1019 ms
+Current time: 13:51:43
+Latency for message: 1018 ms
+Current time: 13:51:44
+Latency for message: 916 ms
+Current time: 13:51:45
+Latency for message: 1021 ms
+Current time: 13:51:46
+Latency for message: 1019 ms
+Current time: 13:51:47
+Latency for message: 1020 ms
+Current time: 13:51:48
+Latency for message: 1018 ms
+Current time: 13:51:49
+Latency for message: 1020 ms
+Current time: 13:51:51
+Latency for message: 916 ms
+Current time: 13:51:51
+Latency for message: 1019 ms
+Current time: 13:51:52
+Latency for message: 1019 ms
+Current time: 13:51:53
+Latency for message: 1018 ms
+Current time: 13:51:54
+Latency for message: 1019 ms
+Current time: 13:51:56
+Latency for message: 1021 ms
+Current time: 13:51:57
+Latency for message: 917 ms
+Current time: 13:51:57
+Latency for message: 1019 ms
+Current time: 13:51:58
+Latency for message: 917 ms
+Current time: 13:51:59
+Latency for message: 1019 ms
+Current time: 13:52:00
+Latency for message: 1633 ms
+Current time: 13:52:02
+Latency for message: 258 ms
+Current time: 13:52:02
+Latency for message: 1065 ms
+Current time: 13:52:03
+Latency for message: 1018 ms
+Current time: 13:52:04
+Latency for message: 1020 ms
+Current time: 13:52:05
+Latency for message: 1018 ms
+Current time: 13:52:06
+Latency for message: 1021 ms
+Current time: 13:52:08
+Latency for message: 935 ms
+Current time: 13:52:08
+Latency for message: 998 ms
+Current time: 13:52:09
+Latency for message: 1021 ms
+Current time: 13:52:10
+Latency for message: 1018 ms
+Current time: 13:52:11
+Latency for message: 1019 ms
+Current time: 13:52:13
+Latency for message: 917 ms
+Current time: 13:52:13
+Latency for message: 1121 ms
+Current time: 13:52:15
+Latency for message: 1019 ms
+Current time: 13:52:16
+Latency for message: 917 ms
+Current time: 13:52:17
+Latency for message: 916 ms
+Current time: 13:52:17
+Latency for message: 1019 ms
+Current time: 13:52:18
+Latency for message: 1019 ms
+Current time: 13:52:19
+Latency for message: 1020 ms
+Current time: 13:52:21
+Latency for message: 1019 ms
+Current time: 13:52:22
+Latency for message: 916 ms
+Current time: 13:52:22
+Latency for message: 1019 ms
+Current time: 13:52:23
+Latency for message: 1020 ms
+Current time: 13:52:24
+Latency for message: 1019 ms
+Current time: 13:52:26
+Latency for message: 917 ms
+Current time: 13:52:26
+Latency for message: 1018 ms
+Current time: 13:52:27
+Latency for message: 917 ms
+Current time: 13:52:28
+Latency for message: 1019 ms
+Current time: 13:52:29
+Latency for message: 1019 ms
+Current time: 13:52:30
+Latency for message: 1020 ms
+Current time: 13:52:31
+Latency for message: 1018 ms
+Current time: 13:52:32
+Latency for message: 1020 ms
+Current time: 13:52:34
+Latency for message: 918 ms
+Current time: 13:52:34
+Latency for message: 1020 ms
+Current time: 13:52:35
+Latency for message: 1017 ms
+Current time: 13:52:36
+Latency for message: 916 ms
+Current time: 13:52:37
+Latency for message: 1020 ms
+Current time: 13:52:38
+Latency for message: 1018 ms
+Current time: 13:52:39
+Latency for message: 1122 ms
+Current time: 13:52:41
+Latency for message: 815 ms
+Current time: 13:52:41
+Latency for message: 1020 ms
+Current time: 13:52:42
+Latency for message: 915 ms
+Current time: 13:52:43
+Latency for message: 1121 ms
+Current time: 13:52:44
+Latency for message: 916 ms
+Current time: 13:52:45
+Latency for message: 1020 ms
+Current time: 13:52:46
+Latency for message: 1020 ms
+Current time: 13:52:47
+Latency for message: 1018 ms
+Current time: 13:52:48
+Latency for message: 917 ms
+Current time: 13:52:49
+Latency for message: 1122 ms
+Current time: 13:52:51
+Latency for message: 917 ms
+Current time: 13:52:51
+Latency for message: 916 ms
+Current time: 13:52:52
+Latency for message: 1122 ms
+Current time: 13:52:53
+Latency for message: 916 ms
+Current time: 13:52:54
+Latency for message: 1019 ms
+Current time: 13:52:55
+Latency for message: 1019 ms
+Current time: 13:52:56
+Latency for message: 916 ms
+Current time: 13:52:57
+Latency for message: 1019 ms
+Current time: 13:52:58
+Latency for message: 1019 ms
+Current time: 13:52:59
+Latency for message: 1019 ms
+Current time: 13:53:00
+Latency for message: 1019 ms
+Current time: 13:53:01
+Latency for message: 1019 ms
+Current time: 13:53:02
+Latency for message: 917 ms
+Current time: 13:53:03
+Latency for message: 1121 ms
+Current time: 13:53:05
+Latency for message: 916 ms
+Current time: 13:53:05
+Latency for message: 1020 ms
+Current time: 13:53:06
+Latency for message: 916 ms
+Current time: 13:53:07
+Latency for message: 1020 ms
+Current time: 13:53:08
+Latency for message: 1020 ms
+Current time: 13:53:09
+Latency for message: 915 ms
+Current time: 13:53:10
+Latency for message: 1019 ms
+Current time: 13:53:11
+Latency for message: 1018 ms
+Current time: 13:53:12
+Latency for message: 1020 ms
+Current time: 13:53:13
+Latency for message: 915 ms
+Current time: 13:53:14
+Latency for message: 1020 ms
+Current time: 13:53:15
+Latency for message: 1020 ms
+Current time: 13:53:16
+Latency for message: 1018 ms
+Current time: 13:53:17
+Latency for message: 1122 ms
+Current time: 13:53:19
+Latency for message: 915 ms
+Current time: 13:53:19
+Latency for message: 918 ms
+Current time: 13:53:20
+Latency for message: 1019 ms
+Current time: 13:53:21
+Latency for message: 1019 ms
+Current time: 13:53:22
+Latency for message: 1121 ms
+Current time: 13:53:24
+Latency for message: 816 ms
+Current time: 13:53:24
+Latency for message: 1018 ms
+Current time: 13:53:25
+Latency for message: 1121 ms
+Current time: 13:53:27
+Latency for message: 916 ms
+Current time: 13:53:27
+Latency for message: 996 ms
+Current time: 13:53:28
+Latency for message: 939 ms
+Current time: 13:53:29
+Latency for message: 1019 ms
+Current time: 13:53:30
+Latency for message: 1019 ms
+Current time: 13:53:31
+Latency for message: 1019 ms
+Current time: 13:53:32
+Latency for message: 917 ms
+Current time: 13:53:33
+Latency for message: 1018 ms
+Current time: 13:53:34
+Latency for message: 1020 ms
+Current time: 13:53:35
+Latency for message: 917 ms
+Current time: 13:53:36
+Latency for message: 1017 ms
+Current time: 13:53:37
+Latency for message: 2353 ms
+Current time: 13:53:40
+Latency for message: 5 ms
+Current time: 13:53:40
+Latency for message: 599 ms
+Current time: 13:53:40
+Latency for message: 1022 ms
+Current time: 13:53:41
+Latency for message: 1017 ms
+Current time: 13:53:42
+Latency for message: 1018 ms
+Current time: 13:53:43
+Latency for message: 1022 ms
+Current time: 13:53:44
+Latency for message: 914 ms
+Current time: 13:53:45
+Latency for message: 1019 ms
+Current time: 13:53:46
+Latency for message: 1019 ms
+Current time: 13:53:47
+Latency for message: 1017 ms
+Current time: 13:53:48
+Latency for message: 911 ms
+Current time: 13:53:49
+Latency for message: 1020 ms
+Current time: 13:53:50
+Latency for message: 1120 ms
+Current time: 13:53:52
+Latency for message: 917 ms
+Current time: 13:53:52
+Latency for message: 916 ms
+Current time: 13:53:53
+Latency for message: 1019 ms
+Current time: 13:53:54
+Latency for message: 1019 ms
+Current time: 13:53:55
+Latency for message: 1019 ms
+Current time: 13:53:56
+Latency for message: 1328 ms
+Current time: 13:53:58
+Latency for message: 609 ms
+Current time: 13:53:58
+Latency for message: 1019 ms
+Current time: 13:53:59
+Latency for message: 1018 ms
+Current time: 13:54:00
+Latency for message: 917 ms
+Current time: 13:54:01
+Latency for message: 1017 ms
+Current time: 13:54:02
+Latency for message: 1020 ms
+Current time: 13:54:03
+Latency for message: 1019 ms
+Current time: 13:54:04
+Latency for message: 1121 ms
+Current time: 13:54:06
+Latency for message: 815 ms
+Current time: 13:54:06
+Latency for message: 1019 ms
+Current time: 13:54:07
+Latency for message: 1020 ms
+Current time: 13:54:08
+Latency for message: 1016 ms
+Current time: 13:54:09
+Latency for message: 919 ms
+Current time: 13:54:10
+Latency for message: 1121 ms
+Current time: 13:54:12
+Latency for message: 916 ms
+Current time: 13:54:12
+Latency for message: 1021 ms
+Current time: 13:54:13
+Latency for message: 1018 ms
+Current time: 13:54:14
+Latency for message: 1020 ms
+Current time: 13:54:16
+Latency for message: 914 ms
+Current time: 13:54:16
+Latency for message: 1020 ms
+Current time: 13:54:17
+Latency for message: 1019 ms
+Current time: 13:54:18
+Latency for message: 917 ms
+Current time: 13:54:19
+Latency for message: 1019 ms
+Current time: 13:54:20
+Latency for message: 1020 ms
+Current time: 13:54:21
+Latency for message: 1020 ms
+Current time: 13:54:22
+Latency for message: 916 ms
+Current time: 13:54:23
+Latency for message: 1018 ms
+Current time: 13:54:24
+Latency for message: 1019 ms
+Current time: 13:54:25
+Latency for message: 1020 ms
+Current time: 13:54:26
+Latency for message: 916 ms
+Current time: 13:54:27
+Latency for message: 1122 ms
+Current time: 13:54:29
+Latency for message: 916 ms
+Current time: 13:54:29
+Latency for message: 1022 ms
+Current time: 13:54:30
+Latency for message: 1016 ms
+Current time: 13:54:31
+Latency for message: 917 ms
+Current time: 13:54:32
+Latency for message: 1018 ms
+Current time: 13:54:33
+Latency for message: 1019 ms
+Current time: 13:54:34
+Latency for message: 1035 ms
+Current time: 13:54:35
+Latency for message: 902 ms
+Current time: 13:54:36
