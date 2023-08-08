@@ -1,4 +1,6 @@
-
+# Termninal Load Command:
+# uvicorn monitor.backend.main:app --host 0.0.0.0 --port 3000 --reload
+# Load this page to read API documentation: http://localhost:3000/docs#/
 # Required modules and libraries
 import logging
 import os
