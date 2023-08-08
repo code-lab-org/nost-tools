@@ -10,21 +10,30 @@ from datetime import datetime
 
 
 class EventStarted(BaseModel):
+    """
+    *Standardized message indicating location, start-time, and isDay boolean for an event*
+    """
     eventId: int = Field(..., description="Unique event identifier.")
     eventStart: Optional[datetime] = Field(description="Time event started.")
-    latitude: Optional[confloat(ge=-90, le=90)] = Field( # type:ignore 
-        description="Latitude (deg) of event location."
+    latitude: float = Field(
+        ..., ge=-90, le=90, description="Random event latitude (degrees)"
     )
-    longitude: Optional[confloat(ge=-180, le=180)] = Field( # type:ignore
-        description="Longitude (deg) of event location."
+    longitude: float = Field(
+        ..., ge=-180, le=180, description="Random event longitude (degrees)"
     )
     isDay: Optional[int] = Field()
 
 
 class EventDayChange(BaseModel):
+    """
+    *Standardized message indicating an inversion of the isDay boolean switch*
+    """
     eventId: int = Field(..., description="Unique event identifier.")
     isDay: int = Field(..., description="True if sunrise, false if sunset.")
 
 
 class EventFinished(BaseModel):
+    """
+    *Standardized message indicating only the eventId which indicates the event has terminated and is no longer observable*
+    """
     eventId: int = Field(..., description="Unique event identifier.")
