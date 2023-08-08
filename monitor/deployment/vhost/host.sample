@@ -1,0 +1,13 @@
+## TODO: change file name to match virtual host (domain name) 
+## Start of configuration add by letsencrypt container
+location ^~ /.well-known/acme-challenge/ {
+    auth_basic off;
+    auth_request off;
+    allow all;
+    root /usr/share/nginx/html;
+    try_files $uri =404;
+    break;
+}
+## End of configuration add by letsencrypt container
+auth_basic "Restricted Access to NOS-T Users";
+auth_basic_user_file /etc/nginx/conf.d/.htpasswd;
