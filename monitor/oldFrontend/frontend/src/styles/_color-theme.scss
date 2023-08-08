@@ -1,0 +1,112 @@
+// Strings
+
+$background: 'background';
+$dark-background: 'dark-background';
+$darker-background: 'darker-background';
+$button: 'button';
+$shadow: 'shadow';
+
+$header: 'header';
+$light-header: 'light-header';
+$regular: 'regular';
+$mid: 'mid';
+$dark: 'dark';
+$dark-transparent: 'dark-transparent';
+$success: 'success';
+$loading: 'loading';
+$fail: 'fail';
+
+$width: 'width';
+
+// Colors
+$background-reg: #fff;
+$dark-background-reg: #fafafa;
+$darker-background-reg: #f7f8fb;
+$button-reg: #7957a0;
+$shadow-reg: #e3e5e8;
+
+// Text Colors
+$header-reg: #9e7cc2;
+$light-header-reg: #8fccea;
+$regular-reg: #62738d;
+$mid-reg: #a896c0;
+$dark-reg: #3f3f44;
+$dark-transparent-reg: #3f3f4477;
+$success-reg: #028701;
+$loading-reg: #e5ca94;
+$fail-reg: #c84c01;
+
+// Colors
+$background-dark: #1a1a2e;
+$dark-background-dark: #171728;
+$darker-background-dark: #151526;
+$button-dark: #4c7ab3;
+$shadow-dark: #424548;
+
+// Text Colors
+$header-dark: #9e7cc2;
+$light-header-dark: #8fccea;
+$regular-dark: #8fa9ce;
+$mid-dark: #a896c0;
+$dark-dark: #aaaab8;
+$dark-transparent-dark: #aaaab877;
+$success-dark: #028701;
+$loading-dark: #e5ca94;
+$fail-dark: #c84c01;
+
+// Styling
+$width-reg: 1300px;
+
+$themes: (
+    default: (
+        background: $background-reg,
+        dark-background: $dark-background-reg,
+        darker-background: $darker-background-reg,
+        button: $button-reg,
+        shadow: $shadow-reg,
+        header: $header-reg,
+        light-header: $light-header-reg,
+        regular: $regular-reg,
+        dark: $dark-reg,
+        dark-transparent: $dark-transparent-reg,
+        mid: $mid-reg,
+        success: $success-reg,
+        loading: $loading-reg,
+        fail: $fail-reg,
+        width: $width-reg
+    ),
+    dark: (
+        background: $background-dark,
+        dark-background: $dark-background-dark,
+        darker-background: $darker-background-dark,
+        button: $button-dark,
+        shadow: $shadow-dark,
+        header: $header-dark,
+        light-header: $light-header-dark,
+        regular: $regular-dark,
+        dark: $dark-dark,
+        dark-transparent: $dark-transparent-dark,
+        mid: $mid-dark,
+        success: $success-dark,
+        fail: $fail-dark,
+        width: $width-reg
+    ),
+);
+
+@mixin col() {
+    @each $theme, $map in $themes {
+        .theme--#{$theme} & {
+            $theme-map: () !global;
+            @each $key, $submap in $map {
+                $value: map-get(map-get($themes, $theme), '#{$key}');
+                $theme-map: map-merge($theme-map, ($key: $value)) !global;
+            }
+            @content;
+            $theme-map: null !global;
+        }
+    }
+}
+
+@function t($key) {
+    @return map-get($theme-map, $key);
+}

@@ -1,0 +1,72 @@
+@import 'color-theme';
+
+.status-header {
+    width: 100%;
+    border-bottom: .25px solid;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    @include col() {
+        background-color: t($darker-background);
+        border-color: t($shadow);
+    }
+}
+
+.status-header-content {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    padding-left: 25px;
+    padding-right: 25px;
+    @include col() {
+        max-width: t($width);
+    }
+}
+
+.status-header-state {
+    width: 75%;
+    max-width: 470px;
+    margin: 0px;
+    padding-top: 12px;
+    margin-bottom: -3px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    @include col() {
+        color: t($dark);
+    }
+}
+
+.status-header-field {
+    display: flex;
+    flex-direction: row;
+}
+
+.status-header-not-running {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    @include col() {
+        color: t($dark);
+    }
+}
+
+.status-header-prefix {
+    margin: 0px;
+    padding-top: 12px;
+    margin-bottom: -3px;
+    display: flex;
+    flex-direction: row;
+    @include col() {
+        color: t($dark);
+    }
+}
+
+.status-header-bold {
+    font-weight: 600;
+    margin-right: 10px;
+}

@@ -1,0 +1,80 @@
+@import 'color-theme';
+
+.overview {
+    flex: 1;
+    padding: 15px;
+    padding-left: 25px;
+    padding-right: 25px;
+    margin: auto;
+    @include col() {
+        max-width: t($width);
+    }
+}
+
+.overview-header {
+    margin: 0;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    font-size: 14px;
+    @include col() {
+        color: t($regular);
+    }
+}
+
+.overview-buttons {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.overview-row {
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 10px;
+}
+
+.overview-button {
+    padding: 5px;
+    border-radius: 5px;
+    width: 75px;
+    text-align: center;
+    @include col() {
+        background-color: t($button);
+        color: t($background);
+        &:focus, &:hover {
+            background-color: t($header);
+            cursor: pointer;
+        }
+    }
+}
+
+.overview-button-filler {
+    width: 75px;
+}
+
+.overview-input {
+    padding: 5px;
+    border-radius: 5px;
+    margin-left: 15px;
+    padding-left: 10px;
+    flex: 1;
+    max-width: 190px;
+    border: .25px solid;
+    background: none;
+    @include col() {
+        border-color: t($shadow);
+        color: t($dark);
+        &:focus, &:hover {
+            background-color: t($dark-background);
+            outline: none;
+        }
+    }
+}
+
+.overview-input::placeholder {
+    @include col() {
+        color: t($regular)0;
+    }
+}

@@ -1,0 +1,1041 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>nost package &mdash; manager-backend 1.0.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="nost.commands package" href="nost.commands.html" />
+    <link rel="prev" title="manager-backend" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> manager-backend
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">nost package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="nost.commands.html">nost.commands package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nost.helper.html">nost.helper package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-nost.config">nost.config module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-nost.observer">nost.observer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-nost.simulator">nost.simulator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-nost">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">manager-backend</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>nost package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="nost-package">
+<h1>nost package<a class="headerlink" href="#nost-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="nost.commands.html">nost.commands package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="nost.commands.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nost.commands.html#module-nost.commands.init">nost.commands.init module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nost.commands.html#module-nost.commands.start">nost.commands.start module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nost.commands.html#module-nost.commands.stop">nost.commands.stop module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nost.commands.html#module-nost.commands.test_script">nost.commands.test_script module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nost.commands.html#module-nost.commands.update">nost.commands.update module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nost.commands.html#module-nost.commands">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="nost.helper.html">nost.helper package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="nost.helper.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nost.helper.html#module-nost.helper.middleware">nost.helper.middleware module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nost.helper.html#module-nost.helper.ntp_offset">nost.helper.ntp_offset module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nost.helper.html#module-nost.helper">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-nost.config">
+<span id="nost-config-module"></span><h2>nost.config module<a class="headerlink" href="#module-nost.config" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-nost.observer">
+<span id="nost-observer-module"></span><h2>nost.observer module<a class="headerlink" href="#module-nost.observer" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="nost.observer.ExternalPublishObserver">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">nost.observer.</span></code><code class="sig-name descname"><span class="pre">ExternalPublishObserver</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">publish_step</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">publish_start_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nost.observer.ExternalPublishObserver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#nost.observer.Observer" title="nost.observer.Observer"><code class="xref py py-class docutils literal notranslate"><span class="pre">nost.observer.Observer</span></code></a></p>
+<p>This is the ExternalPublishObserver class which implements the abstract Observer class.</p>
+<p>This class publishes time status messages at a interval defined during instantion and is removed after an execution completes.
+Publishes messages to “{prefix}/manager/time”</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>client</strong> (<em>paho.mqtt.client.Client</em>) – Access to the MQTT client for publishing messages.</p></li>
+<li><p><strong>topic</strong> (<em>str</em>) – Topic to publish messages to.</p></li>
+<li><p><strong>publish_step</strong> (<em>datetime.timedelta</em>) – Execution time between published messages.</p></li>
+<li><p><strong>publish_start_time</strong> (<em>datetime.datetime</em>) – Specifies when to start publishing messages in execution time, defaults to None which will use simStartTime.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="nost.observer.ExternalPublishObserver._client">
+<code class="sig-name descname"><span class="pre">_client</span></code><a class="headerlink" href="#nost.observer.ExternalPublishObserver._client" title="Permalink to this definition">¶</a></dt>
+<dd><p>Access to the MQTT client for publishing messages.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>paho.mqtt.client.Client</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="nost.observer.ExternalPublishObserver._topic">
+<code class="sig-name descname"><span class="pre">_topic</span></code><a class="headerlink" href="#nost.observer.ExternalPublishObserver._topic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Topic to publish messages to.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="nost.observer.ExternalPublishObserver._publish_step">
+<code class="sig-name descname"><span class="pre">_publish_step</span></code><a class="headerlink" href="#nost.observer.ExternalPublishObserver._publish_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execution time between published messages.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>datetime.timedelta</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="nost.observer.ExternalPublishObserver._next_publish_time">
+<code class="sig-name descname"><span class="pre">_next_publish_time</span></code><a class="headerlink" href="#nost.observer.ExternalPublishObserver._next_publish_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Specifies when to publish next message.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>datetime.datetime</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nost.observer.ExternalPublishObserver.on_change">
+<code class="sig-name descname"><span class="pre">on_change</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">property_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">old_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nost.observer.ExternalPublishObserver.on_change" title="Permalink to this definition">¶</a></dt>
+<dd><p>Publishes nost/time Messages</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="nost.observer.ModeMessageObserver">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">nost.observer.</span></code><code class="sig-name descname"><span class="pre">ModeMessageObserver</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nost.observer.ModeMessageObserver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#nost.observer.Observer" title="nost.observer.Observer"><code class="xref py py-class docutils literal notranslate"><span class="pre">nost.observer.Observer</span></code></a></p>
+<p>This is the ModeMessageObserver class which implements the abstract Observer class.</p>
+<p>This class publishes mode status updates of the simulator class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>client</strong> (<em>paho.mqtt.client.Client</em>) – Access to the MQTT client for publishing messages.</p></li>
+<li><p><strong>prefix</strong> (<em>str</em>) – Prefix of specified execution.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="nost.observer.ModeMessageObserver._client">
+<code class="sig-name descname"><span class="pre">_client</span></code><a class="headerlink" href="#nost.observer.ModeMessageObserver._client" title="Permalink to this definition">¶</a></dt>
+<dd><p>Access to the MQTT client for publishing messages.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>paho.mqtt.client.Client</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="nost.observer.ModeMessageObserver._prefix">
+<code class="sig-name descname"><span class="pre">_prefix</span></code><a class="headerlink" href="#nost.observer.ModeMessageObserver._prefix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prefix of specified execution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nost.observer.ModeMessageObserver.on_change">
+<code class="sig-name descname"><span class="pre">on_change</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">property_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">old_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nost.observer.ModeMessageObserver.on_change" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called on property change.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="nost.observer.Observable">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">nost.observer.</span></code><code class="sig-name descname"><span class="pre">Observable</span></code><a class="headerlink" href="#nost.observer.Observable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This is the base observable class.</p>
+<dl class="py method">
+<dt id="nost.observer.Observable.add_observer">
+<code class="sig-name descname"><span class="pre">add_observer</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">observer</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nost.observer.Observable.add_observer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds an observer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nost.observer.Observable.clear_observers">
+<code class="sig-name descname"><span class="pre">clear_observers</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nost.observer.Observable.clear_observers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clears observers.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nost.observer.Observable.notify_observers">
+<code class="sig-name descname"><span class="pre">notify_observers</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">property_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">old_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nost.observer.Observable.notify_observers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Notifies observers of a property change.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nost.observer.Observable.remove_observer">
+<code class="sig-name descname"><span class="pre">remove_observer</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">observer</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nost.observer.Observable.remove_observer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes an observer.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="nost.observer.Observer">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">nost.observer.</span></code><code class="sig-name descname"><span class="pre">Observer</span></code><a class="headerlink" href="#nost.observer.Observer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This is the abstract observer class.</p>
+<dl class="py method">
+<dt id="nost.observer.Observer.on_change">
+<code class="sig-name descname"><span class="pre">on_change</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">property_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">old_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nost.observer.Observer.on_change" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called on property change.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="nost.observer.PublishObserver">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">nost.observer.</span></code><code class="sig-name descname"><span class="pre">PublishObserver</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nost.observer.PublishObserver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#nost.observer.Observer" title="nost.observer.Observer"><code class="xref py py-class docutils literal notranslate"><span class="pre">nost.observer.Observer</span></code></a></p>
+<p>This is the PublishObserver class which implements the abstract Observer class.</p>
+<p>This class publishes time status messages at a interval defined during instantion and is removed after an execution completes.
+Publishes messages to “{prefix}-manager/time”</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>client</strong> (<em>paho.mqtt.client.Client</em>) – Access to the MQTT client for publishing messages.</p></li>
+<li><p><strong>prefix</strong> (<em>str</em>) – Prefix of specified execution.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="nost.observer.PublishObserver._client">
+<code class="sig-name descname"><span class="pre">_client</span></code><a class="headerlink" href="#nost.observer.PublishObserver._client" title="Permalink to this definition">¶</a></dt>
+<dd><p>Access to the MQTT client for publishing messages.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>paho.mqtt.client.Client</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="nost.observer.PublishObserver._prefix">
+<code class="sig-name descname"><span class="pre">_prefix</span></code><a class="headerlink" href="#nost.observer.PublishObserver._prefix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prefix of specified execution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="nost.observer.PublishObserver._internal_step">
+<code class="sig-name descname"><span class="pre">_internal_step</span></code><a class="headerlink" href="#nost.observer.PublishObserver._internal_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execution time between published messages.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>datetime.timedelta</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="nost.observer.PublishObserver._next_time">
+<code class="sig-name descname"><span class="pre">_next_time</span></code><a class="headerlink" href="#nost.observer.PublishObserver._next_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Time of next message to publish.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>datetime.datetime</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nost.observer.PublishObserver.on_change">
+<code class="sig-name descname"><span class="pre">on_change</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">property_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">old_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nost.observer.PublishObserver.on_change" title="Permalink to this definition">¶</a></dt>
+<dd><p>Publishes time Messages</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nost.observer.PublishObserver.send_message">
+<code class="sig-name descname"><span class="pre">send_message</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nost.observer.PublishObserver.send_message" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="nost.observer.StopMessageObserver">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">nost.observer.</span></code><code class="sig-name descname"><span class="pre">StopMessageObserver</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nost.observer.StopMessageObserver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#nost.observer.Observer" title="nost.observer.Observer"><code class="xref py py-class docutils literal notranslate"><span class="pre">nost.observer.Observer</span></code></a></p>
+<p>This is the StopMessageObserver class which implements the abstract Observer class.</p>
+<p>This class publishes a stop message when the execution terminates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>client</strong> (<em>paho.mqtt.client.Client</em>) – Access to the MQTT client for publishing messages.</p></li>
+<li><p><strong>prefix</strong> (<em>str</em>) – Prefix of specified execution.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="nost.observer.StopMessageObserver._client">
+<code class="sig-name descname"><span class="pre">_client</span></code><a class="headerlink" href="#nost.observer.StopMessageObserver._client" title="Permalink to this definition">¶</a></dt>
+<dd><p>Access to the MQTT client for publishing messages.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>paho.mqtt.client.Client</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="nost.observer.StopMessageObserver._prefix">
+<code class="sig-name descname"><span class="pre">_prefix</span></code><a class="headerlink" href="#nost.observer.StopMessageObserver._prefix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prefix of specified execution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nost.observer.StopMessageObserver.on_change">
+<code class="sig-name descname"><span class="pre">on_change</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">property_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">old_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nost.observer.StopMessageObserver.on_change" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called on property change.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="nost.observer.TestScriptObserver">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">nost.observer.</span></code><code class="sig-name descname"><span class="pre">TestScriptObserver</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_script_data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nost.observer.TestScriptObserver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#nost.observer.Observer" title="nost.observer.Observer"><code class="xref py py-class docutils literal notranslate"><span class="pre">nost.observer.Observer</span></code></a></p>
+<p>This is the TestScriptObserver class which implements the abstract Observer class.</p>
+<p>This class executes time status updates predefined by a test script.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sim</strong> (<a class="reference internal" href="#nost.simulator.Simulator" title="nost.simulator.Simulator"><em>nost.simulator.Simulator</em></a>) – Simulator class to execute commands directly to execution state.</p></li>
+<li><p><strong>client</strong> (<em>paho.mqtt.client.Client</em>) – Access to the MQTT client for publishing messages.</p></li>
+<li><p><strong>prefix</strong> (<em>str</em>) – Prefix of specified execution.</p></li>
+<li><p><strong>test_script_data</strong> (<em>list</em>) – State updates over the execution.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="nost.observer.TestScriptObserver._sim">
+<code class="sig-name descname"><span class="pre">_sim</span></code><a class="headerlink" href="#nost.observer.TestScriptObserver._sim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simulator class to execute commands directly to execution state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#nost.simulator.Simulator" title="nost.simulator.Simulator">nost.simulator.Simulator</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="nost.observer.TestScriptObserver._client">
+<code class="sig-name descname"><span class="pre">_client</span></code><a class="headerlink" href="#nost.observer.TestScriptObserver._client" title="Permalink to this definition">¶</a></dt>
+<dd><p>Access to the MQTT client for publishing messages.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>paho.mqtt.client.Client</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="nost.observer.TestScriptObserver._prefix">
+<code class="sig-name descname"><span class="pre">_prefix</span></code><a class="headerlink" href="#nost.observer.TestScriptObserver._prefix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prefix of specified execution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="nost.observer.TestScriptObserver._data">
+<code class="sig-name descname"><span class="pre">_data</span></code><a class="headerlink" href="#nost.observer.TestScriptObserver._data" title="Permalink to this definition">¶</a></dt>
+<dd><p>State updates over the execution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="nost.observer.TestScriptObserver._length">
+<code class="sig-name descname"><span class="pre">_length</span></code><a class="headerlink" href="#nost.observer.TestScriptObserver._length" title="Permalink to this definition">¶</a></dt>
+<dd><p>Amount of state updates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="nost.observer.TestScriptObserver._index">
+<code class="sig-name descname"><span class="pre">_index</span></code><a class="headerlink" href="#nost.observer.TestScriptObserver._index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Index of next state update.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="nost.observer.TestScriptObserver._next_time">
+<code class="sig-name descname"><span class="pre">_next_time</span></code><a class="headerlink" href="#nost.observer.TestScriptObserver._next_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Time of next state update.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>datetime.datetime</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nost.observer.TestScriptObserver.on_change">
+<code class="sig-name descname"><span class="pre">on_change</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">property_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">old_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nost.observer.TestScriptObserver.on_change" title="Permalink to this definition">¶</a></dt>
+<dd><p>On change function observing execution time to issue time-based updates.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nost.observer.TestScriptObserver.set_next_time">
+<code class="sig-name descname"><span class="pre">set_next_time</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nost.observer.TestScriptObserver.set_next_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets next time to execute update.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-nost.simulator">
+<span id="nost-simulator-module"></span><h2>nost.simulator module<a class="headerlink" href="#module-nost.simulator" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="nost.simulator.Entity">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">nost.simulator.</span></code><code class="sig-name descname"><span class="pre">Entity</span></code><a class="headerlink" href="#nost.simulator.Entity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#nost.observer.Observable" title="nost.observer.Observable"><code class="xref py py-class docutils literal notranslate"><span class="pre">nost.observer.Observable</span></code></a></p>
+<p>This is the abstract Entity class which inherits the observable.</p>
+<dl class="py method">
+<dt id="nost.simulator.Entity.initialize">
+<code class="sig-name descname"><span class="pre">initialize</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">init_time</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nost.simulator.Entity.initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Abstract method for initializing the entity at an init_time.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nost.simulator.Entity.tick">
+<code class="sig-name descname"><span class="pre">tick</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time_step</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nost.simulator.Entity.tick" title="Permalink to this definition">¶</a></dt>
+<dd><p>Abstract method for computing time step durations.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nost.simulator.Entity.tock">
+<code class="sig-name descname"><span class="pre">tock</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nost.simulator.Entity.tock" title="Permalink to this definition">¶</a></dt>
+<dd><p>Abstract method for committing time state change.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="nost.simulator.Mode">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">nost.simulator.</span></code><code class="sig-name descname"><span class="pre">Mode</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nost.simulator.Mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>This is an enumeration of execution states.</p>
+<dl class="py attribute">
+<dt id="nost.simulator.Mode.EXECUTING">
+<code class="sig-name descname"><span class="pre">EXECUTING</span></code><em class="property"> <span class="pre">=</span> <span class="pre">(3,)</span></em><a class="headerlink" href="#nost.simulator.Mode.EXECUTING" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="nost.simulator.Mode.INITIALIZED">
+<code class="sig-name descname"><span class="pre">INITIALIZED</span></code><em class="property"> <span class="pre">=</span> <span class="pre">(2,)</span></em><a class="headerlink" href="#nost.simulator.Mode.INITIALIZED" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="nost.simulator.Mode.INITIALIZING">
+<code class="sig-name descname"><span class="pre">INITIALIZING</span></code><em class="property"> <span class="pre">=</span> <span class="pre">(1,)</span></em><a class="headerlink" href="#nost.simulator.Mode.INITIALIZING" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="nost.simulator.Mode.TERMINATED">
+<code class="sig-name descname"><span class="pre">TERMINATED</span></code><em class="property"> <span class="pre">=</span> <span class="pre">5</span></em><a class="headerlink" href="#nost.simulator.Mode.TERMINATED" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="nost.simulator.Mode.TERMINATING">
+<code class="sig-name descname"><span class="pre">TERMINATING</span></code><em class="property"> <span class="pre">=</span> <span class="pre">(4,)</span></em><a class="headerlink" href="#nost.simulator.Mode.TERMINATING" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="nost.simulator.Mode.UNDEFINED">
+<code class="sig-name descname"><span class="pre">UNDEFINED</span></code><em class="property"> <span class="pre">=</span> <span class="pre">(0,)</span></em><a class="headerlink" href="#nost.simulator.Mode.UNDEFINED" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="nost.simulator.Simulator">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">nost.simulator.</span></code><code class="sig-name descname"><span class="pre">Simulator</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wallclock_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">datetime.timedelta(0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nost.simulator.Simulator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#nost.observer.Observable" title="nost.observer.Observable"><code class="xref py py-class docutils literal notranslate"><span class="pre">nost.observer.Observable</span></code></a></p>
+<p>This is the Simulator class which inherit the observable.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>wallclock_offset</strong> (<em>datetime.timedelta</em>) – Offset from the system clock defined by NTP atomic clock, defaults to 0.</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em>) – Determines whether logs are shown.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="nost.simulator.Simulator._wallclock_offset">
+<code class="sig-name descname"><span class="pre">_wallclock_offset</span></code><a class="headerlink" href="#nost.simulator.Simulator._wallclock_offset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Offset from the system clock defined by NTP atomic clock, defaults to 0.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>datetime.timedelta</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="nost.simulator.Simulator._entities">
+<code class="sig-name descname"><span class="pre">_entities</span></code><a class="headerlink" href="#nost.simulator.Simulator._entities" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of entities that participate in this simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="nost.simulator.Simulator._mode">
+<code class="sig-name descname"><span class="pre">_mode</span></code><a class="headerlink" href="#nost.simulator.Simulator._mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Current mode of the simulator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#nost.simulator.Mode" title="nost.simulator.Mode">nost.simulator.Mode</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="nost.simulator.Simulator._time">
+<code class="sig-name descname"><span class="pre">_time</span></code><a class="headerlink" href="#nost.simulator.Simulator._time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Current simulation time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>datetime.datetime</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="nost.simulator.Simulator._next_time">
+<code class="sig-name descname"><span class="pre">_next_time</span></code><a class="headerlink" href="#nost.simulator.Simulator._next_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Next simulation time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>datetime.datetime</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="nost.simulator.Simulator._init_time">
+<code class="sig-name descname"><span class="pre">_init_time</span></code><a class="headerlink" href="#nost.simulator.Simulator._init_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initial simulation time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>datetime.datetime</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="nost.simulator.Simulator._time_step">
+<code class="sig-name descname"><span class="pre">_time_step</span></code><a class="headerlink" href="#nost.simulator.Simulator._time_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Current simulation time step.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="nost.simulator.Simulator._next_time_step">
+<code class="sig-name descname"><span class="pre">_next_time_step</span></code><a class="headerlink" href="#nost.simulator.Simulator._next_time_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Next simulation time step.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="nost.simulator.Simulator._duration">
+<code class="sig-name descname"><span class="pre">_duration</span></code><a class="headerlink" href="#nost.simulator.Simulator._duration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Current simulation duration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="nost.simulator.Simulator._next_duration">
+<code class="sig-name descname"><span class="pre">_next_duration</span></code><a class="headerlink" href="#nost.simulator.Simulator._next_duration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Next simulation duration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="nost.simulator.Simulator._wallclock_epoch">
+<code class="sig-name descname"><span class="pre">_wallclock_epoch</span></code><a class="headerlink" href="#nost.simulator.Simulator._wallclock_epoch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wallclock time when the simulation starts or changes time scaling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>datetime.datetime</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="nost.simulator.Simulator._simulation_epoch">
+<code class="sig-name descname"><span class="pre">_simulation_epoch</span></code><a class="headerlink" href="#nost.simulator.Simulator._simulation_epoch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simulation time when the simulation starts or changes time scaling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>datetime.datetime</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="nost.simulator.Simulator._time_scale_change_time">
+<code class="sig-name descname"><span class="pre">_time_scale_change_time</span></code><a class="headerlink" href="#nost.simulator.Simulator._time_scale_change_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simulation time at which to perform a time scale change.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>datetime.datetime</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="nost.simulator.Simulator._time_scale_factor">
+<code class="sig-name descname"><span class="pre">_time_scale_factor</span></code><a class="headerlink" href="#nost.simulator.Simulator._time_scale_factor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Current relationship between the wallclock time and simulation time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="nost.simulator.Simulator._next_time_scale_factor">
+<code class="sig-name descname"><span class="pre">_next_time_scale_factor</span></code><a class="headerlink" href="#nost.simulator.Simulator._next_time_scale_factor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Next relationship between the wallclock time and simulation time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="nost.simulator.Simulator._verbose">
+<code class="sig-name descname"><span class="pre">_verbose</span></code><a class="headerlink" href="#nost.simulator.Simulator._verbose" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determines whether logs are shown.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nost.simulator.Simulator.add_entity">
+<code class="sig-name descname"><span class="pre">add_entity</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entity</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nost.simulator.Simulator.add_entity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a simulation entity.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nost.simulator.Simulator.execute">
+<code class="sig-name descname"><span class="pre">execute</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">init_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_step</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wallclock_epoch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_scale_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nost.simulator.Simulator.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute a simulation for a given duration with uniform time steps.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nost.simulator.Simulator.get_duration">
+<code class="sig-name descname"><span class="pre">get_duration</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nost.simulator.Simulator.get_duration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the simulation duration.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nost.simulator.Simulator.get_init_time">
+<code class="sig-name descname"><span class="pre">get_init_time</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nost.simulator.Simulator.get_init_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the initial simulation time.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nost.simulator.Simulator.get_mode">
+<code class="sig-name descname"><span class="pre">get_mode</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nost.simulator.Simulator.get_mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the current simulation mode.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nost.simulator.Simulator.get_simulation_epoch">
+<code class="sig-name descname"><span class="pre">get_simulation_epoch</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nost.simulator.Simulator.get_simulation_epoch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the simulation epoch.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nost.simulator.Simulator.get_time">
+<code class="sig-name descname"><span class="pre">get_time</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nost.simulator.Simulator.get_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the simulation time.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nost.simulator.Simulator.get_time_scale_factor">
+<code class="sig-name descname"><span class="pre">get_time_scale_factor</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nost.simulator.Simulator.get_time_scale_factor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the time scale factor (&gt;1 is faster-than-real-time).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nost.simulator.Simulator.get_time_step">
+<code class="sig-name descname"><span class="pre">get_time_step</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nost.simulator.Simulator.get_time_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the simulation time step.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nost.simulator.Simulator.get_wallclock_epoch">
+<code class="sig-name descname"><span class="pre">get_wallclock_epoch</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nost.simulator.Simulator.get_wallclock_epoch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the wallclock epoch.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nost.simulator.Simulator.get_wallclock_time">
+<code class="sig-name descname"><span class="pre">get_wallclock_time</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nost.simulator.Simulator.get_wallclock_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the current wallclock time.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nost.simulator.Simulator.get_wallclock_time_at_simulation_time">
+<code class="sig-name descname"><span class="pre">get_wallclock_time_at_simulation_time</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nost.simulator.Simulator.get_wallclock_time_at_simulation_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the current wallclock time.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nost.simulator.Simulator.initialize">
+<code class="sig-name descname"><span class="pre">initialize</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">init_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wallclock_epoch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_scale_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nost.simulator.Simulator.initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the simulation to an initial time.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nost.simulator.Simulator.remove_entity">
+<code class="sig-name descname"><span class="pre">remove_entity</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entity</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nost.simulator.Simulator.remove_entity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes a simulation entity.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nost.simulator.Simulator.set_duration">
+<code class="sig-name descname"><span class="pre">set_duration</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">duration</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nost.simulator.Simulator.set_duration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the simulation duration.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nost.simulator.Simulator.set_end_time">
+<code class="sig-name descname"><span class="pre">set_end_time</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">end_time</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nost.simulator.Simulator.set_end_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the simulation end time.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nost.simulator.Simulator.set_mode">
+<code class="sig-name descname"><span class="pre">set_mode</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nost.simulator.Simulator.set_mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the current simulation state and notifies observers.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nost.simulator.Simulator.set_time_scale_factor">
+<code class="sig-name descname"><span class="pre">set_time_scale_factor</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time_scale_factor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simulation_epoch</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nost.simulator.Simulator.set_time_scale_factor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the simulation time scale factor (&gt;1 is faster-than-real-time).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nost.simulator.Simulator.set_time_step">
+<code class="sig-name descname"><span class="pre">set_time_step</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time_step</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nost.simulator.Simulator.set_time_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the simulation time step.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nost.simulator.Simulator.set_wallclock_offset">
+<code class="sig-name descname"><span class="pre">set_wallclock_offset</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wallclock_offset</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nost.simulator.Simulator.set_wallclock_offset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the wallclock offset.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nost.simulator.Simulator.terminate">
+<code class="sig-name descname"><span class="pre">terminate</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nost.simulator.Simulator.terminate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Terminate the simulation execution.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nost.simulator.Simulator.tick">
+<code class="sig-name descname"><span class="pre">tick</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time_step</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nost.simulator.Simulator.tick" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the state transitions for a time step duration.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nost.simulator.Simulator.tock">
+<code class="sig-name descname"><span class="pre">tock</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nost.simulator.Simulator.tock" title="Permalink to this definition">¶</a></dt>
+<dd><p>Commits the state transitions.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nost.simulator.Simulator.wait_for_tock">
+<code class="sig-name descname"><span class="pre">wait_for_tock</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nost.simulator.Simulator.wait_for_tock" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wait to tock until the “correct” next wallclock time.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nost.simulator.Simulator.wait_for_wallclock_epoch">
+<code class="sig-name descname"><span class="pre">wait_for_wallclock_epoch</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nost.simulator.Simulator.wait_for_wallclock_epoch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wait to start the simulation until the wallclock epoch.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-nost">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-nost" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="nost.commands.html" class="btn btn-neutral float-right" title="nost.commands package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="index.html" class="btn btn-neutral float-left" title="manager-backend" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Hayden Daly, Matthew Brand, and Paul Grogan.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

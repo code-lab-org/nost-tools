@@ -1,0 +1,153 @@
+asyncapi: 2.0.0
+info:
+  title: Simulation Manager Application
+  version: '1.0.0'
+  description: Application for simulation management
+
+servers:
+  production: https://testbed-manager.mysmce.com
+  protocol: mqtt
+
+#clarification on channels
+channels:
+  "#/manager/#":
+    subscribe:
+      message:
+       -  $ref: "#/components/messages/init"
+       -  $ref: "#/components/messages/stop"
+       -  $ref: "#/components/messages/start"
+       -  $ref: "#/components/messages/update"
+       -  $ref: "#/components/messages/ready"
+  "#/fire/#":
+    publish:
+        message:
+         -  $ref: "#/components/messages/ready"
+         -  $ref: "#/components/messages/info"
+  "#/ground/#":
+    publish:
+      message:
+        -  $ref: "#/components/messages/ready"
+        -  $ref: "#/components/messages/info"
+        -  $ref: "#/components/messages/groundRequest"
+    subscribe:
+        message:
+         -  $ref: "#/components/messages/ready"
+         -  $ref: "#/components/messages/info"
+
+
+# list of messages availible to be received/published
+components:
+  messages:
+    init:
+      name: Initialize message
+      description: The message sent to the fire application to initilaize ignition
+      payload:
+        $ref: "#/components/schemas/initPayload"
+    stop:
+      name: Stop message
+      description: The message to stop the simulation at a provided time
+      payload:
+        $ref: "#/components/schemas/stopPayload"
+    start:
+      name: Start message
+      description: The mesasge to begin the Simulation
+      payload:
+       $ref: "#/components/schemas/startPayload"
+    update:
+      name: Update message
+      description: The message to update a simulation property
+      payload:
+        $ref: "#/components/schemas/updatePayload"
+    ready:
+      name: Ready message
+      description: A message sent to confirm the readiness of the application
+      payload:
+        $ref: "#/components/schemas/readyPayload"
+    info:
+      name: Info message
+      description: The consecutive info dump of the fire application
+      payload:
+        $ref: "#/components/schemas/infoPayload"
+    groundRequest:
+      name: Ground request message
+      description: Issues a request for transmition from the ground station
+      payload:
+        $ref: "#/components/schemas/groundRequestPayload"
+
+
+# potential to add check criteria here (i.e. min/max/formatting)
+ schemas:
+   initPayload:
+    type: object
+    properties:
+      simStartTime:
+        description: The time in ISO format to start the Simulation
+        type: string
+      simStopTime:
+        description: The time in ISO format to stop the Simulation
+        type: string
+      timeScalingFactor:
+        description: The scaling factor between wallclock time and simulation time
+        type: int
+      publishStep:
+        description: The time in simulated seconds that a time status message will be published
+        type: int
+      timeStatusStartTime:
+        description: The simultion time at which the time status messages should begin
+        type: string
+  updatePayload:
+    type: object
+    properties:
+        type:
+          description: Indicates the type of update
+          type: string
+        simStartTime:
+          description: The time in ISO format to start the Simulation
+          type: string
+        simStopTime:
+          description: The time in ISO format to stop the Simulation
+          type: string
+        timeScalingFactor:
+          description: The scaling factor between wallclock time and simulation time
+          type: int
+        publishStep:
+          description: The time in simulated seconds that a time status message will be published
+          type: int
+        timeStatusStartTime:
+          description: The simultion time at which the time status messages should begin
+          type: string
+  stopPayload:
+      type: object
+      properties:
+          simStopTime:
+            description: The time in ISO format to stop the Simulation
+            type: string
+  startPayload:
+    type: object
+    properties:
+        simStartTime:
+          description: The time in ISO format to start the Simulation
+          type: string
+  readyPayload:
+    type: object
+    properties:
+      name:
+        description: The name of the ready application
+        type: string
+  infoPayload:
+    type: object
+    properties:
+      properties:
+        subscriptions:
+          description: List of subscription strings the application is attatched to
+          type: List
+        type:
+          description: Type of application
+          type: string
+  groundRequestPayload:
+    type: object
+    properties:
+      properties:
+        requestor:
+          description: Name of satellite issuing the request
+          type: string

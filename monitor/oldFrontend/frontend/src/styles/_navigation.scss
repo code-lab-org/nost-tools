@@ -1,0 +1,49 @@
+@import 'color-theme';
+
+.navigation {
+    width: 100%;
+    border-bottom: .25px solid;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    @include col() {
+        border-color: t($shadow);
+    }
+}
+
+.navigation-content {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    font-size: 15px;
+    padding-left: 15px;
+    padding-right: 15px;
+    @include col() {
+        max-width: t($width);
+    }
+}
+
+.navigation-item {
+    text-decoration: none;
+    &:focus, &:hover, &:visited, &:link, &:active {
+        text-decoration: none;
+    }
+    height: 50px;
+    display: flex;
+    padding-left: 10px;
+    padding-right: 10px;
+    margin-right: 15px;
+    align-items: center;
+    @include col() {
+        color: t($regular);
+    }
+}
+
+.navigation-item-current, .navigation-item:hover, .navigation-item:active {
+    @include col() {
+        color: t($mid);
+        box-shadow: 0 1px 0 t($mid);
+    }
+}

@@ -1,0 +1,18 @@
+{
+  "name": "manager",
+  "version": "1.0.0",
+  "description": "This node serves as the manager of simulation state and issues out the commands prefixed by `nost/manager/` as referenced in the [Interface Guidelines](https://git.mysmce.com/nos-t/manager/-/wikis/Interface-Guidelines).",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://git.mysmce.com/nos-t/manager.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "postcss": "^8.4.24"
+  }
+}

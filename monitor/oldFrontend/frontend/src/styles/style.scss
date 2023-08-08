@@ -1,0 +1,82 @@
+// style.scss
+
+// Importing style files
+@import 'color-theme';
+@import 'header';
+@import 'status-header';
+@import 'navigation';
+@import 'overview';
+@import 'logs';
+@import 'nodes';
+@import 'test-script';
+@import 'settings';
+@import 'footer';
+@import 'modal';
+
+// Defining font faces
+@font-face {
+    font-family: "Regular";
+    src: url("../static/fonts/Lato-Regular.ttf");
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Medium";
+    src: url("../static/fonts/Lato-Bold.ttf");
+    font-style: normal;
+    font-display: swap;
+}
+
+// Styling for the '.main' class
+.main {
+    font-size: 14px;
+    font-family: 'Regular', 'Helvetica Neue', 'Arial', 'sans-serif';
+    margin-bottom: 40px;
+    @include col() {
+        background-color: $background;
+        color: $regular;
+    }
+}
+
+// Styling for the '.shadow' class
+.shadow {
+    @include col() {
+        box-shadow: 0px 0px 3px t($shadow);
+    }
+}
+
+// Styling for the '.button' class
+.button {
+    padding: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-radius: 5px;
+    @include col() {
+        background-color: t($button);
+        color: t($background);
+        &:focus, &:hover {
+            background-color: t($header);
+            cursor: pointer;
+            text-decoration: none;
+        }
+    }
+}
+
+// Styling for the '.button-cancel' class
+.button-cancel {
+    padding: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-radius: 5px;
+    margin-right: 7px;
+    @include col() {
+        background-color: t($fail);
+        color: t($background);
+        &:focus, &:hover {
+            background-color: t($fail)00;
+            cursor: pointer;
+            text-decoration: none;
+        }
+    }
+}

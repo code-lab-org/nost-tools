@@ -1,0 +1,224 @@
+@import 'color-theme';
+
+.logs {
+    flex: 1;
+    padding: 15px;
+    padding-left: 25px;
+    padding-right: 25px;
+    margin: auto;
+    @include col() {
+        max-width: t($width);
+    }
+}
+
+.logs-header {
+    margin: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 30px;
+    margin-top: 3.8px;
+    justify-content: space-between;
+    font-size: 14px;
+    @include col() {
+        color: t($regular);
+    }
+}
+
+.logs-drop-down {
+    @include col() {
+        &:focus, &:hover {
+            color: t($header);
+            cursor: pointer;
+        }
+    }
+}
+
+.logs-drop-down-icon {
+    font-size: 28px;
+}
+
+.logs-console {
+    min-height: 450px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid;
+    @include col() {
+        border-color: t($shadow);
+    }
+}
+
+.logs-console-logs {
+    height: 525px;
+    padding: 10px;
+    border-bottom: 1px solid;
+    overflow-y: scroll;
+    @include col() {
+        background-color: t($darker-background);
+        border-color: t($shadow);
+    }
+}
+
+.logs-console-logs::-webkit-scrollbar {
+    width: 8px;  
+}
+
+.logs-console-logs::-webkit-scrollbar-track {
+    background: none;
+}
+
+.logs-console-logs::-webkit-scrollbar-thumb {
+    border-radius: 20px;
+    @include col() {
+        background-color: t($regular);
+    }
+}
+
+.logs-message {
+    font-size: 13px;
+    @include col() {
+        color: t($dark);
+    }
+}
+
+.logs-message-label {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    margin-right: 10px;
+    margin-bottom: 3px;
+    @include col() {
+        color: t($header);
+    }
+}
+
+.logs-message-label-colon {
+    @include col() {
+        color: t($dark);
+    }
+}
+
+.logs-message-body {
+    margin-bottom: 5px;
+    word-wrap: break-word;
+}
+
+.logs-message-json {
+    font-family: 'Regular';
+    font-size: 13px;
+    @include col() {
+        color: t($dark);
+    }
+}
+
+.logs-message-json::-webkit-scrollbar {
+    height: 6px;  
+}
+
+.logs-console-json::-webkit-scrollbar-track {
+    background: none;
+}
+
+.logs-console-json::-webkit-scrollbar-thumb {
+    border-radius: 20px;
+    @include col() {
+        background-color: t($regular);
+    }
+}
+
+.logs-footer {
+    bottom: 0;
+    height: 30px;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    padding-left: 10px;
+    padding-right: 10px;
+    font-size: 13px;
+    @include col() {
+        color: t($regular);
+        background-color: t($background);
+    }
+}
+
+.logs-footer-options {
+    padding-top: 6px;
+    display: flex;
+    flex-direction: row;
+}
+
+.logs-checkbox {
+    margin-top: 3px;
+    margin-right: 5px;
+}
+
+.logs-footer-export {
+    padding-top: 6px;
+}
+/* Add these styles to the existing CSS file or a separate file */
+/* Add these variables to the top of the existing SCSS file or a separate file */
+
+@import 'color-theme';
+
+.modal-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    transition: 0.5s ease-out;
+    align-items: center;
+    justify-content: center;
+    @include col() {
+        background-color: t($dark-transparent);
+    }
+}
+
+.modal-container {
+    position: absolute;
+    width: 80%;
+    height: 80%;
+    border-radius: 10px;
+    border: 1px solid;
+    overflow-x: scroll;
+    @include col() {
+        border-color: t($shadow);
+        background-color: t($background);
+    }
+}
+
+.modal-header {
+    margin: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 40px;
+    margin-top: 2px;
+    justify-content: space-between;
+    font-size: 14px;
+    @include col() {
+        color: t($regular);
+    }
+}
+
+.modal-header-exit {
+    cursor: pointer;
+    @include col() {
+        color: t($fail);
+    } 
+}
+
+.modal-body {
+    margin: 0px;
+    height: 100%;
+    overflow: hidden;
+}
+
+.modal-iframe {
+    flex: 1;
+    zoom: 0.75;
+    width: 100%;
+    height: 100%;
+}

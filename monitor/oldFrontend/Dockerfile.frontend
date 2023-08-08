@@ -1,0 +1,14 @@
+FROM node
+
+WORKDIR /usr/src/app
+COPY frontend/ .
+
+RUN npm install node-sass@latest
+RUN npm install sass-loader@latest
+RUN npm install
+RUN npm install serve -g
+RUN npm rebuild node-sass
+RUN npm run docker
+
+EXPOSE 8000
+CMD ["serve", "-s", "dist", "-l", "8000"]
