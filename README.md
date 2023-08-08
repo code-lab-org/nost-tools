@@ -34,7 +34,13 @@ The NOS-T Tools Monitor application displays real-time log messages and provides
 
 ### Backend
 
-The backend application runs a FastAPI application. To install requirements, run from the project root:
+The backend application runs a FastAPI application that provides HTTP routes to execute manager functions. It expects the following environment variables, for example, via a `.env` file:
+ * `CLIENT_USERNAME`: username of the client account to connect to the broker
+ * `CLIENT_PASSWORD`: password of the client account to connect to the broker
+ * `BROKER_HOST`: host name (DNS or IP address) of the broker
+ * `BROKER_PORT`: port number of the broker
+
+To run the backend application from native Python, first install requirements by running from the project root:
 ```
 pip install -r monitor/requirements.txt
 ```
@@ -49,7 +55,7 @@ The backend application can also be run through Docker containers. To build the 
 docker build -t monitor_backend --target monitor_backend .
 ```
 
-To run the backend application container, run from the project root:
+Alternatively, to run the backend application as a Docker container, run from the project root:
 ```
 docker run -it -p 3000:3000 monitor_backend
 ```
