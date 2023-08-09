@@ -23,16 +23,17 @@ app = FastAPI(
     description="Provides a RESTful HTTP interface to NOS-T manager functions.",
     version=nost_tools.__version__
 )
-
+origins = [
+    "http://localhost",
+    "http://localhost:8000",
+]
 # configure CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://localhost"
-    ],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"]
+    allow_headers=["*"],
 )
 
 # load environment variables from the .env file 

@@ -1,14 +1,14 @@
-import React, { useContext, useState } from 'react';
-import axios from 'axios'; // assuming you're using axios for HTTP requests
-import { Context } from '../functions/Provider';
-import PopUpDatePicker from './PopUpDatePicker';
+import React, { useContext, useState } from 'react'
+import axios from 'axios' // assuming you're using axios for HTTP requests
+import { Context } from '../functions/Provider'
+import PopUpDatePicker from './PopUpDatePicker'
 
 const Controls = () => {
-    const { prefix } = useContext(Context);
+    const { prefix } = useContext(Context)
     const [inputs, setInputs] = useState({
         initSimStartTime: '',
         initSimStopTime: '',
-    });
+    })
 
     const init = async (prefix, startTime, stopTime) => {
         try {
@@ -16,12 +16,12 @@ const Controls = () => {
                 simStartTime: startTime,
                 simStopTime: stopTime,
                 requiredApps: [], // this is hardcoded, change as needed
-            });
-            console.log(response.data);
+            })
+            console.log(response.data)
         } catch (error) {
-            console.error('Error initializing', error);
+            console.error('Error initializing', error)
         }
-    };
+    }
 
     return (
         <div className="Controls">
@@ -64,7 +64,7 @@ const Controls = () => {
                 </div>
             </div>
         </div>
-    );
-};
+    )
+}
 
-export default Controls;
+export default Controls
