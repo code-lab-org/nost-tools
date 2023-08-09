@@ -6,11 +6,13 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse
-import nost_tools
-from nost_tools.manager import Manager
-from nost_tools.application_utils import ConnectionConfig
 
-from .schemas import InitRequest, StartRequest, StopRequest, UpdateRequest, ExecuteRequest
+import nost_tools
+from nost_tools.application_utils import ConnectionConfig
+from nost_tools.manager import Manager
+
+from .schemas import (ExecuteRequest, InitRequest, StartRequest, StopRequest,
+                      UpdateRequest)
 
 # configure logging
 logging.basicConfig(level=logging.INFO)
@@ -59,7 +61,7 @@ def get_scenario_mode(prefix: str):
     Reports the current scenario execution mode for a prefix.
     """
     return get_manager(prefix).simulator.get_mode()
-
+    
 @app.post("/init/{prefix}", tags=["manager"])
 def run_init_command(prefix: str, request: InitRequest):
     """
