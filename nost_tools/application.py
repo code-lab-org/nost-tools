@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 import logging
 import ntplib
 import paho.mqtt.client as mqtt
+import ssl
 import time
 from typing import Callable
 
@@ -99,12 +100,10 @@ class Application(object):
             self.set_wallclock_offset()
         # set test run prefix
         self.prefix = prefix
-        # set client username and password
-        self.client.username_pw_set(username=config.username, password=config.password)
-        # maybe configure transport layer security (encryption)
-        if config.is_tls:
-            self.client.tls_set()
+        # Set client certificates
+        self.client.tls_set(certfile=config.cert, keyfile=config.key)
         # connect to server
+
         self.client.connect(config.host, config.port)
         # configure observers
         self._create_time_status_publisher(time_status_step, time_status_init)

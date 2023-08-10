@@ -26,31 +26,28 @@ class ConnectionConfig(object):
     user and identification of the server.
 
     Attributes:
-        username (str): client username, provided by NOS-T operator
-        password (str): client password, provided by NOS-T operator
         host (str): broker hostname
         port (int): broker port number
-        is_tls (bool): True, if the connection uses TLS (Transport Layer Security)
+        cert (str): filepath to client certificate
+        key  (str): filepath to client private key
     """
 
     def __init__(
-        self, username: str, password: str, host: str, port: int, is_tls: bool = True
+        self, host: str, port: int, cert: str, key: str
     ):
         """
         Initializes a new connection configuration.
 
         Args:
-            username (str): client username
-            password (str): client password
             host (str): broker hostname
             port (int): broker port number
-            is_tls (bool): True, if the connection uses Transport Layer Security
+            cert (str): filepath to client certificate
+            key  (str): filepath to client private key
         """
-        self.username = username
-        self.password = password
         self.host = host
         self.port = port
-        self.is_tls = is_tls
+        self.cert = cert
+        self.key = key
 
 
 class ShutDownObserver(Observer):
