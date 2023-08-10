@@ -90,3 +90,6 @@ if __name__ == "__main__":
         time_status_init=datetime(2020, 1, 1, 7, 20, tzinfo=timezone.utc),
         time_step=timedelta(seconds=1) * SCALE,
     )
+
+    while True:
+        pass
