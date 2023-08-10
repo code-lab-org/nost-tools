@@ -104,9 +104,9 @@ const Overview = () => {
     }
 
     const formatDate = (value) => {
-        let datetime = new Date(value);
-        return datetime.toISOString();
-    };
+        let datetime = new Date(value)
+        return datetime.toISOString()
+    }
 
     // Render
     return (
@@ -123,10 +123,12 @@ const Overview = () => {
                                 {
                                     label: 'Simulation Start Time',
                                     stateKey: 'initSimStartTime',
+                                    type: 'datetime',
                                 },
                                 {
                                     label: 'Simulation Stop Time',
                                     stateKey: 'initSimStopTime',
+                                    type: 'datetime',
                                 },
                             ],
                         },
@@ -137,26 +139,33 @@ const Overview = () => {
                                 {
                                     label: 'Simulation Start Time',
                                     stateKey: 'startSimStartTime',
+                                    type: 'datetime',
+
                                 },
                                 {
                                     label: 'Simulation Stop Time',
                                     stateKey: 'startSimStopTime',
+                                    type: 'datetime',
                                 },
                                 {
                                     label: 'Wallclock Start Time',
                                     stateKey: 'wallclockStartTime',
+                                    type: 'datetime',
                                 },
                                 {
                                     label: 'Time Scale Factor (sec)',
                                     stateKey: 'timeScaleFactor',
+                                    type: 'integer',
                                 },
                                 {
                                     label: 'Time Status Start Time',
                                     stateKey: 'timeStatusStartTime',
+                                    type: 'datetime',
                                 },
                                 {
                                     label: 'Publish Step (sec)',
                                     stateKey: 'publishStep',
+                                    type: 'integer',
                                 },
                             ],
                         },
@@ -167,6 +176,7 @@ const Overview = () => {
                                 {
                                     label: 'Simulation Stop Time',
                                     stateKey: 'stopSimStopTime',
+                                    type: 'datetime',
                                 },
                             ],
                         },
@@ -177,10 +187,12 @@ const Overview = () => {
                                 {
                                     label: 'Simulation Update Time',
                                     stateKey: 'updateSimUpdateTime',
+                                    type: 'datetime',
                                 },
                                 {
                                     label: 'Time Scale Factor (sec) ',
-                                    stateKey: 'timeScaleFactor',
+                                    stateKey: 'timeScaleFactor2',
+                                    type: 'integer',
                                 },
                             ],
                         },
@@ -207,84 +219,95 @@ const Overview = () => {
                                     )}
                             </div>
 
-                            {inputFields.map(
-                                ({ label: inputLabel, stateKey }) => (
-                                    <div
-                                        key={inputLabel}
-                                        style={{
-                                            marginBottom: '10px',
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            alignItems: 'center',
-                                        }}
-                                    >
-                                        <label
-                                            style={{
-                                                fontWeight: 'bold',
-                                                textAlign: 'center',
-                                            }}
-                                        >
-                                            {inputLabel}
-                                        </label>
-                                        <input
-                                            className="overview-input"
-                                            placeholder={inputLabel}
-                                            value={initInputs[stateKey]}
-                                            onChange={(e) =>
-                                                handleInputChange(
-                                                    stateKey,
-                                                    e.target.value
-                                                )
-                                            }
-                                        />
-                                    </div>
-                                )
-                            )}
+                            {inputFields.map(({ label: inputLabel, stateKey, type }) => (
+    <div
+        key={inputLabel}
+        style={{
+            marginBottom: '10px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+        }}
+    >
+        <label
+            style={{
+                fontWeight: 'bold',
+                textAlign: 'center',
+            }}
+        >
+            {inputLabel}
+        </label>
+
+        {/* Conditionally render the input based on the type */}
+        {type === "datetime" && (
+            <>
+                <input
+                    type="datetime-local"
+                    className="overview-input"
+                    onChange={(e) => {
+                        const formattedDate = formatDate(e.target.value + ":00.000");
+                        handleInputChange(stateKey, formattedDate);
+                    }}
+                />
+                <input
+                    className="overview-input"
+                    value={initInputs[stateKey]}
+                    onChange={(e) =>
+                        handleInputChange(stateKey, e.target.value)
+                    }
+                />
+            </>
+        )}
+
+        {type === "integer" && (
+            <input
+                type="number"
+                className="overview-input"
+                value={initInputs[stateKey]}
+                onChange={(e) =>
+                    handleInputChange(stateKey, e.target.value)
+                }
+            />
+        )}
+
+        {/* You can add more types as needed */}
+    </div>
+))}
                         </div>
                     ))
                 }
 
                 <div>
-                    
-<div className="overview">API Local Logs
-                
-                
-                
-                </div>
-
-                <div>
-                    <div>
-                        !!!_NOTICE_!!!: Refresh Page to see latest local logs
-                        for api !!!_NOTICE_!!!: click roots to expand
-                    </div>
-                    {generateJsonDisplay(apiLog)}
+                    <div className="overview">API Local Logs</div>
 
                     <div>
-                        <button
-                            className="overview-button"
-                            onClick={() => clearApiLog()}
-                        >
-                            Clear Log
-                        </button>
+                        <div>
+                            !!!_NOTICE_!!!: Refresh Page to see latest local
+                            logs for api !!!_NOTICE_!!!: click roots to expand
+                        </div>
+                        {generateJsonDisplay(apiLog)}
 
-                        <button
-                            className="overview-button"
-                            onClick={() => saveApiLogToFile()}
-                        >
-                            Save Log
-                        </button>
+                        <div>
+                            <button
+                                className="overview-button"
+                                onClick={() => clearApiLog()}
+                            >
+                                Clear Log
+                            </button>
+
+                            <button
+                                className="overview-button"
+                                onClick={() => saveApiLogToFile()}
+                            >
+                                Save Log
+                            </button>
+                        </div>
                     </div>
-                </div>
-
                 </div>
                 <Nodes />
             </div>
-
         </div>
     )
 }
 
 export default Overview
-
-
-
