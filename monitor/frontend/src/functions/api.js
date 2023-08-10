@@ -30,6 +30,28 @@ function saveApiLogToFile() {
     // Clean up
     URL.revokeObjectURL(link.href)
 }
+// Define a variable to store the API errors
+let apiErrors = []
+
+// Function to add an entry to the API errors
+function addToApiErrors(entry) {
+    apiErrors.unshift(entry) // Use unshift to add new entries at the beginning
+    localStorage.setItem('apiErrors', JSON.stringify(apiErrors))
+
+    // Set a timer to clear the errors after 10 seconds
+    setTimeout(clearApiErrorsFromLocalStorage, 10000)
+}
+
+// Function to clear API errors from local storage
+function clearApiErrorsFromLocalStorage() {
+    localStorage.removeItem('apiErrors')
+}
+
+// Function to clear API errors in memory
+function clearApiErrorsInMemory() {
+    apiErrors = []
+}
+
 export async function callApi(endpoint, method, data = {}) {
     const timestamp = new Date().toISOString()
 
@@ -67,6 +89,7 @@ export async function callApi(endpoint, method, data = {}) {
             const errorMessage = `Error: ${textResponse}`
             console.error(errorMessage)
             logEntry.error = errorMessage
+            throw new Error(errorMessage)
         } else {
             const responseData = await response.json()
             logEntry.result = responseData
@@ -74,6 +97,8 @@ export async function callApi(endpoint, method, data = {}) {
     } catch (error) {
         const fetchErrorMessage = `Fetch error: ${error.message}`
         console.error(fetchErrorMessage)
+        logEntry.error = fetchErrorMessage
+        addToApiErrors(fetchErrorMessage) // Add the error message to apiErrors
         logEntry.error = fetchErrorMessage
     } finally {
         addToApiLog(logEntry)
@@ -143,6 +168,11 @@ if (storedApiLog) {
     apiLog = JSON.parse(storedApiLog)
 }
 
+const storedApiErrors = localStorage.getItem('apiErrors')
+if (storedApiErrors) {
+    apiErrors = JSON.parse(storedApiErrors)
+}
+
 export {
     // callApi,
     // getStatus,
@@ -152,4 +182,5 @@ export {
     // runUpdateCommand,
     clearApiLog, // Export the clear function
     saveApiLogToFile, // Export the save function
+    clearApiErrorsInMemory, // Export the clear function
 }

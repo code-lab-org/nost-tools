@@ -2,7 +2,6 @@
 // Required imports
 import React, { useContext, useState, useEffect } from 'react'
 import { Context } from '../functions/Provider'
-import PopUpDatePicker from './PopUpDatePicker'
 import JsonDisplay from './JsonDisplay'
 import Nodes from './Nodes'
 import {
@@ -20,8 +19,8 @@ const Overview = () => {
 
     // State declarations
     const [apiLog, setApiLogs] = useState([]) // To hold API logs
-    const [lastCommandStatus, setLastCommandStatus] = useState(null)
 
+    const [lastCommandStatus, setLastCommandStatus] = useState(null) // To hold the status of the last command
     const [initInputs, setInitInputs] = useState({
         // To hold initialization inputs
         initSimStartTime: '',
@@ -34,9 +33,8 @@ const Overview = () => {
         publishStep: '',
         stopSimStopTime: '',
         updateSimUpdateTime: '',
-        timeScaleFactor: '', // ...other input fields
+        timeScaleFactor2: '', // ...other input fields
     })
-    const [rerenderTrigger, setRerenderTrigger] = useState(0)
 
     // Function to generate a JSON display
     const generateJsonDisplay = (jsonData) => {
@@ -68,38 +66,47 @@ const Overview = () => {
                 prefix,
                 initInputs.initSimStartTime,
                 initInputs.initSimStopTime
-            );
-    
-            setLastCommandStatus({
-                status: 'success',
-                message: `${commandLabel} command was successful.`,
-                commandLabel: commandLabel
-            });
-    
-        } catch (error) {
-            console.error(`${commandLabel} command error:`, error.message);
-            setLastCommandStatus({
-                status: 'error',
-                message: `${commandLabel} command encountered an error: ${error.message}.`,
-                commandLabel: commandLabel
-            });
-        }
-    
-        // Clear the message after 5 seconds
-        setTimeout(() => {
-            if (lastCommandStatus && lastCommandStatus.commandLabel === commandLabel) {
-                setLastCommandStatus(null); 
+            )
+            const apiErrorsFromLocalStorage = JSON.parse(
+                localStorage.getItem('apiErrors') || '[]'
+            )
+            if (apiErrorsFromLocalStorage.length) {
+                setLastCommandStatus({
+                    commandLabel,
+                    status: 'error',
+                    message: 'Failed!',
+                })
+            } else {
+                setLastCommandStatus({
+                    commandLabel,
+                    status: 'success',
+                    message: 'Success!',
+                })
             }
-        }, 5000);
+        } catch (error) {
+            console.error(`${commandLabel} command error:`, error.message)
+            setLastCommandStatus({
+                commandLabel,
+                status: 'error',
+                message: 'Error occurred!',
+            })
+        }
+
+        // Reset message after 6 seconds
+        setTimeout(() => {
+            setLastCommandStatus(null)
+        }, 6000)
     }
-    
-    
-    
 
     // Handle input changes
     const handleInputChange = (inputName, value) => {
         setInitInputs((prevInputs) => ({ ...prevInputs, [inputName]: value }))
     }
+
+    const formatDate = (value) => {
+        let datetime = new Date(value);
+        return datetime.toISOString();
+    };
 
     // Render
     return (
@@ -181,55 +188,69 @@ const Overview = () => {
                         <div className="overview-row" key={label}>
                             <button
                                 className="overview-button"
-                                onClick={() => handleCommandClick(commandFunction, label)}
+                                onClick={() =>
+                                    handleCommandClick(commandFunction, label)
+                                }
                             >
                                 {label}
                             </button>
-                    
+
                             <div className="overview-status-message">
-                                {lastCommandStatus && lastCommandStatus.commandLabel === label && (
-                                    <div className={`status-${lastCommandStatus.status}`}>
-                                        {lastCommandStatus.message}
-                                    </div>
-                                )}
+                                {lastCommandStatus &&
+                                    lastCommandStatus.commandLabel ===
+                                        label && (
+                                        <div
+                                            className={`status-${lastCommandStatus.status}`}
+                                        >
+                                            {lastCommandStatus.message}
+                                        </div>
+                                    )}
                             </div>
-                    
-                            {inputFields.map(({ label: inputLabel, stateKey }) => (
-                                <div
-                                    key={inputLabel}
-                                    style={{
-                                        marginBottom: '10px',
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        alignItems: 'center',
-                                    }}
-                                >
-                                    <label
+
+                            {inputFields.map(
+                                ({ label: inputLabel, stateKey }) => (
+                                    <div
+                                        key={inputLabel}
                                         style={{
-                                            fontWeight: 'bold',
-                                            textAlign: 'center',
+                                            marginBottom: '10px',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
                                         }}
                                     >
-                                        {inputLabel}
-                                    </label>
-                                    <input
-                                        className="overview-input"
-                                        placeholder={inputLabel}
-                                        value={initInputs[stateKey]}
-                                        onChange={(e) =>
-                                            handleInputChange(stateKey, e.target.value)
-                                        }
-                                    />
-                                </div>
-                            ))}
+                                        <label
+                                            style={{
+                                                fontWeight: 'bold',
+                                                textAlign: 'center',
+                                            }}
+                                        >
+                                            {inputLabel}
+                                        </label>
+                                        <input
+                                            className="overview-input"
+                                            placeholder={inputLabel}
+                                            value={initInputs[stateKey]}
+                                            onChange={(e) =>
+                                                handleInputChange(
+                                                    stateKey,
+                                                    e.target.value
+                                                )
+                                            }
+                                        />
+                                    </div>
+                                )
+                            )}
                         </div>
                     ))
                 }
 
                 <div>
-                    <p></p>
+                    
+<div className="overview">API Local Logs
+                
+                
+                
                 </div>
-                <div className="overview-header">API Local Logs</div>
 
                 <div>
                     <div>
@@ -255,10 +276,15 @@ const Overview = () => {
                     </div>
                 </div>
 
+                </div>
                 <Nodes />
             </div>
+
         </div>
     )
 }
 
 export default Overview
+
+
+
