@@ -1,20 +1,27 @@
-import React, { useContext, useState } from 'react'
+// ./src/components/Overview.jsx
+// Required imports
+import React, { useContext, useState, useEffect } from 'react'
 import { Context } from '../functions/Provider'
 import PopUpDatePicker from './PopUpDatePicker'
-
+import JsonDisplay from './JsonDisplay'
 import Nodes from './Nodes'
-
 import {
     runInitCommand,
     runStartCommand,
     runStopCommand,
     runUpdateCommand,
-    // runTestScript,
+    clearApiLog,
+    saveApiLogToFile,
 } from '../functions/api.js'
 
 const Overview = () => {
+    // Retrieve prefix from context
     const { prefix } = useContext(Context)
+
+    // State declarations
+    const [apiLog, setApiLogs] = useState([]) // To hold API logs
     const [initInputs, setInitInputs] = useState({
+        // To hold initialization inputs
         initSimStartTime: '',
         initSimStopTime: '',
         startSimStartTime: '',
@@ -25,129 +32,189 @@ const Overview = () => {
         publishStep: '',
         stopSimStopTime: '',
         updateSimUpdateTime: '',
-        timeScaleFactor: '',
+        timeScaleFactor: '', // ...other input fields
     })
+    const [rerenderTrigger, setRerenderTrigger] = useState(0)
 
+    // Function to generate a JSON display
+    const generateJsonDisplay = (jsonData) => {
+        return <JsonDisplay data={jsonData} />
+    }
+
+    // Effect hook to generate JSON display whenever initInputs changes
+    useEffect(() => {
+        generateJsonDisplay(initInputs)
+    }, [initInputs])
+
+    // Effect hook to get API logs from local storage when the component mounts
+    useEffect(() => {
+        const storedApiLog = localStorage.getItem('apiLog')
+        if (storedApiLog) {
+            setApiLogs(JSON.parse(storedApiLog))
+        }
+    }, [])
+
+    // Effect hook to store the updated apiLog in local storage
+    useEffect(() => {
+        localStorage.setItem('apiLog', JSON.stringify(apiLog))
+    }, [apiLog])
+
+    // Handle API command clicks
     const handleCommandClick = async (commandFunction, commandLabel) => {
         try {
-          const responseData = await commandFunction(
-            prefix,
-            initInputs.initSimStartTime,
-            initInputs.initSimStopTime
-          );
-    
-          const log = `${commandLabel} command successful with prefix: ${prefix}\nResponse Data: ${JSON.stringify(
-            responseData
-          )}`;
-    
-          logMessage(log);
-          alert(log);
+            const responseData = await commandFunction(
+                prefix,
+                initInputs.initSimStartTime,
+                initInputs.initSimStopTime
+            )
+            console.log(`${commandLabel} command successful`, responseData)
         } catch (error) {
-          const errorMessage = `${commandLabel} command error: ${error.message}`;
-          logMessage(errorMessage);
-          alert(errorMessage);
+            console.error(`${commandLabel} command error:`, error.message)
         }
-      };
+    }
 
+    // Handle input changes
     const handleInputChange = (inputName, value) => {
         setInitInputs((prevInputs) => ({ ...prevInputs, [inputName]: value }))
     }
 
+    // Render
     return (
         <div className="overview">
             <div className="overview-header">Commands</div>
             <div className="overview-buttons">
-                {[
-                    {
-                        label: 'Initialize',
-                        commandFunction: runInitCommand,
-                        inputFields: [
-                            {
-                                label: 'Simulation Start Time',
-                                stateKey: 'initSimStartTime',
-                            },
-                            {
-                                label: 'Simulation Stop Time',
-                                stateKey: 'initSimStopTime',
-                            },
-                        ],
-                    },
-                    {
-                        label: 'Start',
-                        commandFunction: runStartCommand,
-                        inputFields: [
-                            {
-                                label: 'Simulation Start Time',
-                                stateKey: 'startSimStartTime',
-                            },
-                            {
-                                label: 'Simulation Stop Time',
-                                stateKey: 'startSimStopTime',
-                            },
-                            {
-                                label: 'Wallclock Start Time',
-                                stateKey: 'wallclockStartTime',
-                            },
-                            {
-                                label: 'Time Scale Factor (sec)',
-                                stateKey: 'timeScaleFactor',
-                            },
-                            {
-                                label: 'Time Status Start Time',
-                                stateKey: 'timeStatusStartTime',
-                            },
-                            {
-                                label: 'Publish Step (sec)',
-                                stateKey: 'publishStep',
-                            },
-                        ],
-                    },
-                    {
-                        label: 'Stop',
-                        commandFunction: runStopCommand,
-                        inputFields: [
-                            {
-                                label: 'Simulation Stop Time',
-                                stateKey: 'stopSimStopTime',
-                            },
-                        ],
-                    },
-                    {
-                        label: 'Update',
-                        commandFunction: runUpdateCommand,
-                        inputFields: [
-                            {
-                                label: 'Simulation Update Time',
-                                stateKey: 'updateSimUpdateTime',
-                            },
-                            {
-                                label: 'Time Scale Factor (sec) ',
-                                stateKey: 'timeScaleFactor',
-                            },
-                        ],
-                    },
-                ].map(({ label, commandFunction, inputFields }) => (
-                    <div className="overview-row" key={label}>
+                {
+                    // Mapping commands to render them along with their input fields
+                    [
+                        {
+                            label: 'Initialize',
+                            commandFunction: runInitCommand,
+                            inputFields: [
+                                {
+                                    label: 'Simulation Start Time',
+                                    stateKey: 'initSimStartTime',
+                                },
+                                {
+                                    label: 'Simulation Stop Time',
+                                    stateKey: 'initSimStopTime',
+                                },
+                            ],
+                        },
+                        {
+                            label: 'Start',
+                            commandFunction: runStartCommand,
+                            inputFields: [
+                                {
+                                    label: 'Simulation Start Time',
+                                    stateKey: 'startSimStartTime',
+                                },
+                                {
+                                    label: 'Simulation Stop Time',
+                                    stateKey: 'startSimStopTime',
+                                },
+                                {
+                                    label: 'Wallclock Start Time',
+                                    stateKey: 'wallclockStartTime',
+                                },
+                                {
+                                    label: 'Time Scale Factor (sec)',
+                                    stateKey: 'timeScaleFactor',
+                                },
+                                {
+                                    label: 'Time Status Start Time',
+                                    stateKey: 'timeStatusStartTime',
+                                },
+                                {
+                                    label: 'Publish Step (sec)',
+                                    stateKey: 'publishStep',
+                                },
+                            ],
+                        },
+                        {
+                            label: 'Stop',
+                            commandFunction: runStopCommand,
+                            inputFields: [
+                                {
+                                    label: 'Simulation Stop Time',
+                                    stateKey: 'stopSimStopTime',
+                                },
+                            ],
+                        },
+                        {
+                            label: 'Update',
+                            commandFunction: runUpdateCommand,
+                            inputFields: [
+                                {
+                                    label: 'Simulation Update Time',
+                                    stateKey: 'updateSimUpdateTime',
+                                },
+                                {
+                                    label: 'Time Scale Factor (sec) ',
+                                    stateKey: 'timeScaleFactor',
+                                },
+                            ],
+                        },
+                    ].map(({ label, commandFunction, inputFields }) => (
+                        <div className="overview-row" key={label}>
+                            <button
+                                className="overview-button"
+                                onClick={() =>
+                                    handleCommandClick(commandFunction, label)
+                                }
+                            >
+                                {label}
+                            </button>
+                            {inputFields.map(({ label, stateKey }) => (
+                                <input
+                                    key={label}
+                                    className="overview-input"
+                                    placeholder={label}
+                                    value={initInputs[stateKey]}
+                                    onChange={(e) =>
+                                        handleInputChange(
+                                            stateKey,
+                                            e.target.value
+                                        )
+                                    }
+                                />
+                            ))}
+                        </div>
+                    ))
+                }
+
+                <div>
+                    <p></p>
+                </div>
+                <div className="overview-header">API Local Logs</div>
+
+                <div>
+                    <div>
+                        <ls style={{ paddingLeft: '8px', opacity: 0.5 }}>
+                            !!!_NOTICE_!!!: Refresh Page to see latest local
+                            logs for api 
+                            !!!_NOTICE_!!!:
+                            click roots to expand
+                        </ls>
+                        
+                    </div>
+                    {generateJsonDisplay(apiLog)}
+
+                    <div>
                         <button
                             className="overview-button"
-                            onClick={() => handleCommandClick(commandFunction)}
+                            onClick={() => clearApiLog()}
                         >
-                            {label}
+                            Clear Log
                         </button>
-                        {/* Input fields for commands */}
-                        {inputFields.map(({ label, stateKey }) => (
-                            <input
-                                key={label}
-                                className="overview-input"
-                                placeholder={label}
-                                value={initInputs[stateKey]}
-                                onChange={(e) =>
-                                    handleInputChange(stateKey, e.target.value)
-                                }
-                            />
-                        ))}
+
+                        <button
+                            className="overview-button"
+                            onClick={() => saveApiLogToFile()}
+                        >
+                            Save Log
+                        </button>
                     </div>
-                ))}
+                </div>
 
                 <Nodes />
             </div>

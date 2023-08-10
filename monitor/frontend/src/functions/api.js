@@ -1,44 +1,84 @@
 // api.js
-
 const BASE_URL = 'http://127.0.0.1:8000/'
 
+// Define a variable to store the API log
+let apiLog = []
+
+// Function to add an entry to the API log
+function addToApiLog(entry) {
+    apiLog.unshift(entry) // Use unshift to add new entries at the beginning
+    localStorage.setItem('apiLog', JSON.stringify(apiLog))
+}
+// clears log from local storage
+function clearApiLog() {
+    apiLog = [] // Clear the array
+    localStorage.removeItem('apiLog') // Remove from local storage
+}
+
+// Function to save the API log as a JSON file
+function saveApiLogToFile() {
+    const fileName = 'apiLog.json'
+    const jsonContent = JSON.stringify(apiLog, null, 2)
+    const blob = new Blob([jsonContent], { type: 'application/json' })
+
+    // Create a download link
+    const link = document.createElement('a')
+    link.href = URL.createObjectURL(blob)
+    link.download = fileName
+    link.click()
+
+    // Clean up
+    URL.revokeObjectURL(link.href)
+}
 export async function callApi(endpoint, method, data = {}) {
-    console.log(
-        `callApi - Endpoint: ${endpoint}, Method: ${method}, Data:`,
-        data
-    )
+    const timestamp = new Date().toISOString()
 
-    const url = `${BASE_URL}${endpoint}`
-    const headers = {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-    }
-
-    const options = {
+    const logEntry = {
+        timestamp,
+        endpoint,
         method,
-        headers,
-        body: JSON.stringify(data),
+        data,
+        result: null,
+        error: null,
     }
 
     try {
+        console.log(
+            `callApi - Endpoint: ${endpoint}, Method: ${method}, Data:`,
+            data
+        )
+
+        const url = `${BASE_URL}${endpoint}`
+        const headers = {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+        }
+
+        const options = {
+            method,
+            headers,
+            body: JSON.stringify(data),
+        }
+
         const response = await fetch(url, options)
 
         if (!response.ok) {
             const textResponse = await response.text()
             const errorMessage = `Error: ${textResponse}`
             console.error(errorMessage)
-            throw new Error(errorMessage)
+            logEntry.error = errorMessage
+        } else {
+            const responseData = await response.json()
+            logEntry.result = responseData
         }
-
-        const responseData = await response.json()
-        return responseData
     } catch (error) {
         const fetchErrorMessage = `Fetch error: ${error.message}`
         console.error(fetchErrorMessage)
-        throw new Error(fetchErrorMessage)
+        logEntry.error = fetchErrorMessage
+    } finally {
+        addToApiLog(logEntry)
     }
 }
-
 export async function getStatus(testName) {
     console.log(`getStatus - Test Name: ${testName}`)
 
@@ -96,3 +136,20 @@ export async function runUpdateCommand(
 }
 
 // You can add more functions for additional API calls if needed
+
+// You can also initialize the API log from local storage if it exists
+const storedApiLog = localStorage.getItem('apiLog')
+if (storedApiLog) {
+    apiLog = JSON.parse(storedApiLog)
+}
+
+export {
+    // callApi,
+    // getStatus,
+    // runInitCommand,
+    // runStartCommand,
+    // runStopCommand,
+    // runUpdateCommand,
+    clearApiLog, // Export the clear function
+    saveApiLogToFile, // Export the save function
+}
