@@ -20,6 +20,8 @@ const Overview = () => {
 
     // State declarations
     const [apiLog, setApiLogs] = useState([]) // To hold API logs
+    const [lastCommandStatus, setLastCommandStatus] = useState(null)
+
     const [initInputs, setInitInputs] = useState({
         // To hold initialization inputs
         initSimStartTime: '',
@@ -62,16 +64,37 @@ const Overview = () => {
     // Handle API command clicks
     const handleCommandClick = async (commandFunction, commandLabel) => {
         try {
-            const responseData = await commandFunction(
+            await commandFunction(
                 prefix,
                 initInputs.initSimStartTime,
                 initInputs.initSimStopTime
-            )
-            console.log(`${commandLabel} command successful`, responseData)
+            );
+    
+            setLastCommandStatus({
+                status: 'success',
+                message: `${commandLabel} command was successful.`,
+                commandLabel: commandLabel
+            });
+    
         } catch (error) {
-            console.error(`${commandLabel} command error:`, error.message)
+            console.error(`${commandLabel} command error:`, error.message);
+            setLastCommandStatus({
+                status: 'error',
+                message: `${commandLabel} command encountered an error: ${error.message}.`,
+                commandLabel: commandLabel
+            });
         }
+    
+        // Clear the message after 5 seconds
+        setTimeout(() => {
+            if (lastCommandStatus && lastCommandStatus.commandLabel === commandLabel) {
+                setLastCommandStatus(null); 
+            }
+        }, 5000);
     }
+    
+    
+    
 
     // Handle input changes
     const handleInputChange = (inputName, value) => {
@@ -158,25 +181,46 @@ const Overview = () => {
                         <div className="overview-row" key={label}>
                             <button
                                 className="overview-button"
-                                onClick={() =>
-                                    handleCommandClick(commandFunction, label)
-                                }
+                                onClick={() => handleCommandClick(commandFunction, label)}
                             >
                                 {label}
                             </button>
-                            {inputFields.map(({ label, stateKey }) => (
-                                <input
-                                    key={label}
-                                    className="overview-input"
-                                    placeholder={label}
-                                    value={initInputs[stateKey]}
-                                    onChange={(e) =>
-                                        handleInputChange(
-                                            stateKey,
-                                            e.target.value
-                                        )
-                                    }
-                                />
+                    
+                            <div className="overview-status-message">
+                                {lastCommandStatus && lastCommandStatus.commandLabel === label && (
+                                    <div className={`status-${lastCommandStatus.status}`}>
+                                        {lastCommandStatus.message}
+                                    </div>
+                                )}
+                            </div>
+                    
+                            {inputFields.map(({ label: inputLabel, stateKey }) => (
+                                <div
+                                    key={inputLabel}
+                                    style={{
+                                        marginBottom: '10px',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                    }}
+                                >
+                                    <label
+                                        style={{
+                                            fontWeight: 'bold',
+                                            textAlign: 'center',
+                                        }}
+                                    >
+                                        {inputLabel}
+                                    </label>
+                                    <input
+                                        className="overview-input"
+                                        placeholder={inputLabel}
+                                        value={initInputs[stateKey]}
+                                        onChange={(e) =>
+                                            handleInputChange(stateKey, e.target.value)
+                                        }
+                                    />
+                                </div>
                             ))}
                         </div>
                     ))
@@ -189,13 +233,8 @@ const Overview = () => {
 
                 <div>
                     <div>
-                        <ls style={{ paddingLeft: '8px', opacity: 0.5 }}>
-                            !!!_NOTICE_!!!: Refresh Page to see latest local
-                            logs for api 
-                            !!!_NOTICE_!!!:
-                            click roots to expand
-                        </ls>
-                        
+                        !!!_NOTICE_!!!: Refresh Page to see latest local logs
+                        for api !!!_NOTICE_!!!: click roots to expand
                     </div>
                     {generateJsonDisplay(apiLog)}
 

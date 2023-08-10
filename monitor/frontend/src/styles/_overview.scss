@@ -3,20 +3,23 @@
 .overview {
     flex: 1;
     padding: 15px;
-    padding-left: 25px;
-    padding-right: 25px;
     margin: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #f7f7f7;
+    border-radius: 5px;
     @include col() {
         max-width: t($width);
     }
 }
 
 .overview-header {
-    margin: 0;
+    margin: 15px 0;
     display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    font-size: 14px;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: bold;
     @include col() {
         color: t($regular);
     }
@@ -24,21 +27,27 @@
 
 .overview-buttons {
     margin-top: 15px;
+    width: 100%;
+    max-width: 600px;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 .overview-row {
     display: flex;
-    flex-direction: row;
-    margin-bottom: 10px;
+    flex-direction: column;
+    margin-bottom: 15px;
 }
 
 .overview-button {
-    padding: 5px;
+    margin-top: 10px;
+    padding: 10px;
     border-radius: 5px;
-    width: 75px;
+    width: 100%;
     text-align: center;
     @include col() {
         background-color: t($button);
@@ -50,18 +59,12 @@
     }
 }
 
-.overview-button-filler {
-    width: 75px;
-}
-
 .overview-input {
-    padding: 5px;
+    margin-top: 5px;
+    padding: 10px;
     border-radius: 5px;
-    margin-left: 15px;
-    padding-left: 10px;
-    flex: 1;
-    max-width: 190px;
-    border: .25px solid;
+    width: 100%;
+    border: 1px solid;
     background: none;
     @include col() {
         border-color: t($shadow);
@@ -75,6 +78,20 @@
 
 .overview-input::placeholder {
     @include col() {
-        color: t($regular)0;
+        color: t($regular);
     }
+
 }
+
+.status-success {
+    color: green;
+    margin-top: 10px;
+    text-align: center;
+}
+
+.status-error {
+    color: red;
+    margin-top: 10px;
+    text-align: center;
+}
+
