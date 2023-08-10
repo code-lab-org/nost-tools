@@ -20,6 +20,8 @@ const Overview = () => {
     // State declarations
     const [apiLog, setApiLogs] = useState([]) // To hold API logs
 
+    const [inputValidations, setInputValidations] = useState({}) // To hold input validations
+
     const [lastCommandStatus, setLastCommandStatus] = useState(null) // To hold the status of the last command
     const [initInputs, setInitInputs] = useState({
         // To hold initialization inputs
@@ -100,12 +102,33 @@ const Overview = () => {
 
     // Handle input changes
     const handleInputChange = (inputName, value) => {
+        if (inputName.endsWith('Time')) {
+            // Check if the input name suggests it's a datetime
+            if (isDatetimeValid(value)) {
+                setInputValidations((prev) => ({
+                    ...prev,
+                    [inputName]: 'status-success',
+                }))
+            } else {
+                setInputValidations((prev) => ({
+                    ...prev,
+                    [inputName]: 'status-error',
+                }))
+            }
+        }
+
+        // Regardless of validation, let the user input data
         setInitInputs((prevInputs) => ({ ...prevInputs, [inputName]: value }))
     }
 
     const formatDate = (value) => {
         let datetime = new Date(value)
         return datetime.toISOString()
+    }
+
+    const isDatetimeValid = (datetime) => {
+        const pattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?$/
+        return pattern.test(datetime)
     }
 
     // Render
@@ -140,7 +163,6 @@ const Overview = () => {
                                     label: 'Simulation Start Time',
                                     stateKey: 'startSimStartTime',
                                     type: 'datetime',
-
                                 },
                                 {
                                     label: 'Simulation Stop Time',
@@ -219,60 +241,87 @@ const Overview = () => {
                                     )}
                             </div>
 
-                            {inputFields.map(({ label: inputLabel, stateKey, type }) => (
-    <div
-        key={inputLabel}
-        style={{
-            marginBottom: '10px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-        }}
-    >
-        <label
-            style={{
-                fontWeight: 'bold',
-                textAlign: 'center',
-            }}
-        >
-            {inputLabel}
-        </label>
+                            {inputFields.map(
+                                ({ label: inputLabel, stateKey, type }) => (
+                                    <div
+                                        key={inputLabel}
+                                        style={{
+                                            marginBottom: '10px',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                        }}
+                                    >
+                                        <label
+                                            style={{
+                                                fontWeight: 'bold',
+                                                textAlign: 'center',
+                                            }}
+                                        >
+                                            {inputLabel}
+                                        </label>
 
-        {/* Conditionally render the input based on the type */}
-        {type === "datetime" && (
-            <>
-                <input
-                    type="datetime-local"
-                    className="overview-input"
-                    onChange={(e) => {
-                        const formattedDate = formatDate(e.target.value + ":00.000");
-                        handleInputChange(stateKey, formattedDate);
-                    }}
-                />
-                <input
-                    className="overview-input"
-                    value={initInputs[stateKey]}
-                    onChange={(e) =>
-                        handleInputChange(stateKey, e.target.value)
-                    }
-                />
-            </>
-        )}
+                                        {/* Conditionally render the input based on the type */}
+                                        {type === 'datetime' && (
+                                            <>
+                                                <input
+                                                    type="datetime-local"
+                                                    className="overview-input"
+                                                    onChange={(e) => {
+                                                        const formattedDate =
+                                                            formatDate(
+                                                                e.target.value +
+                                                                    ':00.000'
+                                                            )
+                                                        handleInputChange(
+                                                            stateKey,
+                                                            formattedDate
+                                                        )
+                                                    }}
+                                                />
+                                                <input
+                                                    className="overview-input"
+                                                    value={initInputs[stateKey]}
+                                                    onChange={(e) =>
+                                                        handleInputChange(
+                                                            stateKey,
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                />
+                                                <div
+                                                    className={
+                                                        inputValidations[
+                                                            stateKey
+                                                        ]
+                                                    }
+                                                >
+                                                    {inputValidations[
+                                                        stateKey
+                                                    ] === 'status-error' &&
+                                                        'Invalid datetime format'}
+                                                </div>
+                                            </>
+                                        )}
 
-        {type === "integer" && (
-            <input
-                type="number"
-                className="overview-input"
-                value={initInputs[stateKey]}
-                onChange={(e) =>
-                    handleInputChange(stateKey, e.target.value)
-                }
-            />
-        )}
+                                        {type === 'integer' && (
+                                            <input
+                                                type="number"
+                                                className="overview-input"
+                                                value={initInputs[stateKey]}
+                                                onChange={(e) =>
+                                                    handleInputChange(
+                                                        stateKey,
+                                                        e.target.value
+                                                    )
+                                                }
+                                            />
+                                        )}
 
-        {/* You can add more types as needed */}
-    </div>
-))}
+                                        {/* You can add more types as needed */}
+                                    </div>
+                                )
+                            )}
                         </div>
                     ))
                 }
