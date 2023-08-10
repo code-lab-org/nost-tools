@@ -1,24 +1,26 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Jun  7 11:10:57 2023
+    *This application demonstrates a simulation of a schedule of fires given geospatial locations and specified datetimes (at one minute resolution)*
 
-@author: brian
+    The application contains a single :obj:`Environment` class which listens to the time status published by the manager application and publishes fire information at the specified ignition :obj:`datetime`. The application also contains callback messages that updates :obj:`datetime` in the fires :obj:`DataFrame` for each of ignition (including latitude-longitude :obj:`GeographicPosition`), detection, and reporting.
+
 """
 
-import time
 import logging
-import pandas as pd
 from datetime import datetime, timezone, timedelta
 from dotenv import dotenv_values
+import pandas as pd
 
-from skyfield.api import utc
-from nost_tools.observer import Observer
-from nost_tools.simulator import Mode
+pd.options.mode.chained_assignment = None
+
+import importlib.resources
+
 from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
+from nost_tools.observer import Observer
 from nost_tools.managed_application import ManagedApplication
 
-from config import PARAMETERS
-from satellite_with_multiple_targets import *
+from fire_config_files.schemas import FireState, FireStarted, FireDetected, FireReported
+from fire_config_files.config import PREFIX, SCALE
 
 logging.basicConfig(level=logging.INFO)
 
@@ -41,6 +43,9 @@ class Environment(Observer):
         *Standard on_change callback function format inherited from Observer object class*
 
         In this instance, the callback function checks the simulation :obj:`datetime` against each scheduled fire ignition :obj:`datetime` for the scenario. If past the scheduled start of a fire, a :obj:`FireStarted` message is sent to *PREFIX/fire/location*:
+
+        .. literalinclude:: /../../examples/firesat/fires/main_fire.py
+            :lines: 51-66
 
         """
         if property_name == "time":
@@ -181,36 +186,3 @@ if __name__ == "__main__":
     app.add_message_callback("fire", "location", on_fire)
     app.add_message_callback("constellation", "detected", on_detected)
     app.add_message_callback("constellation", "reported", on_reported)
-
-
-# name guard used to ensure script only executes if it is run as the __main__
-if __name__ == "__main__":
-    # Note that these are loaded from a .env file in current working directory
-    credentials = dotenv_values(".env")
-    HOST, PORT = credentials["HOST"], int(credentials["PORT"])
-    USERNAME, PASSWORD = credentials["USERNAME"], credentials["PASSWORD"]
-
-    # set the client credentials
-    config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, True)
-
-    # create the managed application
-    app = ManagedApplication("target")
-
-    # add a shutdown observer to shut down after a single test case
-    app.simulator.add_observer(ShutDownObserver(app))
-
-    # start up the application on PREFIX, publish time status every 10 seconds of wallclock time
-    app.start_up(
-        PARAMETERS["PREFIX"],
-        config,
-        True,
-        time_status_step=timedelta(seconds=5) * PARAMETERS["SCALE"],
-        time_status_init=datetime.fromtimestamp(PARAMETERS["SCENARIO_START"]).replace(
-            tzinfo=utc
-        ),
-        time_step=timedelta(seconds=.1) * PARAMETERS["SCALE"],
-    )
-
-    # Ensures the application hangs until the simulation is terminated, to allow background threads to run
-    while not app.simulator.get_mode() == Mode.TERMINATED:
-        time.sleep(0.2)

@@ -20,6 +20,8 @@ understanding of NOS-T in an isolated environment where more physical
 variables such power consumption, runtime, and message latency are more
 prevalent.
 
+A link to hardware testbed's GitHub repository can be found `here <https://github.com/hteele/nost-hardware-testbed>`_. It includes all of the code that will be referenced in this document, as well as necessary WiFi initialization and MicroPython libraries.
+
 Methodology
 -----------
 
