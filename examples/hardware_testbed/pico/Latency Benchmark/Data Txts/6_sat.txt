@@ -1,0 +1,3267 @@
+Latency for message: 2 ms
+Current time: 12:15:17
+Payload Size: 132 bytes
+Latency for message: 1 ms
+Current time: 12:15:17
+Payload Size: 132 bytes
+Latency for message: 2 ms
+Current time: 12:15:17
+Payload Size: 47 bytes
+Latency for message: 1 ms
+Current time: 12:15:17
+Payload Size: 49 bytes
+Latency for message: 3 ms
+Current time: 12:15:17
+Payload Size: 132 bytes
+Latency for message: 0 ms
+Current time: 12:15:17
+Payload Size: 132 bytes
+Latency for message: 2 ms
+Current time: 12:15:17
+Payload Size: 47 bytes
+Latency for message: 0 ms
+Current time: 12:15:17
+Payload Size: 47 bytes
+Latency for message: 2 ms
+Current time: 12:15:17
+Payload Size: 49 bytes
+Latency for message: 1 ms
+Current time: 12:15:17
+Payload Size: 49 bytes
+Latency for message: 3 ms
+Current time: 12:15:17
+Payload Size: 188 bytes
+Latency for message: 0 ms
+Current time: 12:15:17
+Payload Size: 59 bytes
+Latency for message: 2 ms
+Current time: 12:15:17
+Payload Size: 56 bytes
+Latency for message: 2 ms
+Current time: 12:15:17
+Payload Size: 56 bytes
+Latency for message: 1 ms
+Current time: 12:15:17
+Payload Size: 56 bytes
+Latency for message: 2 ms
+Current time: 12:15:17
+Payload Size: 47 bytes
+Latency for message: 1 ms
+Current time: 12:15:17
+Payload Size: 47 bytes
+Latency for message: 2 ms
+Current time: 12:15:17
+Payload Size: 49 bytes
+Latency for message: 0 ms
+Current time: 12:15:17
+Payload Size: 49 bytes
+Latency for message: 2 ms
+Current time: 12:15:17
+Payload Size: 58 bytes
+Latency for message: 2 ms
+Current time: 12:15:17
+Payload Size: 56 bytes
+Latency for message: 2 ms
+Current time: 12:15:17
+Payload Size: 56 bytes
+Latency for message: 2 ms
+Current time: 12:15:17
+Payload Size: 58 bytes
+Latency for message: 3 ms
+Current time: 12:15:17
+Payload Size: 56 bytes
+Latency for message: 1 ms
+Current time: 12:15:17
+Payload Size: 65 bytes
+Latency for message: 1 ms
+Current time: 12:15:17
+Payload Size: 55 bytes
+Latency for message: 2 ms
+Current time: 12:15:17
+Payload Size: 57 bytes
+Latency for message: 493 ms
+Current time: 12:15:18
+Payload Size: 64 bytes
+Latency for message: 4299 ms
+Current time: 12:15:22
+Payload Size: 93 bytes
+Latency for message: 2 ms
+Current time: 12:15:22
+Payload Size: 62 bytes
+Latency for message: 2 ms
+Current time: 12:15:22
+Payload Size: 53 bytes
+Latency for message: 2 ms
+Current time: 12:15:22
+Payload Size: 56 bytes
+Latency for message: 2 ms
+Current time: 12:15:22
+Payload Size: 92 bytes
+Latency for message: 4 ms
+Current time: 12:15:22
+Payload Size: 92 bytes
+Latency for message: 1 ms
+Current time: 12:15:22
+Payload Size: 93 bytes
+Latency for message: 1 ms
+Current time: 12:15:22
+Payload Size: 91 bytes
+Latency for message: 0 ms
+Current time: 12:15:22
+Payload Size: 95 bytes
+Latency for message: 1 ms
+Current time: 12:15:22
+Payload Size: 94 bytes
+Latency for message: 2 ms
+Current time: 12:15:22
+Payload Size: 55 bytes
+Latency for message: 977 ms
+Current time: 12:15:23
+Payload Size: 118 bytes
+Latency for message: 2 ms
+Current time: 12:15:23
+Payload Size: 119 bytes
+Latency for message: 2 ms
+Current time: 12:15:23
+Payload Size: 116 bytes
+Latency for message: 3 ms
+Current time: 12:15:23
+Payload Size: 209 bytes
+Latency for message: 78 ms
+Current time: 12:15:23
+Payload Size: 211 bytes
+Latency for message: 73 ms
+Current time: 12:15:23
+Payload Size: 210 bytes
+Latency for message: 152 ms
+Current time: 12:15:24
+Payload Size: 208 bytes
+Latency for message: 120 ms
+Current time: 12:15:24
+Payload Size: 215 bytes
+Latency for message: 44 ms
+Current time: 12:15:24
+Payload Size: 214 bytes
+Latency for message: 153 ms
+Current time: 12:15:24
+Payload Size: 209 bytes
+Latency for message: 74 ms
+Current time: 12:15:24
+Payload Size: 211 bytes
+Latency for message: 135 ms
+Current time: 12:15:24
+Payload Size: 210 bytes
+Latency for message: 17 ms
+Current time: 12:15:24
+Payload Size: 119 bytes
+Latency for message: 55 ms
+Current time: 12:15:24
+Payload Size: 208 bytes
+Latency for message: 121 ms
+Current time: 12:15:24
+Payload Size: 215 bytes
+Latency for message: 136 ms
+Current time: 12:15:24
+Payload Size: 214 bytes
+Latency for message: 120 ms
+Current time: 12:15:25
+Payload Size: 209 bytes
+Latency for message: 102 ms
+Current time: 12:15:25
+Payload Size: 211 bytes
+Latency for message: 106 ms
+Current time: 12:15:25
+Payload Size: 210 bytes
+Latency for message: 195 ms
+Current time: 12:15:25
+Payload Size: 208 bytes
+Latency for message: 106 ms
+Current time: 12:15:25
+Payload Size: 215 bytes
+Latency for message: 54 ms
+Current time: 12:15:25
+Payload Size: 119 bytes
+Latency for message: 17 ms
+Current time: 12:15:25
+Payload Size: 214 bytes
+Latency for message: 29 ms
+Current time: 12:15:25
+Payload Size: 209 bytes
+Latency for message: 137 ms
+Current time: 12:15:25
+Payload Size: 211 bytes
+Latency for message: 88 ms
+Current time: 12:15:25
+Payload Size: 210 bytes
+Latency for message: 89 ms
+Current time: 12:15:26
+Payload Size: 208 bytes
+Latency for message: 73 ms
+Current time: 12:15:26
+Payload Size: 215 bytes
+Latency for message: 90 ms
+Current time: 12:15:26
+Payload Size: 214 bytes
+Latency for message: 92 ms
+Current time: 12:15:26
+Payload Size: 209 bytes
+Latency for message: 172 ms
+Current time: 12:15:26
+Payload Size: 211 bytes
+Latency for message: 82 ms
+Current time: 12:15:26
+Payload Size: 210 bytes
+Latency for message: 88 ms
+Current time: 12:15:26
+Payload Size: 119 bytes
+Latency for message: 30 ms
+Current time: 12:15:26
+Payload Size: 208 bytes
+Latency for message: 91 ms
+Current time: 12:15:26
+Payload Size: 215 bytes
+Latency for message: 102 ms
+Current time: 12:15:26
+Payload Size: 214 bytes
+Latency for message: 74 ms
+Current time: 12:15:26
+Payload Size: 209 bytes
+Latency for message: 43 ms
+Current time: 12:15:27
+Payload Size: 211 bytes
+Latency for message: 118 ms
+Current time: 12:15:27
+Payload Size: 210 bytes
+Latency for message: 99 ms
+Current time: 12:15:27
+Payload Size: 208 bytes
+Latency for message: 94 ms
+Current time: 12:15:27
+Payload Size: 215 bytes
+Latency for message: 89 ms
+Current time: 12:15:27
+Payload Size: 214 bytes
+Latency for message: 121 ms
+Current time: 12:15:27
+Payload Size: 209 bytes
+Latency for message: 100 ms
+Current time: 12:15:27
+Payload Size: 119 bytes
+Latency for message: 52 ms
+Current time: 12:15:27
+Payload Size: 211 bytes
+Latency for message: 104 ms
+Current time: 12:15:27
+Payload Size: 210 bytes
+Latency for message: 31 ms
+Current time: 12:15:27
+Payload Size: 208 bytes
+Latency for message: 132 ms
+Current time: 12:15:27
+Payload Size: 215 bytes
+Latency for message: 29 ms
+Current time: 12:15:28
+Payload Size: 214 bytes
+Latency for message: 104 ms
+Current time: 12:15:28
+Payload Size: 209 bytes
+Latency for message: 90 ms
+Current time: 12:15:28
+Payload Size: 211 bytes
+Latency for message: 105 ms
+Current time: 12:15:28
+Payload Size: 210 bytes
+Latency for message: 138 ms
+Current time: 12:15:28
+Payload Size: 208 bytes
+Latency for message: 134 ms
+Current time: 12:15:28
+Payload Size: 215 bytes
+Latency for message: 51 ms
+Current time: 12:15:28
+Payload Size: 119 bytes
+Latency for message: 20 ms
+Current time: 12:15:28
+Payload Size: 214 bytes
+Latency for message: 53 ms
+Current time: 12:15:28
+Payload Size: 209 bytes
+Latency for message: 160 ms
+Current time: 12:15:28
+Payload Size: 211 bytes
+Latency for message: 26 ms
+Current time: 12:15:28
+Payload Size: 210 bytes
+Latency for message: 136 ms
+Current time: 12:15:29
+Payload Size: 208 bytes
+Latency for message: 76 ms
+Current time: 12:15:29
+Payload Size: 215 bytes
+Latency for message: 58 ms
+Current time: 12:15:29
+Payload Size: 214 bytes
+Latency for message: 137 ms
+Current time: 12:15:29
+Payload Size: 209 bytes
+Latency for message: 106 ms
+Current time: 12:15:29
+Payload Size: 211 bytes
+Latency for message: 245 ms
+Current time: 12:15:29
+Payload Size: 210 bytes
+Latency for message: 3 ms
+Current time: 12:15:29
+Payload Size: 119 bytes
+Latency for message: 52 ms
+Current time: 12:15:29
+Payload Size: 208 bytes
+Latency for message: 502 ms
+Current time: 12:15:30
+Payload Size: 215 bytes
+Latency for message: 3 ms
+Current time: 12:15:30
+Payload Size: 214 bytes
+Latency for message: 2 ms
+Current time: 12:15:30
+Payload Size: 209 bytes
+Latency for message: 3 ms
+Current time: 12:15:30
+Payload Size: 211 bytes
+Latency for message: 3 ms
+Current time: 12:15:30
+Payload Size: 210 bytes
+Latency for message: 240 ms
+Current time: 12:15:30
+Payload Size: 208 bytes
+Latency for message: 29 ms
+Current time: 12:15:30
+Payload Size: 215 bytes
+Latency for message: 90 ms
+Current time: 12:15:30
+Payload Size: 119 bytes
+Latency for message: 151 ms
+Current time: 12:15:30
+Payload Size: 214 bytes
+Latency for message: 6 ms
+Current time: 12:15:30
+Payload Size: 209 bytes
+Latency for message: 7 ms
+Current time: 12:15:30
+Payload Size: 211 bytes
+Latency for message: 84 ms
+Current time: 12:15:30
+Payload Size: 210 bytes
+Latency for message: 73 ms
+Current time: 12:15:30
+Payload Size: 208 bytes
+Latency for message: 44 ms
+Current time: 12:15:31
+Payload Size: 215 bytes
+Latency for message: 123 ms
+Current time: 12:15:31
+Payload Size: 214 bytes
+Latency for message: 147 ms
+Current time: 12:15:31
+Payload Size: 209 bytes
+Latency for message: 61 ms
+Current time: 12:15:31
+Payload Size: 211 bytes
+Latency for message: 41 ms
+Current time: 12:15:31
+Payload Size: 210 bytes
+Latency for message: 74 ms
+Current time: 12:15:31
+Payload Size: 208 bytes
+Latency for message: 74 ms
+Current time: 12:15:31
+Payload Size: 215 bytes
+Latency for message: 68 ms
+Current time: 12:15:31
+Payload Size: 119 bytes
+Latency for message: 49 ms
+Current time: 12:15:31
+Payload Size: 214 bytes
+Latency for message: 122 ms
+Current time: 12:15:31
+Payload Size: 209 bytes
+Latency for message: 118 ms
+Current time: 12:15:31
+Payload Size: 211 bytes
+Latency for message: 88 ms
+Current time: 12:15:32
+Payload Size: 210 bytes
+Latency for message: 43 ms
+Current time: 12:15:32
+Payload Size: 208 bytes
+Latency for message: 168 ms
+Current time: 12:15:32
+Payload Size: 215 bytes
+Latency for message: 106 ms
+Current time: 12:15:32
+Payload Size: 214 bytes
+Latency for message: 58 ms
+Current time: 12:15:32
+Payload Size: 209 bytes
+Latency for message: 74 ms
+Current time: 12:15:32
+Payload Size: 211 bytes
+Latency for message: 134 ms
+Current time: 12:15:32
+Payload Size: 210 bytes
+Latency for message: 10 ms
+Current time: 12:15:32
+Payload Size: 118 bytes
+Latency for message: 3 ms
+Current time: 12:15:32
+Payload Size: 119 bytes
+Latency for message: 49 ms
+Current time: 12:15:32
+Payload Size: 98 bytes
+Latency for message: 8 ms
+Current time: 12:15:32
+Payload Size: 99 bytes
+Latency for message: 1 ms
+Current time: 12:15:32
+Payload Size: 99 bytes
+Latency for message: 1 ms
+Current time: 12:15:32
+Payload Size: 99 bytes
+Latency for message: 1 ms
+Current time: 12:15:32
+Payload Size: 99 bytes
+Latency for message: 119 ms
+Current time: 12:15:32
+Payload Size: 208 bytes
+Latency for message: 3 ms
+Current time: 12:15:32
+Payload Size: 98 bytes
+Latency for message: 7 ms
+Current time: 12:15:32
+Payload Size: 99 bytes
+Latency for message: 1 ms
+Current time: 12:15:32
+Payload Size: 99 bytes
+Latency for message: 2 ms
+Current time: 12:15:32
+Payload Size: 99 bytes
+Latency for message: 1 ms
+Current time: 12:15:32
+Payload Size: 97 bytes
+Latency for message: 1 ms
+Current time: 12:15:32
+Payload Size: 100 bytes
+Latency for message: 43 ms
+Current time: 12:15:32
+Payload Size: 215 bytes
+Latency for message: 3 ms
+Current time: 12:15:32
+Payload Size: 100 bytes
+Latency for message: 91 ms
+Current time: 12:15:33
+Payload Size: 214 bytes
+Latency for message: 3 ms
+Current time: 12:15:33
+Payload Size: 100 bytes
+Latency for message: 3 ms
+Current time: 12:15:33
+Payload Size: 100 bytes
+Latency for message: 1 ms
+Current time: 12:15:33
+Payload Size: 116 bytes
+Latency for message: 2 ms
+Current time: 12:15:33
+Payload Size: 125 bytes
+Latency for message: 631 ms
+Current time: 12:15:33
+Payload Size: 119 bytes
+Latency for message: 2 ms
+Current time: 12:15:33
+Payload Size: 100 bytes
+Latency for message: 1 ms
+Current time: 12:15:33
+Payload Size: 100 bytes
+Latency for message: 3 ms
+Current time: 12:15:33
+Payload Size: 100 bytes
+Latency for message: 1 ms
+Current time: 12:15:33
+Payload Size: 100 bytes
+Latency for message: 1 ms
+Current time: 12:15:33
+Payload Size: 100 bytes
+Latency for message: 35 ms
+Current time: 12:15:33
+Payload Size: 100 bytes
+Latency for message: 103 ms
+Current time: 12:15:33
+Payload Size: 100 bytes
+Latency for message: 8 ms
+Current time: 12:15:33
+Payload Size: 100 bytes
+Latency for message: 1 ms
+Current time: 12:15:33
+Payload Size: 100 bytes
+Latency for message: 1 ms
+Current time: 12:15:33
+Payload Size: 100 bytes
+Latency for message: 2 ms
+Current time: 12:15:33
+Payload Size: 101 bytes
+Latency for message: 86 ms
+Current time: 12:15:33
+Payload Size: 100 bytes
+Latency for message: 6 ms
+Current time: 12:15:33
+Payload Size: 100 bytes
+Latency for message: 64 ms
+Current time: 12:15:34
+Payload Size: 100 bytes
+Latency for message: 90 ms
+Current time: 12:15:34
+Payload Size: 100 bytes
+Latency for message: 0 ms
+Current time: 12:15:34
+Payload Size: 99 bytes
+Latency for message: 5 ms
+Current time: 12:15:34
+Payload Size: 100 bytes
+Latency for message: 1 ms
+Current time: 12:15:34
+Payload Size: 100 bytes
+Latency for message: 1 ms
+Current time: 12:15:34
+Payload Size: 100 bytes
+Latency for message: 0 ms
+Current time: 12:15:34
+Payload Size: 100 bytes
+Latency for message: 2 ms
+Current time: 12:15:34
+Payload Size: 100 bytes
+Latency for message: 54 ms
+Current time: 12:15:34
+Payload Size: 100 bytes
+Latency for message: 139 ms
+Current time: 12:15:34
+Payload Size: 209 bytes
+Latency for message: 105 ms
+Current time: 12:15:34
+Payload Size: 209 bytes
+Latency for message: 155 ms
+Current time: 12:15:34
+Payload Size: 212 bytes
+Latency for message: 20 ms
+Current time: 12:15:34
+Payload Size: 119 bytes
+Latency for message: 2 ms
+Current time: 12:15:34
+Payload Size: 100 bytes
+Latency for message: 90 ms
+Current time: 12:15:34
+Payload Size: 211 bytes
+Latency for message: 57 ms
+Current time: 12:15:34
+Payload Size: 217 bytes
+Latency for message: 136 ms
+Current time: 12:15:34
+Payload Size: 214 bytes
+Latency for message: 121 ms
+Current time: 12:15:35
+Payload Size: 209 bytes
+Latency for message: 181 ms
+Current time: 12:15:35
+Payload Size: 209 bytes
+Latency for message: 104 ms
+Current time: 12:15:35
+Payload Size: 212 bytes
+Latency for message: 151 ms
+Current time: 12:15:35
+Payload Size: 211 bytes
+Latency for message: 73 ms
+Current time: 12:15:35
+Payload Size: 217 bytes
+Latency for message: 44 ms
+Current time: 12:15:35
+Payload Size: 214 bytes
+Latency for message: 6 ms
+Current time: 12:15:35
+Payload Size: 119 bytes
+Latency for message: 126 ms
+Current time: 12:15:35
+Payload Size: 209 bytes
+Latency for message: 102 ms
+Current time: 12:15:35
+Payload Size: 209 bytes
+Latency for message: 119 ms
+Current time: 12:15:36
+Payload Size: 212 bytes
+Latency for message: 121 ms
+Current time: 12:15:36
+Payload Size: 211 bytes
+Latency for message: 89 ms
+Current time: 12:15:36
+Payload Size: 217 bytes
+Latency for message: 133 ms
+Current time: 12:15:36
+Payload Size: 214 bytes
+Latency for message: 303 ms
+Current time: 12:15:36
+Payload Size: 119 bytes
+Latency for message: 814 ms
+Current time: 12:15:37
+Payload Size: 208 bytes
+Latency for message: 171 ms
+Current time: 12:15:37
+Payload Size: 119 bytes
+Latency for message: 7 ms
+Current time: 12:15:37
+Payload Size: 211 bytes
+Latency for message: 1 ms
+Current time: 12:15:37
+Payload Size: 209 bytes
+Latency for message: 79 ms
+Current time: 12:15:37
+Payload Size: 211 bytes
+Latency for message: 89 ms
+Current time: 12:15:37
+Payload Size: 217 bytes
+Latency for message: 166 ms
+Current time: 12:15:38
+Payload Size: 215 bytes
+Latency for message: 44 ms
+Current time: 12:15:38
+Payload Size: 208 bytes
+Latency for message: 104 ms
+Current time: 12:15:38
+Payload Size: 211 bytes
+Latency for message: 339 ms
+Current time: 12:15:38
+Payload Size: 209 bytes
+Latency for message: 2 ms
+Current time: 12:15:38
+Payload Size: 211 bytes
+Latency for message: 34 ms
+Current time: 12:15:38
+Payload Size: 217 bytes
+Latency for message: 108 ms
+Current time: 12:15:38
+Payload Size: 119 bytes
+Latency for message: 9 ms
+Current time: 12:15:38
+Payload Size: 215 bytes
+Latency for message: 121 ms
+Current time: 12:15:38
+Payload Size: 208 bytes
+Latency for message: 167 ms
+Current time: 12:15:38
+Payload Size: 211 bytes
+Latency for message: 74 ms
+Current time: 12:15:39
+Payload Size: 209 bytes
+Latency for message: 155 ms
+Current time: 12:15:39
+Payload Size: 211 bytes
+Latency for message: 117 ms
+Current time: 12:15:39
+Payload Size: 217 bytes
+Latency for message: 139 ms
+Current time: 12:15:39
+Payload Size: 215 bytes
+Latency for message: 134 ms
+Current time: 12:15:39
+Payload Size: 208 bytes
+Latency for message: 50 ms
+Current time: 12:15:39
+Payload Size: 119 bytes
+Latency for message: 18 ms
+Current time: 12:15:39
+Payload Size: 211 bytes
+Latency for message: 46 ms
+Current time: 12:15:39
+Payload Size: 209 bytes
+Latency for message: 164 ms
+Current time: 12:15:39
+Payload Size: 211 bytes
+Latency for message: 44 ms
+Current time: 12:15:39
+Payload Size: 217 bytes
+Latency for message: 105 ms
+Current time: 12:15:40
+Payload Size: 215 bytes
+Latency for message: 713 ms
+Current time: 12:15:40
+Payload Size: 119 bytes
+Latency for message: 509 ms
+Current time: 12:15:41
+Payload Size: 207 bytes
+Latency for message: 44 ms
+Current time: 12:15:41
+Payload Size: 211 bytes
+Latency for message: 121 ms
+Current time: 12:15:41
+Payload Size: 212 bytes
+Latency for message: 88 ms
+Current time: 12:15:41
+Payload Size: 211 bytes
+Latency for message: 89 ms
+Current time: 12:15:41
+Payload Size: 216 bytes
+Latency for message: 93 ms
+Current time: 12:15:41
+Payload Size: 119 bytes
+Latency for message: 85 ms
+Current time: 12:15:41
+Payload Size: 214 bytes
+Latency for message: 105 ms
+Current time: 12:15:41
+Payload Size: 207 bytes
+Latency for message: 89 ms
+Current time: 12:15:42
+Payload Size: 211 bytes
+Latency for message: 142 ms
+Current time: 12:15:42
+Payload Size: 212 bytes
+Latency for message: 129 ms
+Current time: 12:15:42
+Payload Size: 211 bytes
+Latency for message: 60 ms
+Current time: 12:15:42
+Payload Size: 216 bytes
+Latency for message: 196 ms
+Current time: 12:15:42
+Payload Size: 214 bytes
+Latency for message: 43 ms
+Current time: 12:15:42
+Payload Size: 207 bytes
+Latency for message: 63 ms
+Current time: 12:15:42
+Payload Size: 119 bytes
+Latency for message: 4 ms
+Current time: 12:15:42
+Payload Size: 118 bytes
+Latency for message: 14 ms
+Current time: 12:15:42
+Payload Size: 116 bytes
+Latency for message: 146 ms
+Current time: 12:15:42
+Payload Size: 211 bytes
+Latency for message: 67 ms
+Current time: 12:15:42
+Payload Size: 212 bytes
+Latency for message: 89 ms
+Current time: 12:15:42
+Payload Size: 211 bytes
+Latency for message: 149 ms
+Current time: 12:15:43
+Payload Size: 216 bytes
+Latency for message: 139 ms
+Current time: 12:15:43
+Payload Size: 214 bytes
+Latency for message: 440 ms
+Current time: 12:15:43
+Payload Size: 119 bytes
+Latency for message: 1021 ms
+Current time: 12:15:44
+Payload Size: 119 bytes
+Latency for message: 3 ms
+Current time: 12:15:44
+Payload Size: 207 bytes
+Latency for message: 110 ms
+Current time: 12:15:44
+Payload Size: 209 bytes
+Latency for message: 61 ms
+Current time: 12:15:44
+Payload Size: 211 bytes
+Latency for message: 101 ms
+Current time: 12:15:45
+Payload Size: 210 bytes
+Latency for message: 78 ms
+Current time: 12:15:45
+Payload Size: 214 bytes
+Latency for message: 43 ms
+Current time: 12:15:45
+Payload Size: 215 bytes
+Latency for message: 137 ms
+Current time: 12:15:45
+Payload Size: 207 bytes
+Latency for message: 102 ms
+Current time: 12:15:45
+Payload Size: 209 bytes
+Latency for message: 59 ms
+Current time: 12:15:45
+Payload Size: 211 bytes
+Latency for message: 134 ms
+Current time: 12:15:45
+Payload Size: 210 bytes
+Latency for message: 13 ms
+Current time: 12:15:45
+Payload Size: 214 bytes
+Latency for message: 23 ms
+Current time: 12:15:45
+Payload Size: 119 bytes
+Latency for message: 33 ms
+Current time: 12:15:45
+Payload Size: 215 bytes
+Latency for message: 75 ms
+Current time: 12:15:45
+Payload Size: 207 bytes
+Latency for message: 198 ms
+Current time: 12:15:45
+Payload Size: 209 bytes
+Latency for message: 172 ms
+Current time: 12:15:46
+Payload Size: 211 bytes
+Latency for message: 23 ms
+Current time: 12:15:46
+Payload Size: 210 bytes
+Latency for message: 182 ms
+Current time: 12:15:46
+Payload Size: 214 bytes
+Latency for message: 73 ms
+Current time: 12:15:46
+Payload Size: 215 bytes
+Latency for message: 90 ms
+Current time: 12:15:46
+Payload Size: 207 bytes
+Latency for message: 130 ms
+Current time: 12:15:46
+Payload Size: 119 bytes
+Latency for message: 18 ms
+Current time: 12:15:46
+Payload Size: 209 bytes
+Latency for message: 89 ms
+Current time: 12:15:46
+Payload Size: 211 bytes
+Latency for message: 198 ms
+Current time: 12:15:46
+Payload Size: 210 bytes
+Latency for message: 276 ms
+Current time: 12:15:47
+Payload Size: 214 bytes
+Latency for message: 12 ms
+Current time: 12:15:47
+Payload Size: 215 bytes
+Latency for message: 456 ms
+Current time: 12:15:47
+Payload Size: 119 bytes
+Latency for message: 1021 ms
+Current time: 12:15:48
+Payload Size: 119 bytes
+Latency for message: 3 ms
+Current time: 12:15:48
+Payload Size: 207 bytes
+Latency for message: 37 ms
+Current time: 12:15:48
+Payload Size: 210 bytes
+Latency for message: 178 ms
+Current time: 12:15:48
+Payload Size: 211 bytes
+Latency for message: 61 ms
+Current time: 12:15:49
+Payload Size: 212 bytes
+Latency for message: 149 ms
+Current time: 12:15:49
+Payload Size: 217 bytes
+Latency for message: 74 ms
+Current time: 12:15:49
+Payload Size: 214 bytes
+Latency for message: 108 ms
+Current time: 12:15:49
+Payload Size: 207 bytes
+Latency for message: 156 ms
+Current time: 12:15:49
+Payload Size: 210 bytes
+Latency for message: 111 ms
+Current time: 12:15:49
+Payload Size: 119 bytes
+Latency for message: 4 ms
+Current time: 12:15:49
+Payload Size: 211 bytes
+Latency for message: 162 ms
+Current time: 12:15:49
+Payload Size: 212 bytes
+Latency for message: 74 ms
+Current time: 12:15:49
+Payload Size: 217 bytes
+Latency for message: 280 ms
+Current time: 12:15:50
+Payload Size: 214 bytes
+Latency for message: 36 ms
+Current time: 12:15:50
+Payload Size: 207 bytes
+Latency for message: 75 ms
+Current time: 12:15:50
+Payload Size: 210 bytes
+Latency for message: 60 ms
+Current time: 12:15:50
+Payload Size: 211 bytes
+Latency for message: 86 ms
+Current time: 12:15:50
+Payload Size: 212 bytes
+Latency for message: 212 ms
+Current time: 12:15:50
+Payload Size: 217 bytes
+Latency for message: 45 ms
+Current time: 12:15:50
+Payload Size: 119 bytes
+Latency for message: 71 ms
+Current time: 12:15:50
+Payload Size: 214 bytes
+Latency for message: 90 ms
+Current time: 12:15:50
+Payload Size: 207 bytes
+Latency for message: 118 ms
+Current time: 12:15:50
+Payload Size: 210 bytes
+Latency for message: 89 ms
+Current time: 12:15:51
+Payload Size: 211 bytes
+Latency for message: 76 ms
+Current time: 12:15:51
+Payload Size: 212 bytes
+Latency for message: 150 ms
+Current time: 12:15:51
+Payload Size: 217 bytes
+Latency for message: 43 ms
+Current time: 12:15:51
+Payload Size: 214 bytes
+Latency for message: 200 ms
+Current time: 12:15:51
+Payload Size: 207 bytes
+Latency for message: 72 ms
+Current time: 12:15:51
+Payload Size: 210 bytes
+Latency for message: 96 ms
+Current time: 12:15:51
+Payload Size: 119 bytes
+Latency for message: 22 ms
+Current time: 12:15:51
+Payload Size: 211 bytes
+Latency for message: 118 ms
+Current time: 12:15:51
+Payload Size: 212 bytes
+Latency for message: 118 ms
+Current time: 12:15:52
+Payload Size: 217 bytes
+Latency for message: 58 ms
+Current time: 12:15:52
+Payload Size: 214 bytes
+Latency for message: 764 ms
+Current time: 12:15:52
+Payload Size: 118 bytes
+Latency for message: 2 ms
+Current time: 12:15:52
+Payload Size: 119 bytes
+Latency for message: 3 ms
+Current time: 12:15:52
+Payload Size: 116 bytes
+Latency for message: 500 ms
+Current time: 12:15:53
+Payload Size: 206 bytes
+Latency for message: 41 ms
+Current time: 12:15:53
+Payload Size: 211 bytes
+Latency for message: 133 ms
+Current time: 12:15:53
+Payload Size: 210 bytes
+Latency for message: 152 ms
+Current time: 12:15:53
+Payload Size: 212 bytes
+Latency for message: 3 ms
+Current time: 12:15:53
+Payload Size: 119 bytes
+Latency for message: 86 ms
+Current time: 12:15:53
+Payload Size: 216 bytes
+Latency for message: 61 ms
+Current time: 12:15:53
+Payload Size: 215 bytes
+Latency for message: 102 ms
+Current time: 12:15:53
+Payload Size: 206 bytes
+Latency for message: 73 ms
+Current time: 12:15:54
+Payload Size: 211 bytes
+Latency for message: 120 ms
+Current time: 12:15:54
+Payload Size: 210 bytes
+Latency for message: 76 ms
+Current time: 12:15:54
+Payload Size: 212 bytes
+Latency for message: 118 ms
+Current time: 12:15:54
+Payload Size: 216 bytes
+Latency for message: 120 ms
+Current time: 12:15:54
+Payload Size: 215 bytes
+Latency for message: 121 ms
+Current time: 12:15:54
+Payload Size: 206 bytes
+Latency for message: 52 ms
+Current time: 12:15:54
+Payload Size: 119 bytes
+Latency for message: 124 ms
+Current time: 12:15:54
+Payload Size: 211 bytes
+Latency for message: 78 ms
+Current time: 12:15:54
+Payload Size: 210 bytes
+Latency for message: 152 ms
+Current time: 12:15:55
+Payload Size: 212 bytes
+Latency for message: 27 ms
+Current time: 12:15:55
+Payload Size: 216 bytes
+Latency for message: 106 ms
+Current time: 12:15:55
+Payload Size: 215 bytes
+Latency for message: 542 ms
+Current time: 12:15:55
+Payload Size: 119 bytes
+Latency for message: 715 ms
+Current time: 12:15:56
+Payload Size: 208 bytes
+Latency for message: 139 ms
+Current time: 12:15:56
+Payload Size: 211 bytes
+Latency for message: 74 ms
+Current time: 12:15:56
+Payload Size: 209 bytes
+Latency for message: 2 ms
+Current time: 12:15:56
+Payload Size: 119 bytes
+Latency for message: 116 ms
+Current time: 12:15:56
+Payload Size: 211 bytes
+Latency for message: 137 ms
+Current time: 12:15:56
+Payload Size: 215 bytes
+Latency for message: 72 ms
+Current time: 12:15:56
+Payload Size: 211 bytes
+Latency for message: 79 ms
+Current time: 12:15:57
+Payload Size: 208 bytes
+Latency for message: 73 ms
+Current time: 12:15:57
+Payload Size: 211 bytes
+Latency for message: 179 ms
+Current time: 12:15:57
+Payload Size: 209 bytes
+Latency for message: 39 ms
+Current time: 12:15:57
+Payload Size: 211 bytes
+Latency for message: 130 ms
+Current time: 12:15:57
+Payload Size: 215 bytes
+Latency for message: 70 ms
+Current time: 12:15:57
+Payload Size: 211 bytes
+Latency for message: 76 ms
+Current time: 12:15:57
+Payload Size: 119 bytes
+Latency for message: 9 ms
+Current time: 12:15:57
+Payload Size: 208 bytes
+Latency for message: 57 ms
+Current time: 12:15:57
+Payload Size: 211 bytes
+Latency for message: 182 ms
+Current time: 12:15:57
+Payload Size: 209 bytes
+Latency for message: 114 ms
+Current time: 12:15:58
+Payload Size: 211 bytes
+Latency for message: 121 ms
+Current time: 12:15:58
+Payload Size: 215 bytes
+Latency for message: 47 ms
+Current time: 12:15:58
+Payload Size: 211 bytes
+Latency for message: 477 ms
+Current time: 12:15:58
+Payload Size: 119 bytes
+Latency for message: 816 ms
+Current time: 12:15:59
+Payload Size: 207 bytes
+Latency for message: 96 ms
+Current time: 12:15:59
+Payload Size: 211 bytes
+Latency for message: 51 ms
+Current time: 12:15:59
+Payload Size: 119 bytes
+Latency for message: 46 ms
+Current time: 12:15:59
+Payload Size: 211 bytes
+Latency for message: 104 ms
+Current time: 12:15:59
+Payload Size: 211 bytes
+Latency for message: 105 ms
+Current time: 12:15:59
+Payload Size: 215 bytes
+Latency for message: 168 ms
+Current time: 12:16:00
+Payload Size: 214 bytes
+Latency for message: 151 ms
+Current time: 12:16:00
+Payload Size: 207 bytes
+Latency for message: 30 ms
+Current time: 12:16:00
+Payload Size: 211 bytes
+Latency for message: 116 ms
+Current time: 12:16:00
+Payload Size: 211 bytes
+Latency for message: 105 ms
+Current time: 12:16:00
+Payload Size: 211 bytes
+Latency for message: 149 ms
+Current time: 12:16:00
+Payload Size: 215 bytes
+Latency for message: 2 ms
+Current time: 12:16:00
+Payload Size: 119 bytes
+Latency for message: 114 ms
+Current time: 12:16:00
+Payload Size: 214 bytes
+Latency for message: 91 ms
+Current time: 12:16:00
+Payload Size: 207 bytes
+Latency for message: 153 ms
+Current time: 12:16:01
+Payload Size: 211 bytes
+Latency for message: 152 ms
+Current time: 12:16:01
+Payload Size: 211 bytes
+Latency for message: 164 ms
+Current time: 12:16:01
+Payload Size: 211 bytes
+Latency for message: 91 ms
+Current time: 12:16:01
+Payload Size: 215 bytes
+Latency for message: 135 ms
+Current time: 12:16:01
+Payload Size: 214 bytes
+Latency for message: 74 ms
+Current time: 12:16:01
+Payload Size: 119 bytes
+Latency for message: 59 ms
+Current time: 12:16:01
+Payload Size: 207 bytes
+Latency for message: 91 ms
+Current time: 12:16:01
+Payload Size: 211 bytes
+Latency for message: 102 ms
+Current time: 12:16:01
+Payload Size: 211 bytes
+Latency for message: 76 ms
+Current time: 12:16:01
+Payload Size: 211 bytes
+Latency for message: 211 ms
+Current time: 12:16:02
+Payload Size: 215 bytes
+Latency for message: 8 ms
+Current time: 12:16:02
+Payload Size: 214 bytes
+Latency for message: 453 ms
+Current time: 12:16:02
+Payload Size: 119 bytes
+Latency for message: 2 ms
+Current time: 12:16:02
+Payload Size: 118 bytes
+Latency for message: 2 ms
+Current time: 12:16:02
+Payload Size: 116 bytes
+Latency for message: 908 ms
+Current time: 12:16:03
+Payload Size: 206 bytes
+Latency for message: 3 ms
+Current time: 12:16:03
+Payload Size: 210 bytes
+Latency for message: 49 ms
+Current time: 12:16:03
+Payload Size: 119 bytes
+Latency for message: 64 ms
+Current time: 12:16:03
+Payload Size: 212 bytes
+Latency for message: 135 ms
+Current time: 12:16:03
+Payload Size: 210 bytes
+Latency for message: 167 ms
+Current time: 12:16:04
+Payload Size: 214 bytes
+Latency for message: 96 ms
+Current time: 12:16:04
+Payload Size: 216 bytes
+Latency for message: 98 ms
+Current time: 12:16:04
+Payload Size: 206 bytes
+Latency for message: 135 ms
+Current time: 12:16:04
+Payload Size: 210 bytes
+Latency for message: 115 ms
+Current time: 12:16:04
+Payload Size: 212 bytes
+Latency for message: 66 ms
+Current time: 12:16:04
+Payload Size: 210 bytes
+Latency for message: 72 ms
+Current time: 12:16:04
+Payload Size: 214 bytes
+Latency for message: 29 ms
+Current time: 12:16:04
+Payload Size: 119 bytes
+Latency for message: 32 ms
+Current time: 12:16:04
+Payload Size: 216 bytes
+Latency for message: 85 ms
+Current time: 12:16:04
+Payload Size: 206 bytes
+Latency for message: 104 ms
+Current time: 12:16:04
+Payload Size: 210 bytes
+Latency for message: 74 ms
+Current time: 12:16:04
+Payload Size: 212 bytes
+Latency for message: 181 ms
+Current time: 12:16:05
+Payload Size: 210 bytes
+Latency for message: 167 ms
+Current time: 12:16:05
+Payload Size: 214 bytes
+Latency for message: 57 ms
+Current time: 12:16:05
+Payload Size: 216 bytes
+Latency for message: 12 ms
+Current time: 12:16:05
+Payload Size: 125 bytes
+Latency for message: 349 ms
+Current time: 12:16:05
+Payload Size: 119 bytes
+Latency for message: 918 ms
+Current time: 12:16:06
+Payload Size: 206 bytes
+Latency for message: 25 ms
+Current time: 12:16:06
+Payload Size: 119 bytes
+Latency for message: 1 ms
+Current time: 12:16:06
+Payload Size: 211 bytes
+Latency for message: 21 ms
+Current time: 12:16:06
+Payload Size: 210 bytes
+Latency for message: 107 ms
+Current time: 12:16:06
+Payload Size: 209 bytes
+Latency for message: 86 ms
+Current time: 12:16:06
+Payload Size: 216 bytes
+Latency for message: 60 ms
+Current time: 12:16:06
+Payload Size: 214 bytes
+Latency for message: 153 ms
+Current time: 12:16:07
+Payload Size: 206 bytes
+Latency for message: 120 ms
+Current time: 12:16:07
+Payload Size: 211 bytes
+Latency for message: 73 ms
+Current time: 12:16:07
+Payload Size: 210 bytes
+Latency for message: 197 ms
+Current time: 12:16:07
+Payload Size: 209 bytes
+Latency for message: 93 ms
+Current time: 12:16:07
+Payload Size: 216 bytes
+Latency for message: 15 ms
+Current time: 12:16:07
+Payload Size: 119 bytes
+Latency for message: 37 ms
+Current time: 12:16:07
+Payload Size: 214 bytes
+Latency for message: 167 ms
+Current time: 12:16:07
+Payload Size: 206 bytes
+Latency for message: 184 ms
+Current time: 12:16:08
+Payload Size: 211 bytes
+Latency for message: 137 ms
+Current time: 12:16:08
+Payload Size: 210 bytes
+Latency for message: 89 ms
+Current time: 12:16:08
+Payload Size: 209 bytes
+Latency for message: 88 ms
+Current time: 12:16:08
+Payload Size: 216 bytes
+Latency for message: 154 ms
+Current time: 12:16:08
+Payload Size: 214 bytes
+Latency for message: 101 ms
+Current time: 12:16:08
+Payload Size: 206 bytes
+Latency for message: 16 ms
+Current time: 12:16:08
+Payload Size: 119 bytes
+Latency for message: 85 ms
+Current time: 12:16:08
+Payload Size: 211 bytes
+Latency for message: 151 ms
+Current time: 12:16:08
+Payload Size: 210 bytes
+Latency for message: 28 ms
+Current time: 12:16:08
+Payload Size: 209 bytes
+Latency for message: 73 ms
+Current time: 12:16:08
+Payload Size: 216 bytes
+Latency for message: 106 ms
+Current time: 12:16:09
+Payload Size: 214 bytes
+Latency for message: 626 ms
+Current time: 12:16:09
+Payload Size: 119 bytes
+Latency for message: 446 ms
+Current time: 12:16:10
+Payload Size: 207 bytes
+Latency for message: 60 ms
+Current time: 12:16:10
+Payload Size: 210 bytes
+Latency for message: 63 ms
+Current time: 12:16:10
+Payload Size: 212 bytes
+Latency for message: 68 ms
+Current time: 12:16:10
+Payload Size: 211 bytes
+Latency for message: 74 ms
+Current time: 12:16:10
+Payload Size: 215 bytes
+Latency for message: 91 ms
+Current time: 12:16:10
+Payload Size: 214 bytes
+Latency for message: 92 ms
+Current time: 12:16:10
+Payload Size: 119 bytes
+Latency for message: 41 ms
+Current time: 12:16:10
+Payload Size: 207 bytes
+Latency for message: 136 ms
+Current time: 12:16:10
+Payload Size: 210 bytes
+Latency for message: 107 ms
+Current time: 12:16:10
+Payload Size: 212 bytes
+Latency for message: 164 ms
+Current time: 12:16:11
+Payload Size: 211 bytes
+Latency for message: 73 ms
+Current time: 12:16:11
+Payload Size: 215 bytes
+Latency for message: 391 ms
+Current time: 12:16:11
+Payload Size: 214 bytes
+Latency for message: 169 ms
+Current time: 12:16:11
+Payload Size: 119 bytes
+Latency for message: 644 ms
+Current time: 12:16:12
+Payload Size: 207 bytes
+Latency for message: 4 ms
+Current time: 12:16:12
+Payload Size: 209 bytes
+Latency for message: 43 ms
+Current time: 12:16:12
+Payload Size: 212 bytes
+Latency for message: 86 ms
+Current time: 12:16:12
+Payload Size: 210 bytes
+Latency for message: 110 ms
+Current time: 12:16:12
+Payload Size: 119 bytes
+Latency for message: 7 ms
+Current time: 12:16:12
+Payload Size: 118 bytes
+Latency for message: 3 ms
+Current time: 12:16:12
+Payload Size: 214 bytes
+Latency for message: 29 ms
+Current time: 12:16:12
+Payload Size: 116 bytes
+Latency for message: 83 ms
+Current time: 12:16:12
+Payload Size: 214 bytes
+Latency for message: 149 ms
+Current time: 12:16:12
+Payload Size: 207 bytes
+Latency for message: 166 ms
+Current time: 12:16:13
+Payload Size: 209 bytes
+Latency for message: 202 ms
+Current time: 12:16:13
+Payload Size: 212 bytes
+Latency for message: 55 ms
+Current time: 12:16:13
+Payload Size: 210 bytes
+Latency for message: 73 ms
+Current time: 12:16:13
+Payload Size: 214 bytes
+Latency for message: 76 ms
+Current time: 12:16:13
+Payload Size: 214 bytes
+Latency for message: 102 ms
+Current time: 12:16:13
+Payload Size: 207 bytes
+Latency for message: 19 ms
+Current time: 12:16:13
+Payload Size: 119 bytes
+Latency for message: 99 ms
+Current time: 12:16:13
+Payload Size: 209 bytes
+Latency for message: 105 ms
+Current time: 12:16:13
+Payload Size: 212 bytes
+Latency for message: 212 ms
+Current time: 12:16:14
+Payload Size: 210 bytes
+Latency for message: 60 ms
+Current time: 12:16:14
+Payload Size: 214 bytes
+Latency for message: 304 ms
+Current time: 12:16:14
+Payload Size: 214 bytes
+Latency for message: 199 ms
+Current time: 12:16:14
+Payload Size: 119 bytes
+Latency for message: 615 ms
+Current time: 12:16:15
+Payload Size: 208 bytes
+Latency for message: 99 ms
+Current time: 12:16:15
+Payload Size: 209 bytes
+Latency for message: 89 ms
+Current time: 12:16:15
+Payload Size: 212 bytes
+Latency for message: 104 ms
+Current time: 12:16:15
+Payload Size: 210 bytes
+Latency for message: 84 ms
+Current time: 12:16:15
+Payload Size: 119 bytes
+Latency for message: 4 ms
+Current time: 12:16:15
+Payload Size: 213 bytes
+Latency for message: 93 ms
+Current time: 12:16:15
+Payload Size: 213 bytes
+Latency for message: 102 ms
+Current time: 12:16:15
+Payload Size: 208 bytes
+Latency for message: 99 ms
+Current time: 12:16:15
+Payload Size: 209 bytes
+Latency for message: 143 ms
+Current time: 12:16:16
+Payload Size: 212 bytes
+Latency for message: 119 ms
+Current time: 12:16:16
+Payload Size: 210 bytes
+Latency for message: 58 ms
+Current time: 12:16:16
+Payload Size: 213 bytes
+Latency for message: 105 ms
+Current time: 12:16:16
+Payload Size: 213 bytes
+Latency for message: 152 ms
+Current time: 12:16:16
+Payload Size: 208 bytes
+Latency for message: 93 ms
+Current time: 12:16:16
+Payload Size: 119 bytes
+Latency for message: 54 ms
+Current time: 12:16:16
+Payload Size: 209 bytes
+Latency for message: 88 ms
+Current time: 12:16:16
+Payload Size: 212 bytes
+Latency for message: 166 ms
+Current time: 12:16:16
+Payload Size: 210 bytes
+Latency for message: 44 ms
+Current time: 12:16:17
+Payload Size: 213 bytes
+Latency for message: 103 ms
+Current time: 12:16:17
+Payload Size: 213 bytes
+Latency for message: 601 ms
+Current time: 12:16:17
+Payload Size: 119 bytes
+Latency for message: 714 ms
+Current time: 12:16:18
+Payload Size: 206 bytes
+Latency for message: 68 ms
+Current time: 12:16:18
+Payload Size: 208 bytes
+Latency for message: 58 ms
+Current time: 12:16:18
+Payload Size: 210 bytes
+Latency for message: 74 ms
+Current time: 12:16:18
+Payload Size: 119 bytes
+Latency for message: 99 ms
+Current time: 12:16:18
+Payload Size: 211 bytes
+Latency for message: 33 ms
+Current time: 12:16:18
+Payload Size: 215 bytes
+Latency for message: 121 ms
+Current time: 12:16:18
+Payload Size: 216 bytes
+Latency for message: 151 ms
+Current time: 12:16:19
+Payload Size: 206 bytes
+Latency for message: 134 ms
+Current time: 12:16:19
+Payload Size: 208 bytes
+Latency for message: 45 ms
+Current time: 12:16:19
+Payload Size: 210 bytes
+Latency for message: 104 ms
+Current time: 12:16:19
+Payload Size: 211 bytes
+Latency for message: 183 ms
+Current time: 12:16:19
+Payload Size: 215 bytes
+Latency for message: 75 ms
+Current time: 12:16:19
+Payload Size: 216 bytes
+Latency for message: 33 ms
+Current time: 12:16:19
+Payload Size: 119 bytes
+Latency for message: 53 ms
+Current time: 12:16:19
+Payload Size: 206 bytes
+Latency for message: 144 ms
+Current time: 12:16:19
+Payload Size: 208 bytes
+Latency for message: 66 ms
+Current time: 12:16:19
+Payload Size: 210 bytes
+Latency for message: 181 ms
+Current time: 12:16:20
+Payload Size: 211 bytes
+Latency for message: 120 ms
+Current time: 12:16:20
+Payload Size: 215 bytes
+Latency for message: 62 ms
+Current time: 12:16:20
+Payload Size: 216 bytes
+Latency for message: 391 ms
+Current time: 12:16:20
+Payload Size: 119 bytes
+Latency for message: 1021 ms
+Current time: 12:16:21
+Payload Size: 119 bytes
+Latency for message: 3 ms
+Current time: 12:16:21
+Payload Size: 208 bytes
+Latency for message: 31 ms
+Current time: 12:16:21
+Payload Size: 207 bytes
+Latency for message: 105 ms
+Current time: 12:16:21
+Payload Size: 209 bytes
+Latency for message: 126 ms
+Current time: 12:16:21
+Payload Size: 210 bytes
+Latency for message: 83 ms
+Current time: 12:16:22
+Payload Size: 215 bytes
+Latency for message: 119 ms
+Current time: 12:16:22
+Payload Size: 216 bytes
+Latency for message: 90 ms
+Current time: 12:16:22
+Payload Size: 208 bytes
+Latency for message: 104 ms
+Current time: 12:16:22
+Payload Size: 207 bytes
+Latency for message: 135 ms
+Current time: 12:16:22
+Payload Size: 209 bytes
+Latency for message: 44 ms
+Current time: 12:16:22
+Payload Size: 210 bytes
+Latency for message: 60 ms
+Current time: 12:16:22
+Payload Size: 119 bytes
+Latency for message: 4 ms
+Current time: 12:16:22
+Payload Size: 118 bytes
+Latency for message: 9 ms
+Current time: 12:16:22
+Payload Size: 116 bytes
+Latency for message: 6 ms
+Current time: 12:16:22
+Payload Size: 215 bytes
+Latency for message: 120 ms
+Current time: 12:16:22
+Payload Size: 216 bytes
+Latency for message: 139 ms
+Current time: 12:16:22
+Payload Size: 208 bytes
+Latency for message: 309 ms
+Current time: 12:16:23
+Payload Size: 207 bytes
+Latency for message: 2 ms
+Current time: 12:16:23
+Payload Size: 209 bytes
+Latency for message: 124 ms
+Current time: 12:16:23
+Payload Size: 210 bytes
+Latency for message: 73 ms
+Current time: 12:16:23
+Payload Size: 215 bytes
+Latency for message: 74 ms
+Current time: 12:16:23
+Payload Size: 216 bytes
+Latency for message: 90 ms
+Current time: 12:16:23
+Payload Size: 208 bytes
+Latency for message: 16 ms
+Current time: 12:16:23
+Payload Size: 119 bytes
+Latency for message: 132 ms
+Current time: 12:16:23
+Payload Size: 207 bytes
+Latency for message: 136 ms
+Current time: 12:16:23
+Payload Size: 209 bytes
+Latency for message: 102 ms
+Current time: 12:16:24
+Payload Size: 210 bytes
+Latency for message: 180 ms
+Current time: 12:16:24
+Payload Size: 215 bytes
+Latency for message: 73 ms
+Current time: 12:16:24
+Payload Size: 216 bytes
+Latency for message: 360 ms
+Current time: 12:16:24
+Payload Size: 119 bytes
+Latency for message: 749 ms
+Current time: 12:16:25
+Payload Size: 207 bytes
+Latency for message: 70 ms
+Current time: 12:16:25
+Payload Size: 208 bytes
+Latency for message: 135 ms
+Current time: 12:16:25
+Payload Size: 211 bytes
+Latency for message: 35 ms
+Current time: 12:16:25
+Payload Size: 119 bytes
+Latency for message: 82 ms
+Current time: 12:16:25
+Payload Size: 210 bytes
+Latency for message: 90 ms
+Current time: 12:16:25
+Payload Size: 215 bytes
+Latency for message: 107 ms
+Current time: 12:16:25
+Payload Size: 216 bytes
+Latency for message: 88 ms
+Current time: 12:16:26
+Payload Size: 207 bytes
+Latency for message: 74 ms
+Current time: 12:16:26
+Payload Size: 208 bytes
+Latency for message: 90 ms
+Current time: 12:16:26
+Payload Size: 211 bytes
+Latency for message: 86 ms
+Current time: 12:16:26
+Payload Size: 210 bytes
+Latency for message: 105 ms
+Current time: 12:16:26
+Payload Size: 215 bytes
+Latency for message: 74 ms
+Current time: 12:16:26
+Payload Size: 216 bytes
+Latency for message: 104 ms
+Current time: 12:16:26
+Payload Size: 207 bytes
+Latency for message: 141 ms
+Current time: 12:16:26
+Payload Size: 119 bytes
+Latency for message: 99 ms
+Current time: 12:16:26
+Payload Size: 208 bytes
+Latency for message: 90 ms
+Current time: 12:16:26
+Payload Size: 211 bytes
+Latency for message: 103 ms
+Current time: 12:16:27
+Payload Size: 210 bytes
+Latency for message: 197 ms
+Current time: 12:16:27
+Payload Size: 215 bytes
+Latency for message: 137 ms
+Current time: 12:16:27
+Payload Size: 216 bytes
+Latency for message: 389 ms
+Current time: 12:16:27
+Payload Size: 119 bytes
+Latency for message: 920 ms
+Current time: 12:16:28
+Payload Size: 207 bytes
+Latency for message: 3 ms
+Current time: 12:16:28
+Payload Size: 119 bytes
+Latency for message: 3 ms
+Current time: 12:16:28
+Payload Size: 206 bytes
+Latency for message: 86 ms
+Current time: 12:16:28
+Payload Size: 211 bytes
+Latency for message: 103 ms
+Current time: 12:16:28
+Payload Size: 210 bytes
+Latency for message: 109 ms
+Current time: 12:16:28
+Payload Size: 214 bytes
+Latency for message: 101 ms
+Current time: 12:16:29
+Payload Size: 216 bytes
+Latency for message: 91 ms
+Current time: 12:16:29
+Payload Size: 207 bytes
+Latency for message: 122 ms
+Current time: 12:16:29
+Payload Size: 206 bytes
+Latency for message: 119 ms
+Current time: 12:16:29
+Payload Size: 211 bytes
+Latency for message: 14 ms
+Current time: 12:16:29
+Payload Size: 210 bytes
+Latency for message: 128 ms
+Current time: 12:16:29
+Payload Size: 214 bytes
+Latency for message: 59 ms
+Current time: 12:16:29
+Payload Size: 119 bytes
+Latency for message: 4 ms
+Current time: 12:16:29
+Payload Size: 216 bytes
+Latency for message: 165 ms
+Current time: 12:16:29
+Payload Size: 207 bytes
+Latency for message: 132 ms
+Current time: 12:16:29
+Payload Size: 206 bytes
+Latency for message: 121 ms
+Current time: 12:16:30
+Payload Size: 211 bytes
+Latency for message: 72 ms
+Current time: 12:16:30
+Payload Size: 210 bytes
+Latency for message: 167 ms
+Current time: 12:16:30
+Payload Size: 214 bytes
+Latency for message: 88 ms
+Current time: 12:16:30
+Payload Size: 216 bytes
+Latency for message: 89 ms
+Current time: 12:16:30
+Payload Size: 207 bytes
+Latency for message: 165 ms
+Current time: 12:16:30
+Payload Size: 119 bytes
+Latency for message: 1 ms
+Current time: 12:16:30
+Payload Size: 206 bytes
+Latency for message: 23 ms
+Current time: 12:16:30
+Payload Size: 211 bytes
+Latency for message: 73 ms
+Current time: 12:16:30
+Payload Size: 210 bytes
+Latency for message: 153 ms
+Current time: 12:16:30
+Payload Size: 214 bytes
+Latency for message: 166 ms
+Current time: 12:16:31
+Payload Size: 216 bytes
+Latency for message: 739 ms
+Current time: 12:16:31
+Payload Size: 119 bytes
+Latency for message: 611 ms
+Current time: 12:16:32
+Payload Size: 206 bytes
+Latency for message: 33 ms
+Current time: 12:16:32
+Payload Size: 208 bytes
+Latency for message: 148 ms
+Current time: 12:16:32
+Payload Size: 118 bytes
+Latency for message: 6 ms
+Current time: 12:16:32
+Payload Size: 119 bytes
+Latency for message: 6 ms
+Current time: 12:16:32
+Payload Size: 116 bytes
+Latency for message: 7 ms
+Current time: 12:16:32
+Payload Size: 211 bytes
+Latency for message: 195 ms
+Current time: 12:16:32
+Payload Size: 207 bytes
+Latency for message: 57 ms
+Current time: 12:16:32
+Payload Size: 215 bytes
+Latency for message: 166 ms
+Current time: 12:16:33
+Payload Size: 216 bytes
+Latency for message: 168 ms
+Current time: 12:16:33
+Payload Size: 206 bytes
+Latency for message: 122 ms
+Current time: 12:16:33
+Payload Size: 208 bytes
+Latency for message: 57 ms
+Current time: 12:16:33
+Payload Size: 211 bytes
+Latency for message: 183 ms
+Current time: 12:16:33
+Payload Size: 207 bytes
+Latency for message: 3 ms
+Current time: 12:16:33
+Payload Size: 119 bytes
+Latency for message: 146 ms
+Current time: 12:16:33
+Payload Size: 215 bytes
+Latency for message: 120 ms
+Current time: 12:16:33
+Payload Size: 216 bytes
+Latency for message: 153 ms
+Current time: 12:16:34
+Payload Size: 206 bytes
+Latency for message: 88 ms
+Current time: 12:16:34
+Payload Size: 208 bytes
+Latency for message: 197 ms
+Current time: 12:16:34
+Payload Size: 211 bytes
+Latency for message: 121 ms
+Current time: 12:16:34
+Payload Size: 207 bytes
+Latency for message: 103 ms
+Current time: 12:16:34
+Payload Size: 215 bytes
+Latency for message: 45 ms
+Current time: 12:16:34
+Payload Size: 119 bytes
+Latency for message: 58 ms
+Current time: 12:16:34
+Payload Size: 216 bytes
+Latency for message: 75 ms
+Current time: 12:16:34
+Payload Size: 206 bytes
+Latency for message: 87 ms
+Current time: 12:16:34
+Payload Size: 208 bytes
+Latency for message: 127 ms
+Current time: 12:16:35
+Payload Size: 211 bytes
+Latency for message: 36 ms
+Current time: 12:16:35
+Payload Size: 207 bytes
+Latency for message: 137 ms
+Current time: 12:16:35
+Payload Size: 215 bytes
+Latency for message: 105 ms
+Current time: 12:16:35
+Payload Size: 216 bytes
+Latency for message: 447 ms
+Current time: 12:16:35
+Payload Size: 119 bytes
+Latency for message: 714 ms
+Current time: 12:16:36
+Payload Size: 205 bytes
+Latency for message: 3 ms
+Current time: 12:16:36
+Payload Size: 208 bytes
+Latency for message: 149 ms
+Current time: 12:16:36
+Payload Size: 210 bytes
+Latency for message: 29 ms
+Current time: 12:16:36
+Payload Size: 119 bytes
+Latency for message: 56 ms
+Current time: 12:16:36
+Payload Size: 210 bytes
+Latency for message: 165 ms
+Current time: 12:16:36
+Payload Size: 213 bytes
+Latency for message: 89 ms
+Current time: 12:16:36
+Payload Size: 215 bytes
+Latency for message: 71 ms
+Current time: 12:16:37
+Payload Size: 205 bytes
+Latency for message: 179 ms
+Current time: 12:16:37
+Payload Size: 208 bytes
+Latency for message: 108 ms
+Current time: 12:16:37
+Payload Size: 210 bytes
+Latency for message: 44 ms
+Current time: 12:16:37
+Payload Size: 210 bytes
+Latency for message: 91 ms
+Current time: 12:16:37
+Payload Size: 213 bytes
+Latency for message: 136 ms
+Current time: 12:16:37
+Payload Size: 215 bytes
+Latency for message: 29 ms
+Current time: 12:16:37
+Payload Size: 119 bytes
+Latency for message: 73 ms
+Current time: 12:16:37
+Payload Size: 205 bytes
+Latency for message: 105 ms
+Current time: 12:16:37
+Payload Size: 208 bytes
+Latency for message: 168 ms
+Current time: 12:16:38
+Payload Size: 210 bytes
+Latency for message: 119 ms
+Current time: 12:16:38
+Payload Size: 210 bytes
+Latency for message: 74 ms
+Current time: 12:16:38
+Payload Size: 213 bytes
+Latency for message: 137 ms
+Current time: 12:16:38
+Payload Size: 215 bytes
+Latency for message: 15 ms
+Current time: 12:16:38
+Payload Size: 125 bytes
+Latency for message: 350 ms
+Current time: 12:16:38
+Payload Size: 119 bytes
+Latency for message: 920 ms
+Current time: 12:16:39
+Payload Size: 208 bytes
+Latency for message: 7 ms
+Current time: 12:16:39
+Payload Size: 119 bytes
+Latency for message: 77 ms
+Current time: 12:16:39
+Payload Size: 207 bytes
+Latency for message: 105 ms
+Current time: 12:16:39
+Payload Size: 211 bytes
+Latency for message: 186 ms
+Current time: 12:16:40
+Payload Size: 210 bytes
+Latency for message: 147 ms
+Current time: 12:16:40
+Payload Size: 215 bytes
+Latency for message: 74 ms
+Current time: 12:16:40
+Payload Size: 213 bytes
+Latency for message: 150 ms
+Current time: 12:16:40
+Payload Size: 208 bytes
+Latency for message: 151 ms
+Current time: 12:16:40
+Payload Size: 207 bytes
+Latency for message: 88 ms
+Current time: 12:16:40
+Payload Size: 119 bytes
+Latency for message: 30 ms
+Current time: 12:16:40
+Payload Size: 211 bytes
+Latency for message: 196 ms
+Current time: 12:16:40
+Payload Size: 210 bytes
+Latency for message: 133 ms
+Current time: 12:16:41
+Payload Size: 215 bytes
+Latency for message: 120 ms
+Current time: 12:16:41
+Payload Size: 213 bytes
+Latency for message: 73 ms
+Current time: 12:16:41
+Payload Size: 208 bytes
+Latency for message: 60 ms
+Current time: 12:16:41
+Payload Size: 207 bytes
+Latency for message: 73 ms
+Current time: 12:16:41
+Payload Size: 211 bytes
+Latency for message: 90 ms
+Current time: 12:16:41
+Payload Size: 210 bytes
+Latency for message: 207 ms
+Current time: 12:16:41
+Payload Size: 215 bytes
+Latency for message: 24 ms
+Current time: 12:16:41
+Payload Size: 119 bytes
+Latency for message: 22 ms
+Current time: 12:16:41
+Payload Size: 213 bytes
+Latency for message: 134 ms
+Current time: 12:16:41
+Payload Size: 208 bytes
+Latency for message: 157 ms
+Current time: 12:16:42
+Payload Size: 207 bytes
+Latency for message: 72 ms
+Current time: 12:16:42
+Payload Size: 211 bytes
+Latency for message: 150 ms
+Current time: 12:16:42
+Payload Size: 210 bytes
+Latency for message: 76 ms
+Current time: 12:16:42
+Payload Size: 215 bytes
+Latency for message: 72 ms
+Current time: 12:16:42
+Payload Size: 213 bytes
+Latency for message: 75 ms
+Current time: 12:16:42
+Payload Size: 208 bytes
+Latency for message: 178 ms
+Current time: 12:16:42
+Payload Size: 207 bytes
+Latency for message: 5 ms
+Current time: 12:16:42
+Payload Size: 118 bytes
+Latency for message: 2 ms
+Current time: 12:16:42
+Payload Size: 119 bytes
+Latency for message: 98 ms
+Current time: 12:16:42
+Payload Size: 116 bytes
+Latency for message: 24 ms
+Current time: 12:16:42
+Payload Size: 211 bytes
+Latency for message: 130 ms
+Current time: 12:16:42
+Payload Size: 210 bytes
+Latency for message: 69 ms
+Current time: 12:16:42
+Payload Size: 215 bytes
+Latency for message: 134 ms
+Current time: 12:16:43
+Payload Size: 213 bytes
+Latency for message: 602 ms
+Current time: 12:16:43
+Payload Size: 119 bytes
+Latency for message: 509 ms
+Current time: 12:16:44
+Payload Size: 207 bytes
+Latency for message: 103 ms
+Current time: 12:16:44
+Payload Size: 209 bytes
+Latency for message: 66 ms
+Current time: 12:16:44
+Payload Size: 209 bytes
+Latency for message: 77 ms
+Current time: 12:16:44
+Payload Size: 210 bytes
+Latency for message: 58 ms
+Current time: 12:16:44
+Payload Size: 214 bytes
+Latency for message: 87 ms
+Current time: 12:16:44
+Payload Size: 119 bytes
+Latency for message: 47 ms
+Current time: 12:16:44
+Payload Size: 214 bytes
+Latency for message: 72 ms
+Current time: 12:16:44
+Payload Size: 207 bytes
+Latency for message: 193 ms
+Current time: 12:16:44
+Payload Size: 209 bytes
+Latency for message: 131 ms
+Current time: 12:16:45
+Payload Size: 209 bytes
+Latency for message: 22 ms
+Current time: 12:16:45
+Payload Size: 210 bytes
+Latency for message: 110 ms
+Current time: 12:16:45
+Payload Size: 214 bytes
+Latency for message: 66 ms
+Current time: 12:16:45
+Payload Size: 214 bytes
+Latency for message: 337 ms
+Current time: 12:16:45
+Payload Size: 119 bytes
+Latency for message: 1048 ms
+Current time: 12:16:46
+Payload Size: 119 bytes
+Latency for message: 2 ms
+Current time: 12:16:46
+Payload Size: 208 bytes
+Latency for message: 76 ms
+Current time: 12:16:46
+Payload Size: 208 bytes
+Latency for message: 73 ms
+Current time: 12:16:46
+Payload Size: 209 bytes
+Latency for message: 137 ms
+Current time: 12:16:47
+Payload Size: 209 bytes
+Latency for message: 169 ms
+Current time: 12:16:47
+Payload Size: 215 bytes
+Latency for message: 10 ms
+Current time: 12:16:47
+Payload Size: 217 bytes
+Latency for message: 135 ms
+Current time: 12:16:47
+Payload Size: 208 bytes
+Latency for message: 90 ms
+Current time: 12:16:47
+Payload Size: 208 bytes
+Latency for message: 102 ms
+Current time: 12:16:47
+Payload Size: 209 bytes
+Latency for message: 74 ms
+Current time: 12:16:47
+Payload Size: 209 bytes
+Latency for message: 44 ms
+Current time: 12:16:47
+Payload Size: 119 bytes
+Latency for message: 75 ms
+Current time: 12:16:47
+Payload Size: 215 bytes
+Latency for message: 133 ms
+Current time: 12:16:47
+Payload Size: 217 bytes
+Latency for message: 90 ms
+Current time: 12:16:47
+Payload Size: 208 bytes
+Latency for message: 167 ms
+Current time: 12:16:48
+Payload Size: 208 bytes
+Latency for message: 43 ms
+Current time: 12:16:48
+Payload Size: 209 bytes
+Latency for message: 105 ms
+Current time: 12:16:48
+Payload Size: 209 bytes
+Latency for message: 105 ms
+Current time: 12:16:48
+Payload Size: 215 bytes
+Latency for message: 76 ms
+Current time: 12:16:48
+Payload Size: 217 bytes
+Latency for message: 132 ms
+Current time: 12:16:48
+Payload Size: 208 bytes
+Latency for message: 47 ms
+Current time: 12:16:48
+Payload Size: 119 bytes
+Latency for message: 42 ms
+Current time: 12:16:48
+Payload Size: 208 bytes
+Latency for message: 89 ms
+Current time: 12:16:48
+Payload Size: 209 bytes
+Latency for message: 75 ms
+Current time: 12:16:48
+Payload Size: 209 bytes
+Latency for message: 73 ms
+Current time: 12:16:48
+Payload Size: 215 bytes
+Latency for message: 151 ms
+Current time: 12:16:49
+Payload Size: 217 bytes
+Latency for message: 577 ms
+Current time: 12:16:49
+Payload Size: 119 bytes
+Latency for message: 714 ms
+Current time: 12:16:50
+Payload Size: 207 bytes
+Latency for message: 77 ms
+Current time: 12:16:50
+Payload Size: 208 bytes
+Latency for message: 106 ms
+Current time: 12:16:50
+Payload Size: 211 bytes
+Latency for message: 73 ms
+Current time: 12:16:50
+Payload Size: 209 bytes
+Latency for message: 46 ms
+Current time: 12:16:50
+Payload Size: 119 bytes
+Latency for message: 44 ms
+Current time: 12:16:50
+Payload Size: 214 bytes
+Latency for message: 134 ms
+Current time: 12:16:50
+Payload Size: 214 bytes
+Latency for message: 104 ms
+Current time: 12:16:50
+Payload Size: 207 bytes
+Latency for message: 91 ms
+Current time: 12:16:51
+Payload Size: 208 bytes
+Latency for message: 166 ms
+Current time: 12:16:51
+Payload Size: 211 bytes
+Latency for message: 168 ms
+Current time: 12:16:51
+Payload Size: 209 bytes
+Latency for message: 117 ms
+Current time: 12:16:51
+Payload Size: 214 bytes
+Latency for message: 168 ms
+Current time: 12:16:51
+Payload Size: 214 bytes
+Latency for message: 18 ms
+Current time: 12:16:51
+Payload Size: 119 bytes
+Latency for message: 100 ms
+Current time: 12:16:51
+Payload Size: 207 bytes
+Latency for message: 183 ms
+Current time: 12:16:52
+Payload Size: 208 bytes
+Latency for message: 152 ms
+Current time: 12:16:52
+Payload Size: 211 bytes
+Latency for message: 121 ms
+Current time: 12:16:52
+Payload Size: 209 bytes
+Latency for message: 166 ms
+Current time: 12:16:52
+Payload Size: 214 bytes
+Latency for message: 74 ms
+Current time: 12:16:52
+Payload Size: 214 bytes
+Latency for message: 151 ms
+Current time: 12:16:52
+Payload Size: 207 bytes
+Latency for message: 63 ms
+Current time: 12:16:52
+Payload Size: 118 bytes
+Latency for message: 2 ms
+Current time: 12:16:52
+Payload Size: 119 bytes
+Latency for message: 4 ms
+Current time: 12:16:52
+Payload Size: 116 bytes
+Latency for message: 3 ms
+Current time: 12:16:52
+Payload Size: 208 bytes
+Latency for message: 82 ms
+Current time: 12:16:52
+Payload Size: 211 bytes
+Latency for message: 134 ms
+Current time: 12:16:53
+Payload Size: 209 bytes
+Latency for message: 74 ms
+Current time: 12:16:53
+Payload Size: 214 bytes
+Latency for message: 88 ms
+Current time: 12:16:53
+Payload Size: 214 bytes
+Latency for message: 484 ms
+Current time: 12:16:53
+Payload Size: 119 bytes
+Latency for message: 713 ms
+Current time: 12:16:54
+Payload Size: 208 bytes
+Latency for message: 33 ms
+Current time: 12:16:54
+Payload Size: 210 bytes
+Latency for message: 174 ms
+Current time: 12:16:54
+Payload Size: 210 bytes
+Latency for message: 7 ms
+Current time: 12:16:54
+Payload Size: 210 bytes
+Latency for message: 41 ms
+Current time: 12:16:54
+Payload Size: 119 bytes
+Latency for message: 41 ms
+Current time: 12:16:54
+Payload Size: 215 bytes
+Latency for message: 119 ms
+Current time: 12:16:54
+Payload Size: 215 bytes
+Latency for message: 151 ms
+Current time: 12:16:54
+Payload Size: 208 bytes
+Latency for message: 135 ms
+Current time: 12:16:55
+Payload Size: 210 bytes
+Latency for message: 214 ms
+Current time: 12:16:55
+Payload Size: 210 bytes
+Latency for message: 121 ms
+Current time: 12:16:55
+Payload Size: 210 bytes
+Latency for message: 86 ms
+Current time: 12:16:55
+Payload Size: 215 bytes
+Latency for message: 163 ms
+Current time: 12:16:55
+Payload Size: 119 bytes
+Latency for message: 1 ms
+Current time: 12:16:55
+Payload Size: 215 bytes
+Latency for message: 42 ms
+Current time: 12:16:55
+Payload Size: 208 bytes
+Latency for message: 104 ms
+Current time: 12:16:55
+Payload Size: 210 bytes
+Latency for message: 61 ms
+Current time: 12:16:55
+Payload Size: 210 bytes
+Latency for message: 105 ms
+Current time: 12:16:56
+Payload Size: 210 bytes
+Latency for message: 151 ms
+Current time: 12:16:56
+Payload Size: 215 bytes
+Latency for message: 60 ms
+Current time: 12:16:56
+Payload Size: 215 bytes
+Latency for message: 485 ms
+Current time: 12:16:56
+Payload Size: 119 bytes
+Latency for message: 919 ms
+Current time: 12:16:57
+Payload Size: 206 bytes
+Latency for message: 3 ms
+Current time: 12:16:57
+Payload Size: 209 bytes
+Latency for message: 2 ms
+Current time: 12:16:57
+Payload Size: 119 bytes
+Latency for message: 143 ms
+Current time: 12:16:57
+Payload Size: 210 bytes
+Latency for message: 103 ms
+Current time: 12:16:57
+Payload Size: 210 bytes
+Latency for message: 60 ms
+Current time: 12:16:57
+Payload Size: 213 bytes
+Latency for message: 74 ms
+Current time: 12:16:58
+Payload Size: 215 bytes
+Latency for message: 120 ms
+Current time: 12:16:58
+Payload Size: 206 bytes
+Latency for message: 59 ms
+Current time: 12:16:58
+Payload Size: 209 bytes
+Latency for message: 195 ms
+Current time: 12:16:58
+Payload Size: 210 bytes
+Latency for message: 45 ms
+Current time: 12:16:58
+Payload Size: 210 bytes
+Latency for message: 150 ms
+Current time: 12:16:58
+Payload Size: 213 bytes
+Latency for message: 3 ms
+Current time: 12:16:58
+Payload Size: 119 bytes
+Latency for message: 129 ms
+Current time: 12:16:58
+Payload Size: 215 bytes
+Latency for message: 126 ms
+Current time: 12:16:58
+Payload Size: 206 bytes
+Latency for message: 112 ms
+Current time: 12:16:59
+Payload Size: 209 bytes
+Latency for message: 88 ms
+Current time: 12:16:59
+Payload Size: 210 bytes
+Latency for message: 88 ms
+Current time: 12:16:59
+Payload Size: 210 bytes
+Latency for message: 120 ms
+Current time: 12:16:59
+Payload Size: 213 bytes
+Latency for message: 136 ms
+Current time: 12:16:59
+Payload Size: 215 bytes
+Latency for message: 169 ms
+Current time: 12:16:59
+Payload Size: 119 bytes
+Latency for message: 28 ms
+Current time: 12:16:59
+Payload Size: 206 bytes
+Latency for message: 103 ms
+Current time: 12:16:59
+Payload Size: 209 bytes
+Latency for message: 106 ms
+Current time: 12:16:59
+Payload Size: 210 bytes
+Latency for message: 198 ms
+Current time: 12:17:00
+Payload Size: 210 bytes
+Latency for message: 150 ms
+Current time: 12:17:00
+Payload Size: 213 bytes
+Latency for message: 98 ms
+Current time: 12:17:00
+Payload Size: 215 bytes
+Latency for message: 381 ms
+Current time: 12:17:00
+Payload Size: 119 bytes
+Latency for message: 1020 ms
+Current time: 12:17:01
+Payload Size: 119 bytes
+Latency for message: 292 ms
+Current time: 12:17:02
+Payload Size: 207 bytes
+Latency for message: 170 ms
+Current time: 12:17:02
+Payload Size: 210 bytes
+Latency for message: 62 ms
+Current time: 12:17:02
+Payload Size: 210 bytes
+Latency for message: 66 ms
+Current time: 12:17:02
+Payload Size: 209 bytes
+Latency for message: 105 ms
+Current time: 12:17:02
+Payload Size: 214 bytes
+Latency for message: 58 ms
+Current time: 12:17:02
+Payload Size: 216 bytes
+Latency for message: 103 ms
+Current time: 12:17:02
+Payload Size: 207 bytes
+Latency for message: 21 ms
+Current time: 12:17:02
+Payload Size: 119 bytes
+Latency for message: 2 ms
+Current time: 12:17:02
+Payload Size: 118 bytes
+Latency for message: 17 ms
+Current time: 12:17:02
+Payload Size: 116 bytes
+Latency for message: 57 ms
+Current time: 12:17:02
+Payload Size: 210 bytes
+Latency for message: 105 ms
+Current time: 12:17:02
+Payload Size: 210 bytes
+Latency for message: 133 ms
+Current time: 12:17:02
+Payload Size: 209 bytes
+Latency for message: 153 ms
+Current time: 12:17:03
+Payload Size: 214 bytes
+Latency for message: 88 ms
+Current time: 12:17:03
+Payload Size: 216 bytes
+Latency for message: 102 ms
+Current time: 12:17:03
+Payload Size: 207 bytes
+Latency for message: 75 ms
+Current time: 12:17:03
+Payload Size: 210 bytes
+Latency for message: 105 ms
+Current time: 12:17:03
+Payload Size: 210 bytes
+Latency for message: 125 ms
+Current time: 12:17:03
+Payload Size: 119 bytes
+Latency for message: 5 ms
+Current time: 12:17:03
+Payload Size: 209 bytes
+Latency for message: 136 ms
+Current time: 12:17:03
+Payload Size: 214 bytes
+Latency for message: 89 ms
+Current time: 12:17:03
+Payload Size: 216 bytes
+Latency for message: 137 ms
+Current time: 12:17:04
+Payload Size: 207 bytes
+Latency for message: 89 ms
+Current time: 12:17:04
+Payload Size: 210 bytes
+Latency for message: 74 ms
+Current time: 12:17:04
+Payload Size: 210 bytes
+Latency for message: 89 ms
+Current time: 12:17:04
+Payload Size: 209 bytes
+Latency for message: 154 ms
+Current time: 12:17:04
+Payload Size: 214 bytes
+Latency for message: 39 ms
+Current time: 12:17:04
+Payload Size: 216 bytes
+Latency for message: 152 ms
+Current time: 12:17:04
+Payload Size: 207 bytes
+Latency for message: 7 ms
+Current time: 12:17:04
+Payload Size: 119 bytes
+Latency for message: 95 ms
+Current time: 12:17:04
+Payload Size: 210 bytes
+Latency for message: 62 ms
+Current time: 12:17:04
+Payload Size: 210 bytes
+Latency for message: 73 ms
+Current time: 12:17:04
+Payload Size: 209 bytes
+Latency for message: 74 ms
+Current time: 12:17:04
+Payload Size: 214 bytes
+Latency for message: 104 ms
+Current time: 12:17:05
+Payload Size: 216 bytes
+Latency for message: 670 ms
+Current time: 12:17:05
+Payload Size: 119 bytes
+Latency for message: 715 ms
+Current time: 12:17:06
+Payload Size: 208 bytes
+Latency for message: 86 ms
+Current time: 12:17:06
+Payload Size: 209 bytes
+Latency for message: 105 ms
+Current time: 12:17:06
+Payload Size: 119 bytes
+Latency for message: 21 ms
+Current time: 12:17:06
+Payload Size: 211 bytes
+Latency for message: 134 ms
+Current time: 12:17:06
+Payload Size: 208 bytes
+Latency for message: 221 ms
+Current time: 12:17:07
+Payload Size: 214 bytes
+Latency for message: 70 ms
+Current time: 12:17:07
+Payload Size: 216 bytes
+Latency for message: 157 ms
+Current time: 12:17:07
+Payload Size: 208 bytes
+Latency for message: 151 ms
+Current time: 12:17:07
+Payload Size: 209 bytes
+Latency for message: 106 ms
+Current time: 12:17:07
+Payload Size: 211 bytes
+Latency for message: 101 ms
+Current time: 12:17:07
+Payload Size: 119 bytes
+Latency for message: 14 ms
+Current time: 12:17:07
+Payload Size: 208 bytes
+Latency for message: 107 ms
+Current time: 12:17:07
+Payload Size: 214 bytes
+Latency for message: 86 ms
+Current time: 12:17:07
+Payload Size: 216 bytes
+Latency for message: 138 ms
+Current time: 12:17:08
+Payload Size: 208 bytes
+Latency for message: 168 ms
+Current time: 12:17:08
+Payload Size: 209 bytes
+Latency for message: 103 ms
+Current time: 12:17:08
+Payload Size: 211 bytes
+Latency for message: 87 ms
+Current time: 12:17:08
+Payload Size: 208 bytes
+Latency for message: 120 ms
+Current time: 12:17:08
+Payload Size: 214 bytes
+Latency for message: 88 ms
+Current time: 12:17:08
+Payload Size: 216 bytes
+Latency for message: 60 ms
+Current time: 12:17:08
+Payload Size: 119 bytes
+Latency for message: 42 ms
+Current time: 12:17:08
+Payload Size: 208 bytes
+Latency for message: 185 ms
+Current time: 12:17:08
+Payload Size: 209 bytes
+Latency for message: 9 ms
+Current time: 12:17:08
+Payload Size: 211 bytes
+Latency for message: 120 ms
+Current time: 12:17:09
+Payload Size: 208 bytes
+Latency for message: 135 ms
+Current time: 12:17:09
+Payload Size: 214 bytes
+Latency for message: 106 ms
+Current time: 12:17:09
+Payload Size: 216 bytes
+Latency for message: 476 ms
+Current time: 12:17:09
+Payload Size: 119 bytes
+Latency for message: 714 ms
+Current time: 12:17:10
+Payload Size: 207 bytes
+Latency for message: 51 ms
+Current time: 12:17:10
+Payload Size: 208 bytes
+Latency for message: 138 ms
+Current time: 12:17:10
+Payload Size: 119 bytes
+Latency for message: 12 ms
+Current time: 12:17:10
+Payload Size: 212 bytes
+Latency for message: 2 ms
+Current time: 12:17:10
+Payload Size: 101 bytes
+Latency for message: 3 ms
+Current time: 12:17:10
+Payload Size: 101 bytes
+Latency for message: 79 ms
+Current time: 12:17:10
+Payload Size: 208 bytes
+Latency for message: 39 ms
+Current time: 12:17:10
+Payload Size: 101 bytes
+Latency for message: 7 ms
+Current time: 12:17:10
+Payload Size: 215 bytes
+Latency for message: 100 ms
+Current time: 12:17:10
+Payload Size: 215 bytes
+Latency for message: 88 ms
+Current time: 12:17:11
+Payload Size: 207 bytes
+Latency for message: 119 ms
+Current time: 12:17:11
+Payload Size: 208 bytes
+Latency for message: 214 ms
+Current time: 12:17:11
+Payload Size: 212 bytes
+Latency for message: 120 ms
+Current time: 12:17:11
+Payload Size: 208 bytes
+Latency for message: 104 ms
+Current time: 12:17:11
+Payload Size: 215 bytes
+Latency for message: 73 ms
+Current time: 12:17:11
+Payload Size: 119 bytes
+Latency for message: 13 ms
+Current time: 12:17:11
+Payload Size: 99 bytes
+Latency for message: 58 ms
+Current time: 12:17:11
+Payload Size: 215 bytes
+Latency for message: 23 ms
+Current time: 12:17:11
+Payload Size: 101 bytes
+Latency for message: 7 ms
+Current time: 12:17:11
+Payload Size: 101 bytes
+Latency for message: 69 ms
+Current time: 12:17:11
+Payload Size: 207 bytes
+Latency for message: 129 ms
+Current time: 12:17:11
+Payload Size: 208 bytes
+Latency for message: 151 ms
+Current time: 12:17:12
+Payload Size: 212 bytes
+Latency for message: 58 ms
+Current time: 12:17:12
+Payload Size: 208 bytes
+Latency for message: 122 ms
+Current time: 12:17:12
+Payload Size: 215 bytes
+Latency for message: 56 ms
+Current time: 12:17:12
+Payload Size: 215 bytes
+Latency for message: 211 ms
+Current time: 12:17:12
+Payload Size: 207 bytes
+Latency for message: 44 ms
+Current time: 12:17:12
+Payload Size: 208 bytes
+Latency for message: 19 ms
+Current time: 12:17:12
+Payload Size: 119 bytes
+Latency for message: 3 ms
+Current time: 12:17:12
+Payload Size: 118 bytes
+Latency for message: 11 ms
+Current time: 12:17:12
+Payload Size: 101 bytes
+Latency for message: 99 ms
+Current time: 12:17:12
+Payload Size: 100 bytes
+Latency for message: 7 ms
+Current time: 12:17:12
+Payload Size: 116 bytes
+Latency for message: 3 ms
+Current time: 12:17:12
+Payload Size: 212 bytes
+Latency for message: 98 ms
+Current time: 12:17:12
+Payload Size: 208 bytes
+Latency for message: 104 ms
+Current time: 12:17:12
+Payload Size: 215 bytes
+Latency for message: 88 ms
+Current time: 12:17:13
+Payload Size: 215 bytes
+Latency for message: 645 ms
+Current time: 12:17:13
+Payload Size: 119 bytes
+Latency for message: 2 ms
+Current time: 12:17:13
+Payload Size: 101 bytes
+Latency for message: 2 ms
+Current time: 12:17:13
+Payload Size: 101 bytes
+Latency for message: 602 ms
+Current time: 12:17:14
+Payload Size: 206 bytes
+Latency for message: 2 ms
+Current time: 12:17:14
+Payload Size: 208 bytes
+Latency for message: 99 ms
+Current time: 12:17:14
+Payload Size: 211 bytes
+Latency for message: 121 ms
+Current time: 12:17:14
+Payload Size: 210 bytes
+Latency for message: 65 ms
+Current time: 12:17:14
+Payload Size: 119 bytes
+Latency for message: 30 ms
+Current time: 12:17:14
+Payload Size: 101 bytes
+Latency for message: 7 ms
+Current time: 12:17:14
+Payload Size: 101 bytes
+Latency for message: 1 ms
+Current time: 12:17:14
+Payload Size: 101 bytes
+Latency for message: 5 ms
+Current time: 12:17:14
+Payload Size: 214 bytes
+Latency for message: 121 ms
+Current time: 12:17:14
+Payload Size: 213 bytes
+Latency for message: 105 ms
+Current time: 12:17:14
+Payload Size: 206 bytes
+Latency for message: 104 ms
+Current time: 12:17:15
+Payload Size: 208 bytes
+Latency for message: 152 ms
+Current time: 12:17:15
+Payload Size: 211 bytes
+Latency for message: 143 ms
+Current time: 12:17:15
+Payload Size: 210 bytes
+Latency for message: 83 ms
+Current time: 12:17:15
+Payload Size: 214 bytes
+Latency for message: 80 ms
+Current time: 12:17:15
+Payload Size: 213 bytes
+Latency for message: 106 ms
+Current time: 12:17:15
+Payload Size: 206 bytes
+Latency for message: 29 ms
+Current time: 12:17:15
+Payload Size: 119 bytes
+Latency for message: 9 ms
+Current time: 12:17:15
+Payload Size: 208 bytes
+Latency for message: 322 ms
+Current time: 12:17:15
+Payload Size: 211 bytes
+Latency for message: 2 ms
+Current time: 12:17:15
+Payload Size: 210 bytes
+Latency for message: 81 ms
+Current time: 12:17:16
+Payload Size: 214 bytes
+Latency for message: 73 ms
+Current time: 12:17:16
+Payload Size: 213 bytes
+Latency for message: 12 ms
+Current time: 12:17:16
+Payload Size: 125 bytes
+Latency for message: 533 ms
+Current time: 12:17:16
+Payload Size: 119 bytes
+Latency for message: 919 ms
+Current time: 12:17:17
+Payload Size: 207 bytes
+Latency for message: 21 ms
+Current time: 12:17:17
+Payload Size: 119 bytes
+Latency for message: 45 ms
+Current time: 12:17:17
+Payload Size: 208 bytes
+Latency for message: 120 ms
+Current time: 12:17:17
+Payload Size: 212 bytes
+Latency for message: 74 ms
+Current time: 12:17:17
+Payload Size: 208 bytes
+Latency for message: 152 ms
+Current time: 12:17:18
+Payload Size: 213 bytes
+Latency for message: 104 ms
+Current time: 12:17:18
+Payload Size: 215 bytes
+Latency for message: 182 ms
+Current time: 12:17:18
+Payload Size: 207 bytes
+Latency for message: 134 ms
+Current time: 12:17:18
+Payload Size: 208 bytes
+Latency for message: 173 ms
+Current time: 12:17:18
+Payload Size: 119 bytes
+Latency for message: 1 ms
+Current time: 12:17:18
+Payload Size: 212 bytes
+Latency for message: 29 ms
+Current time: 12:17:18
+Payload Size: 208 bytes
+Latency for message: 94 ms
+Current time: 12:17:18
+Payload Size: 213 bytes
+Latency for message: 104 ms
+Current time: 12:17:18
+Payload Size: 215 bytes
+Latency for message: 122 ms
+Current time: 12:17:19
+Payload Size: 207 bytes
+Latency for message: 240 ms
+Current time: 12:17:19
+Payload Size: 208 bytes
+Latency for message: 121 ms
+Current time: 12:17:19
+Payload Size: 212 bytes
+Latency for message: 90 ms
+Current time: 12:17:19
+Payload Size: 208 bytes
+Latency for message: 119 ms
+Current time: 12:17:19
+Payload Size: 213 bytes
+Latency for message: 30 ms
+Current time: 12:17:19
+Payload Size: 215 bytes
+Latency for message: 9 ms
+Current time: 12:17:19
+Payload Size: 119 bytes
+Latency for message: 117 ms
+Current time: 12:17:19
+Payload Size: 207 bytes
+Latency for message: 79 ms
+Current time: 12:17:19
+Payload Size: 208 bytes
+Latency for message: 75 ms
+Current time: 12:17:19
+Payload Size: 212 bytes
+Latency for message: 198 ms
+Current time: 12:17:20
+Payload Size: 208 bytes
+Latency for message: 104 ms
+Current time: 12:17:20
+Payload Size: 213 bytes
+Latency for message: 357 ms
+Current time: 12:17:20
+Payload Size: 215 bytes
+Latency for message: 8 ms
+Current time: 12:17:20
+Payload Size: 207 bytes
+Latency for message: 37 ms
+Current time: 12:17:20
+Payload Size: 119 bytes
+Latency for message: 36 ms
+Current time: 12:17:20
+Payload Size: 208 bytes
+Latency for message: 73 ms
+Current time: 12:17:20
+Payload Size: 212 bytes
+Latency for message: 111 ms
+Current time: 12:17:20
+Payload Size: 208 bytes
+Latency for message: 112 ms
+Current time: 12:17:20
+Payload Size: 213 bytes
+Latency for message: 89 ms
+Current time: 12:17:21
+Payload Size: 215 bytes
+Latency for message: 636 ms
+Current time: 12:17:21
+Payload Size: 119 bytes
+Latency for message: 817 ms
+Current time: 12:17:22
+Payload Size: 205 bytes
+Latency for message: 34 ms
+Current time: 12:17:22
+Payload Size: 208 bytes
+Latency for message: 66 ms
+Current time: 12:17:22
+Payload Size: 119 bytes
+Latency for message: 14 ms
+Current time: 12:17:22
+Payload Size: 118 bytes
+Latency for message: 3 ms
+Current time: 12:17:22
+Payload Size: 213 bytes
+Latency for message: 2 ms
+Current time: 12:17:22
+Payload Size: 116 bytes
+Latency for message: 98 ms
+Current time: 12:17:22
+Payload Size: 209 bytes
+Latency for message: 104 ms
+Current time: 12:17:22
+Payload Size: 213 bytes
+Latency for message: 75 ms
+Current time: 12:17:22
+Payload Size: 217 bytes
+Latency for message: 114 ms
+Current time: 12:17:23
+Payload Size: 205 bytes
+Latency for message: 78 ms
+Current time: 12:17:23
+Payload Size: 208 bytes
+Latency for message: 120 ms
+Current time: 12:17:23
+Payload Size: 213 bytes
+Latency for message: 104 ms
+Current time: 12:17:23
+Payload Size: 209 bytes
+Latency for message: 75 ms
+Current time: 12:17:23
+Payload Size: 213 bytes
+Latency for message: 58 ms
+Current time: 12:17:23
+Payload Size: 217 bytes
+Latency for message: 91 ms
+Current time: 12:17:23
+Payload Size: 205 bytes
+Latency for message: 24 ms
+Current time: 12:17:23
+Payload Size: 119 bytes
+Latency for message: 76 ms
+Current time: 12:17:23
+Payload Size: 208 bytes
+Latency for message: 82 ms
+Current time: 12:17:23
+Payload Size: 213 bytes
+Latency for message: 114 ms
+Current time: 12:17:23
+Payload Size: 209 bytes
+Latency for message: 57 ms
+Current time: 12:17:23
+Payload Size: 213 bytes
+Latency for message: 98 ms
+Current time: 12:17:24
+Payload Size: 217 bytes
+Latency for message: 597 ms
+Current time: 12:17:24
+Payload Size: 119 bytes
+Latency for message: 817 ms
+Current time: 12:17:25
+Payload Size: 207 bytes
+Latency for message: 30 ms
+Current time: 12:17:25
+Payload Size: 208 bytes
+Latency for message: 103 ms
+Current time: 12:17:25
+Payload Size: 119 bytes
+Latency for message: 44 ms
+Current time: 12:17:25
+Payload Size: 212 bytes
+Latency for message: 74 ms
+Current time: 12:17:25
+Payload Size: 207 bytes
+Latency for message: 104 ms
+Current time: 12:17:25
+Payload Size: 213 bytes
+Latency for message: 135 ms
+Current time: 12:17:26
+Payload Size: 217 bytes
+Latency for message: 59 ms
+Current time: 12:17:26
+Payload Size: 207 bytes
+Latency for message: 103 ms
+Current time: 12:17:26
+Payload Size: 208 bytes
+Latency for message: 128 ms
+Current time: 12:17:26
+Payload Size: 212 bytes
+Latency for message: 95 ms
+Current time: 12:17:26
+Payload Size: 207 bytes
+Latency for message: 74 ms
+Current time: 12:17:26
+Payload Size: 213 bytes
+Latency for message: 90 ms
+Current time: 12:17:26
+Payload Size: 217 bytes
+Latency for message: 56 ms
+Current time: 12:17:26
+Payload Size: 119 bytes
+Latency for message: 27 ms
+Current time: 12:17:26
+Payload Size: 207 bytes
+Latency for message: 108 ms
+Current time: 12:17:26
+Payload Size: 208 bytes
+Latency for message: 228 ms
+Current time: 12:17:27
+Payload Size: 212 bytes
+Latency for message: 43 ms
+Current time: 12:17:27
+Payload Size: 207 bytes
+Latency for message: 89 ms
+Current time: 12:17:27
+Payload Size: 213 bytes
+Latency for message: 166 ms
+Current time: 12:17:27
+Payload Size: 217 bytes
+Latency for message: 324 ms
+Current time: 12:17:27
+Payload Size: 119 bytes
+Latency for message: 930 ms
+Current time: 12:17:28
+Payload Size: 205 bytes
+Latency for message: 3 ms
+Current time: 12:17:28
+Payload Size: 207 bytes
+Latency for message: 56 ms
+Current time: 12:17:28
+Payload Size: 119 bytes
+Latency for message: 31 ms
+Current time: 12:17:28
+Payload Size: 211 bytes
+Latency for message: 120 ms
+Current time: 12:17:28
+Payload Size: 207 bytes
+Latency for message: 89 ms
+Current time: 12:17:28
+Payload Size: 212 bytes
+Latency for message: 104 ms
+Current time: 12:17:29
+Payload Size: 215 bytes
+Latency for message: 181 ms
+Current time: 12:17:29
+Payload Size: 205 bytes
+Latency for message: 89 ms
+Current time: 12:17:29
+Payload Size: 207 bytes
+Latency for message: 57 ms
+Current time: 12:17:29
+Payload Size: 211 bytes
+Latency for message: 122 ms
+Current time: 12:17:29
+Payload Size: 207 bytes
+Latency for message: 59 ms
+Current time: 12:17:29
+Payload Size: 212 bytes
+Latency for message: 88 ms
+Current time: 12:17:29
+Payload Size: 215 bytes
+Latency for message: 45 ms
+Current time: 12:17:29
+Payload Size: 119 bytes
+Latency for message: 72 ms
+Current time: 12:17:29
+Payload Size: 205 bytes
+Latency for message: 152 ms
+Current time: 12:17:29
+Payload Size: 207 bytes
+Latency for message: 11 ms
+Current time: 12:17:29
+Payload Size: 211 bytes
+Latency for message: 184 ms
+Current time: 12:17:30
+Payload Size: 207 bytes
+Latency for message: 87 ms
+Current time: 12:17:30
+Payload Size: 212 bytes
+Latency for message: 133 ms
+Current time: 12:17:30
+Payload Size: 215 bytes
+Latency for message: 194 ms
+Current time: 12:17:30
+Payload Size: 205 bytes
+Latency for message: 125 ms
+Current time: 12:17:30
+Payload Size: 119 bytes
+Latency for message: 13 ms
+Current time: 12:17:30
+Payload Size: 207 bytes
+Latency for message: 149 ms
+Current time: 12:17:30
+Payload Size: 211 bytes
+Latency for message: 119 ms
+Current time: 12:17:30
+Payload Size: 207 bytes
+Latency for message: 107 ms
+Current time: 12:17:31
+Payload Size: 212 bytes
+Latency for message: 297 ms
+Current time: 12:17:31
+Payload Size: 215 bytes
+Latency for message: 406 ms
+Current time: 12:17:31
+Payload Size: 119 bytes
+Latency for message: 611 ms
+Current time: 12:17:32
+Payload Size: 205 bytes
+Latency for message: 110 ms
+Current time: 12:17:32
+Payload Size: 209 bytes
+Latency for message: 45 ms
+Current time: 12:17:32
+Payload Size: 209 bytes
+Latency for message: 112 ms
+Current time: 12:17:32
+Payload Size: 119 bytes
+Latency for message: 20 ms
+Current time: 12:17:32
+Payload Size: 209 bytes
+Latency for message: 3 ms
+Current time: 12:17:32
+Payload Size: 116 bytes
+Latency for message: 3 ms
+Current time: 12:17:32
+Payload Size: 118 bytes
+Latency for message: 50 ms
+Current time: 12:17:32
+Payload Size: 211 bytes
+Latency for message: 87 ms
+Current time: 12:17:32
+Payload Size: 217 bytes
+Latency for message: 28 ms
+Current time: 12:17:32
+Payload Size: 205 bytes
+Latency for message: 112 ms
+Current time: 12:17:32
+Payload Size: 209 bytes
+Latency for message: 128 ms
+Current time: 12:17:33
+Payload Size: 209 bytes
+Latency for message: 103 ms
+Current time: 12:17:33
+Payload Size: 209 bytes
+Latency for message: 28 ms
+Current time: 12:17:33
+Payload Size: 211 bytes
+Latency for message: 57 ms
+Current time: 12:17:33
+Payload Size: 217 bytes
+Latency for message: 403 ms
+Current time: 12:17:33
+Payload Size: 119 bytes
+Latency for message: 918 ms
+Current time: 12:17:34
+Payload Size: 206 bytes
+Latency for message: 20 ms
+Current time: 12:17:34
+Payload Size: 119 bytes
+Latency for message: 20 ms
+Current time: 12:17:34
+Payload Size: 206 bytes
+Latency for message: 74 ms
+Current time: 12:17:34
+Payload Size: 212 bytes
+Latency for message: 147 ms
+Current time: 12:17:34
+Payload Size: 207 bytes
+Latency for message: 137 ms
+Current time: 12:17:35
+Payload Size: 209 bytes
+Latency for message: 75 ms
+Current time: 12:17:35
+Payload Size: 216 bytes
+Latency for message: 88 ms
+Current time: 12:17:35
+Payload Size: 206 bytes
+Latency for message: 152 ms
+Current time: 12:17:35
+Payload Size: 206 bytes
+Latency for message: 40 ms
+Current time: 12:17:35
+Payload Size: 212 bytes
+Latency for message: 89 ms
+Current time: 12:17:35
+Payload Size: 207 bytes
+Latency for message: 89 ms
+Current time: 12:17:35
+Payload Size: 209 bytes
+Latency for message: 54 ms
+Current time: 12:17:35
+Payload Size: 119 bytes
+Latency for message: 122 ms
+Current time: 12:17:35
+Payload Size: 216 bytes
+Latency for message: 83 ms
+Current time: 12:17:35
+Payload Size: 206 bytes
+Latency for message: 142 ms
+Current time: 12:17:36
+Payload Size: 206 bytes
+Latency for message: 13 ms
+Current time: 12:17:36
+Payload Size: 212 bytes
+Latency for message: 27 ms
+Current time: 12:17:36
+Payload Size: 207 bytes
+Latency for message: 242 ms
+Current time: 12:17:36
+Payload Size: 209 bytes
+Latency for message: 136 ms
+Current time: 12:17:36
+Payload Size: 216 bytes
+Latency for message: 12 ms
+Current time: 12:17:36
+Payload Size: 206 bytes
+Latency for message: 184 ms
+Current time: 12:17:36
+Payload Size: 206 bytes
+Latency for message: 17 ms
+Current time: 12:17:36
+Payload Size: 119 bytes
+Latency for message: 82 ms
+Current time: 12:17:36
+Payload Size: 212 bytes
+Latency for message: 137 ms
+Current time: 12:17:36
+Payload Size: 207 bytes
+Latency for message: 231 ms
+Current time: 12:17:37
+Payload Size: 209 bytes
+Latency for message: 55 ms
+Current time: 12:17:37
+Payload Size: 216 bytes
