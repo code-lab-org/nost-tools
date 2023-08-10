@@ -1,0 +1,47 @@
+@import 'color-theme';
+
+.nodes-header {
+    margin: 0;
+    margin-top: 20px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    font-size: 14px;
+    @include col() {
+        color: t($regular);
+    }
+}
+
+.nodes-list {
+    width: 100%;
+}
+
+.nodes-list-node {
+    height: 40px;
+    width: 100%;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 10px;
+    @include col() {
+        background-color: t($darker-background);
+    }
+}
+
+.nodes-list-node-name {
+    font-family: 'Medium';
+    @include col() {
+        color: t($dark);
+    }
+    min-width: 100px;
+    max-width: 140px;
+}
+
+.nodes-list-node-desc {
+    font-weight: 500;
+    @include col() {
+        color: t($dark);
+    }
+}

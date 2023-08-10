@@ -107,13 +107,15 @@ class Manager(Application):
             init_retry_delay_s (float): number of seconds to wait between initialization commands while waiting for required applications
             init_max_retry (int): number of initialization commands while waiting for required applications before continuing to execution
         """
+        if self.simulator.get_mode() != Mode.UNDEFINED and self.simulator.get_mode() != Mode.TERMINATED:
+            raise RuntimeError(f"Init command requires UNDEFINED or TERMINATED mode (not {self.simulator.get_mode()}).")
+        # record ready status for required application names
         self.required_apps_status = dict(
             zip(required_apps, [False] * len(required_apps))
         )
+        # subscribe to application ready status messages
         self.add_message_callback("+", "status/ready", self.on_app_ready_status)
-        self.add_message_callback("+", "status/time", self.on_app_time_status)
-
-        self._create_time_status_publisher(time_status_step, time_status_init)
+        # wait for required applications to issue ready status
         for i in range(init_max_retry):
             # issue the init command
             self.init(sim_start_time, sim_stop_time, required_apps)
@@ -126,7 +128,14 @@ class Manager(Application):
                 and self.simulator.get_wallclock_time() < next_try
             ):
                 time.sleep(0.001)
+        # unsubscribe to ready status messages
         self.remove_message_callback("+", "status/ready")
+
+        # re-create time status publisher using new parameters
+        self._create_time_status_publisher(time_status_step, time_status_init)
+        # subscribe to application time status messages
+        self.add_message_callback("+", "status/time", self.on_app_time_status)
+
         # configure start time
         if start_time is None:
             start_time = self.simulator.get_wallclock_time() + command_lead
@@ -151,6 +160,10 @@ class Manager(Application):
         # wait for simulation to start executing
         while self.simulator.get_mode() != Mode.EXECUTING:
             time.sleep(0.001)
+        
+        # sort time status updates by scenario time
+        time_scale_updates.sort(key=lambda u: u.sim_update_time)
+        # process the time scale updates during execution
         for update in time_scale_updates:
             update_time = self.simulator.get_wallclock_time_at_simulation_time(
                 update.sim_update_time
@@ -240,6 +253,8 @@ class Manager(Application):
             sim_stop_time (:obj:`datetime`): Latest possible scenario end time
             required_apps (list(str)): List of required apps
         """
+        if self.simulator.get_mode() != Mode.UNDEFINED and self.simulator.get_mode() != Mode.TERMINATED:
+            raise RuntimeError(f"Init command requires UNDEFINED or TERMINATED mode (not {self.simulator.get_mode()}).")
         # publish init command message
         command = InitCommand.parse_obj(
             {
@@ -251,9 +266,10 @@ class Manager(Application):
             }
         )
         logger.info(f"Sending initialize command {command.json(by_alias=True)}.")
-        self.client.publish(
+        msg_info = self.client.publish(
             f"{self.prefix}/{self.app_name}/init", command.json(by_alias=True)
         )
+        msg_info.wait_for_publish()
 
     def start(
         self,
@@ -266,7 +282,6 @@ class Manager(Application):
         time_status_init: datetime = None,
     ) -> None:
         """
-
         Command to start a test run execution by starting the simulator execution with all necessary parameters and publishing
         a start command, which can be received by the connected applications.
 
@@ -279,10 +294,12 @@ class Manager(Application):
             time_status_step (:obj:`timedelta`): Scenario duration between time status messages
             time_status_init (:obj:`datetime`): Scenario time of first time status message
         """
+        if self.simulator.get_mode() != Mode.UNDEFINED and self.simulator.get_mode() != Mode.TERMINATED:
+            raise RuntimeError(f"Start command requires undefined or terminated mode (not {self.simulator.get_mode()}).")
         if start_time is None:
             start_time = self.simulator.get_wallclock_time()
-        self.time_status_step = time_status_step
-        self.time_status_init = time_status_init
+        # re-create time status publisher using new parameters
+        self._create_time_status_publisher(time_status_step, time_status_init)
         # publish a start command message
         command = StartCommand.parse_obj(
             {
@@ -295,9 +312,10 @@ class Manager(Application):
             }
         )
         logger.info(f"Sending start command {command.json(by_alias=True)}.")
-        self.client.publish(
+        msg_info = self.client.publish(
             f"{self.prefix}/{self.app_name}/start", command.json(by_alias=True)
         )
+        msg_info.wait_for_publish()
         # start execution in a background thread
         threading.Thread(
             target=self.simulator.execute,
@@ -317,16 +335,19 @@ class Manager(Application):
         Args:
             sim_stop_time (:obj:`datetime`): Scenario time at which to stop execution.
         """
+        if self.simulator.get_mode() != Mode.EXECUTING:
+            raise RuntimeError(f"Stop command requires EXECUTING mode (not {self.simulator.get_mode()}).")
+        # update the execution end time
+        self.simulator.set_end_time(sim_stop_time)
         # publish a stop command message
         command = StopCommand.parse_obj(
             {"taskingParameters": {"simStopTime": sim_stop_time}}
         )
         logger.info(f"Sending stop command {command.json(by_alias=True)}.")
-        self.client.publish(
+        msg_info = self.client.publish(
             f"{self.prefix}/{self.app_name}/stop", command.json(by_alias=True)
         )
-        # update the execution end time
-        self.simulator.set_end_time(sim_stop_time)
+        msg_info.wait_for_publish()
 
     def update(self, time_scale_factor: float, sim_update_time: datetime) -> None:
         """
@@ -337,6 +358,10 @@ class Manager(Application):
             time_scale_factor (float): scenario seconds per wallclock second
             sim_update_time (:obj:`datetime`): scenario time at which to update
         """
+        if self.simulator.get_mode() != Mode.EXECUTING:
+            raise RuntimeError(f"Update command requires EXECUTING mode (not {self.simulator.get_mode()}).")
+        # update the execution time scale factor
+        self.simulator.set_time_scale_factor(time_scale_factor, sim_update_time)
         # publish an update command message
         command = UpdateCommand.parse_obj(
             {
@@ -347,8 +372,7 @@ class Manager(Application):
             }
         )
         logger.info(f"Sending update command {command.json(by_alias=True)}.")
-        self.client.publish(
+        msg_info = self.client.publish(
             f"{self.prefix}/{self.app_name}/update", command.json(by_alias=True)
         )
-        # update the execution time scale factor
-        self.simulator.set_time_scale_factor(time_scale_factor, sim_update_time)
+        msg_info.wait_for_publish()

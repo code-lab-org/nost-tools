@@ -1,0 +1,97 @@
+@import 'color-theme';
+
+.overview {
+    flex: 1;
+    padding: 15px;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #f7f7f7;
+    border-radius: 5px;
+    @include col() {
+        max-width: t($width);
+    }
+}
+
+.overview-header {
+    margin: 15px 0;
+    display: flex;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: bold;
+    @include col() {
+        color: t($regular);
+    }
+}
+
+.overview-buttons {
+    margin-top: 15px;
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.overview-row {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+}
+
+.overview-button {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    width: 100%;
+    text-align: center;
+    @include col() {
+        background-color: t($button);
+        color: t($background);
+        &:focus, &:hover {
+            background-color: t($header);
+            cursor: pointer;
+        }
+    }
+}
+
+.overview-input {
+    margin-top: 5px;
+    padding: 10px;
+    border-radius: 5px;
+    width: 100%;
+    border: 1px solid;
+    background: none;
+    @include col() {
+        border-color: t($shadow);
+        color: t($dark);
+        &:focus, &:hover {
+            background-color: t($dark-background);
+            outline: none;
+        }
+    }
+}
+
+.overview-input::placeholder {
+    @include col() {
+        color: t($regular);
+    }
+
+}
+
+.status-success {
+    color: green;
+    margin-top: 10px;
+    text-align: center;
+}
+
+.status-error {
+    color: red;
+    margin-top: 10px;
+    text-align: center;
+}
+

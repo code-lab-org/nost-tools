@@ -109,10 +109,11 @@ class TimeStatusPublisher(ScenarioTimeIntervalPublisher):
             f"Sending time status {status.json(by_alias=True,exclude_none=True)}."
         )
         # publish time status message
-        self.app.client.publish(
+        msg_info = self.app.client.publish(
             f"{self.app.prefix}/{self.app.app_name}/status/time",
             status.json(by_alias=True, exclude_none=True),
         )
+        msg_info.wait_for_publish()
 
 
 class ModeStatusObserver(Observer):
@@ -152,7 +153,8 @@ class ModeStatusObserver(Observer):
             logger.info(
                 f"Sending mode status {status.json(by_alias=True,exclude_none=True)}."
             )
-            self.app.client.publish(
+            msg_info = self.app.client.publish(
                 f"{self.app.prefix}/{self.app.app_name}/status/mode",
                 status.json(by_alias=True, exclude_none=True),
             )
+            msg_info.wait_for_publish()

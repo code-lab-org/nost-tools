@@ -1,0 +1,33 @@
+@import 'color-theme';
+
+.footer {
+    height: 45px;
+    width: 100%;
+    padding-left: 25px;
+    padding-right: 25px;
+    position: fixed;
+    bottom: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    border-top: .25px solid;
+    font-size: 13px;
+    @include col() {
+        background-color: t($background);
+        border-color: t($shadow);
+        color: t($regular);
+    }
+}
+
+.footer-info {
+    display: flex;
+    flex-direction: row;
+}
+
+.footer-text {
+    margin-right: 15px;
+    @include col() {
+        color: t($regular);
+    }
+}

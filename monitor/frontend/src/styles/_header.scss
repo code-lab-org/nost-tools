@@ -1,0 +1,52 @@
+@import 'color-theme';
+
+.header {
+    height: 50px;
+    width: 100%;
+    padding-left: 25px;
+    padding-right: 25px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    @include col() {
+        background-color: t($background);
+    }
+}
+
+.header-text {
+    font-size: 20px;
+    font-family: 'Medium';
+    @include col() {
+        color: t($header);
+    }
+}
+
+.header-status {
+    text-transform: capitalize;
+}
+
+.status-connected {
+    @include col() {
+        color: t($success);
+    }
+}
+
+.status-reconnecting {
+    @include col() {
+        color: t($loading);
+    }
+}
+
+.status-offline, .status-closed {
+    @include col() {
+        color: t($fail);
+    }
+}
+
+.header-gradient {
+    height: 3px;
+    @include col() {
+        background: linear-gradient(to right, t($header), t($light-header));
+    }
+}
