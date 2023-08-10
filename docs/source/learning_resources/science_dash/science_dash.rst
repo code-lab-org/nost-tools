@@ -34,7 +34,7 @@ Initial Requirements
 
 This test suite assumes that you have first downloaded the constituent applications.
 It is also necessary to install several python packages as found in the `requirements file <https://github.com/code-lab-org/nost-tools/blob/main/docs/requirements.txt>`__.
-However, this is an unmanaged NOS-T test suite and it is not necessary to have installed the tools library.
+However, this is an unmanaged NOS-T test suite and it is not necessary to have the tools library installed.
 
 
 Setting Up Environment Files
@@ -55,7 +55,7 @@ name ".env" containing the following text. Make sure that you "Save as type"
   USERNAME="your event broker username"
   PASSWORD="your event broker password"
 
-Both applications must have this file in the home path. If they're both in the
+Both applications must have this file in the home path (folder). If they're both in the
 same folder then just one is sufficient.
 
 Running a Test Case

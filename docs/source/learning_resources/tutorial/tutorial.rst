@@ -106,7 +106,7 @@ For more information on FireSat+, please see the following:
 
 * The Interface Control Document has a high-level description of FireSat+ :ref:`here <ICDfireSat>`.
 * A deeper dive into the applications and code is :ref:`here <fireSatExampleTop>`.
-* A paper describing this test suite is `here <https://doi.org/10.1109/IGARSS46834.2022.9883290>`__
+* A paper describing this test suite is `here <https://doi.org/10.1109/IGARSS46834.2022.9883290>`__.
 
 NOS-T test suites are made up of applications communicating over the broker. Next, the tutorial will detail two of the FireSat+ apps to give you a better idea of how they work. 
 
