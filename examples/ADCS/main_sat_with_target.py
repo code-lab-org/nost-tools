@@ -1,6 +1,6 @@
 import time
 import logging
-# import pandas as pd
+import pandas as pd
 from datetime import datetime, timedelta
 from dotenv import dotenv_values
 
@@ -10,7 +10,7 @@ from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
 from nost_tools.managed_application import ManagedApplication
 
 from config import PARAMETERS
-from satellite_with_multiple_targets_v_0 import Satellite, StatusPublisher
+from satellite_saving_data_dict import Satellite, StatusPublisher, datadict
 
 logging.basicConfig(level=logging.INFO)
 
@@ -78,6 +78,11 @@ TERRA
         ),
         time_step=timedelta(seconds=.03) * PARAMETERS["SCALE"],
     )
+
+    # saving list of dictionaries to dataframe
+    filename1 = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    df = pd.DataFrame.from_dict(datadict,orient='index').transpose()
+    df.to_csv(path_or_buf=filename1+".csv")
 
     # Ensures the application hangs until the simulation is terminated, to allow background threads to run
     while not app.simulator.get_mode() == Mode.TERMINATED:

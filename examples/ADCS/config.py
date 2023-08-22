@@ -15,7 +15,7 @@ PARAMETERS = pd.Series(
         "PREFIX": "BCtest",
         "SCALE": 60,
         "SCENARIO_START": datetime(2023, 6, 12, 21, 49, 51).timestamp(),
-        "SCENARIO_LENGTH": 24,
+        "SCENARIO_LENGTH": 1,
         # Name of satellite for reference orbit from Celestrak database SUOMI NPP, GOES 18, NAVSTAR 72 (USA 258)
         "name": "SUOMI NPP",
         # satellite field of regard

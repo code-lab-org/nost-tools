@@ -31,8 +31,7 @@ global targetLoc
 targetLoc = wgs84.latlon(-35, -8)
 # targetPos = targetLoc.itrs_xyz.m
 # list for data
-datalist = []
-myfile = open("xyz.txt", "w")
+datadict = {"time":[],"timeCheck":[],"next_opportunity_time":[],"rollangle":[],"omega":[],"errorAngle":[],"controlTorque":[]}
 
 
 class Satellite(Entity):
@@ -113,6 +112,8 @@ class Satellite(Entity):
         self.next_targetQuat = self.update_target_attitude(
             self.next_pos, self.next_vel, targetLoc, t_start, t_end
         )
+        datadict["time"].append(self.get_time())
+        datadict["omega"].append(self.omega)
 
     def tock(self):
         self.target = self.next_target
@@ -267,6 +268,8 @@ class Satellite(Entity):
         next_opportunities_df = culmTimes.loc[culmTimes.Time > self.get_time()].copy()
         # setting first possible culmination time as next opportunity
         next_opportunity_time = ts.from_datetime(next_opportunities_df.iloc[0]["Time"])
+        
+        datadict["next_opportunity_time"].append(next_opportunity_time)
 
         return next_opportunity_time
 
@@ -303,7 +306,7 @@ class Satellite(Entity):
 
         sat_geographical = wgs84.geographic_position_of(culmGeocentric)
 
-        # rollAngle is always positive - need to fix when target is to right
+        # scipy rotations rollAngle is always positive - making negative when target is to right
         if (
             culm_vel[2] > 0
             and sat_geographical.longitude.degrees < targetLoc.longitude.degrees
@@ -318,6 +321,9 @@ class Satellite(Entity):
 
         targetRot = R.from_matrix(R_bi) * R.from_euler("x", rollAngle)
         targetQuat = targetRot.as_quat()
+        
+        datadict["timeCheck"].append(self.get_time())
+        datadict["rollangle"].append(rollAngle)
 
         return targetQuat
 
@@ -341,11 +347,9 @@ class Satellite(Entity):
         errorRot = R.from_quat(errorQuat)
         errorAngle = np.rad2deg((R.magnitude(errorRot) / (2 * np.pi)))
 
-        x = {"time": self.get_time(), "errorAngle": errorAngle}
-        datalist.append(x)
-        myfile.write(x)
-
         # print("ERROR Angle IS",errorAngle)
+        
+        datadict["errorAngle"].append(errorAngle)
 
         return errorQuat, errorAngle
 
@@ -354,7 +358,9 @@ class Satellite(Entity):
         T_c[0] = -(2 * Kp[0] * errorQuat[0] * errorQuat[3] + Kd[0] * self.omega[0])
         T_c[1] = -(2 * Kp[1] * errorQuat[1] * errorQuat[3] + Kd[1] * self.omega[1])
         T_c[2] = -(2 * Kp[2] * errorQuat[2] * errorQuat[3] + Kd[2] * self.omega[2])
-        print("TORQUE VECTOR", T_c)
+        # print("TORQUE VECTOR", T_c)
+        
+        datadict["controlTorque"].append(T_c)
 
         return T_c
 
@@ -439,8 +445,6 @@ class StatusPublisher(WallclockTimeIntervalPublisher):
                 attitude=list(self.satellite.att),
                 angular_velocity=list(self.satellite.omega),
                 target_quaternion=list(self.satellite.targetQuat),
-                roll_angle = list(self.satellite.rollAngle),
-                error_angle=(list(self.satellite.errorAngle)),
                 radius=sensorRadius,
                 commRange=self.isInRange,
                 time=self.satellite.get_time(),

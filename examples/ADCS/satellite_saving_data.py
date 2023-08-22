@@ -343,7 +343,7 @@ class Satellite(Entity):
 
         x = {"time": self.get_time(), "errorAngle": errorAngle}
         datalist.append(x)
-        myfile.write(x)
+        # myfile.write(x)
 
         # print("ERROR Angle IS",errorAngle)
 
@@ -439,8 +439,8 @@ class StatusPublisher(WallclockTimeIntervalPublisher):
                 attitude=list(self.satellite.att),
                 angular_velocity=list(self.satellite.omega),
                 target_quaternion=list(self.satellite.targetQuat),
-                roll_angle = list(self.satellite.rollAngle),
-                error_angle=(list(self.satellite.errorAngle)),
+                # roll_angle = list(self.satellite.rollAngle),
+                # error_angle=(list(self.satellite.errorAngle)),
                 radius=sensorRadius,
                 commRange=self.isInRange,
                 time=self.satellite.get_time(),
