@@ -64,7 +64,7 @@ TERRA
     # add a shutdown observer to shut down after a single test case
     app.simulator.add_observer(ShutDownObserver(app))
 
-    # add a position publisher to update satellite state every 5 seconds of wallclock time
+    # add a position publisher to update satellite state every X seconds of wallclock time
     app.simulator.add_observer(StatusPublisher(app, ADCSsat, timedelta(seconds=1)))
 
     # start up the application on PREFIX, publish time status every 10 seconds of wallclock time
@@ -79,11 +79,11 @@ TERRA
         time_step=timedelta(seconds=.03) * PARAMETERS["SCALE"],
     )
 
-    # saving list of dictionaries to dataframe
-    filename1 = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-    df = pd.DataFrame.from_dict(datadict,orient='index').transpose()
-    df.to_csv(path_or_buf=filename1+".csv")
-
     # Ensures the application hangs until the simulation is terminated, to allow background threads to run
     while not app.simulator.get_mode() == Mode.TERMINATED:
         time.sleep(0.2)
+        
+# saving list of dictionaries to dataframe
+filename1 = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+df = pd.DataFrame.from_dict(datadict,orient='index').transpose()
+df.to_csv(path_or_buf=filename1+".csv")

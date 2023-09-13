@@ -66,11 +66,16 @@
           clockViewModel: new Cesium.ClockViewModel(clock),
         });
         const position = new Cesium.Cartesian3(
-          1.48563e6,
-          -4.77881e6,
-          5.17726e6
+          2729810.06225662,
+          -1318819.67187476,
+          6382349.47089364
         );
-        const orientation = new Cesium.Quaternion(0.0763987, 0, 0, 0.997077);
+        const orientation = new Cesium.Quaternion(
+          0.19893060527598144,
+          -0.1480825350836282,
+          0.9671665303385254,
+          0.055561494586413955
+        );
         const blueBox = viewer.entities.add({
           name: "Blue box",
           position: position,
@@ -83,12 +88,20 @@
             ),
           },
           box: {
-            dimensions: new Cesium.Cartesian3(300000.0, 200000.0, 100000.0),
-            material: Cesium.Color.BLUE,
+            dimensions: new Cesium.Cartesian3(360000.0, 230000.0, 115000.0),
+            material: Cesium.Color.SNOW,
             distanceDisplayCondition: new Cesium.DistanceDisplayCondition(
               0.0,
               12500000000.5
             ),
+            outline: true,
+            outlineWidth: 5.0,
+          },
+          cylinder: {
+            length: 1900000.0,
+            topRadius: 20000.0,
+            bottomRadius: 0.0,
+            material: Cesium.Color.GOLD,
           },
         });
         var point = viewer.entities.add({
@@ -108,7 +121,7 @@
         });
 
         var point = viewer.entities.add({
-          position: new Cesium.Cartesian3.fromDegrees(-74.0324, 40.744),
+          position: new Cesium.Cartesian3.fromDegrees(-24, 65),
           point: {
             pixelSize: 10,
             color: Cesium.Color.WHITE,

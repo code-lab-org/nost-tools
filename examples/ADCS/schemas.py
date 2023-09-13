@@ -18,3 +18,11 @@ class SatelliteStatus(BaseModel):
         False, description="Boolean for if satellite is in ground stations view"
     )
     time: datetime = Field(..., description="Time in satellite reference frame")
+
+
+class observation_success(BaseModel):
+    targetId: int = Field(..., description="Unique target identifier.")
+    detected: datetime = Field(..., description="Time target observed.")
+    roll_angle_error: float = Field(
+        ..., description="Difference between desired and actual roll angle (deg)."
+    )

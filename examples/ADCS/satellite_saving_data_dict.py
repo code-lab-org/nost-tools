@@ -19,6 +19,7 @@ initialQuat = PARAMETERS["initialQuat"]
 T_c = PARAMETERS["initialT"]
 I = PARAMETERS["I"]
 dt = PARAMETERS["dt"]
+# eulerRad = np.zeros(3)
 
 # times for culmination
 ts = load.timescale()
@@ -31,7 +32,7 @@ global targetLoc
 targetLoc = wgs84.latlon(-35, -8)
 # targetPos = targetLoc.itrs_xyz.m
 # list for data
-datadict = {"time":[],"timeCheck":[],"next_opportunity_time":[],"rollangle":[],"omega":[],"errorAngle":[],"controlTorque":[]}
+datadict = {"time":[],"next_opportunity_time":[],"actual_roll_angle":[],"target_roll_angle":[],"omega":[],"controlTorque":[]}
 
 
 class Satellite(Entity):
@@ -65,6 +66,8 @@ class Satellite(Entity):
         self.grounds = grounds
         self.target = self.next_target = None
         self.targetQuat = self.next_targetQuat = None
+        
+        self.eulerRad = None
 
     def initialize(self, init_time):
         super().initialize(init_time)
@@ -90,6 +93,7 @@ class Satellite(Entity):
             R_bi
         ).as_quat()  # initial nadir-pointing quaternion from inertial to body coordinates
         self.omega = np.array([0, 0, 0])  # initial rotational velocity
+        self.eulerRad = np.array([0, 0, 0])
 
     def tick(self, time_step):  # computes
         super().tick(time_step)
@@ -107,7 +111,7 @@ class Satellite(Entity):
             self.next_geocentric
         ).longitude.degrees
         self.next_subpoint = wgs84.geographic_position_of(self.next_geocentric)
-        self.next_att = self.update_attitude(time_step, self.next_pos, self.next_vel)
+        self.next_att = self.update_attitude(time_step, self.next_pos, self.next_vel, self.eulerRad)
         self.next_omega = self.omega
         self.next_targetQuat = self.update_target_attitude(
             self.next_pos, self.next_vel, targetLoc, t_start, t_end
@@ -244,15 +248,15 @@ class Satellite(Entity):
     def find_next_opportunity_time(self):
         # finding time, position, velocity of rise/culmination/set events
         # print("GET TIME TYPE",type(self.get_time()))
-        global targetLoc
-        if self.get_time() > datetime(2023, 6, 12, 22, 11, 55).replace(tzinfo=utc):
-            targetLoc = wgs84.latlon(-2, 9)
-        if self.get_time() > datetime(2023, 6, 12, 22, 19, 52).replace(tzinfo=utc):
-            targetLoc = wgs84.latlon(13, -16)
-        if self.get_time() > datetime(2023, 6, 12, 22, 25, 17).replace(tzinfo=utc):
-            targetLoc = wgs84.latlon(37, -6)
-        if self.get_time() > datetime(2023, 6, 12, 22, 31, 4).replace(tzinfo=utc):
-            targetLoc = wgs84.latlon(65, -24)
+        # global targetLoc
+        # if self.get_time() > datetime(2023, 6, 12, 22, 11, 55).replace(tzinfo=utc):
+        #     targetLoc = wgs84.latlon(-2, 9)
+        # if self.get_time() > datetime(2023, 6, 12, 22, 19, 52).replace(tzinfo=utc):
+        #     targetLoc = wgs84.latlon(13, -16)
+        # if self.get_time() > datetime(2023, 6, 12, 22, 25, 17).replace(tzinfo=utc):
+        #     targetLoc = wgs84.latlon(37, -6)
+        # if self.get_time() > datetime(2023, 6, 12, 22, 31, 4).replace(tzinfo=utc):
+        #     targetLoc = wgs84.latlon(65, -24)
         t, events = self.ES.find_events(
             targetLoc,
             ts.from_datetime(t_start),
@@ -298,32 +302,32 @@ class Satellite(Entity):
         direction = culm_pos - target_pos
         dirUnit = direction / np.linalg.norm(direction)
 
-        rollAngle = np.arccos(np.dot(dirUnit, culmUnitVec))
+        targetRollAngle = np.arccos(np.dot(dirUnit, culmUnitVec))
         # if self.get_time() < datetime(2023, 6, 12, 22, 00, 55).replace(tzinfo=utc):
-        #     rollAngle = 0
+        #     targetRollAngle = 0
         # if self.get_time() > datetime(2023, 6, 12, 22, 39, 10).replace(tzinfo=utc):
-        #     rollAngle = 0
+        #     targetRollAngle = 0
 
         sat_geographical = wgs84.geographic_position_of(culmGeocentric)
 
-        # scipy rotations rollAngle is always positive - making negative when target is to right
+        # scipy rotations targetRollAngle is always positive - making negative when target is to right
         if (
             culm_vel[2] > 0
             and sat_geographical.longitude.degrees < targetLoc.longitude.degrees
         ):
-            rollAngle = -rollAngle
+            targetRollAngle = -targetRollAngle
 
         if (
             culm_vel[2] < 0
             and sat_geographical.longitude.degrees > targetLoc.longitude.degrees
         ):
-            rollAngle = -rollAngle
+            targetRollAngle = -targetRollAngle
 
-        targetRot = R.from_matrix(R_bi) * R.from_euler("x", rollAngle)
+        targetRot = R.from_matrix(R_bi) * R.from_euler("x", targetRollAngle)
         targetQuat = targetRot.as_quat()
         
-        datadict["timeCheck"].append(self.get_time())
-        datadict["rollangle"].append(rollAngle)
+        #datadict["timeCheck_targetatt"].append(self.get_time())
+        datadict["target_roll_angle"].append(np.rad2deg(targetRollAngle))
 
         return targetQuat
 
@@ -344,23 +348,23 @@ class Satellite(Entity):
         qB = np.array([self.att[0], self.att[1], self.att[2], self.att[3]])
 
         errorQuat = np.matmul(qT, qB)
-        errorRot = R.from_quat(errorQuat)
-        errorAngle = np.rad2deg((R.magnitude(errorRot) / (2 * np.pi)))
+        # errorRot = R.from_quat(errorQuat)
+        # errorAngle = np.rad2deg(R.magnitude(errorRot))
 
         # print("ERROR Angle IS",errorAngle)
         
-        datadict["errorAngle"].append(errorAngle)
+        # datadict["errorAngle"].append(errorAngle)
 
-        return errorQuat, errorAngle
+        return errorQuat
 
     # Calculate torque produced by reaction wheels
     def control_torque(self, errorQuat, Kp, Kd):  # Sidi
         T_c[0] = -(2 * Kp[0] * errorQuat[0] * errorQuat[3] + Kd[0] * self.omega[0])
         T_c[1] = -(2 * Kp[1] * errorQuat[1] * errorQuat[3] + Kd[1] * self.omega[1])
         T_c[2] = -(2 * Kp[2] * errorQuat[2] * errorQuat[3] + Kd[2] * self.omega[2])
-        # print("TORQUE VECTOR", T_c)
+        print("TORQUE VECTOR", T_c)
         
-        datadict["controlTorque"].append(T_c)
+
 
         return T_c
 
@@ -385,16 +389,19 @@ class Satellite(Entity):
         return self.att
 
     # changes the spacecraft's attitude
-    def update_attitude(self, time_step, next_pos, next_vel):
+    def update_attitude(self, time_step, next_pos, next_vel,eulerRad):
         # Calculate error quaternion
-        errorQuat, errorAngle = self.att_error(next_pos, next_vel)
+        errorQuat = self.att_error(next_pos, next_vel)
         # Calculate torque produced by reaction wheels
         T_c = self.control_torque(errorQuat, Kp, Kd)
         # Update angular velocity, euler angles, and quaternion
         alpha = np.matmul(np.linalg.inv(I), T_c)
         self.omega = self.omega + alpha * dt
-        # eulerRad = eulerRad + self.omega * time_step
-        # euler = np.degrees(eulerRad)
+        self.eulerRad = self.eulerRad + self.omega * dt
+        euler = np.degrees(self.eulerRad)
+        eulerX = euler[0]
+        datadict["controlTorque"].append(T_c)
+        datadict["actual_roll_angle"].append(eulerX)
         qwdt = np.array(
             [
                 (
@@ -414,6 +421,8 @@ class Satellite(Entity):
         )
 
         self.att = self.quaternion_product(qwdt)
+        
+        #datadict["timeCheck_att"].append(self.get_time())
 
         return self.att
 

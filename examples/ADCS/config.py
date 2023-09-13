@@ -32,9 +32,9 @@ PARAMETERS = pd.Series(
         ),
         # ADCS system parameters
         # Controller gains
-        "Kp": np.array([1000, 1000, 1000]),
-        "Ki": np.array([1000, 1000, 1000]),
-        "Kd": np.array([1000, 1000, 1000]),
+        "Kp": np.array([5000, 5000, 5000]),
+        "Ki": np.array([5000, 5000, 5000]),
+        "Kd": np.array([5000, 5000, 5000]),
         # Define initial state of satellite
         "cubeMass": 2,  # mass of single cubesat cube (kg)
         "cubeLength": 0.1,  # length of single cubesat cube (m)

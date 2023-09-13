@@ -108,6 +108,38 @@ targetRot = R.from_matrix(R_bi)*R.from_euler('x',rollAngle)
 rollAngledeg = np.rad2deg(rollAngle)
 targetQuat = targetRot.as_quat()
 
+x0 = iQuat[0]
+y0 = iQuat[1]
+z0 = iQuat[2]
+w0 = iQuat[3]
+
+x1 = targetQuat[0]
+y1 = targetQuat[1]
+z1 = targetQuat[2]
+w1 = targetQuat[3]
+
+xn = w0 * x1 + x0 * w1 + y0 * z1 - z0 * y1
+yn = w0 * y1 - x0 * z1 + y0 * w1 + z0 * x1
+zn = w0 * z1 + x0 * y1 - y0 * x1 + z0 * w1
+wn = w0 * w1 - x0 * x1 - y0 * y1 - z0 * z1
+
+rollQuat = np.array([xn, yn, zn, wn])
+
+qT = np.array(
+    [
+        [targetQuat[3], targetQuat[2], -targetQuat[1], -targetQuat[0]],
+        [-targetQuat[2], targetQuat[3], targetQuat[0], -targetQuat[1]],
+        [targetQuat[1], -targetQuat[0], targetQuat[3], -targetQuat[2]],
+        [targetQuat[0], targetQuat[1], targetQuat[2], targetQuat[3]],
+    ]
+)
+
+qB = np.array([iQuat[0], iQuat[1], iQuat[2], iQuat[3]])
+
+errorQuat = np.matmul(qT, qB)
+errorRot = R.from_quat(errorQuat)
+errorAngle = np.rad2deg((R.magnitude(errorRot)))
+
 # print("culmination time",culmTime.utc_iso())
 print("Roll Angle", [rollAngledeg])
 print("culmination position",[culm_pos])
