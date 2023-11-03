@@ -106,7 +106,7 @@ For more information on FireSat+, please see the following:
 
 * The Interface Control Document has a high-level description of FireSat+ :ref:`here <ICDfireSat>`.
 * A deeper dive into the applications and code is :ref:`here <fireSatExampleTop>`.
-* A paper describing this test suite is `here <https://doi.org/10.1109/IGARSS46834.2022.9883290>`__
+* A paper describing this test suite is `here <https://doi.org/10.1109/IGARSS46834.2022.9883290>`__.
 
 NOS-T test suites are made up of applications communicating over the broker. Next, the tutorial will detail two of the FireSat+ apps to give you a better idea of how they work. 
 
@@ -199,7 +199,7 @@ The next code block contains two different fire observation classes. The first o
 The final block of code in the **Satellites** app is for initializing data and adding the functions and classes.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-	:lines: 526- 584
+	:lines: 526- 574
 
 
 The **Manager** application - main_manager.py
@@ -314,9 +314,7 @@ file with the name ".env" containing the following text:
   USERNAME="your event broker username"
   PASSWORD="your event broker password"
 
-The Scoreboard application is .html, and therefore the environment needs
-to be set in a JavaScript file. To do this create a text file with the name
-"env.js" containing the following information:
+The Scoreboard application is in .html, and pulls in credentials from a JavaScript file. To do this create a text file with the name "env.js" containing the following information:
 
 ::
 

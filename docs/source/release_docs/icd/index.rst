@@ -80,8 +80,6 @@ Techniques <#tools-templates-and-techniques>`__
 
 `5.4 Ensuring NOS-T Compatibility <#ensuring-nos-t-compatibility>`__
 
-`5.5 Executing Test Campaigns <#executing-test-campaigns>`__
-
 `6 References <#references>`__
 
 `7 Appendices <#appendices>`__
@@ -102,8 +100,7 @@ is distributed among multiple systems, necessitating new methods for
 systems engineering and design to cope with more decentralized control
 over constituent systems.
 
-The New Observing Strategies Testbed (NOS-T, verbalized as "en oh es
-tee") is a computational environment to develop, test, mature, and
+The New Observing Strategies Testbed (NOS-T) is a computational environment to develop, test, mature, and
 socialize new operating concepts and technology for NOS. NOS-T provides
 infrastructure to integrate and orchestrate user-contributed
 applications for system-of-systems test cases with true distributed
@@ -265,8 +262,8 @@ interact.
   * - TRL
     - Technology Readiness Level
 
-Obtaining Documentation, Tools, and Information 
-------------------------------------------------
+Obtaining Documentation, Tools, and Information
+-----------------------------------------------
 
 To obtain copies of development and verification tools cited in this
 document, please contact the principal investigator:
@@ -632,7 +629,7 @@ prints out received messages to console using a callback function.
     while time.time() - t < 1.0:
       client.loop()
 
-Additional Eclipse Paho features described in the documentation [6]
+Additional Eclipse Paho features described in the documentation [6]_
 include background threads to process message events (rather than
 calling the *loop()* function directly), per-topic callback functions to
 simplify event handling, and additional configuration options to manage
@@ -671,7 +668,7 @@ The test case execution lifecycle follows the activity diagram in Figure
 Figure 6. Typical Managed Test Case Execution Lifecycle. (click to enlarge)
 
 The control event message payload builds on the *Task* entity object
-schema in the Sensor Things Tasking API [5] with a top-level key
+schema in the Sensor Things Tasking API [5]_ with a top-level key
 *taskingParameters* to group event-specific parameters. Table 2 lists
 the four manager control event types described in the following
 sections.
@@ -814,13 +811,15 @@ determines the end of the test case execution.
     - ISO-8601 datetime string
     - The earliest scenario time at which to end the test case execution (shall be within the bounds specified in the initialization event).
 
+.. _statusEvents:
+
 Status Events
 ~~~~~~~~~~~~~
 
 The manager issues status events to communicate state changes in its
 local model of the test case execution. The status event message payload
 builds on the *Thing* entity object schema in the Sensor Things Sensing
-API [4] with top-level keys for *name*, *description*, and *properties*
+API [4]_ with top-level keys for *name*, *description*, and *properties*
 to group event-specific parameters. Table 7 lists the two manager status
 event types described in the following sections.
 
@@ -916,7 +915,7 @@ To support a diverse set of user applications, NOS-T supports two levels
 of execution with differing capabilities and complexity of
 implementation:
 
--  **Unmanaged:** user application(s) run “open-loop” with no
+-  **Unmanaged**: user application(s) run “open-loop” with no
    interaction with the NOS-T Manager Application.
 
 -  **Managed**: user application(s) run “closed-loop,” subscribing to
@@ -949,10 +948,10 @@ FireSat+ Example
 To avoid only describing an abstract interface, we will use a specific
 example of a managed use case throughout this section. The example is
 based on the canonical FireSat mission, a fire-detecting spacecraft
-application case commonly used in space systems literature. Firesat+ is
+application case commonly used in space systems literature. *Firesat+* is
 a hypothetical mission to detect and monitor wildfires from low-Earth
-Orbit via a constellation of satellites rather than a single observer.
-The FireSat+ Test Campaign scenario demonstrates how user applications
+Orbit via a constellation of satellites rather than a single observer [7]_.
+The *FireSat+* Test Campaign scenario demonstrates how user applications
 can model parts of a fire observation remote sensing system. This simple
 scenario assumes interactions between four user applications as shown in
 Figure 8.
@@ -978,7 +977,7 @@ Figure 8.
 
 4. **Scoreboard application**: does not model any physical phenomena but
    subscribes to all messages for the purposes of data collection and
-   visualization. Only application in the FireSat+ Test Campaign that is
+   visualization. Only application in the *FireSat+* Test Campaign that is
    unmanaged (i.e., does not subscribe to manager control events) and
    does not publish messages.
 
@@ -995,24 +994,24 @@ Unmanaged Use Case
 An unmanaged user application does not need to maintain an internal
 representation of time. It does not subscribe to manager control events.
 Instead, it triggers behavior in response to status events or events
-published by other user applications. For example, the *Ground*
-application in the FireSat+ case may not need an internal representation
+published by other user applications. For example, the **Ground**
+application in the *FireSat+* case may not need an internal representation
 of time if it only triggers in response to a change in Mode Status
-issues as a message published by the *manager* application. Similarly,
-the Scoreboard might subscribe to time status message events from the
+issues as a message published by the **Manager** application. Similarly,
+the **Scoreboard** might subscribe to time status message events from the
 manager application to display the scenario clock, but it does not need
-to subscribe to any of the manager’s control events in order to
+to subscribe to any of the **Manager’s** control events in order to
 function. All the other visualizations on the scoreboard are triggered
 by status messages from the other user applications.
 
 Unmanaged user applications do not need to use manager commands to run,
 instead they can be controlled solely through user commands. Although
-the manager is not necessary to run unmanaged apps, testing has found
+the **Manager** is not necessary to run unmanaged apps, testing has found
 that regular heartbeat messages are useful for users to know if their
 application is still running over long test cases. Figure 9 illustrates
-how user commands, *not* manager application commands, start the user
+how user commands, *not* **Manager** application commands, start the user
 applications and they will continue executing until a *user*-issued STOP
-command, NOT a manager-issued STOP command.
+command, NOT a **Manager**-issued STOP command.
 
 .. image:: media/image45.png
    :align: center
@@ -1028,12 +1027,12 @@ A managed user application relies on the NOS-T manager application to
 control various aspects of the simulation. These include starting the
 simulation when all user apps are ready, governing and communicating
 scenario time, and finally terminating the simulation. Unlike the
-unmanaged use case, in a managed use case the Manager Application
+unmanaged use case, in a managed use case the **Manager** Application
 triggers behavior in the user application throughout the test case. This
 communication at its most basic level is seen in **Figure 10**. The
-manager publishes messages to topics via the message broker. These
+**Manager** publishes messages to topics via the message broker. These
 topics are subscribed to by user applications. For example, the
-*Fires/Science* application in the FireSat+ test case may rely on
+**Fires/Science** application in the *FireSat+* test case may rely on
 periodic time status events (e.g., published every 6 hours of scenario
 time) to pull and update fire state information using the corresponding
 time stamp before publishing a new *Fire Status* event.
@@ -1057,10 +1056,10 @@ Figure 11. Simplified Behavior of Managed Application. (click to enlarge)
 
 All messages between applications in NOS-T go through the message broker
 via a publish/subscribe method. To begin a test case execution,
-applications must subscribe to the manager's initialize command event to
+applications must subscribe to the **Manager's** initialize command event to
 initialize, mode status event to enable/disable behavior, and time
 status event(s) to trigger temporal behaviors during a test case
-execution. The choice of manager time status interval should be
+execution. The choice of **Manager** time status interval should be
 coordinated in advance to align with a managed application's concept of
 operations. Figure 12 illustrates how the initialize event triggers an
 initialization activity, the EXECUTING mode status event triggers the
@@ -1232,7 +1231,7 @@ payloads encoded in JSON. Some existing standards such as the
 SensorThings API can provide guidance on object schema structure.
 SensorThings data event entities include a *name* field, *description*
 field, and *properties* sub-object in the JSON data. For example, the
-payload for a *Fire Status* event in the FireSat+ test case (published
+payload for a *Fire Status* event in the *FireSat+* test case (published
 by the *Fires/Science* application and subscribed to by the
 *Constellation/Satellites* application) can be structured as:
 
@@ -1257,7 +1256,7 @@ overcome broker limitations. For example, some test cases may consider
 large data products that exceed the 30 MB maximum message payload. To
 exchange large data products, applications may establish an alternate
 hosting service (e.g., web server, repository, or network drive) and
-simply send an URI to the data in the message payload.
+simply send an URI to the data in the message payload. Users also need to consider slowdowns due to overall message size, which are explored in the following reference [8]_.
 
 Detailed User's Guide
 ---------------------
@@ -1271,7 +1270,7 @@ accept or reject an observation strategy hypothesis (or hypotheses) as
 shown in Figure 14. Test suites are logical collections of test cases
 that differ from each one by ideally no more than one variable. A test
 suite considers different scenarios beyond the designer's control (such
-as different fire ignition scenarios in the FireSat+ example), whereas
+as different fire ignition scenarios in the *FireSat+* example), whereas
 the test cases each represent distinct design choices for the
 observation strategy in question. We envision that this collection of
 test suites and test cases comprises a test matrix developed using a
@@ -1290,7 +1289,7 @@ Traceability Matrix (STM) that is focused on leveraging the NOS-T system
 to answer specific questions about observation strategies. A
 representative example for a NOS-T STM is shown in Table 12. This
 example includes two related but distinct objectives/test campaigns for
-the FireSat+ use-case. The STM is designed to help a principal
+the *FireSat+* use-case. The STM is designed to help a principal
 investigator map out the metrics, user applications/nodes, their
 functional requirements, and test structure design. An example of a test
 campaign with results for Objective 1 in the table can be found in the
@@ -1323,14 +1322,14 @@ two other useful thinking tools to aid in user app coordination are
 suggested. The first is a Design Structure Matrix (DSM), which provides
 a method to represent dependencies among system modules as a square
 binary (0/1) matrix. The example in Table 13 shows the coupling between
-applications in the FireSat+ test campaign. It is read clockwise. So, in
+applications in the *FireSat+* test campaign. It is read clockwise. So, in
 this example, data goes from the Satellite App to all the other three
 apps. However, the satellite app only receives inputs from the ground
 station and wildfire apps (not the scoreboard app).
 
 The DSM is useful for initial app-to-app interface planning. To examine
 the interfaces in more detail a second tool, a variation on the
-traditional NxN matrix, can be used. An example for the FireSat+ test
+traditional NxN matrix, can be used. An example for the *FireSat+* test
 campaign apps is shown in Table 14. The NxN is set up with the apps on
 the diagonal and interfaces, from and to, are again read clockwise. The
 items in the off-diagonal boxes represent messages being sent between
@@ -1466,23 +1465,18 @@ ensure the compatibility of their applications with the NOS-T
 environment. At the most basic level, the only requirements for any
 application are the ability to send and receive messages to a message
 broker using the MQTT publish-subscribe network protocol and adhering to
-JSON standard format. A basic MQTT compliance test shall be developed
-and included with the NOS-T Tools so that users can test in advance
-whether their application can properly send and receive messages.
+JSON standard format. 
 
 Additional compatibility checks are required if the application in
 question is intended to be a time-managed application, as this requires
 the application be able to receive and respond to commands from the
-manager. Most applications will likely need to be managed applications,
-and thus an additional managed app compliance test shall be developed
-and included with the NOS-T Tools so that users can test in advance
-whether their application responds correctly to the manager commands.
-The subscriptions to manager commands and the published responses
+manager. Most applications will likely need to be managed.
+The subscriptions to **Manager** commands and the published responses
 required include:
 
 1. Initialize
 
-   -  *Subscribe:* Initialize command from the manager on topic
+   -  *Subscribe:* Initialize command from the **Manager** on topic
       “{prefix}/manager/init” and update simulation start and end times
       accordingly
 
@@ -1492,7 +1486,7 @@ required include:
 
 2. Start
 
-   -  *Subscribe:* Start command from the manager on topic
+   -  *Subscribe:* Start command from the **Manager** on topic
       “{prefix}/manager/start”
 
    -  *Publish:* Change application’s MODE from INITIALIZED to EXECUTING
@@ -1500,55 +1494,21 @@ required include:
       “{prefix}/{app}/status/time”
 3. Update
 
-   -  *Subscribe:* Update command from the manager on topic
+   -  *Subscribe:* Update command from the **Manager** on topic
       “{prefix}/manager/update”
 
    -  *Publish:* Set the time scale factor to the new value at the
-      simulation time specified by the manager and accordingly update
+      simulation time specified by the **Manager** and accordingly update
       the frequency of periodic heartbeat messages to topic
       “{prefix}/{app}/status/time”
 4. Stop
 
-   -  *Subscribe:* Stop command from the manager on topic
+   -  *Subscribe:* Stop command from the **Manager** on topic
       “{prefix}/manager/stop}
 
    -  *Publish:* Update the end time of the simulation (possibly
       overwriting original simulation end time) and change mode from
       EXECUTING to TERMINATING and then TERMINATED.
-
-The managed app compliance test will run a pre-set manager with a simple
-simulation scenario to ensure the application can respond to these
-manager commands.
-
-Executing Test Campaigns
-------------------------
-
-During development of a new user application, the application developer
-should orchestrate various test campaigns to verify compliance with the
-NOS-T ICD and verify proper operation. The following timeline describes
-a notional “day in the life” example for executing a test campaign.
-
-* Write test script in compliance with user request. Check for:
-
-  * Init time (UTC) (if requested differently than start time)
-  * Start time (UTC)
-  * Stop time (UTC)
-  * Time publish step (in seconds)
-  * Time scale rate
-* Use prewritten test script to ensure manager functionality on a testing
-  topic (i.e., lc-testing)
-* Before simulation start, make sure manager is logged in and connected
-  to the user-requested topic
-* Send out prewritten script several minutes before start time,
-  allowing all applications to receive the command – simulation will
-  begin at the indicated start time
-* Ensure on manager dashboard that messages are being received and
-  simulation clock has begun.
-* Keep close watch on user requests – a need to stop/restart the
-  simulation may be sent at any time, as well as debugging help
-
-  *  To stop simulation immediately, enter a time in the past (UTC)
-  *  To restart simulation, use same script with adjusted start time
 
 References
 ----------
@@ -1564,23 +1524,29 @@ References
   Accessed 2021-04-07.
 
 .. [3]
-   NASA Center for Climate Simulation, (2021). "SMCE System Overview."
-   URL: https://www.nccs.nasa.gov/systems/SMCE. Accessed 2021-04-07.
+  NASA Center for Climate Simulation, (2021). "SMCE System Overview."
+  URL: https://www.nccs.nasa.gov/systems/SMCE. Accessed 2021-04-07.
 
 .. [4]
-   OGC (2016). "SensorThings API Part 1: Sensing," Version 1.0, Open
-   Geospatial Consortium.
-   URL: http://www.opengis.net/doc/is/sensorthings/1.0
+  OGC (2016). "SensorThings API Part 1: Sensing," Version 1.0, Open
+  Geospatial Consortium.
+  URL: http://www.opengis.net/doc/is/sensorthings/1.0
 
 .. [5]
-   OGC (2019). "SensorThings API Part 2: Tasking Core," Version 1.0,
-   Open Geospatial Consortium.
-   URL: http://www.opengis.net/doc/IS/sensorthings-part2-TaskingCore/1.0
+  OGC (2019). "SensorThings API Part 2: Tasking Core," Version 1.0,
+  Open Geospatial Consortium.
+  URL: http://www.opengis.net/doc/IS/sensorthings-part2-TaskingCore/1.0
 
 .. [6]
-   Eclipse Foundation (2021). "Eclipse Paho Python Client," URL:
-   https://www.eclipse.org/paho/index.php?page=clients/python/index.php.
-   Accessed 2021-12-20.
+  Eclipse Foundation (2021). "Eclipse Paho Python Client," URL:
+  https://www.eclipse.org/paho/index.php?page=clients/python/index.php.
+  Accessed 2021-12-20.
+
+.. [7]
+  LeVine, M. J., Chell, B., Capra, L., Sellers, J. J., & Grogan, P. T. (2022, July). **Planning, Implementing, and Executing Test Campaigns with the New Observing Strategies Testbed (NOS-T): The Firesat+ Example**. In *IGARSS 2022-2022 IEEE International Geoscience and Remote Sensing Symposium* (pp. 5321-5324). IEEE.
+
+.. [8]
+  Chell, B., LeVine, M. J., Capra, L., Sellers, J. J., & Grogan, P. T. (2023). **New observing strategies testbed: A digital prototyping platform for distributed space missions**. *Systems Engineering*.
 
 Appendices
 ----------
@@ -1599,7 +1565,7 @@ the satellite is within range. Consideration of data volumes, downlink
 rates, and time within range of ground station are reserved for future
 test campaigns. Summary statistics of center and spread for detect time
 and report time distributions were recorded for each test case. Initial
-tests of the integrated FireSat+ applications showed multi-modal detect
+tests of the integrated *FireSat+* applications showed multi-modal detect
 time distributions because a single satellite will detect several fires
 in close proximity during the same time step given its instrument field
 of view. The report time distributions were even more biased towards

@@ -3,10 +3,10 @@ Technical Brief
 
 **Research Team:**
 
-Paul Grogan (PI), Matthew LeVine, Brian Chell, Leigha Capra,
-Theodore Sherman, Alex Castaneda
+Paul Grogan (PI), Matthew LeVine, Brian Chell, Cameron Conway, Harrison Teele
 
-Project Alumni: Jerry Sellers, Matthew Brand, Hayden Daly
+Project Alumni: Jerry Sellers, Matthew Brand, Hayden Daly, Leigha Capra,
+Theodore Sherman, Alex Castaneda
 
 *Stevens Institute of Technology*
 
@@ -146,7 +146,7 @@ architecture, components, and key interfaces required for new
 user-contributed components. It supports proposal development efforts to
 exploit the NOS-T capability as part of the proposed research. While the
 testbed interface is still under development, this brief describes the
-features tested as of version 1.0-alpha in April 2021.
+features tested as of version 1.0-alpha in August 2023.
 
 NOS-T Overview
 --------------
@@ -778,7 +778,7 @@ the topic hierarchy outlined in the Section 2.2.
 
 In general, user applications are recommended to use text message
 payloads encoded in JSON. Some existing standards such as the
-SensorThings API can provide guidance on object schema structure.
+SensorThings API [10]_ can provide guidance on object schema structure.
 SensorThings data event entities include a *name* field, *description*
 field, and *properties* sub-object in the JSON data. For example, the
 payload for a *Fire Status* event in the FireSat application case

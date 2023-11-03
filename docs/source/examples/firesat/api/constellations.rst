@@ -35,6 +35,7 @@ Constellation
 ^^^^^^^^^^^^^
 
 .. autoclass:: examples.firesat.satellites.main_constellation.Constellation
+	:noindex:
 	:show-inheritance:
 
 .. automethod:: examples.firesat.satellites.main_constellation.Constellation.initialize
@@ -47,6 +48,9 @@ Constellation
 
 .. automethod:: examples.firesat.satellites.main_constellation.Constellation.on_ground
 
+|
+
+
 PositionPublisher
 ^^^^^^^^^^^^^^^^^
 
@@ -54,6 +58,9 @@ PositionPublisher
 	:show-inheritance:
 
 .. automethod:: examples.firesat.satellites.main_constellation.PositionPublisher.publish_message
+
+|
+
 
 FireDetectedObserver
 ^^^^^^^^^^^^^^^^^^^^
@@ -64,8 +71,11 @@ FireDetectedObserver
 .. automethod:: examples.firesat.satellites.main_constellation.FireDetectedObserver.on_change
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-            :lines: 483-491
+            :lines: 473-481
 			
+|
+
+
 FireReportedObserver
 ^^^^^^^^^^^^^^^^^^^^
 
@@ -75,9 +85,52 @@ FireReportedObserver
 .. automethod:: examples.firesat.satellites.main_constellation.FireReportedObserver.on_change
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-            :lines: 514-523
+            :lines: 504-513
 
 |
+
+Schema
+------
+
+.. automodule:: examples.firesat.satellites.constellation_config_files.schemas
+	:noindex:
+	:show-inheritance:
+	:member-order: bysource
+	:exclude-members: examples.firesat.satellites.constellation_config_files.schemas.FireState, examples.firesat.satellites.constellation_config_files.schemas.FireStarted, examples.firesat.satellites.constellation_config_files.schemas.FireDetected, examples.firesat.satellites.constellation_config_files.schemas.FireReported, examples.firesat.satellites.constellation_config_files.schemas.SatelliteStatus, examples.firesat.satellites.constellation_config_files.schemas.GroundLocation
+
+
+.. autopydantic_settings:: examples.firesat.satellites.constellation_config_files.schemas.SatelliteStatus
+	:noindex:
+	:show-inheritance:
+	:settings-summary-list-order: bysource
+	:member-order: bysource
+	
+.. autopydantic_settings:: examples.firesat.satellites.constellation_config_files.schemas.GroundLocation
+	:noindex:
+	:show-inheritance:
+	:settings-summary-list-order: bysource
+	:member-order: bysource
+	
+.. autopydantic_settings:: examples.firesat.satellites.constellation_config_files.schemas.FireStarted
+	:noindex:
+	:show-inheritance:
+	:settings-summary-list-order: bysource
+	:member-order: bysource
+	
+.. autopydantic_settings:: examples.firesat.satellites.constellation_config_files.schemas.FireDetected
+	:noindex:
+	:show-inheritance:
+	:settings-summary-list-order: bysource
+	:member-order: bysource
+	
+.. autopydantic_settings:: examples.firesat.satellites.constellation_config_files.schemas.FireReported
+	:noindex:
+	:show-inheritance:
+	:settings-summary-list-order: bysource
+	:member-order: bysource
+
+|
+
 
 Startup Script
 --------------
@@ -85,6 +138,6 @@ Startup Script
 The following code demonstrates how the :obj:`Constellation` :obj:`Entity` object class is initialized and added to the simulator, how the application is started up, and how callback functions are assigned to the application:
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-	:lines: 528-584 
+	:lines: 518-574 
 
 In this example, six satellites (AQUA, TERRA, SUOMI NPP, NOAA 20, SENTINEL 2A, SENTINEL 2B) are included in the simulation. CelesTrak is queried for current active TLEs, which returns this information as *list* of :obj:`EarthSatellite` objects. A subset *list* of :obj:`EarthSatellite` objects is constructed containing the six satellites of interest. This subset is used for initializing the :obj:`Constellation` :obj:`Entity` before adding to the simulator.

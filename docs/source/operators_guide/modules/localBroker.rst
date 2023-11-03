@@ -1,9 +1,13 @@
-Setting up Solace Broker on Local Machine
-=========================================
+.. _localBroker:
 
-While there are many alternative broker implementation options available, NOS-T adopts the Solace PubSub+ Standard Edition event broker, a proprietary but freely available commercial product supporting up to 1000 concurrent connections and 10,000 messages per second. PubSub+ supports and interoperates among several protocols and several open protocols including Message Queuing Telemetry Transport (MQTT), Advanced Message Queuing Protocol (AMQP), and Representational State Transfer (REST). All protocols share similar messaging constructs but exhibit some minor differences in implementation and library availability. The testbed is currently designed to use strictly the MQTT protocol, but the capability of Solace to handle other protocols lends itself to future extensibility.
+Setting up Solace Broker on Local Host
+======================================
 
-This page shows how to configure a new standalone Solace broker on a local machine. The tutorial mostly mirrors the SolaceLabs `solace-single-docker-compose <https://github.com/SolaceLabs/solace-single-docker-compose>`_ project which provides instructions and tools to get a single Solace PubSub+ software message broker Docker container up-and-running on a desktop using Docker Compose, a tool for defining and running multi-container Docker applications.  While the capabilities of a locally hosted broker are more limited, it is useful for becoming familiar with the Solace interface and experimenting with publisher/subscriber behaviors.
+While there are many alternative broker implementation options available, NOS-T adopts the Solace PubSub+ Standard Edition event broker, a proprietary but freely available commercial product supporting up to one thousand concurrent connections and 10,000 messages per second. PubSub+ supports and interoperates among several protocols and several open protocols including Message Queuing Telemetry Transport (MQTT), Advanced Message Queuing Protocol (AMQP), and Representational State Transfer (REST). All protocols share similar messaging constructs but exhibit some minor differences in implementation and library availability. The testbed is currently designed to use strictly the MQTT protocol, but the capability of Solace to handle other protocols lends itself to future extensibility.
+
+This page shows how to configure a new standalone Solace broker on a local host such as a personal machine or a secure local network. The tutorial mostly mirrors the SolaceLabs `solace-single-docker-compose <https://github.com/SolaceLabs/solace-single-docker-compose>`_ project which provides instructions and tools to get a single Solace PubSub+ software message broker Docker container up-and-running on a desktop using Docker Compose, a tool for defining and running multi-container Docker applications.  While the capabilities of a locally hosted broker are more limited, it is useful for becoming familiar with the Solace interface and experimenting with publisher/subscriber behaviors.
+
+|
 
 Initializing a Solace Event Broker with Docker Compose
 ------------------------------------------------------
@@ -53,6 +57,10 @@ Similarly, the Volumes tab should include a single, in-use **template_storage-gr
 	
 Note that the names of both the container and the storage-group can be customized by editing the :obj:`.yml` file accordingly.
 
+|
+
+.. _PubSubManager:
+
 Logging into the Solace Event Broker
 ------------------------------------
 
@@ -73,6 +81,7 @@ After logging in you will see a single default VPN. While more VPNs can be setup
 
 |
 
+|
 
 Customizing your Solace Event Broker
 ------------------------------------
@@ -92,6 +101,8 @@ Message VPN
 
 This is the homepage for the VPN that was just started. The Summary tab lists the number of client connections and rate of messages. The Settings tab allows you to Enable and Disable the event broker and define an allotment of memory for message spooling. The Services tab allows you to customize the broker behavior with respect to different messaging protocols. While NOS-T does not make use of all of these protocols, the ability of Solace PubSub+ Event Brokers to handle all of these different protocols lends itself to flexibility beyond the MQTT clients typically employed in the testbed.
 
+|
+
 Clients
 ^^^^^^^
 
@@ -103,12 +114,16 @@ Clients
 |
 
 
-The Clients menu allows you to get an overview of the number and type of client connections as separated by messaging protocol. In the latter screenshot, there is only one client currently connected to this event broker, which is actually the PubSub+ Manager currently being used. This is an SMF (Solace Messaging Format) client that is unique to Solace products and provides the user interface for the event-broker (although a command-line interface is also possible). All other clients and sessions that are used by NOS-T typically are constrained to MQTT protocol. The Clients menu provides a convenient for checking which MQTT clients are actively connected to the broker and to which topics they are subscribed.
+The Clients menu allows you to get an overview of the number and type of client connections as separated by messaging protocol. In the latter screenshot, there is only one client currently connected to this event broker, which is actually the PubSub+ Manager currently being used. This is an SMF (Solace Messaging Format) client that is unique to Solace products and provide the user interface for the event-broker (although a command-line interface is also possible). All other clients and sessions that are used by NOS-T typically are constrained to MQTT protocol. The Clients menu allows the operator to see which MQTT clients are actively connected to the broker and to which topics they are subscribed, which can be useful when trying to debug why a client isn't receiving messages.
+
+|
 
 Queues
 ^^^^^^
 
-The original MQTT protocol was not designed to retain messages or spool a queue of messages, but Solace PubSub+ event brokers allow for clients with persistent sessions and remembered subscriptions. This can add to the reliability of a system where a subscriber may have been temporarily disconnected when the payload actually arrived to the topic endpoint. Queuing is discussed in greater detail :ref:`here <retainQueue>`.
+The original MQTT protocol was not designed to retain messages or spool a queue of messages, but Solace PubSub+ event brokers allow for clients with persistent sessions and remembered subscriptions. This can add to the reliability of a system where a subscriber may have been temporarily disconnected when the payload actually arrived to the topic endpoint. Queuing has not been implemented in the current version of NOS-T beyond tracking payload receipt timestamps, but both the Solace PubSub+ broker and version 5.0 of the MQTT protocol allow for future addition of this capability. It should be noted that queues require storage available on the message spool. Most of the example test suites included assume that all participant clients are continuously and reliably connected to the broker throughout the simulation execution, which would render queues unnecessary.
+
+|
 
 Access Control
 ^^^^^^^^^^^^^^
@@ -133,6 +148,8 @@ The Access Control menu provides several different methods for customizing authe
 
 For example, if a test case will involve clients with full access to publish and subscribe to all topics and other clients that may only publish/subscribe to select topics, it may be convenient to define two ACL profiles. One ACL profile would default allow connections, publishing, and subscribing (like the **default** profile in the latter screenshot). The second ACL profile would by default deny publishing messages and subscribing to topics (like the **unverified** profile in the latter screenshot), but with specific topics listed under the exceptions.
 
+|
+
 Cache
 ^^^^^
 
@@ -144,6 +161,6 @@ Cache
 |
 
 
-The cache menu is important if you intend to use some the advanced features such as retaining MQTT messages. Without enabling a cache and allotting some memory, none of the MQTT Retain features will work.
+The cache menu is important if you intend to use some of the advanced features such as retaining MQTT messages. Without enabling a cache and alloting some memory, none of the MQTT Retain features will work.
 
 

@@ -3,7 +3,13 @@
 Application Objects
 ===================
 
-Applications manage communication between a simulator and broker using the MQTT messaging protocol. 
+These object classes manage communication between a simulator and broker using the MQTT messaging protocol.
+
+
+Utilities
+---------
+
+Utilities monitor and report on application connections, modes, and time statuses. 
 
 .. autoclass:: nost_tools.application_utils.ConnectionConfig
   :members:
@@ -20,6 +26,13 @@ Applications manage communication between a simulator and broker using the MQTT 
 .. autoclass:: nost_tools.application_utils.ModeStatusObserver
   :members:
   :show-inheritance:
+  
+|
+
+Publishers
+----------
+
+Publishers define patterns for publishing messages on regularly spaced time-intervals, which are useful for updating states or simple time-status messages.
 
 .. autoclass:: nost_tools.publisher.ScenarioTimeIntervalPublisher
   :members:
@@ -28,6 +41,13 @@ Applications manage communication between a simulator and broker using the MQTT 
 .. autoclass:: nost_tools.publisher.WallclockTimeIntervalPublisher
   :members:
   :show-inheritance:
+
+|
+  
+Applications
+------------
+
+These applications serve as templates or wrappers of basic MQTT client functionality and synchronization for simulation.
 
 .. autoclass:: nost_tools.application.Application
   :members:

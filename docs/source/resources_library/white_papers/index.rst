@@ -6,6 +6,8 @@ This section of the resources library contains white papers which describe more 
 .. toctree::
    :maxdepth: 2
    
+   webMonitor
+   hardwareTestbed
    task_receive
    common_interacts
    certificate_authorization
