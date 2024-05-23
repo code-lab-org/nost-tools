@@ -3,26 +3,13 @@ from datetime import datetime, timedelta, timezone
 import threading
 import time
 
-from nost_tools.observer import Observer
+from nost_tools.observer import RecordingObserver
 from nost_tools.entity import Entity
 from nost_tools.simulator import Mode, Simulator
 
 
 class NullEntity(Entity):
     pass
-
-
-class TestLogger(Observer):
-    def __init__(self, property):
-        self.property = property
-        self.data = []
-        self.time = []
-
-    def on_change(self, source, property_name, old_value, new_value):
-        if property_name == self.property:
-            self.data.append(new_value)
-            self.time.append(datetime.now(tz=timezone.utc))
-
 
 class TestSimulatorMethods(unittest.TestCase):
     def test_simulator_add_remove_entity(self):
@@ -113,8 +100,8 @@ class TestSimulatorMethods(unittest.TestCase):
 
     def test_simulator_execute_time_as_fast_as_possible(self):
         simulator = Simulator()
-        logger = TestLogger("time")
-        simulator.add_observer(logger)
+        recorder = RecordingObserver("time")
+        simulator.add_observer(recorder)
         entity = Entity("test")
         simulator.add_entity(entity)
         init_time = datetime(2020, 1, 1, tzinfo=timezone.utc)
@@ -123,13 +110,13 @@ class TestSimulatorMethods(unittest.TestCase):
         simulator.execute(init_time, duration, time_step, time_scale_factor=None)
         self.assertEqual(entity.get_time(), init_time + duration)
         self.assertEqual(simulator.get_time(), init_time + duration)
-        self.assertEqual(logger.data[-1], init_time + duration)
+        self.assertEqual(recorder.changes[-1]["new_value"], init_time + duration)
         self.assertEqual(entity.get_time(), init_time + duration)
 
     def test_simulator_execute_time_scale_100(self):
         simulator = Simulator()
-        logger = TestLogger("time")
-        simulator.add_observer(logger)
+        recorder = RecordingObserver("time")
+        simulator.add_observer(recorder)
         entity = Entity("test")
         simulator.add_entity(entity)
         init_time = datetime(2020, 1, 1, tzinfo=timezone.utc)
@@ -138,13 +125,13 @@ class TestSimulatorMethods(unittest.TestCase):
         simulator.execute(init_time, duration, time_step, time_scale_factor=100)
         self.assertEqual(entity.get_time(), init_time + duration)
         self.assertEqual(simulator.get_time(), init_time + duration)
-        self.assertEqual(logger.data[-1], init_time + duration)
+        self.assertEqual(recorder.changes[-1]["new_value"], init_time + duration)
         self.assertEqual(entity.get_time(), init_time + duration)
 
     def test_simulator_execute_time_partial_final_time_step(self):
         simulator = Simulator()
-        logger = TestLogger("time")
-        simulator.add_observer(logger)
+        recorder = RecordingObserver("time")
+        simulator.add_observer(recorder)
         entity = Entity("test")
         simulator.add_entity(entity)
         init_time = datetime(2020, 1, 1, tzinfo=timezone.utc)
@@ -152,13 +139,13 @@ class TestSimulatorMethods(unittest.TestCase):
         time_step = timedelta(seconds=2)
         simulator.execute(init_time, duration, time_step, time_scale_factor=None)
         self.assertEqual(simulator.get_time(), init_time + duration)
-        self.assertEqual(logger.data[-1], init_time + duration)
+        self.assertEqual(recorder.changes[-1]["new_value"], init_time + duration)
         self.assertEqual(entity.get_time(), init_time + duration)
 
     def test_simulator_execute_wait_wallclock_epoch(self):
         simulator = Simulator()
-        logger = TestLogger("mode")
-        simulator.add_observer(logger)
+        recorder = RecordingObserver("mode", True)
+        simulator.add_observer(recorder)
         entity = Entity("test")
         simulator.add_entity(entity)
         init_time = datetime(2020, 1, 1, tzinfo=timezone.utc)
@@ -175,8 +162,8 @@ class TestSimulatorMethods(unittest.TestCase):
         )
         self.assertAlmostEqual(
             (
-                logger.time[logger.data.index(Mode.EXECUTING)]
-                - logger.time[logger.data.index(Mode.INITIALIZING)]
+                next(change for change in recorder.changes if change["new_value"] == Mode.EXECUTING)["time"]
+                - next(change for change in recorder.changes if change["new_value"] == Mode.INITIALIZING)["time"]
             ).total_seconds(),
             t_delay.total_seconds(),
             1,
@@ -219,8 +206,8 @@ class TestSimulatorMethods(unittest.TestCase):
 
     def test_simulator_execute_change_time_step(self):
         simulator = Simulator()
-        logger = TestLogger("time")
-        simulator.add_observer(logger)
+        recorder = RecordingObserver("time")
+        simulator.add_observer(recorder)
         init_time = datetime(2020, 1, 1, tzinfo=timezone.utc)
         new_time_step = timedelta(seconds=2)
         with self.assertRaises(RuntimeError):
@@ -246,12 +233,15 @@ class TestSimulatorMethods(unittest.TestCase):
         # wait for execution to terminate
         while simulator.get_mode() != Mode.TERMINATED:
             time.sleep(0.1)
-        self.assertEqual(logger.data[-2] - logger.data[-3], new_time_step)
+        self.assertEqual(
+            recorder.changes[-2]["new_value"] - recorder.changes[-3]["new_value"], 
+            new_time_step
+        )
 
     def test_simulator_execute_change_duration(self):
         simulator = Simulator()
-        logger = TestLogger("time")
-        simulator.add_observer(logger)
+        recorder = RecordingObserver("time")
+        simulator.add_observer(recorder)
         init_time = datetime(2020, 1, 1, tzinfo=timezone.utc)
         new_duration = timedelta(seconds=20)
         with self.assertRaises(RuntimeError):
@@ -274,12 +264,12 @@ class TestSimulatorMethods(unittest.TestCase):
         while simulator.get_mode() != Mode.TERMINATED:
             time.sleep(0.1)
         self.assertEqual(simulator.get_time(), init_time + new_duration)
-        self.assertEqual(logger.data[-1], init_time + new_duration)
+        self.assertEqual(recorder.changes[-1]["new_value"], init_time + new_duration)
 
     def test_simulator_execute_change_time_scale_factor(self):
         simulator = Simulator()
-        logger = TestLogger("time")
-        simulator.add_observer(logger)
+        recorder = RecordingObserver("time", True)
+        simulator.add_observer(recorder)
         init_time = datetime(2020, 1, 1, tzinfo=timezone.utc)
         time_step = timedelta(seconds=1)
         new_time_scale_factor = 50
@@ -307,7 +297,7 @@ class TestSimulatorMethods(unittest.TestCase):
         while simulator.get_mode() != Mode.TERMINATED:
             time.sleep(0.1)
         self.assertAlmostEqual(
-            (logger.time[-2] - logger.time[-3]).total_seconds(),
+            (recorder.changes[-2]["time"] - recorder.changes[-3]["time"]).total_seconds(),
             (time_step / new_time_scale_factor).total_seconds(),
             1,
         )

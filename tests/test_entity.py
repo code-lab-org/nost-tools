@@ -2,19 +2,7 @@ import unittest
 from datetime import datetime, timedelta, timezone
 
 from nost_tools.entity import Entity
-from nost_tools.observer import Observer
-
-class TestObserver(Observer):
-    changes_observed = []
-    def on_change(
-        self, source: object, property_name: str, old_value: object, new_value: object
-    ) -> None:
-        self.changes_observed.append({
-            "source": source,
-            "property_name": property_name,
-            "old_value": old_value,
-            "new_value": new_value
-        })
+from nost_tools.observer import RecordingObserver
 
 
 class TestEntityMethods(unittest.TestCase):
@@ -48,18 +36,18 @@ class TestEntityMethods(unittest.TestCase):
 
     def test_default_entity_notify_observers(self):
         entity = Entity("test")
-        observer = TestObserver()
+        observer = RecordingObserver()
         entity.add_observer(observer)
         init_time = datetime(2020, 1, 1, tzinfo=timezone.utc)
         time_step = timedelta(seconds=1)
         entity.initialize(init_time)
         for i in range(2):
             entity.tick(time_step)
-            self.assertEqual(len(observer.changes_observed), i)
+            self.assertEqual(len(observer.changes), i)
             entity.tock()
-            self.assertEqual(len(observer.changes_observed), i+1)
-            self.assertEqual(observer.changes_observed[i]["source"], entity)
-            self.assertEqual(observer.changes_observed[i]["property_name"], "time")
-            self.assertEqual(observer.changes_observed[i]["old_value"], init_time + i*time_step)
-            self.assertEqual(observer.changes_observed[i]["new_value"], init_time + (i+1)*time_step)
+            self.assertEqual(len(observer.changes), i+1)
+            self.assertEqual(observer.changes[i]["source"], entity)
+            self.assertEqual(observer.changes[i]["property_name"], "time")
+            self.assertEqual(observer.changes[i]["old_value"], init_time + i*time_step)
+            self.assertEqual(observer.changes[i]["new_value"], init_time + (i+1)*time_step)
         
