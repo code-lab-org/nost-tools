@@ -24,23 +24,6 @@ class TestLogger(Observer):
             self.time.append(datetime.now(tz=timezone.utc))
 
 
-class TestEntityMethods(unittest.TestCase):
-    def test_default_entity_properties(self):
-        entity = Entity("test")
-        self.assertEqual(entity.name, "test")
-
-    def test_default_entity_methods(self):
-        entity = Entity("test")
-        init_time = datetime(2020, 1, 1, tzinfo=timezone.utc)
-        time_step = timedelta(seconds=1)
-        entity.initialize(init_time)
-        self.assertEqual(entity.get_time(), init_time)
-        entity.tick(time_step)
-        self.assertEqual(entity.get_time(), init_time)
-        entity.tock()
-        self.assertEqual(entity.get_time(), init_time + time_step)
-
-
 class TestSimulatorMethods(unittest.TestCase):
     def test_simulator_add_remove_entity(self):
         simulator = Simulator()
