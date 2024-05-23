@@ -50,8 +50,9 @@ class StartTaskingParameters(BaseModel):
         description="Scenario time at which to stop execution.",
         alias="simStopTime",
     )
-    time_scaling_factor: confloat(gt=0) = Field(
+    time_scaling_factor: float = Field(
         1.0,
+        gt=0,
         description="Scenario seconds per wallclock second.",
         alias="timeScalingFactor",
     )
@@ -94,8 +95,9 @@ class UpdateTaskingParameters(BaseModel):
     """
     Tasking parameters to update an execution.
     """
-    time_scaling_factor: confloat(gt=0) = Field(
+    time_scaling_factor: float = Field(
         ...,
+        gt=0,
         description="Time scaling factor (scenario seconds per wallclock second).",
         alias="timeScalingFactor",
     )
