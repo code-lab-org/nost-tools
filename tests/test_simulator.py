@@ -9,14 +9,7 @@ from nost_tools.simulator import Mode, Simulator
 
 
 class NullEntity(Entity):
-    def initialize(self, init_time):
-        pass
-
-    def tick(self, time_step):
-        pass
-
-    def tock(self):
-        pass
+    pass
 
 
 class TestLogger(Observer):
