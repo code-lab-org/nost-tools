@@ -130,10 +130,4 @@ dmypy.json
 .pyre/
 
 # VSCode project settings
-.vscode/**/*
-*.bak
-*.bak
-*.bak
-*.bak
-*.bak
 *.bak
