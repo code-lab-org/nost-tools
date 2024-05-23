@@ -7,16 +7,17 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nost_tools"
-description = "Tools for New Observing Strategies Testbed (NOS-T) Applications"
+description = "Tools for Novel Observing Strategies Testbed (NOS-T) Applications"
 authors = [
-    {"name" = "Paul T. Grogan", "email" = "pgrogan@stevens.edu"}
+    {"name" = "Paul T. Grogan", "email" = "paul.grogan@asu.edu"}
 ]
 readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "BSD 3-Clause License"}
 classifiers = [
     "Programming Language :: Python :: 3",
-    "Operating System :: OS Independent"
+    "Operating System :: OS Independent",
+    "Development Status :: 4 - Beta"
 ]
 dependencies = [
     "numpy",
