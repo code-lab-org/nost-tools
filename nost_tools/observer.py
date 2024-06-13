@@ -3,6 +3,8 @@ Provides base classes that implement the observer pattern to loosely couple an o
 """
 
 from abc import ABC, abstractmethod
+from datetime import datetime, timezone
+from typing import List, Optional, Union
 
 
 class Observer(ABC):
@@ -24,6 +26,49 @@ class Observer(ABC):
         """
         pass
 
+
+class RecordingObserver(Observer):
+    """
+    Observer that records all changes.
+    """
+
+    def __init__(self, property_filters : Optional[Union[str,List[str]]] = None, timestamped : bool = False):
+        """
+        Initializes a new recording obsever.
+
+        Args:
+            properties (Optional[Union[str,List[str]]]): optional list of property names to record
+            timestamped (bool): True, if the changes shall be timestamped
+        """
+        if isinstance(property_filters, str):
+            self.property_filters = [property_filters]
+        else:
+            self.property_filters = property_filters 
+        self.changes = []
+        self.timestamped = timestamped
+
+    def on_change(
+        self, source: object, property_name: str, old_value: object, new_value: object
+    ) -> None:
+        """Callback notifying of a change.
+
+        Args:
+            source (object): object that triggered a property change
+            property_name (str): name of the changed property
+            old_value (object): old value of the named property
+            new_value (object): new value of the named property
+        """
+        if self.property_filters is None or property_name in self.property_filters:
+            change = {
+                "source": source,
+                "property_name": property_name,
+                "old_value": old_value,
+                "new_value": new_value
+            }
+            if self.timestamped:
+                change["time"] = datetime.now(tz=timezone.utc)
+            self.changes.append(change)
+        
 
 class Observable(object):
     """

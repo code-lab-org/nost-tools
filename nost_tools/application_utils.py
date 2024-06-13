@@ -1,7 +1,5 @@
 """
 Provides utility classes to help applications interact with the broker.
-
-@author: Paul T. Grogan <pgrogan@stevens.edu>
 """
 
 from __future__ import annotations

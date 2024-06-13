@@ -1,7 +1,5 @@
 """
 Provides utility classes to help applications bind behavior to temporal events.
-
-@author: Paul T. Grogan <pgrogan@stevens.edu>
 """
 
 from __future__ import annotations

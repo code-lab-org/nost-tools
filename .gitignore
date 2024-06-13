@@ -130,10 +130,7 @@ dmypy.json
 .pyre/
 
 # VSCode project settings
-.vscode/**/*
 *.bak
-*.bak
-*.bak
-*.bak
-*.bak
-*.bak
+
+# ephemeris file
+de421.bsp
