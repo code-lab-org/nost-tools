@@ -32,7 +32,7 @@ class ConnectionConfig(object):
     """
 
     def __init__(
-        self, username: str, password: str, host: str, port: int, is_tls: bool = True
+        self, username: str, password: str, host: str, port: int, client_id: str, client_secret_key: str, virtual_host: str, is_tls: bool = True
     ):
         """
         Initializes a new connection configuration.
@@ -42,12 +42,17 @@ class ConnectionConfig(object):
             password (str): client password
             host (str): broker hostname
             port (int): broker port number
+            client_id (str): Keycloak client ID
+            client_secret_key (str): Keycloak client secret key
             is_tls (bool): True, if the connection uses Transport Layer Security
         """
         self.username = username
         self.password = password
         self.host = host
         self.port = port
+        self.client_id = client_id
+        self.client_secret_key = client_secret_key
+        self.virtual_host = virtual_host
         self.is_tls = is_tls
 
 

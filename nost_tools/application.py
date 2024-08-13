@@ -9,6 +9,13 @@ import paho.mqtt.client as mqtt
 import time
 from typing import Callable
 
+import pika
+from datetime import timedelta, datetime
+import requests
+import sys
+from keycloak.keycloak_openid import KeycloakOpenID
+import getpass
+
 from .schemas import ReadyStatus
 from .simulator import Simulator
 from .application_utils import (
@@ -72,6 +79,38 @@ class Application(object):
             status.json(by_alias=True, exclude_none=True),
         )
 
+
+    def new_access_token(self, config, refresh_token=None):
+
+        keycloak_openid = KeycloakOpenID(server_url="http://localhost:8080/",
+                                        client_id=config.client_id,
+                                        realm_name="test",
+                                        client_secret_key=config.client_secret_key
+                                        )
+
+        try:
+            if refresh_token:
+                token = keycloak_openid.refresh_token(refresh_token)
+            else:
+                token = keycloak_openid.token(grant_type='password', 
+                                            username=config.username, 
+                                            password=config.password, 
+                                            totp=otp, 
+                                            scope='openid rabbitmq.read:*/nost/firesat.* rabbitmq.write:*/nost/firesat.* rabbitmq.configure:*/nost/firesat.*')
+
+            if 'access_token' in token:
+                logger.info(f"Access token successfully acquired.")
+                # print(f"\nAccess token retrieved successfully: {token['access_token']}\n")
+                # print(f"Access token scope: {token['scope']}\n")
+                # print("rabbitmq.write:<vhost>/<exchange>/<routingkey-topic>\n")
+                return token['access_token'], token['refresh_token']
+            else:
+                raise Exception("Error: The request was unsuccessful.")
+            
+        except Exception as e:
+            logger.info(f"An error occurred: {e}")
+            raise
+
     def start_up(
         self,
         prefix: str,
@@ -99,20 +138,33 @@ class Application(object):
             self.set_wallclock_offset()
         # set test run prefix
         self.prefix = prefix
-        # set client username and password
-        self.client.username_pw_set(username=config.username, password=config.password)
-        # maybe configure transport layer security (encryption)
-        if config.is_tls:
-            self.client.tls_set()
+
+        global otp
+        otp = input("Enter OTP: ")
+
+        access_token, refresh_token = self.new_access_token(config)
+
         # connect to server
-        self.client.connect(config.host, config.port)
-        # configure observers
-        self._create_time_status_publisher(time_status_step, time_status_init)
-        self._create_mode_status_observer()
+        try:
+            self.connection = pika.BlockingConnection(pika.ConnectionParameters(
+                host=config.host,
+                virtual_host=config.virtual_host,
+                port=config.port,
+                # ssl_options=pika.SSLOptions() if config.is_tls else None,
+                credentials=pika.PlainCredentials('', access_token)))
+            logger.info("Connection established successfully.")
+        except pika.exceptions.ProbableAccessDeniedError as e:
+            logger.info(f"Access denied: {e}")
+            sys.exit(1)
+
+        self.channel = self.connection.channel()
+
+        # Configure observers
+        self._create_time_status_publisher(time_status_step, time_status_init) #, channel)
+        self._create_mode_status_observer() #channel)
         if shut_down_when_terminated:
-            self._create_shut_down_observer()
-        # start background loop
-        self.client.loop_start()
+            self._create_shut_down_observer() #channel)
+
         logger.info(f"Application {self.app_name} successfully started up.")
 
     def _create_time_status_publisher(
@@ -150,6 +202,42 @@ class Application(object):
             self.simulator.remove_observer(self._shut_down_observer)
         self._shut_down_observer = ShutDownObserver(self)
         self.simulator.add_observer(self._shut_down_observer)
+
+    # def _create_time_status_publisher(
+    #     self, time_status_step: timedelta, time_status_init: datetime
+    # ) -> None:
+    #     """
+    #     Creates a new time status publisher to publish the time status when it changes.
+
+    #     Args:
+    #         time_status_step (:obj:`timedelta`): scenario duration between time status messages
+    #         time_status_init (:obj:`datetime`): scenario time for first time status message
+    #     """
+    #     if time_status_step is not None:
+    #         if self._time_status_publisher is not None:
+    #             self.simulator.remove_observer(self._time_status_publisher)
+    #         self._time_status_publisher = TimeStatusPublisher(
+    #             self, time_status_step, time_status_init
+    #         )
+    #         self.simulator.add_observer(self._time_status_publisher)
+
+    # def _create_mode_status_observer(self) -> None:
+    #     """
+    #     Creates a mode status observer to publish the mode status when it changes.
+    #     """
+    #     if self._mode_status_observer is not None:
+    #         self.simulator.remove_observer(self._mode_status_observer)
+    #     self._mode_status_observer = ModeStatusObserver(self)
+    #     self.simulator.add_observer(self._mode_status_observer)
+
+    # def _create_shut_down_observer(self) -> None:
+    #     """
+    #     Creates an observer to shut down the application when the simulation is terminated.
+    #     """
+    #     if self._shut_down_observer is not None:
+    #         self.simulator.remove_observer(self._shut_down_observer)
+    #     self._shut_down_observer = ShutDownObserver(self)
+    #     self.simulator.add_observer(self._shut_down_observer)
 
     def shut_down(self) -> None:
         """
