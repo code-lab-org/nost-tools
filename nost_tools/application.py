@@ -15,6 +15,7 @@ import requests
 import sys
 from keycloak.keycloak_openid import KeycloakOpenID
 import getpass
+import ssl
 
 from .schemas import ReadyStatus
 from .simulator import Simulator
@@ -157,15 +158,22 @@ class Application(object):
         otp = input("Enter OTP: ")
 
         access_token, refresh_token = self.new_access_token(config)
-
-        # Connect to server
-        try:
-            self.connection = pika.BlockingConnection(pika.ConnectionParameters(
+        parameters = pika.ConnectionParameters(
                 host=config.host,
                 virtual_host=config.virtual_host,
                 port=config.port,
                 # ssl_options=pika.SSLOptions() if config.is_tls else None,
-                credentials=pika.PlainCredentials('', access_token)))
+                credentials=pika.PlainCredentials('', access_token))
+
+        # Configure transport layer security (TLS) if needed
+        if config.is_tls:
+            logger.info("Using TLS/SSL.")
+            context = ssl.create_default_context()
+            parameters.ssl_options = pika.SSLOptions(context)
+
+        # Connect to server
+        try:
+            self.connection = pika.BlockingConnection(parameters)
             logger.info("Connection established successfully.")
         except pika.exceptions.ProbableAccessDeniedError as e:
             logger.info(f"Access denied: {e}")
@@ -242,9 +250,20 @@ class Application(object):
             payload (str): message payload (JSON-encoded string)
 
         """
-        topic = f"{self.prefix}/{self.app_name}/{app_topic}"
+        topic = f"{self.prefix}.{self.app_name}.{app_topic}"
         logger.info(f"Publishing to topic {topic}: {payload}")
-        self.client.publish(topic, payload)
+        # self.client.publish(topic, payload)
+        
+        # Declare a queue and bind it to the exchange with the routing key
+        self.channel.queue_declare(queue=self.prefix, durable=True)
+        self.channel.queue_bind(exchange=self.prefix, queue=self.prefix, routing_key=topic) #f"{self.prefix}.{self.app_name}.status.time")
+
+        self.channel.basic_publish(
+            exchange=self.prefix,
+            routing_key=topic,
+            # routing_key=f"{self.prefix}.{self.app_name}.status.time",
+            body=payload
+        )
 
     def add_message_callback(
         self, app_name: str, app_topic: str, callback: Callable
