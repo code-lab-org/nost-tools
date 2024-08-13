@@ -74,9 +74,26 @@ class Application(object):
                 "properties": {"ready": True},
             }
         )
-        self.client.publish(
-            f"{self.prefix}/{self.app_name}/status/ready",
-            status.json(by_alias=True, exclude_none=True),
+        
+        # self.client.publish(
+        #     f"{self.prefix}/{self.app_name}/status/ready",
+        #     status.json(by_alias=True, exclude_none=True),
+        # )
+        
+        # Declare the topic exchange
+        self.channel.exchange_declare(exchange=self.prefix, exchange_type='topic')
+
+        # Declare a queue and bind it to the exchange with the routing key
+        self.channel.queue_declare(queue=self.prefix, durable=True)
+        self.channel.queue_bind(exchange=self.prefix, queue=self.prefix, routing_key=f"{self.prefix}.{self.app_name}.status.time")
+
+        self.channel.basic_publish(
+            exchange=self.prefix,
+            routing_key=f"{self.prefix}.{self.app_name}.status.time",
+            body=status.json(by_alias=True, exclude_none=True)
+        )
+        logger.info(
+            f"Successfully sent time status {status.json(by_alias=True,exclude_none=True)}."
         )
 
 
@@ -96,13 +113,10 @@ class Application(object):
                                             username=config.username, 
                                             password=config.password, 
                                             totp=otp, 
-                                            scope='openid rabbitmq.read:*/nost/firesat.* rabbitmq.write:*/nost/firesat.* rabbitmq.configure:*/nost/firesat.*')
+                                            scope='openid rabbitmq.read:*/nost/nost.* rabbitmq.write:*/nost/nost.* rabbitmq.configure:*/nost/nost.*')
 
             if 'access_token' in token:
                 logger.info(f"Access token successfully acquired.")
-                # print(f"\nAccess token retrieved successfully: {token['access_token']}\n")
-                # print(f"Access token scope: {token['scope']}\n")
-                # print("rabbitmq.write:<vhost>/<exchange>/<routingkey-topic>\n")
                 return token['access_token'], token['refresh_token']
             else:
                 raise Exception("Error: The request was unsuccessful.")
@@ -133,10 +147,10 @@ class Application(object):
             time_status_init (:obj:`datetime`): scenario time for first time status message
             shut_down_when_terminated (bool): True, if the application should shut down when the simulation is terminated
         """
-        # maybe configure wallclock offset
+        # Maybe configure wallclock offset
         if set_offset:
             self.set_wallclock_offset()
-        # set test run prefix
+        # Set test run prefix
         self.prefix = prefix
 
         global otp
@@ -144,7 +158,7 @@ class Application(object):
 
         access_token, refresh_token = self.new_access_token(config)
 
-        # connect to server
+        # Connect to server
         try:
             self.connection = pika.BlockingConnection(pika.ConnectionParameters(
                 host=config.host,
@@ -160,10 +174,10 @@ class Application(object):
         self.channel = self.connection.channel()
 
         # Configure observers
-        self._create_time_status_publisher(time_status_step, time_status_init) #, channel)
-        self._create_mode_status_observer() #channel)
+        self._create_time_status_publisher(time_status_step, time_status_init)
+        self._create_mode_status_observer()
         if shut_down_when_terminated:
-            self._create_shut_down_observer() #channel)
+            self._create_shut_down_observer()
 
         logger.info(f"Application {self.app_name} successfully started up.")
 
@@ -202,42 +216,6 @@ class Application(object):
             self.simulator.remove_observer(self._shut_down_observer)
         self._shut_down_observer = ShutDownObserver(self)
         self.simulator.add_observer(self._shut_down_observer)
-
-    # def _create_time_status_publisher(
-    #     self, time_status_step: timedelta, time_status_init: datetime
-    # ) -> None:
-    #     """
-    #     Creates a new time status publisher to publish the time status when it changes.
-
-    #     Args:
-    #         time_status_step (:obj:`timedelta`): scenario duration between time status messages
-    #         time_status_init (:obj:`datetime`): scenario time for first time status message
-    #     """
-    #     if time_status_step is not None:
-    #         if self._time_status_publisher is not None:
-    #             self.simulator.remove_observer(self._time_status_publisher)
-    #         self._time_status_publisher = TimeStatusPublisher(
-    #             self, time_status_step, time_status_init
-    #         )
-    #         self.simulator.add_observer(self._time_status_publisher)
-
-    # def _create_mode_status_observer(self) -> None:
-    #     """
-    #     Creates a mode status observer to publish the mode status when it changes.
-    #     """
-    #     if self._mode_status_observer is not None:
-    #         self.simulator.remove_observer(self._mode_status_observer)
-    #     self._mode_status_observer = ModeStatusObserver(self)
-    #     self.simulator.add_observer(self._mode_status_observer)
-
-    # def _create_shut_down_observer(self) -> None:
-    #     """
-    #     Creates an observer to shut down the application when the simulation is terminated.
-    #     """
-    #     if self._shut_down_observer is not None:
-    #         self.simulator.remove_observer(self._shut_down_observer)
-    #     self._shut_down_observer = ShutDownObserver(self)
-    #     self.simulator.add_observer(self._shut_down_observer)
 
     def shut_down(self) -> None:
         """

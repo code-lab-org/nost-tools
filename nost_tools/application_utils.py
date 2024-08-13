@@ -115,9 +115,14 @@ class TimeStatusPublisher(ScenarioTimeIntervalPublisher):
             f"Sending time status {status.json(by_alias=True,exclude_none=True)}."
         )
         # publish time status message
-        self.app.client.publish(
-            f"{self.app.prefix}/{self.app.app_name}/status/time",
-            status.json(by_alias=True, exclude_none=True),
+        # self.app.client.publish(
+        #     f"{self.app.prefix}/{self.app.app_name}/status/time",
+        #     status.json(by_alias=True, exclude_none=True),
+        # )
+        self.app.channel.basic_publish(
+            exchange=self.app.prefix,
+            routing_key=f"{self.app.prefix}.{self.app.app_name}.status.time",
+            body=status.json(by_alias=True, exclude_none=True)
         )
 
 
