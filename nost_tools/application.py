@@ -244,7 +244,7 @@ class Application(object):
         if shut_down_when_terminated:
             self._create_shut_down_observer()
 
-        logger.info(f"Application {self.app_name} successfully started up.")
+        logger.info(f'Application "{self.app_name}" successfully started up.')
 
     def _create_time_status_publisher(
         self, time_status_step: timedelta, time_status_init: datetime
@@ -329,10 +329,20 @@ class Application(object):
     #     self.channel.basic_consume(queue=topic, on_message_callback=callback, auto_ack=True)
 
     def add_message_callback(self, app_name: str, app_topic: str, callback: Callable) -> None:
+        """
+        Adds a message callback for application name and topic `prefix.app_name.app_topic`.
+
+        Args:
+            app_name (str): The application name
+            app_topic (str): The application topic
+            callback (Callable): The callback function to handle messages
+        """
         topic = f"{self.prefix}.{app_name}.{app_topic}"
-        print(topic)
-        logger.debug(f"Subscribing and adding callback to topic: {topic}")
+        logger.info(f"Subscribing and adding callback to topic: {topic}")
         
+        # Declare the exchange
+        self.channel.exchange_declare(exchange=self.prefix, exchange_type='topic')
+
         # Declare the queue
         self.channel.queue_declare(queue=self.prefix, durable=True)
         
@@ -342,14 +352,41 @@ class Application(object):
         # Consume messages from the queue
         self.channel.basic_consume(queue=self.prefix, on_message_callback=callback, auto_ack=True)
 
+        # Start consuming
+        # self.channel.start_consuming()
 
 
-    def remove_message_callback(self, app_name: str, app_topic: str, callback: Callable) -> None:
+    # def remove_message_callback(self, app_name: str, app_topic: str, callback: Callable) -> None:
+
+    #     topic = f"{self.prefix}.{app_name}.{app_topic}"
+    #     logger.debug(f"Removing callback from topic: {topic}")
+
+    #     # Unbind the queue
+    #     # self.channel.queue_bind(exchange=self.prefix, queue=self.prefix, routing_key=topic)
+    #     self.channel.queue_unbind(queue=self.prefix, exchange=self.prefix, routing_key=topic)
+    def remove_message_callback(self, app_name: str, app_topic: str) -> None:
+        """
+        Removes a message callback for application name and topic `prefix/app_name/app_topic`.
+
+        Args:
+            app_name (str): The application name
+            app_topic (str): The application topic
+        """
         topic = f"{self.prefix}.{app_name}.{app_topic}"
         logger.debug(f"Removing callback from topic: {topic}")
-        self.channel.queue_bind(exchange=self.prefix, queue=self.prefix, routing_key=topic)
-        self.channel.queue_unbind(queue=topic, exchange='', routing_key=topic)
-    
+        
+        # Unbind the queue from the exchange with the routing key
+        self.channel.queue_unbind(exchange=self.prefix, queue=self.prefix, routing_key=topic)
+
+        # Stop consuming messages
+        # self.channel.basic_cancel(consumer_tag=topic)
+        # self.channel.stop_consuming()
+        
+        # Optionally, you can delete the queue if it's no longer needed
+        # self.channel.queue_delete(queue=self.prefix)
+
+
+
     # def add_message_callback(
     #     self, app_name: str, app_topic: str, callback: Callable
     # ) -> None:
