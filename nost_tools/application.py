@@ -16,6 +16,7 @@ import sys
 from keycloak.keycloak_openid import KeycloakOpenID
 import getpass
 import ssl
+from keycloak.exceptions import KeycloakAuthenticationError
 
 from .schemas import ReadyStatus
 from .simulator import Simulator
@@ -98,8 +99,35 @@ class Application(object):
         )
 
 
-    def new_access_token(self, config, refresh_token=None):
+    # def new_access_token(self, config, refresh_token=None):
 
+    #     keycloak_openid = KeycloakOpenID(server_url="http://localhost:8080/",
+    #                                     client_id=config.client_id,
+    #                                     realm_name="test",
+    #                                     client_secret_key=config.client_secret_key
+    #                                     )
+
+    #     try:
+    #         if refresh_token:
+    #             token = keycloak_openid.refresh_token(refresh_token)
+    #         else:
+    #             token = keycloak_openid.token(grant_type='password', 
+    #                                         username=config.username, 
+    #                                         password=config.password, 
+    #                                         totp=otp, 
+    #                                         scope='openid rabbitmq.read:*/nost/nost.* rabbitmq.write:*/nost/nost.* rabbitmq.configure:*/nost/nost.*')
+
+    #         if 'access_token' in token:
+    #             logger.info(f"Access token successfully acquired.")
+    #             return token['access_token'], token['refresh_token']
+    #         else:
+    #             raise Exception("Error: The request was unsuccessful.")
+            
+    #     except Exception as e:
+    #         logger.info(f"An error occurred: {e}")
+    #         raise
+
+    def new_access_token(self, config, refresh_token=None):
         keycloak_openid = KeycloakOpenID(server_url="http://localhost:8080/",
                                         client_id=config.client_id,
                                         realm_name="test",
@@ -110,21 +138,32 @@ class Application(object):
             if refresh_token:
                 token = keycloak_openid.refresh_token(refresh_token)
             else:
-                token = keycloak_openid.token(grant_type='password', 
-                                            username=config.username, 
-                                            password=config.password, 
-                                            totp=otp, 
-                                            scope='openid rabbitmq.read:*/nost/nost.* rabbitmq.write:*/nost/nost.* rabbitmq.configure:*/nost/nost.*')
+                # Attempt to get token without OTP
+                try:
+                    token = keycloak_openid.token(grant_type='password', 
+                                                username=config.username, 
+                                                password=config.password, 
+                                                scope='openid rabbitmq.read:*/nost/nost.* rabbitmq.write:*/nost/nost.* rabbitmq.configure:*/nost/nost.*')
+                except KeycloakAuthenticationError as e:
+
+                    logger.error(f"Authentication error without OTP: {e}")
+                    otp = input("Enter OTP: ")
+                    token = keycloak_openid.token(grant_type='password', 
+                                                username=config.username, 
+                                                password=config.password, 
+                                                totp=otp, 
+                                                scope='openid rabbitmq.read:*/nost/nost.* rabbitmq.write:*/nost/nost.* rabbitmq.configure:*/nost/nost.*')
 
             if 'access_token' in token:
-                logger.info(f"Access token successfully acquired.")
+                logger.info("Access token successfully acquired.")
                 return token['access_token'], token['refresh_token']
             else:
                 raise Exception("Error: The request was unsuccessful.")
             
         except Exception as e:
-            logger.info(f"An error occurred: {e}")
+            logger.error(f"An error occurred: {e}")
             raise
+
 
     def start_up(
         self,
@@ -154,8 +193,8 @@ class Application(object):
         # Set test run prefix
         self.prefix = prefix
 
-        global otp
-        otp = input("Enter OTP: ")
+        # global otp
+        # otp = input("Enter OTP: ")
 
         access_token, refresh_token = self.new_access_token(config)
         parameters = pika.ConnectionParameters(
@@ -265,33 +304,49 @@ class Application(object):
             body=payload
         )
 
-    def add_message_callback(
-        self, app_name: str, app_topic: str, callback: Callable
-    ) -> None:
-        """
-        Adds a message callback bound to an application name and topic `prefix/app_name/app_topic`.
-
-        Args:
-            app_name (str): application name
-            app_topic (str): application topic
-            callback (Callable): callback function
-        """
-        topic = f"{self.prefix}/{app_name}/{app_topic}"
+    def add_message_callback(self, app_name: str, app_topic: str, callback: Callable) -> None:
+        topic = f"{self.prefix}.{self.app_name}.{app_topic}"
         logger.debug(f"Subscribing and adding callback to topic: {topic}")
-        self.client.subscribe(topic)
-        self.client.message_callback_add(topic, callback)
+        self.channel.basic_consume(queue=topic, on_message_callback=callback, auto_ack=True)
 
-    def remove_message_callback(self, app_name: str, app_topic: str) -> None:
-        """
-        Removes a message callback for application name and topic `prefix/app_name/app_topic`.
-
-        Args:
-            app_name (str): The application name
-            app_topic (str): The application topic
-        """
-        topic = f"{self.prefix}/{app_name}/{app_topic}"
+    def remove_message_callback(self, app_name: str, app_topic: str, callback: Callable) -> None:
+        topic = f"{self.prefix}.{self.app_name}.{app_topic}"
         logger.debug(f"Removing callback from topic: {topic}")
-        self.client.message_callback_remove(topic)
+        self.channel.queue_unbind(queue=topic, exchange='', routing_key=topic)
+    
+    # def add_message_callback(
+    #     self, app_name: str, app_topic: str, callback: Callable
+    # ) -> None:
+    #     """
+    #     Adds a message callback bound to an application name and topic `prefix/app_name/app_topic`.
+
+    #     Args:
+    #         app_name (str): application name
+    #         app_topic (str): application topic
+    #         callback (Callable): callback function
+    #     """
+    #     # topic = f"{self.prefix}/{app_name}/{app_topic}"
+    #     # logger.debug(f"Subscribing and adding callback to topic: {topic}")
+    #     # self.client.subscribe(topic)
+    #     # self.client.message_callback_add(topic, callback)
+    #     topic = f"{self.prefix}.{app_name}.{app_topic}"
+    #     logger.debug(f"Subscribing and adding callback to topic: {topic}")
+    #     self.channel.basic_consume(queue=self.prefix, on_message_callback=callback, auto_ack=True)
+    #     self.channel.add_on_return_callback(callback=callback)
+
+    # def remove_message_callback(self, app_name: str, app_topic: str) -> None:
+    #     """
+    #     Removes a message callback for application name and topic `prefix/app_name/app_topic`.
+
+    #     Args:
+    #         app_name (str): The application name
+    #         app_topic (str): The application topic
+    #     """
+    #     # topic = f"{self.prefix}/{app_name}/{app_topic}"
+    #     # logger.debug(f"Removing callback from topic: {topic}")
+    #     # self.client.message_callback_remove(topic)
+    #     topic = f"{self.prefix}.{app_name}.{app_topic}"
+    #     logger.debug(f"Subscribing and adding callback to topic: {topic}")
 
     def set_wallclock_offset(
         self, host="pool.ntp.org", retry_delay_s: int = 5, max_retry: int = 5
