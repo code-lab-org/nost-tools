@@ -98,35 +98,6 @@ class Application(object):
             f"Successfully sent time status {status.json(by_alias=True,exclude_none=True)}."
         )
 
-
-    # def new_access_token(self, config, refresh_token=None):
-
-    #     keycloak_openid = KeycloakOpenID(server_url="http://localhost:8080/",
-    #                                     client_id=config.client_id,
-    #                                     realm_name="test",
-    #                                     client_secret_key=config.client_secret_key
-    #                                     )
-
-    #     try:
-    #         if refresh_token:
-    #             token = keycloak_openid.refresh_token(refresh_token)
-    #         else:
-    #             token = keycloak_openid.token(grant_type='password', 
-    #                                         username=config.username, 
-    #                                         password=config.password, 
-    #                                         totp=otp, 
-    #                                         scope='openid rabbitmq.read:*/nost/nost.* rabbitmq.write:*/nost/nost.* rabbitmq.configure:*/nost/nost.*')
-
-    #         if 'access_token' in token:
-    #             logger.info(f"Access token successfully acquired.")
-    #             return token['access_token'], token['refresh_token']
-    #         else:
-    #             raise Exception("Error: The request was unsuccessful.")
-            
-    #     except Exception as e:
-    #         logger.info(f"An error occurred: {e}")
-    #         raise
-
     def new_access_token(self, config, refresh_token=None):
         keycloak_openid = KeycloakOpenID(server_url="http://localhost:8080/",
                                         client_id=config.client_id,
@@ -164,6 +135,69 @@ class Application(object):
             logger.error(f"An error occurred: {e}")
             raise
 
+    # def start_up(
+    #     self,
+    #     prefix: str,
+    #     config: ConnectionConfig,
+    #     set_offset: bool = True,
+    #     time_status_step: timedelta = None,
+    #     time_status_init: datetime = None,
+    #     shut_down_when_terminated: bool = False,
+    # ) -> None:
+    #     """
+    #     Starts up the application to prepare for scenario execution.
+    #     Connects to the message broker and starts a background event loop by establishing the simulation prefix,
+    #     the connection configuration, and the intervals for publishing time status messages.
+
+    #     Args:
+    #         prefix (str): messaging namespace (prefix)
+    #         config (:obj:`ConnectionConfig`): connection configuration
+    #         set_offset (bool): True, if the system clock offset shall be set using a NTP request prior to execution
+    #         time_status_step (:obj:`timedelta`): scenario duration between time status messages
+    #         time_status_init (:obj:`datetime`): scenario time for first time status message
+    #         shut_down_when_terminated (bool): True, if the application should shut down when the simulation is terminated
+    #     """
+    #     # Maybe configure wallclock offset
+    #     if set_offset:
+    #         self.set_wallclock_offset()
+
+    #     # Set test run prefix
+    #     self.prefix = prefix
+
+    #     # global otp
+    #     # otp = input("Enter OTP: ")
+
+    #     access_token, refresh_token = self.new_access_token(config)
+    #     parameters = pika.ConnectionParameters(
+    #             host=config.host,
+    #             virtual_host=config.virtual_host,
+    #             port=config.port,
+    #             # ssl_options=pika.SSLOptions() if config.is_tls else None,
+    #             credentials=pika.PlainCredentials('', access_token))
+
+    #     # Configure transport layer security (TLS) if needed
+    #     if config.is_tls:
+    #         logger.info("Using TLS/SSL.")
+    #         context = ssl.create_default_context()
+    #         parameters.ssl_options = pika.SSLOptions(context)
+
+    #     # Connect to server
+    #     try:
+    #         self.connection = pika.BlockingConnection(parameters)
+    #         logger.info("Connection established successfully.")
+    #     except pika.exceptions.ProbableAccessDeniedError as e:
+    #         logger.info(f"Access denied: {e}")
+    #         sys.exit(1)
+
+    #     self.channel = self.connection.channel()
+
+    #     # Configure observers
+    #     self._create_time_status_publisher(time_status_step, time_status_init)
+    #     self._create_mode_status_observer()
+    #     if shut_down_when_terminated:
+    #         self._create_shut_down_observer()
+
+    #     logger.info(f"Application {self.app_name} successfully started up.")
 
     def start_up(
         self,
@@ -174,34 +208,18 @@ class Application(object):
         time_status_init: datetime = None,
         shut_down_when_terminated: bool = False,
     ) -> None:
-        """
-        Starts up the application to prepare for scenario execution.
-        Connects to the message broker and starts a background event loop by establishing the simulation prefix,
-        the connection configuration, and the intervals for publishing time status messages.
-
-        Args:
-            prefix (str): messaging namespace (prefix)
-            config (:obj:`ConnectionConfig`): connection configuration
-            set_offset (bool): True, if the system clock offset shall be set using a NTP request prior to execution
-            time_status_step (:obj:`timedelta`): scenario duration between time status messages
-            time_status_init (:obj:`datetime`): scenario time for first time status message
-            shut_down_when_terminated (bool): True, if the application should shut down when the simulation is terminated
-        """
         # Maybe configure wallclock offset
         if set_offset:
             self.set_wallclock_offset()
+
         # Set test run prefix
         self.prefix = prefix
-
-        # global otp
-        # otp = input("Enter OTP: ")
 
         access_token, refresh_token = self.new_access_token(config)
         parameters = pika.ConnectionParameters(
                 host=config.host,
                 virtual_host=config.virtual_host,
                 port=config.port,
-                # ssl_options=pika.SSLOptions() if config.is_tls else None,
                 credentials=pika.PlainCredentials('', access_token))
 
         # Configure transport layer security (TLS) if needed
@@ -304,14 +322,32 @@ class Application(object):
             body=payload
         )
 
+    # def add_message_callback(self, app_name: str, app_topic: str, callback: Callable) -> None:
+    #     topic = f"{self.prefix}.{app_name}.{app_topic}"
+    #     logger.debug(f"Subscribing and adding callback to topic: {topic}")
+    #     self.channel.queue_bind(exchange=self.prefix, queue=self.prefix, routing_key=topic)
+    #     self.channel.basic_consume(queue=topic, on_message_callback=callback, auto_ack=True)
+
     def add_message_callback(self, app_name: str, app_topic: str, callback: Callable) -> None:
-        topic = f"{self.prefix}.{self.app_name}.{app_topic}"
+        topic = f"{self.prefix}.{app_name}.{app_topic}"
+        print(topic)
         logger.debug(f"Subscribing and adding callback to topic: {topic}")
-        self.channel.basic_consume(queue=topic, on_message_callback=callback, auto_ack=True)
+        
+        # Declare the queue
+        self.channel.queue_declare(queue=self.prefix, durable=True)
+        
+        # Bind the queue to the exchange with the routing key
+        self.channel.queue_bind(exchange=self.prefix, queue=self.prefix, routing_key=topic)
+        
+        # Consume messages from the queue
+        self.channel.basic_consume(queue=self.prefix, on_message_callback=callback, auto_ack=True)
+
+
 
     def remove_message_callback(self, app_name: str, app_topic: str, callback: Callable) -> None:
-        topic = f"{self.prefix}.{self.app_name}.{app_topic}"
+        topic = f"{self.prefix}.{app_name}.{app_topic}"
         logger.debug(f"Removing callback from topic: {topic}")
+        self.channel.queue_bind(exchange=self.prefix, queue=self.prefix, routing_key=topic)
         self.channel.queue_unbind(queue=topic, exchange='', routing_key=topic)
     
     # def add_message_callback(
