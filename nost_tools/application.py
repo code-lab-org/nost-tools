@@ -56,6 +56,7 @@ class Application(object):
         """
         self.simulator = Simulator()
         self.client = mqtt.Client()
+        # self.client = pika.BlockingConnection(pika.ConnectionParameters('localhost')).channel()
         self.prefix = None
         self.app_name = app_name
         self.app_description = app_description
@@ -86,12 +87,17 @@ class Application(object):
         self.channel.exchange_declare(exchange=self.prefix, exchange_type='topic')
 
         # Declare a queue and bind it to the exchange with the routing key
-        self.channel.queue_declare(queue=self.prefix, durable=True)
-        self.channel.queue_bind(exchange=self.prefix, queue=self.prefix, routing_key=f"{self.prefix}.{self.app_name}.status.time")
+        topic = f"{self.prefix}.{self.app_name}.status.time"
+        # queue_name = f"{topic}.queue"
+        # queue_name = "_".join(topic.split(".")) + "_queue"
+        queue_name = ".".join(topic.split(".") + ["queue"]) 
+
+        self.channel.queue_declare(queue=queue_name, durable=True)
+        self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic)
 
         self.channel.basic_publish(
             exchange=self.prefix,
-            routing_key=f"{self.prefix}.{self.app_name}.status.time",
+            routing_key=topic,
             body=status.json(by_alias=True, exclude_none=True)
         )
         logger.info(
@@ -113,8 +119,8 @@ class Application(object):
                 try:
                     token = keycloak_openid.token(grant_type='password', 
                                                 username=config.username, 
-                                                password=config.password, 
-                                                scope='openid rabbitmq.read:*/nost/nost.* rabbitmq.write:*/nost/nost.* rabbitmq.configure:*/nost/nost.*')
+                                                password=config.password)
+                                                # scope='openid rabbitmq.read:*/nost/nost.* rabbitmq.write:*/nost/nost.* rabbitmq.configure:*/nost/nost.*')
                 except KeycloakAuthenticationError as e:
 
                     logger.error(f"Authentication error without OTP: {e}")
@@ -122,11 +128,12 @@ class Application(object):
                     token = keycloak_openid.token(grant_type='password', 
                                                 username=config.username, 
                                                 password=config.password, 
-                                                totp=otp, 
-                                                scope='openid rabbitmq.read:*/nost/nost.* rabbitmq.write:*/nost/nost.* rabbitmq.configure:*/nost/nost.*')
+                                                totp=otp)
+                                                # scope='openid rabbitmq.read:*/nost/nost.* rabbitmq.write:*/nost/nost.* rabbitmq.configure:*/nost/nost.*')
 
             if 'access_token' in token:
                 logger.info("Access token successfully acquired.")
+                logger.info(f"Access token scopes: {token["scope"]}")
                 return token['access_token'], token['refresh_token']
             else:
                 raise Exception("Error: The request was unsuccessful.")
@@ -308,12 +315,16 @@ class Application(object):
 
         """
         topic = f"{self.prefix}.{self.app_name}.{app_topic}"
+        # queue_name = f"{topic}.queue"
+        # queue_name = "_".join(topic.split(".")) + "_queue"
+        queue_name = ".".join(topic.split(".") + ["queue"]) 
+
         logger.info(f"Publishing to topic {topic}: {payload}")
         # self.client.publish(topic, payload)
         
         # Declare a queue and bind it to the exchange with the routing key
-        self.channel.queue_declare(queue=self.prefix, durable=True)
-        self.channel.queue_bind(exchange=self.prefix, queue=self.prefix, routing_key=topic) #f"{self.prefix}.{self.app_name}.status.time")
+        self.channel.queue_declare(queue=queue_name, durable=True)
+        self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic) #f"{self.prefix}.{self.app_name}.status.time")
 
         self.channel.basic_publish(
             exchange=self.prefix,
@@ -328,6 +339,33 @@ class Application(object):
     #     self.channel.queue_bind(exchange=self.prefix, queue=self.prefix, routing_key=topic)
     #     self.channel.basic_consume(queue=topic, on_message_callback=callback, auto_ack=True)
 
+    # def add_message_callback(self, app_name: str, app_topic: str, callback: Callable) -> None:
+    #     """
+    #     Adds a message callback for application name and topic `prefix.app_name.app_topic`.
+
+    #     Args:
+    #         app_name (str): The application name
+    #         app_topic (str): The application topic
+    #         callback (Callable): The callback function to handle messages
+    #     """
+    #     topic = f"{self.prefix}.{app_name}.{app_topic}"
+    #     logger.info(f"Subscribing and adding callback to topic: {topic}")
+        
+    #     # Declare the exchange
+    #     self.channel.exchange_declare(exchange=self.prefix, exchange_type='topic')
+
+    #     # Declare the queue
+    #     self.channel.queue_declare(queue=self.prefix, durable=True)
+        
+    #     # Bind the queue to the exchange with the routing key
+    #     self.channel.queue_bind(exchange=self.prefix, queue=self.prefix, routing_key=topic)
+        
+    #     # Consume messages from the queue
+    #     self.channel.basic_consume(queue=self.prefix, on_message_callback=callback, auto_ack=True)
+
+    #     # Start consuming
+    #     # self.channel.start_consuming()
+
     def add_message_callback(self, app_name: str, app_topic: str, callback: Callable) -> None:
         """
         Adds a message callback for application name and topic `prefix.app_name.app_topic`.
@@ -338,22 +376,25 @@ class Application(object):
             callback (Callable): The callback function to handle messages
         """
         topic = f"{self.prefix}.{app_name}.{app_topic}"
+        # queue_name = f"{topic}.queue"
+        # queue_name = "_".join(topic.split(".")) + "_queue"
+        queue_name = ".".join(topic.split(".") + ["queue"]) 
+
+        print(f'Queue: {queue_name}')
         logger.info(f"Subscribing and adding callback to topic: {topic}")
         
         # Declare the exchange
         self.channel.exchange_declare(exchange=self.prefix, exchange_type='topic')
 
-        # Declare the queue
-        self.channel.queue_declare(queue=self.prefix, durable=True)
+        # # Declare the queue
+        self.channel.queue_declare(queue=queue_name, durable=True)
         
         # Bind the queue to the exchange with the routing key
-        self.channel.queue_bind(exchange=self.prefix, queue=self.prefix, routing_key=topic)
+        self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic)
         
         # Consume messages from the queue
-        self.channel.basic_consume(queue=self.prefix, on_message_callback=callback, auto_ack=True)
+        self.channel.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack=True)
 
-        # Start consuming
-        # self.channel.start_consuming()
 
 
     # def remove_message_callback(self, app_name: str, app_topic: str, callback: Callable) -> None:
@@ -364,28 +405,29 @@ class Application(object):
     #     # Unbind the queue
     #     # self.channel.queue_bind(exchange=self.prefix, queue=self.prefix, routing_key=topic)
     #     self.channel.queue_unbind(queue=self.prefix, exchange=self.prefix, routing_key=topic)
+
     def remove_message_callback(self, app_name: str, app_topic: str) -> None:
         """
-        Removes a message callback for application name and topic `prefix/app_name/app_topic`.
+        Removes a message callback for application name and topic `prefix.app_name.app_topic`.
 
         Args:
             app_name (str): The application name
             app_topic (str): The application topic
         """
         topic = f"{self.prefix}.{app_name}.{app_topic}"
-        logger.debug(f"Removing callback from topic: {topic}")
-        
-        # Unbind the queue from the exchange with the routing key
-        self.channel.queue_unbind(exchange=self.prefix, queue=self.prefix, routing_key=topic)
+        queue_name = ".".join(topic.split(".") + ["queue"])
 
-        # Stop consuming messages
-        # self.channel.basic_cancel(consumer_tag=topic)
-        # self.channel.stop_consuming()
-        
-        # Optionally, you can delete the queue if it's no longer needed
-        # self.channel.queue_delete(queue=self.prefix)
+        print(f'Removing callback from queue: {queue_name}')
+        logger.info(f"Unsubscribing and removing callback from topic: {topic}")
 
+        # Cancel the consumer
+        self.channel.basic_cancel(consumer_tag=queue_name)
 
+        # Unbind the queue from the exchange
+        self.channel.queue_unbind(exchange=self.prefix, queue=queue_name, routing_key=topic)
+
+        # Delete the queue
+        self.channel.queue_delete(queue=queue_name)
 
     # def add_message_callback(
     #     self, app_name: str, app_topic: str, callback: Callable

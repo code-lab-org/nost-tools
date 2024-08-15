@@ -110,8 +110,8 @@ class Manager(Application):
         self.required_apps_status = dict(
             zip(required_apps, [False] * len(required_apps))
         )
-        self.add_message_callback("+", "status/ready", self.on_app_ready_status)
-        self.add_message_callback("+", "status/time", self.on_app_time_status)
+        self.add_message_callback("*", "status.ready", self.on_app_ready_status)
+        self.add_message_callback("*", "status.time", self.on_app_time_status)
 
         self._create_time_status_publisher(time_status_step, time_status_init)
         for i in range(init_max_retry):
@@ -126,7 +126,7 @@ class Manager(Application):
                 and self.simulator.get_wallclock_time() < next_try
             ):
                 time.sleep(0.001)
-        self.remove_message_callback("+", "status/ready")
+        self.remove_message_callback("*", "status.ready")
         # configure start time
         if start_time is None:
             start_time = self.simulator.get_wallclock_time() + command_lead
@@ -190,7 +190,7 @@ class Manager(Application):
         """
         try:
             # split the message topic into components (prefix/app_name/...)
-            topic_parts = message.topic.split("/")
+            topic_parts = message.topic.split(".")
             # check if app_name is monitored in the ready_status dict
             if len(topic_parts) > 1 and topic_parts[1] in self.required_apps_status:
                 # update the ready status based on the payload value
@@ -211,7 +211,7 @@ class Manager(Application):
         """
         try:
             # split the message topic into components (prefix/app_name/...)
-            topic_parts = message.topic.split("/")
+            topic_parts = message.topic.split(".")
             # parse the message payload properties
             props = TimeStatus.parse_raw(message.payload).properties
             wallclock_delta = self.simulator.get_wallclock_time() - props.time
@@ -252,7 +252,7 @@ class Manager(Application):
         )
         logger.info(f"Sending initialize command {command.json(by_alias=True)}.")
         self.client.publish(
-            f"{self.prefix}/{self.app_name}/init", command.json(by_alias=True)
+            f"{self.prefix}.{self.app_name}.init", command.json(by_alias=True)
         )
 
     def start(
@@ -295,9 +295,18 @@ class Manager(Application):
             }
         )
         logger.info(f"Sending start command {command.json(by_alias=True)}.")
-        self.client.publish(
-            f"{self.prefix}/{self.app_name}/start", command.json(by_alias=True)
+        # self.client.publish(
+        #     f"{self.prefix}/{self.app_name}/start", command.json(by_alias=True)
+        # )
+        self.channel.queue_declare(queue=self.prefix, durable=True)
+        self.channel.queue_bind(exchange=self.prefix, queue=self.prefix, routing_key=f"{self.prefix}.{self.app_name}.start") #f"{self.prefix}.{self.app_name}.status.time")
+        self.channel.basic_publish(
+            exchange=self.prefix,
+            routing_key=f"{self.prefix}.{self.app_name}.start",
+            # routing_key=f"{self.prefix}.{self.app_name}.status.time",
+            body=command.json(by_alias=True)
         )
+
         # start execution in a background thread
         threading.Thread(
             target=self.simulator.execute,
@@ -322,9 +331,18 @@ class Manager(Application):
             {"taskingParameters": {"simStopTime": sim_stop_time}}
         )
         logger.info(f"Sending stop command {command.json(by_alias=True)}.")
-        self.client.publish(
-            f"{self.prefix}/{self.app_name}/stop", command.json(by_alias=True)
+        # self.client.publish(
+        #     f"{self.prefix}.{self.app_name}.stop", command.json(by_alias=True)
+        # )
+        self.channel.queue_declare(queue=self.prefix, durable=True)
+        self.channel.queue_bind(exchange=self.prefix, queue=self.prefix, routing_key=f"{self.prefix}.{self.app_name}.stop") #f"{self.prefix}.{self.app_name}.status.time")
+        self.channel.basic_publish(
+            exchange=self.prefix,
+            routing_key=f"{self.prefix}.{self.app_name}.stop",
+            # routing_key=f"{self.prefix}.{self.app_name}.status.time",
+            body=command.json(by_alias=True)
         )
+
         # update the execution end time
         self.simulator.set_end_time(sim_stop_time)
 
@@ -347,8 +365,17 @@ class Manager(Application):
             }
         )
         logger.info(f"Sending update command {command.json(by_alias=True)}.")
-        self.client.publish(
-            f"{self.prefix}/{self.app_name}/update", command.json(by_alias=True)
+        # self.client.publish(
+        #     f"{self.prefix}.{self.app_name}.update", command.json(by_alias=True)
+        # )
+        self.channel.queue_declare(queue=self.prefix, durable=True)
+        self.channel.queue_bind(exchange=self.prefix, queue=self.prefix, routing_key=f"{self.prefix}.{self.app_name}.update") #f"{self.prefix}.{self.app_name}.status.time")
+        self.channel.basic_publish(
+            exchange=self.prefix,
+            routing_key=f"{self.prefix}.{self.app_name}.update",
+            # routing_key=f"{self.prefix}.{self.app_name}.status.time",
+            body=command.json(by_alias=True)
         )
+
         # update the execution time scale factor
         self.simulator.set_time_scale_factor(time_scale_factor, sim_update_time)
