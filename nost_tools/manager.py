@@ -298,11 +298,14 @@ class Manager(Application):
         # self.client.publish(
         #     f"{self.prefix}/{self.app_name}/start", command.json(by_alias=True)
         # )
-        self.channel.queue_declare(queue=self.prefix, durable=True)
-        self.channel.queue_bind(exchange=self.prefix, queue=self.prefix, routing_key=f"{self.prefix}.{self.app_name}.start") #f"{self.prefix}.{self.app_name}.status.time")
+        topic = f"{self.prefix}.{self.app_name}.start"
+        queue_name = ".".join(topic.split(".") + ["queue"])
+
+        self.channel.queue_declare(queue=queue_name, durable=True)
+        self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic) #f"{self.prefix}.{self.app_name}.status.time")
         self.channel.basic_publish(
             exchange=self.prefix,
-            routing_key=f"{self.prefix}.{self.app_name}.start",
+            routing_key=topic,
             # routing_key=f"{self.prefix}.{self.app_name}.status.time",
             body=command.json(by_alias=True)
         )
@@ -334,11 +337,14 @@ class Manager(Application):
         # self.client.publish(
         #     f"{self.prefix}.{self.app_name}.stop", command.json(by_alias=True)
         # )
-        self.channel.queue_declare(queue=self.prefix, durable=True)
-        self.channel.queue_bind(exchange=self.prefix, queue=self.prefix, routing_key=f"{self.prefix}.{self.app_name}.stop") #f"{self.prefix}.{self.app_name}.status.time")
+        topic = f"{self.prefix}.{self.app_name}.stop"
+        queue_name = ".".join(topic.split(".") + ["queue"])
+
+        self.channel.queue_declare(queue=queue_name, durable=True)
+        self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic) #f"{self.prefix}.{self.app_name}.status.time")
         self.channel.basic_publish(
             exchange=self.prefix,
-            routing_key=f"{self.prefix}.{self.app_name}.stop",
+            routing_key=topic,
             # routing_key=f"{self.prefix}.{self.app_name}.status.time",
             body=command.json(by_alias=True)
         )
@@ -368,11 +374,14 @@ class Manager(Application):
         # self.client.publish(
         #     f"{self.prefix}.{self.app_name}.update", command.json(by_alias=True)
         # )
-        self.channel.queue_declare(queue=self.prefix, durable=True)
-        self.channel.queue_bind(exchange=self.prefix, queue=self.prefix, routing_key=f"{self.prefix}.{self.app_name}.update") #f"{self.prefix}.{self.app_name}.status.time")
+        topic = f"{self.prefix}.{self.app_name}.update"
+        queue_name = ".".join(topic.split(".") + ["queue"])
+
+        self.channel.queue_declare(queue=queue_name, durable=True)
+        self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic) #f"{self.prefix}.{self.app_name}.status.time")
         self.channel.basic_publish(
             exchange=self.prefix,
-            routing_key=f"{self.prefix}.{self.app_name}.update",
+            routing_key=topic,
             # routing_key=f"{self.prefix}.{self.app_name}.status.time",
             body=command.json(by_alias=True)
         )

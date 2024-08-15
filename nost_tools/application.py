@@ -83,15 +83,13 @@ class Application(object):
         #     status.json(by_alias=True, exclude_none=True),
         # )
         
-        # Declare the topic exchange
-        self.channel.exchange_declare(exchange=self.prefix, exchange_type='topic')
-
-        # Declare a queue and bind it to the exchange with the routing key
         topic = f"{self.prefix}.{self.app_name}.status.time"
-        # queue_name = f"{topic}.queue"
-        # queue_name = "_".join(topic.split(".")) + "_queue"
         queue_name = ".".join(topic.split(".") + ["queue"]) 
 
+        # Declare the topic exchange
+        self.channel.exchange_declare(exchange=self.prefix, exchange_type='topic')
+        
+        # Declare a queue and bind it to the exchange with the routing key
         self.channel.queue_declare(queue=queue_name, durable=True)
         self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic)
 
@@ -314,14 +312,11 @@ class Application(object):
             payload (str): message payload (JSON-encoded string)
 
         """
+        logger.info(f"Publishing to topic {topic}: {payload}")
+
         topic = f"{self.prefix}.{self.app_name}.{app_topic}"
-        # queue_name = f"{topic}.queue"
-        # queue_name = "_".join(topic.split(".")) + "_queue"
         queue_name = ".".join(topic.split(".") + ["queue"]) 
 
-        logger.info(f"Publishing to topic {topic}: {payload}")
-        # self.client.publish(topic, payload)
-        
         # Declare a queue and bind it to the exchange with the routing key
         self.channel.queue_declare(queue=queue_name, durable=True)
         self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic) #f"{self.prefix}.{self.app_name}.status.time")
