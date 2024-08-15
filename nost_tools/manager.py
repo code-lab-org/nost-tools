@@ -110,8 +110,8 @@ class Manager(Application):
         self.required_apps_status = dict(
             zip(required_apps, [False] * len(required_apps))
         )
-        self.add_message_callback("*", "status.ready", self.on_app_ready_status)
-        self.add_message_callback("*", "status.time", self.on_app_time_status)
+        self.add_message_callback("#", "status.ready", self.on_app_ready_status)
+        self.add_message_callback("#", "status.time", self.on_app_time_status)
 
         self._create_time_status_publisher(time_status_step, time_status_init)
         for i in range(init_max_retry):
@@ -126,7 +126,7 @@ class Manager(Application):
                 and self.simulator.get_wallclock_time() < next_try
             ):
                 time.sleep(0.001)
-        self.remove_message_callback("*", "status.ready")
+        self.remove_message_callback("#", "status.ready")
         # configure start time
         if start_time is None:
             start_time = self.simulator.get_wallclock_time() + command_lead
@@ -183,14 +183,17 @@ class Manager(Application):
         self.stop(sim_stop_time)
 
     def on_app_ready_status(
-        self, client: Client, userdata: object, message: MQTTMessage
+        self, ch, method, properties, body #client: Client, userdata: object, message: MQTTMessage
     ) -> None:
         """
         Callback to handle a message containing an application ready status.
         """
         try:
             # split the message topic into components (prefix/app_name/...)
-            topic_parts = message.topic.split(".")
+            # topic_parts = message.topic.split(".")
+            topic_parts = method.routing_key.split(".")
+            message = body.decode('utf-8')
+
             # check if app_name is monitored in the ready_status dict
             if len(topic_parts) > 1 and topic_parts[1] in self.required_apps_status:
                 # update the ready status based on the payload value
@@ -204,14 +207,17 @@ class Manager(Application):
             print(traceback.format_exc())
 
     def on_app_time_status(
-        self, client: Client, userdata: object, message: MQTTMessage
+        self, ch, method, properties, body #, client: Client, userdata: object, message: MQTTMessage
     ) -> None:
         """
         Callback to handle a message containing an application time status.
         """
         try:
             # split the message topic into components (prefix/app_name/...)
-            topic_parts = message.topic.split(".")
+            # topic_parts = message.topic.split(".")
+            topic_parts = method.routing_key.split(".")
+            message = body.decode('utf-8')
+        
             # parse the message payload properties
             props = TimeStatus.parse_raw(message.payload).properties
             wallclock_delta = self.simulator.get_wallclock_time() - props.time
@@ -299,7 +305,7 @@ class Manager(Application):
         #     f"{self.prefix}/{self.app_name}/start", command.json(by_alias=True)
         # )
         topic = f"{self.prefix}.{self.app_name}.start"
-        queue_name = ".".join(topic.split(".") + ["queue"])
+        queue_name = topic #".".join(topic.split(".") + ["queue"])
 
         self.channel.queue_declare(queue=queue_name, durable=True)
         self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic) #f"{self.prefix}.{self.app_name}.status.time")
@@ -338,7 +344,7 @@ class Manager(Application):
         #     f"{self.prefix}.{self.app_name}.stop", command.json(by_alias=True)
         # )
         topic = f"{self.prefix}.{self.app_name}.stop"
-        queue_name = ".".join(topic.split(".") + ["queue"])
+        queue_name = topic #".".join(topic.split(".") + ["queue"])
 
         self.channel.queue_declare(queue=queue_name, durable=True)
         self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic) #f"{self.prefix}.{self.app_name}.status.time")
@@ -375,7 +381,7 @@ class Manager(Application):
         #     f"{self.prefix}.{self.app_name}.update", command.json(by_alias=True)
         # )
         topic = f"{self.prefix}.{self.app_name}.update"
-        queue_name = ".".join(topic.split(".") + ["queue"])
+        queue_name = topic #".".join(topic.split(".") + ["queue"])
 
         self.channel.queue_declare(queue=queue_name, durable=True)
         self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic) #f"{self.prefix}.{self.app_name}.status.time")

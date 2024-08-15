@@ -84,7 +84,7 @@ class Application(object):
         # )
         
         topic = f"{self.prefix}.{self.app_name}.status.time"
-        queue_name = ".".join(topic.split(".") + ["queue"]) 
+        queue_name = topic #".".join(topic.split(".") + ["queue"]) 
 
         # Declare the topic exchange
         self.channel.exchange_declare(exchange=self.prefix, exchange_type='topic')
@@ -315,7 +315,7 @@ class Application(object):
         logger.info(f"Publishing to topic {topic}: {payload}")
 
         topic = f"{self.prefix}.{self.app_name}.{app_topic}"
-        queue_name = ".".join(topic.split(".") + ["queue"]) 
+        queue_name = topic #".".join(topic.split(".") + ["queue"]) 
 
         # Declare a queue and bind it to the exchange with the routing key
         self.channel.queue_declare(queue=queue_name, durable=True)
@@ -371,9 +371,7 @@ class Application(object):
             callback (Callable): The callback function to handle messages
         """
         topic = f"{self.prefix}.{app_name}.{app_topic}"
-        # queue_name = f"{topic}.queue"
-        # queue_name = "_".join(topic.split(".")) + "_queue"
-        queue_name = ".".join(topic.split(".") + ["queue"]) 
+        queue_name = topic #".".join(topic.split(".") + ["queue"]) 
 
         print(f'Queue: {queue_name}')
         logger.info(f"Subscribing and adding callback to topic: {topic}")
@@ -410,7 +408,7 @@ class Application(object):
             app_topic (str): The application topic
         """
         topic = f"{self.prefix}.{app_name}.{app_topic}"
-        queue_name = ".".join(topic.split(".") + ["queue"])
+        queue_name = topic #".".join(topic.split(".") + ["queue"])
 
         print(f'Removing callback from queue: {queue_name}')
         logger.info(f"Unsubscribing and removing callback from topic: {topic}")
