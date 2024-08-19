@@ -119,9 +119,19 @@ class TimeStatusPublisher(ScenarioTimeIntervalPublisher):
         #     f"{self.app.prefix}/{self.app.app_name}/status/time",
         #     status.json(by_alias=True, exclude_none=True),
         # )
+        topic = f"{self.app.prefix}.{self.app.app_name}.status.time"
+        queue_name = topic #".".join(topic.split(".") + ["queue"]) 
+
+        # Declare the topic exchange
+        self.app.channel.exchange_declare(exchange=self.app.prefix, exchange_type='topic')
+        
+        # Declare a queue and bind it to the exchange with the routing key
+        self.app.channel.queue_declare(queue=queue_name, durable=True)
+        self.app.channel.queue_bind(exchange=self.app.prefix, queue=queue_name, routing_key=topic)
+
         self.app.channel.basic_publish(
             exchange=self.app.prefix,
-            routing_key=f"{self.app.prefix}.{self.app.app_name}.status.time",
+            routing_key=topic,
             body=status.json(by_alias=True, exclude_none=True)
         )
 
@@ -140,11 +150,44 @@ class ModeStatusObserver(Observer):
         """
         self.app = app
 
+    # def on_change(
+    #     self, source: object, property_name: str, old_value: object, new_value: object
+    # ) -> None:
+    #     """
+    #     Publishes a mode status message in response ot a mode transition.
+
+    #     Args:
+    #         source (object): observable that triggered the change
+    #         property_name (str): name of the changed property
+    #         old_value (obj): old value of the named property
+    #         new_value (obj): new value of the named property
+    #     """
+    #     if property_name == Simulator.PROPERTY_MODE:
+    #         status = ModeStatus.parse_obj(
+    #             {
+    #                 "name": self.app.app_name,
+    #                 "description": self.app.app_description,
+    #                 "properties": {"mode": self.app.simulator.get_mode()},
+    #             }
+    #         )
+    #         logger.info(
+    #             f"Sending mode status {status.json(by_alias=True,exclude_none=True)}."
+    #         )
+    #         # self.app.client.publish(
+    #         #     f"{self.app.prefix}/{self.app.app_name}/status/mode",
+    #         #     status.json(by_alias=True, exclude_none=True),
+    #         # )
+
+    #         self.app.channel.basic_publish(
+    #             exchange=self.app.prefix,
+    #             routing_key=f"{self.app.prefix}.{self.app.app_name}.status.mode",
+    #             body=status.json(by_alias=True, exclude_none=True)
+    #         )
     def on_change(
         self, source: object, property_name: str, old_value: object, new_value: object
     ) -> None:
         """
-        Publishes a mode status message in response ot a mode transition.
+        Publishes a mode status message in response to a mode transition.
 
         Args:
             source (object): observable that triggered the change
@@ -161,9 +204,25 @@ class ModeStatusObserver(Observer):
                 }
             )
             logger.info(
-                f"Sending mode status {status.json(by_alias=True,exclude_none=True)}."
+                f"Sending mode status {status.json(by_alias=True, exclude_none=True)}."
             )
-            self.app.client.publish(
-                f"{self.app.prefix}/{self.app.app_name}/status/mode",
-                status.json(by_alias=True, exclude_none=True),
+
+            # Ensure self.app.prefix is a string
+            if not isinstance(self.app.prefix, str):
+                raise ValueError(f"Exchange ({self.app.prefix}) must be a string")
+
+            topic = f"{self.app.prefix}.{self.app.app_name}.status.mode"
+            queue_name = topic #".".join(topic.split(".") + ["queue"]) 
+
+            # Declare the topic exchange
+            self.app.channel.exchange_declare(exchange=self.app.prefix, exchange_type='topic')
+            
+            # Declare a queue and bind it to the exchange with the routing key
+            self.app.channel.queue_declare(queue=queue_name, durable=True)
+            self.app.channel.queue_bind(exchange=self.app.prefix, queue=queue_name, routing_key=topic)
+
+            self.app.channel.basic_publish(
+                exchange=self.app.prefix,
+                routing_key=topic,
+                body=status.json(by_alias=True, exclude_none=True)
             )

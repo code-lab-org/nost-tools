@@ -20,6 +20,8 @@ from .schemas import (
     TimeStatus,
 )
 from .simulator import Mode
+import json
+from pydantic import ValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -110,8 +112,10 @@ class Manager(Application):
         self.required_apps_status = dict(
             zip(required_apps, [False] * len(required_apps))
         )
-        self.add_message_callback("#", "status.ready", self.on_app_ready_status)
-        self.add_message_callback("#", "status.time", self.on_app_time_status)
+        self.add_message_callback("*", "status.ready", self.on_app_ready_status)
+        self.add_message_callback("*", "status.time", self.on_app_time_status)
+
+        # self.channel.start_consuming() # This stalls manager if uncommented
 
         self._create_time_status_publisher(time_status_step, time_status_init)
         for i in range(init_max_retry):
@@ -126,7 +130,7 @@ class Manager(Application):
                 and self.simulator.get_wallclock_time() < next_try
             ):
                 time.sleep(0.001)
-        self.remove_message_callback("#", "status.ready")
+        self.remove_message_callback("*", "status.ready")
         # configure start time
         if start_time is None:
             start_time = self.simulator.get_wallclock_time() + command_lead
@@ -183,54 +187,122 @@ class Manager(Application):
         self.stop(sim_stop_time)
 
     def on_app_ready_status(
-        self, ch, method, properties, body #client: Client, userdata: object, message: MQTTMessage
+        self, ch, method, properties, body
     ) -> None:
         """
         Callback to handle a message containing an application ready status.
         """
         try:
             # split the message topic into components (prefix/app_name/...)
-            # topic_parts = message.topic.split(".")
             topic_parts = method.routing_key.split(".")
             message = body.decode('utf-8')
+            # message = json.loads(message)
 
             # check if app_name is monitored in the ready_status dict
             if len(topic_parts) > 1 and topic_parts[1] in self.required_apps_status:
-                # update the ready status based on the payload value
-                self.required_apps_status[topic_parts[1]] = ReadyStatus.parse_raw(
-                    message.payload
-                ).properties.ready
+                # validate if message is a valid JSON
+                try:
+                    # json.loads(message)
+                    # update the ready status based on the payload value
+                    self.required_apps_status[topic_parts[1]] = ReadyStatus.parse_raw(
+                        message
+                    ).properties.ready
+                except json.JSONDecodeError:
+                    logger.error(f"Invalid JSON format: {message}")
+        except ValidationError as e:
+            logger.error(f"Validation error: {e}")
         except Exception as e:
             logger.error(
-                f"Exception (topic: {message.topic}, payload: {message.payload}): {e}"
+                f"Exception (topic: {method.routing_key}, payload: {message}): {e}"
             )
             print(traceback.format_exc())
+        logger.info("App ready status callback.")
+        ch.stop_consuming()
 
     def on_app_time_status(
-        self, ch, method, properties, body #, client: Client, userdata: object, message: MQTTMessage
+        self, ch, method, properties, body
     ) -> None:
         """
         Callback to handle a message containing an application time status.
         """
         try:
             # split the message topic into components (prefix/app_name/...)
-            # topic_parts = message.topic.split(".")
             topic_parts = method.routing_key.split(".")
             message = body.decode('utf-8')
-        
-            # parse the message payload properties
-            props = TimeStatus.parse_raw(message.payload).properties
-            wallclock_delta = self.simulator.get_wallclock_time() - props.time
-            scenario_delta = self.simulator.get_time() - props.sim_time
-            if len(topic_parts) > 1:
-                logger.info(
-                    f"Application {topic_parts[1]} latency: {scenario_delta} (scenario), {wallclock_delta} (wallclock)"
-                )
+            # message = json.loads(message)
+            
+            # validate if message is a valid JSON
+            try:
+                # json.loads(message)
+                # parse the message payload properties
+                props = TimeStatus.parse_raw(message).properties
+                wallclock_delta = self.simulator.get_wallclock_time() - props.time
+                scenario_delta = self.simulator.get_time() - props.sim_time
+                if len(topic_parts) > 1:
+                    logger.info(
+                        f"Application {topic_parts[1]} latency: {scenario_delta} (scenario), {wallclock_delta} (wallclock)"
+                    )
+            except json.JSONDecodeError:
+                logger.error(f"Invalid JSON format: {message}")
+        except ValidationError as e:
+            logger.error(f"Validation error: {e}")
         except Exception as e:
             logger.error(
-                f"Exception (topic: {message.topic}, payload: {message.payload}): {e}"
+                f"Exception (topic: {method.routing_key}, payload: {message}): {e}"
             )
             print(traceback.format_exc())
+        logger.info("App time status callback.")
+        ch.stop_consuming()
+
+    # def on_app_ready_status(
+    #     self, ch, method, properties, body #client: Client, userdata: object, message: MQTTMessage
+    # ) -> None:
+    #     """
+    #     Callback to handle a message containing an application ready status.
+    #     """
+    #     try:
+    #         # split the message topic into components (prefix/app_name/...)
+    #         # topic_parts = message.topic.split(".")
+    #         topic_parts = method.routing_key.split(".")
+    #         message = body.decode('utf-8')
+
+    #         # check if app_name is monitored in the ready_status dict
+    #         if len(topic_parts) > 1 and topic_parts[1] in self.required_apps_status:
+    #             # update the ready status based on the payload value
+    #             self.required_apps_status[topic_parts[1]] = ReadyStatus.parse_raw(
+    #                 message
+    #             ).properties.ready
+    #     except Exception as e:
+    #         logger.error(
+    #             f"Exception (topic: {method.routing_key}, payload: {message}): {e}"
+    #         )
+    #         print(traceback.format_exc())
+
+    # def on_app_time_status(
+    #     self, ch, method, properties, body #, client: Client, userdata: object, message: MQTTMessage
+    # ) -> None:
+    #     """
+    #     Callback to handle a message containing an application time status.
+    #     """
+    #     try:
+    #         # split the message topic into components (prefix/app_name/...)
+    #         # topic_parts = message.topic.split(".")
+    #         topic_parts = method.routing_key.split(".")
+    #         message = body.decode('utf-8')
+        
+    #         # parse the message payload properties
+    #         props = TimeStatus.parse_raw(message).properties
+    #         wallclock_delta = self.simulator.get_wallclock_time() - props.time
+    #         scenario_delta = self.simulator.get_time() - props.sim_time
+    #         if len(topic_parts) > 1:
+    #             logger.info(
+    #                 f"Application {topic_parts[1]} latency: {scenario_delta} (scenario), {wallclock_delta} (wallclock)"
+    #             )
+    #     except Exception as e:
+    #         logger.error(
+    #             f"Exception (topic: {method.routing_key}, payload: {message}): {e}"
+    #         )
+    #         print(traceback.format_exc())
 
     def init(
         self,
@@ -257,8 +329,19 @@ class Manager(Application):
             }
         )
         logger.info(f"Sending initialize command {command.json(by_alias=True)}.")
-        self.client.publish(
-            f"{self.prefix}.{self.app_name}.init", command.json(by_alias=True)
+        # self.client.publish(
+        #     f"{self.prefix}.{self.app_name}.init", command.json(by_alias=True)
+        # )
+        topic = f"{self.prefix}.{self.app_name}.init"
+        queue_name = topic #".".join(topic.split(".") + ["queue"])
+
+        self.channel.queue_declare(queue=queue_name, durable=True)
+        self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic) #f"{self.prefix}.{self.app_name}.status.time")
+        self.channel.basic_publish(
+            exchange=self.prefix,
+            routing_key=topic,
+            # routing_key=f"{self.prefix}.{self.app_name}.status.time",
+            body=command.json(by_alias=True)
         )
 
     def start(

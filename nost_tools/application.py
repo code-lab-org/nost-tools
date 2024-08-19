@@ -83,7 +83,7 @@ class Application(object):
         #     status.json(by_alias=True, exclude_none=True),
         # )
         
-        topic = f"{self.prefix}.{self.app_name}.status.time"
+        topic = f"{self.prefix}.{self.app_name}.status.ready"
         queue_name = topic #".".join(topic.split(".") + ["queue"]) 
 
         # Declare the topic exchange
@@ -287,6 +287,22 @@ class Application(object):
         self._shut_down_observer = ShutDownObserver(self)
         self.simulator.add_observer(self._shut_down_observer)
 
+    # def shut_down(self) -> None:
+    #     """
+    #     Shuts down the application by stopping the background event loop and disconnecting from the broker.
+    #     """
+    #     if self._time_status_publisher is not None:
+    #         # remove the time status observer
+    #         self.simulator.remove_observer(self._time_status_publisher)
+    #     self._time_status_publisher = None
+    #     # stop background loop
+    #     self.client.loop_stop()
+    #     # disconnect form server
+    #     self.client.disconnect()
+    #     # clear prefix
+    #     self.prefix = None
+    #     logger.info(f'Application "{self.app_name}" successfully shut down.')
+
     def shut_down(self) -> None:
         """
         Shuts down the application by stopping the background event loop and disconnecting from the broker.
@@ -295,13 +311,17 @@ class Application(object):
             # remove the time status observer
             self.simulator.remove_observer(self._time_status_publisher)
         self._time_status_publisher = None
-        # stop background loop
-        self.client.loop_stop()
-        # disconnect form server
-        self.client.disconnect()
-        # clear prefix
-        self.prefix = None
-        logger.info(f"Application {self.app_name} successfully shut down.")
+        
+        # close the connection
+        # if self.client.is_open:
+        #     self.client.close()
+        if self.channel.is_open:
+            self.channel.close()
+        
+        if self.channel.is_closed:
+            # clear prefix
+            # self.prefix = None
+            logger.info(f'Application "{self.app_name}" successfully shut down.')
 
     def send_message(self, app_topic: str, payload: str) -> None:
         """
@@ -334,33 +354,6 @@ class Application(object):
     #     self.channel.queue_bind(exchange=self.prefix, queue=self.prefix, routing_key=topic)
     #     self.channel.basic_consume(queue=topic, on_message_callback=callback, auto_ack=True)
 
-    # def add_message_callback(self, app_name: str, app_topic: str, callback: Callable) -> None:
-    #     """
-    #     Adds a message callback for application name and topic `prefix.app_name.app_topic`.
-
-    #     Args:
-    #         app_name (str): The application name
-    #         app_topic (str): The application topic
-    #         callback (Callable): The callback function to handle messages
-    #     """
-    #     topic = f"{self.prefix}.{app_name}.{app_topic}"
-    #     logger.info(f"Subscribing and adding callback to topic: {topic}")
-        
-    #     # Declare the exchange
-    #     self.channel.exchange_declare(exchange=self.prefix, exchange_type='topic')
-
-    #     # Declare the queue
-    #     self.channel.queue_declare(queue=self.prefix, durable=True)
-        
-    #     # Bind the queue to the exchange with the routing key
-    #     self.channel.queue_bind(exchange=self.prefix, queue=self.prefix, routing_key=topic)
-        
-    #     # Consume messages from the queue
-    #     self.channel.basic_consume(queue=self.prefix, on_message_callback=callback, auto_ack=True)
-
-    #     # Start consuming
-    #     # self.channel.start_consuming()
-
     def add_message_callback(self, app_name: str, app_topic: str, callback: Callable) -> None:
         """
         Adds a message callback for application name and topic `prefix.app_name.app_topic`.
@@ -387,9 +380,7 @@ class Application(object):
         
         # Consume messages from the queue
         self.channel.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack=True)
-
-
-
+        
     # def remove_message_callback(self, app_name: str, app_topic: str, callback: Callable) -> None:
 
     #     topic = f"{self.prefix}.{app_name}.{app_topic}"
@@ -407,20 +398,21 @@ class Application(object):
             app_name (str): The application name
             app_topic (str): The application topic
         """
-        topic = f"{self.prefix}.{app_name}.{app_topic}"
-        queue_name = topic #".".join(topic.split(".") + ["queue"])
+        self.channel.stop_consuming()
+        # topic = f"{self.prefix}.{app_name}.{app_topic}"
+        # queue_name = topic #".".join(topic.split(".") + ["queue"])
 
-        print(f'Removing callback from queue: {queue_name}')
-        logger.info(f"Unsubscribing and removing callback from topic: {topic}")
+        # print(f'Removing callback from queue: {queue_name}')
+        # logger.info(f"Unsubscribing and removing callback from topic: {topic}")
 
-        # Cancel the consumer
-        self.channel.basic_cancel(consumer_tag=queue_name)
+        # # Cancel the consumer
+        # self.channel.basic_cancel(consumer_tag=queue_name)
 
-        # Unbind the queue from the exchange
-        self.channel.queue_unbind(exchange=self.prefix, queue=queue_name, routing_key=topic)
+        # # Unbind the queue from the exchange
+        # self.channel.queue_unbind(exchange=self.prefix, queue=queue_name, routing_key=topic)
 
-        # Delete the queue
-        self.channel.queue_delete(queue=queue_name)
+        # # Delete the queue
+        # self.channel.queue_delete(queue=queue_name)
 
     # def add_message_callback(
     #     self, app_name: str, app_topic: str, callback: Callable
