@@ -111,8 +111,10 @@ class Application(object):
         #     status.json(by_alias=True, exclude_none=True),
         # )
         
+        # Push to start_up()
         topic = f"{self.prefix}.{self.app_name}.status.ready"
         queue_name = topic #".".join(topic.split(".") + ["queue"]) 
+        ###
 
         # Declare the topic exchange
         self.channel.exchange_declare(exchange=self.prefix, exchange_type='topic')
@@ -281,7 +283,8 @@ class Application(object):
 
         """
         
-
+        # Part of start_up(): Define all queues that should be declared (time.status, .ready, etc.)
+        # Take one position or other declared in advance or latest possible moment (choose one, I will decide which makes more sense based on users [easier to use may be preferred by users])
         topic = f"{self.prefix}.{self.app_name}.{app_topic}"
         queue_name = topic #".".join(topic.split(".") + ["queue"]) 
 
@@ -310,6 +313,11 @@ class Application(object):
         topic = f"{self.prefix}.{app_name}.{app_topic}"
         queue_name = topic #".".join(topic.split(".") + ["queue"]) 
 
+
+        # Can manager miss messages becuase other apps are subscribing to topic meant for manager
+        # Specific destination (auto ack, or not)
+        # Quality 
+        # Send_message(): Set up the queue
         print(f'Queue: {queue_name}')
         logger.info(f"Subscribing and adding callback to topic: {topic}")
         
@@ -324,6 +332,8 @@ class Application(object):
         
         # Consume messages from the queue
         self.channel.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack=True)
+
+        ## Set expiry period: at queue or publishing? (max amount of time before being removed, would be important)
 
     def remove_message_callback(self, app_name: str, app_topic: str) -> None:
         """
