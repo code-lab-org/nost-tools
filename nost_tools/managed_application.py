@@ -35,7 +35,7 @@ class ManagedApplication(Application):
         time_step (:obj:`timedelta`): scenario time step used in execution
     """
 
-    def __init__(self, app_name: str, app_description: str = None): #config: ConnectionConfig, 
+    def __init__(self, app_name: str, config: ConnectionConfig, app_description: str = None): #
         """
         Initializes a new managed application.
 
@@ -43,24 +43,24 @@ class ManagedApplication(Application):
             app_name (str): application name
             app_description (str): application description
         """
-        super().__init__(app_name, app_description)
+        super().__init__(app_name, config, app_description)
         self.time_step = None
         self._sim_start_time = None
         self._sim_stop_time = None
 
-    def on_message(self, ch, method, properties, body):
-        try:
-            routing_key = method.routing_key
-            if routing_key == f"{self.prefix}.{self.manager_app_name}.init":
-                self.on_manager_init(ch, method, properties, body)
-            elif routing_key == f"{self.prefix}.{self.manager_app_name}.start":
-                self.on_manager_start(ch, method, properties, body)
-            elif routing_key == f"{self.prefix}.{self.manager_app_name}.stop":
-                self.on_manager_stop(ch, method, properties, body)
-            elif routing_key == f"{self.prefix}.{self.manager_app_name}.update":
-                self.on_manager_update(ch, method, properties, body)
-        except Exception as e:
-            print(f"Error handling message: {e}")
+    # def on_message(self, ch, method, properties, body):
+    #     try:
+    #         routing_key = method.routing_key
+    #         if routing_key == f"{self.prefix}.{self.manager_app_name}.init":
+    #             self.on_manager_init(ch, method, properties, body)
+    #         elif routing_key == f"{self.prefix}.{self.manager_app_name}.start":
+    #             self.on_manager_start(ch, method, properties, body)
+    #         elif routing_key == f"{self.prefix}.{self.manager_app_name}.stop":
+    #             self.on_manager_stop(ch, method, properties, body)
+    #         elif routing_key == f"{self.prefix}.{self.manager_app_name}.update":
+    #             self.on_manager_update(ch, method, properties, body)
+    #     except Exception as e:
+    #         print(f"Error handling message: {e}")
 
 
     def start_up(
@@ -102,116 +102,32 @@ class ManagedApplication(Application):
         topic = f"{self.prefix}.{self.manager_app_name}.#"
         queue_name = topic #".".join(topic.split(".") + ["queue"])
 
-        # # Declare exchange and queue
-        # self.channel.exchange_declare(exchange=self.manager_app_name, exchange_type='topic')
-        # self.queue = self.channel.queue_declare(queue='', exclusive=True).method.queue
-        # self.channel.queue_bind(exchange=self.manager_app_name, queue=self.queue, routing_key=f"{self.prefix}.{self.manager_app_name}.#")
 
-        # Declare the exchange
-        self.channel.exchange_declare(exchange=self.prefix, exchange_type='topic')
+        # Declare the queues
+        queues = ["#", "init", "start", "stop", "update"]
+        for queue in queues:
+            queue_name = f"{prefix}.{manager_app_name}.{queue}"
+            self.channel.queue_declare(queue=queue_name, durable=True)
+            self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=queue_name)
 
-        # # Declare the queue
-        self.channel.queue_declare(queue=queue_name, durable=True)
-        
-        # Bind the queue to the exchange with the routing key
-        self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic)
-        
-        
         # Register callback functions
-        self.channel.basic_consume(queue=queue_name, on_message_callback=self.on_message, auto_ack=True)
+        self.channel.basic_consume(
+            queue=f"{prefix}.{manager_app_name}.init", on_message_callback=self.on_manager_init, auto_ack=False #True
+        )
+        self.channel.basic_consume(
+            queue=f"{prefix}.{manager_app_name}.start", on_message_callback=self.on_manager_start, auto_ack=False #True
+        )
+        self.channel.basic_consume(
+            queue=f"{prefix}.{manager_app_name}.stop", on_message_callback=self.on_manager_stop, auto_ack=False #True
+        )
+        self.channel.basic_consume(
+            queue=f"{prefix}.{manager_app_name}.update", on_message_callback=self.on_manager_update, auto_ack=False #True
+        )
 
-        # Start consuming
+        # print('Waiting for messages...')
         # self.channel.start_consuming()
-        
-        # # register callback function for init command
-        # self.add_message_callback(self.manager_app_name, 'init', self.on_manager_init)
 
-        # # register callback function for start command
-        # self.add_message_callback(self.manager_app_name, 'start', self.on_manager_start)
-
-        # # register callback function for stop command
-        # self.add_message_callback(self.manager_app_name, 'stop', self.on_manager_stop)
-
-        # # register callback function for update command
-        # self.add_message_callback(self.manager_app_name, 'update', self.on_manager_update)
-
-        # self.channel.start_consuming()
-    
-        # subscribe to manager topics
-        # self.client.subscribe(f"{self.prefix}/{self.manager_app_name}/#")
-
-        # subscribe to manager topics
-        # self.channel.exchange_declare(exchange=self.prefix, exchange_type='topic')
-        # self.channel.queue_declare(queue=queue_name, durable=True)
-
-        # # Bind the queue to the exchange with the routing key pattern
-        # self.channel.queue_bind(
-        #     exchange=self.prefix,
-        #     queue=queue_name,
-        #     routing_key=topic
-        # )
-
-        # # register callback function for init command
-        # # self.client.message_callback_add(
-        # #     # f"{self.prefix}/{self.manager_app_name}/init", self.on_manager_init
-        # #     f"{self.prefix}.{self.manager_app_name}.init", self.on_manager_init
-        # # )
-        # self.channel.queue_declare(queue=f"{self.prefix}.{self.manager_app_name}.init", durable=True)
-
-        # # Bind the queue to the exchange with the routing key pattern
-        # self.channel.queue_bind(
-        #     exchange=self.prefix,
-        #     queue=f"{self.prefix}.{self.manager_app_name}.init",
-        #     routing_key=f"{self.prefix}.{self.manager_app_name}.init"
-        # )
-        # self.channel.basic_consume(queue=f"{self.prefix}.{self.manager_app_name}.init", on_message_callback=self.on_manager_init, auto_ack=True)
-
-        # # register callback function for start command
-        # # self.client.message_callback_add(
-        # #     # f"{self.prefix}/{self.manager_app_name}/start", self.on_manager_start
-        # #     f"{self.prefix}.{self.manager_app_name}.start", self.on_manager_start
-        # # )
-        # self.channel.queue_declare(queue=f"{self.prefix}.{self.manager_app_name}.start", durable=True)
-
-        # # Bind the queue to the exchange with the routing key pattern
-        # self.channel.queue_bind(
-        #     exchange=self.prefix,
-        #     queue=f"{self.prefix}.{self.manager_app_name}.start",
-        #     routing_key=f"{self.prefix}.{self.manager_app_name}.start"
-        # )
-        # self.channel.basic_consume(queue=f"{self.prefix}.{self.manager_app_name}.start", on_message_callback=self.on_manager_start, auto_ack=True)
-
-        # # register callback function for stop command
-        # # self.client.message_callback_add(
-        # #     # f"{self.prefix}/{self.manager_app_name}/stop", self.on_manager_stop
-        # #     f"{self.prefix}.{self.manager_app_name}.stop", self.on_manager_stop
-        # # )
-        # self.channel.queue_declare(queue=f"{self.prefix}.{self.manager_app_name}.stop", durable=True)
-
-        # # Bind the queue to the exchange with the routing key pattern
-        # self.channel.queue_bind(
-        #     exchange=self.prefix,
-        #     queue=f"{self.prefix}.{self.manager_app_name}.stop",
-        #     routing_key=f"{self.prefix}.{self.manager_app_name}.stop"
-        # )
-        # self.channel.basic_consume(queue=f"{self.prefix}.{self.manager_app_name}.stop", on_message_callback=self.on_manager_stop, auto_ack=True)
-
-        # # register callback function for update command
-        # # self.client.message_callback_add(
-        # #     # f"{self.prefix}/{self.manager_app_name}/update", self.on_manager_update
-        # #     f"{self.prefix}.{self.manager_app_name}.update", self.on_manager_update
-        # # )
-        # self.channel.queue_declare(queue=f"{self.prefix}.{self.manager_app_name}.update", durable=True)
-
-        # # Bind the queue to the exchange with the routing key pattern
-        # self.channel.queue_bind(
-        #     exchange=self.prefix,
-        #     queue=f"{self.prefix}.{self.manager_app_name}.update",
-        #     routing_key=f"{self.prefix}.{self.manager_app_name}.update"
-        # )
-        # self.channel.basic_consume(queue=f"{self.prefix}.{self.manager_app_name}.update", on_message_callback=self.on_manager_update, auto_ack=True)
-
-        # # self.channel.start_consuming()
+  
 
     def shut_down(self) -> None:
         """
@@ -249,6 +165,7 @@ class ManagedApplication(Application):
             message (:obj:`paho.mqtt.client.MQTTMessage`): MQTT message
         """
         try:
+            ch.basic_ack(delivery_tag=method.delivery_tag)
             logger.info('Manager sent initilize command.')
             message = body.decode('utf-8')
             # message = json.loads(message)
@@ -281,6 +198,7 @@ class ManagedApplication(Application):
             message (:obj:`paho.mqtt.client.MQTTMessage`): MQTT message
         """
         try:
+            ch.basic_ack(delivery_tag=method.delivery_tag)
             logger.info('Manager sent start command.')
             message = body.decode('utf-8')
             # message = json.loads(message)
@@ -294,20 +212,36 @@ class ManagedApplication(Application):
             # check for optional start time
             if params.sim_start_time is not None:
                 self._sim_start_time = params.sim_start_time
+                logger.info(f"Checking for optional start time")
+
             # check for optional end time
             if params.sim_stop_time is not None:
                 self._sim_stop_time = params.sim_stop_time
-            # start execution in a background thread
-            threading.Thread(
-                target=self.simulator.execute,
-                kwargs={
-                    "init_time": self._sim_start_time,
-                    "duration": self._sim_stop_time - self._sim_start_time,
-                    "time_step": self.time_step,
-                    "wallclock_epoch": params.start_time,
-                    "time_scale_factor": params.time_scaling_factor,
-                },
-            ).start()
+                logger.info(f"Checking for optional end time")
+
+            logger.info(f"Starting execution in a background thread")
+            # # start execution in a background thread
+            # threading.Thread(
+            #     target=self.simulator.execute,
+            #     kwargs={
+            #         "init_time": self._sim_start_time,
+            #         "duration": self._sim_stop_time - self._sim_start_time,
+            #         "time_step": self.time_step,
+            #         "wallclock_epoch": params.start_time,
+            #         "time_scale_factor": params.time_scaling_factor,
+            #     },
+            # ).start()
+            
+            # Start execution
+            self.simulator.execute(
+                init_time=self._sim_start_time,
+                duration=self._sim_stop_time - self._sim_start_time,
+                time_step=self.time_step,
+                wallclock_epoch=params.start_time,
+                time_scale_factor=params.time_scaling_factor)
+            
+            logger.info(f"Background thread complete.")
+            self.send_message('update', 'Manager start triggered application.')
         except Exception as e:
             logger.error(
                 # f"Exception (topic: {message.topic}, payload: {message.payload}): {e}"
@@ -326,6 +260,7 @@ class ManagedApplication(Application):
             message (:obj:`paho.mqtt.client.MQTTMessage`): MQTT message
         """
         try:
+            ch.basic_ack(delivery_tag=method.delivery_tag)
             logger.info('Manager sent stop command.')
             message = body.decode('utf-8')
             # message = json.loads(message)
@@ -356,6 +291,7 @@ class ManagedApplication(Application):
             message (:obj:`paho.mqtt.client.MQTTMessage`): MQTT message
         """
         try:
+            ch.basic_ack(delivery_tag=method.delivery_tag)
             logger.info('Manager sent update command.')
             message = body.decode('utf-8')
             # message = json.loads(message)

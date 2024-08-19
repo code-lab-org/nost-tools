@@ -5,6 +5,7 @@ Provides utility classes to help applications interact with the broker.
 from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
+import pika
 
 from .observer import Observer
 from .publisher import ScenarioTimeIntervalPublisher
@@ -32,7 +33,7 @@ class ConnectionConfig(object):
     """
 
     def __init__(
-        self, username: str, password: str, host: str, port: int, client_id: str, client_secret_key: str, virtual_host: str, is_tls: bool = True
+        self, username: str, password: str, host: str, rabbitmq_port: int, keycloak_port: int, client_id: str, client_secret_key: str, virtual_host: str, is_tls: bool = True
     ):
         """
         Initializes a new connection configuration.
@@ -49,7 +50,8 @@ class ConnectionConfig(object):
         self.username = username
         self.password = password
         self.host = host
-        self.port = port
+        self.rabbitmq_port = rabbitmq_port
+        self.keycloak_port = keycloak_port
         self.client_id = client_id
         self.client_secret_key = client_secret_key
         self.virtual_host = virtual_host
@@ -123,7 +125,7 @@ class TimeStatusPublisher(ScenarioTimeIntervalPublisher):
         queue_name = topic #".".join(topic.split(".") + ["queue"]) 
 
         # Declare the topic exchange
-        self.app.channel.exchange_declare(exchange=self.app.prefix, exchange_type='topic')
+        # self.app.channel.exchange_declare(exchange=self.app.prefix, exchange_type='topic')
         
         # Declare a queue and bind it to the exchange with the routing key
         self.app.channel.queue_declare(queue=queue_name, durable=True)
@@ -132,7 +134,8 @@ class TimeStatusPublisher(ScenarioTimeIntervalPublisher):
         self.app.channel.basic_publish(
             exchange=self.app.prefix,
             routing_key=topic,
-            body=status.json(by_alias=True, exclude_none=True)
+            body=status.json(by_alias=True, exclude_none=True),
+            properties=pika.BasicProperties(expiration='30000')
         )
 
 
@@ -215,7 +218,7 @@ class ModeStatusObserver(Observer):
             queue_name = topic #".".join(topic.split(".") + ["queue"]) 
 
             # Declare the topic exchange
-            self.app.channel.exchange_declare(exchange=self.app.prefix, exchange_type='topic')
+            # self.app.channel.exchange_declare(exchange=self.app.prefix, exchange_type='topic')
             
             # Declare a queue and bind it to the exchange with the routing key
             self.app.channel.queue_declare(queue=queue_name, durable=True)
@@ -224,5 +227,10 @@ class ModeStatusObserver(Observer):
             self.app.channel.basic_publish(
                 exchange=self.app.prefix,
                 routing_key=topic,
-                body=status.json(by_alias=True, exclude_none=True)
+                body=status.json(by_alias=True, exclude_none=True),
+                properties=pika.BasicProperties(expiration='30000')
             )
+            logger.info(
+                f"SENT mode status {status.json(by_alias=True, exclude_none=True)}."
+            )
+

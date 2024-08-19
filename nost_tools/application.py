@@ -46,7 +46,7 @@ class Application(object):
         time_status_init (:obj:`datetime`): Scenario time of first time status message
     """
 
-    def __init__(self, app_name: str, app_description: str = None): #config: ConnectionConfig, 
+    def __init__(self, app_name: str, config: ConnectionConfig, app_description: str = None): #, 
         """
         Initializes a new application.
 
@@ -65,32 +65,31 @@ class Application(object):
         self._mode_status_observer = None
         self._shut_down_observer = None
 
-        # # Obtain access token and refresh token
-        # access_token, refresh_token = self.new_access_token(config)
+        # Obtain access token and refresh token
+        access_token, refresh_token = self.new_access_token(config)
 
-        # # Set up connection parameters
-        # parameters = pika.ConnectionParameters(
-        #     host=config.host,
-        #     virtual_host=config.virtual_host,
-        #     port=config.port,
-        #     credentials=pika.PlainCredentials('', access_token)
-        # )
+        # Set up connection parameters
+        parameters = pika.ConnectionParameters(
+            host=config.host,
+            virtual_host=config.virtual_host,
+            port=config.rabbitmq_port,
+            credentials=pika.PlainCredentials('', access_token)
+        )
 
-        # # Configure transport layer security (TLS) if needed
-        # if config.is_tls:
-        #     logger.info("Using TLS/SSL.")
-        #     context = ssl.create_default_context()
-        #     parameters.ssl_options = pika.SSLOptions(context)
+        # Configure transport layer security (TLS) if needed
+        if config.is_tls:
+            logger.info("Using TLS/SSL.")
+            context = ssl.create_default_context()
+            parameters.ssl_options = pika.SSLOptions(context)
 
-        # # Connect to server
-        # try:
-        #     self.connection = pika.BlockingConnection(parameters)
-        #     self.channel = self.connection.channel()
-        #     logger.info("Connection established successfully.")
-        # except pika.exceptions.ProbableAccessDeniedError as e:
-        #     logger.info(f"Access denied: {e}")
-        #     sys.exit(1)
-
+        # Connect to server
+        try:
+            self.connection = pika.BlockingConnection(parameters)
+            self.channel = self.connection.channel()
+            logger.info("Connection established successfully.")
+        except pika.exceptions.ProbableAccessDeniedError as e:
+            logger.info(f"Access denied: {e}")
+            sys.exit(1)
 
     def ready(self) -> None:
         """
@@ -117,23 +116,26 @@ class Application(object):
         ###
 
         # Declare the topic exchange
-        self.channel.exchange_declare(exchange=self.prefix, exchange_type='topic')
+        # self.channel.exchange_declare(exchange=self.prefix, exchange_type='topic')
         
         # Declare a queue and bind it to the exchange with the routing key
         self.channel.queue_declare(queue=queue_name, durable=True)
         self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic)
 
+        # Expiration of 60000 ms = 60 sec
         self.channel.basic_publish(
             exchange=self.prefix,
             routing_key=topic,
-            body=status.json(by_alias=True, exclude_none=True)
+            body=status.json(by_alias=True, exclude_none=True),
+            properties=pika.BasicProperties(expiration='30000')
         )
         logger.info(
             f"Successfully sent time status {status.json(by_alias=True,exclude_none=True)}."
         )
 
     def new_access_token(self, config, refresh_token=None):
-        keycloak_openid = KeycloakOpenID(server_url="http://localhost:8080/",
+
+        keycloak_openid = KeycloakOpenID(server_url=f'{'http' if 'localhost' in config.host else 'https'}://{config.host}:{config.keycloak_port}', #"http://localhost:8080/",
                                         client_id=config.client_id,
                                         realm_name="test",
                                         client_secret_key=config.client_secret_key
@@ -186,28 +188,31 @@ class Application(object):
         # Set test run prefix
         self.prefix = prefix
 
-        access_token, refresh_token = self.new_access_token(config)
-        parameters = pika.ConnectionParameters(
-                host=config.host,
-                virtual_host=config.virtual_host,
-                port=config.port,
-                credentials=pika.PlainCredentials('', access_token))
+        # Declare the topic exchange
+        self.channel.exchange_declare(exchange=self.prefix, exchange_type='topic')
+        
+        # access_token, refresh_token = self.new_access_token(config)
+        # parameters = pika.ConnectionParameters(
+        #         host=config.host,
+        #         virtual_host=config.virtual_host,
+        #         port=config.rabbitmq_port,
+        #         credentials=pika.PlainCredentials('', access_token))
 
-        # Configure transport layer security (TLS) if needed
-        if config.is_tls:
-            logger.info("Using TLS/SSL.")
-            context = ssl.create_default_context()
-            parameters.ssl_options = pika.SSLOptions(context)
+        # # Configure transport layer security (TLS) if needed
+        # if config.is_tls:
+        #     logger.info("Using TLS/SSL.")
+        #     context = ssl.create_default_context()
+        #     parameters.ssl_options = pika.SSLOptions(context)
 
-        # Connect to server
-        try:
-            self.connection = pika.BlockingConnection(parameters)
-            logger.info("Connection established successfully.")
-        except pika.exceptions.ProbableAccessDeniedError as e:
-            logger.info(f"Access denied: {e}")
-            sys.exit(1)
+        # # Connect to server
+        # try:
+        #     self.connection = pika.BlockingConnection(parameters)
+        #     logger.info("Connection established successfully.")
+        # except pika.exceptions.ProbableAccessDeniedError as e:
+        #     logger.info(f"Access denied: {e}")
+        #     sys.exit(1)
 
-        self.channel = self.connection.channel()
+        # self.channel = self.connection.channel()
 
         # Configure observers
         self._create_time_status_publisher(time_status_step, time_status_init)
@@ -292,11 +297,13 @@ class Application(object):
         self.channel.queue_declare(queue=queue_name, durable=True)
         self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic) #f"{self.prefix}.{self.app_name}.status.time")
 
+        # Expiration of 60000 ms = 60 sec
         self.channel.basic_publish(
             exchange=self.prefix,
             routing_key=topic,
             # routing_key=f"{self.prefix}.{self.app_name}.status.time",
-            body=payload
+            body=payload,
+            properties=pika.BasicProperties(expiration='30000')
         )
 
         logger.info(f"Successfully sent message {topic}: {payload}")
@@ -322,16 +329,19 @@ class Application(object):
         logger.info(f"Subscribing and adding callback to topic: {topic}")
         
         # Declare the exchange
-        self.channel.exchange_declare(exchange=self.prefix, exchange_type='topic')
+        # self.channel.exchange_declare(exchange=self.prefix, exchange_type='topic')
 
-        # # Declare the queue
-        self.channel.queue_declare(queue=queue_name, durable=True)
+        # # Declare the queue, 60000 milliseconds = 60 seconds 
+        self.channel.queue_declare(queue=queue_name, durable=True) #, arguments={'x-message-ttl': 60000})
         
         # Bind the queue to the exchange with the routing key
         self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic)
         
+        # Set QoS settings
+        self.channel.basic_qos(prefetch_count=1)
+
         # Consume messages from the queue
-        self.channel.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack=True)
+        self.channel.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack=False) #True)
 
         ## Set expiry period: at queue or publishing? (max amount of time before being removed, would be important)
 

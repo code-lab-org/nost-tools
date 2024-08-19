@@ -219,6 +219,7 @@ class Simulator(Observable):
                 initial scenario time, None uses the current wallclock time (default: None)
             time_scale_factor (float): number of scenario seconds per wallclock second (default value: 1)
         """
+        
         if self._mode != Mode.INITIALIZED:
             self.initialize(init_time, wallclock_epoch, time_scale_factor)
 

@@ -9,6 +9,7 @@ import threading
 import time
 import traceback
 from typing import List
+import pika
 
 from .application import Application
 from .schemas import (
@@ -22,6 +23,7 @@ from .schemas import (
 from .simulator import Mode
 import json
 from pydantic import ValidationError
+from .application_utils import ConnectionConfig
 
 logger = logging.getLogger(__name__)
 
@@ -66,12 +68,12 @@ class Manager(Application):
         required_apps_status (dict): Ready status for all required applications
     """
 
-    def __init__(self):
+    def __init__(self, config: ConnectionConfig):
         """
         Initializes a new manager.
         """
         # call super class constructor
-        super().__init__("manager")
+        super().__init__("manager", config)
         self.required_apps_status = {}
 
     def execute_test_plan(
@@ -130,7 +132,7 @@ class Manager(Application):
                 and self.simulator.get_wallclock_time() < next_try
             ):
                 time.sleep(0.001)
-        self.remove_message_callback("*", "status.ready")
+        # self.remove_message_callback("*", "status.ready")
         # configure start time
         if start_time is None:
             start_time = self.simulator.get_wallclock_time() + command_lead
@@ -193,6 +195,7 @@ class Manager(Application):
         Callback to handle a message containing an application ready status.
         """
         try:
+            ch.basic_ack(delivery_tag=method.delivery_tag)
             # split the message topic into components (prefix/app_name/...)
             topic_parts = method.routing_key.split(".")
             message = body.decode('utf-8')
@@ -217,7 +220,7 @@ class Manager(Application):
             )
             print(traceback.format_exc())
         logger.info("App ready status callback.")
-        ch.stop_consuming()
+        # ch.stop_consuming()
 
     def on_app_time_status(
         self, ch, method, properties, body
@@ -226,6 +229,7 @@ class Manager(Application):
         Callback to handle a message containing an application time status.
         """
         try:
+            ch.basic_ack(delivery_tag=method.delivery_tag)
             # split the message topic into components (prefix/app_name/...)
             topic_parts = method.routing_key.split(".")
             message = body.decode('utf-8')
@@ -236,8 +240,10 @@ class Manager(Application):
                 # json.loads(message)
                 # parse the message payload properties
                 props = TimeStatus.parse_raw(message).properties
+                logger.info(f"Properties: {props}")
                 wallclock_delta = self.simulator.get_wallclock_time() - props.time
                 scenario_delta = self.simulator.get_time() - props.sim_time
+                logger.info(f"Scenario: {scenario_delta}\nWallclock: {wallclock_delta}")
                 if len(topic_parts) > 1:
                     logger.info(
                         f"Application {topic_parts[1]} latency: {scenario_delta} (scenario), {wallclock_delta} (wallclock)"
@@ -252,7 +258,7 @@ class Manager(Application):
             )
             print(traceback.format_exc())
         logger.info("App time status callback.")
-        ch.stop_consuming()
+        # ch.stop_consuming()
 
     # def on_app_ready_status(
     #     self, ch, method, properties, body #client: Client, userdata: object, message: MQTTMessage
@@ -340,8 +346,8 @@ class Manager(Application):
         self.channel.basic_publish(
             exchange=self.prefix,
             routing_key=topic,
-            # routing_key=f"{self.prefix}.{self.app_name}.status.time",
-            body=command.json(by_alias=True)
+            body=command.json(by_alias=True),
+            properties=pika.BasicProperties(expiration='30000')
         )
 
     def start(
@@ -395,8 +401,8 @@ class Manager(Application):
         self.channel.basic_publish(
             exchange=self.prefix,
             routing_key=topic,
-            # routing_key=f"{self.prefix}.{self.app_name}.status.time",
-            body=command.json(by_alias=True)
+            body=command.json(by_alias=True),
+            properties=pika.BasicProperties(expiration='30000')
         )
 
         # start execution in a background thread
@@ -434,8 +440,8 @@ class Manager(Application):
         self.channel.basic_publish(
             exchange=self.prefix,
             routing_key=topic,
-            # routing_key=f"{self.prefix}.{self.app_name}.status.time",
-            body=command.json(by_alias=True)
+            body=command.json(by_alias=True),
+            properties=pika.BasicProperties(expiration='30000')
         )
 
         # update the execution end time
@@ -471,8 +477,8 @@ class Manager(Application):
         self.channel.basic_publish(
             exchange=self.prefix,
             routing_key=topic,
-            # routing_key=f"{self.prefix}.{self.app_name}.status.time",
-            body=command.json(by_alias=True)
+            body=command.json(by_alias=True),
+            properties=pika.BasicProperties(expiration='30000')
         )
 
         # update the execution time scale factor
