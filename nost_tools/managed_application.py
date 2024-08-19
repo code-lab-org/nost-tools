@@ -35,7 +35,7 @@ class ManagedApplication(Application):
         time_step (:obj:`timedelta`): scenario time step used in execution
     """
 
-    def __init__(self, app_name: str, app_description: str = None):
+    def __init__(self, app_name: str, app_description: str = None): #config: ConnectionConfig, 
         """
         Initializes a new managed application.
 

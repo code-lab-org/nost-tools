@@ -46,7 +46,7 @@ class Application(object):
         time_status_init (:obj:`datetime`): Scenario time of first time status message
     """
 
-    def __init__(self, app_name: str, app_description: str = None):
+    def __init__(self, app_name: str, app_description: str = None): #config: ConnectionConfig, 
         """
         Initializes a new application.
 
@@ -55,7 +55,8 @@ class Application(object):
             app_description (str): application description (optional)
         """
         self.simulator = Simulator()
-        self.client = mqtt.Client()
+        # self.client = mqtt.Client()
+        # self.client = pika.BlockingConnection().channel()
         # self.client = pika.BlockingConnection(pika.ConnectionParameters('localhost')).channel()
         self.prefix = None
         self.app_name = app_name
@@ -63,6 +64,33 @@ class Application(object):
         self._time_status_publisher = None
         self._mode_status_observer = None
         self._shut_down_observer = None
+
+        # # Obtain access token and refresh token
+        # access_token, refresh_token = self.new_access_token(config)
+
+        # # Set up connection parameters
+        # parameters = pika.ConnectionParameters(
+        #     host=config.host,
+        #     virtual_host=config.virtual_host,
+        #     port=config.port,
+        #     credentials=pika.PlainCredentials('', access_token)
+        # )
+
+        # # Configure transport layer security (TLS) if needed
+        # if config.is_tls:
+        #     logger.info("Using TLS/SSL.")
+        #     context = ssl.create_default_context()
+        #     parameters.ssl_options = pika.SSLOptions(context)
+
+        # # Connect to server
+        # try:
+        #     self.connection = pika.BlockingConnection(parameters)
+        #     self.channel = self.connection.channel()
+        #     logger.info("Connection established successfully.")
+        # except pika.exceptions.ProbableAccessDeniedError as e:
+        #     logger.info(f"Access denied: {e}")
+        #     sys.exit(1)
+
 
     def ready(self) -> None:
         """
@@ -139,70 +167,6 @@ class Application(object):
         except Exception as e:
             logger.error(f"An error occurred: {e}")
             raise
-
-    # def start_up(
-    #     self,
-    #     prefix: str,
-    #     config: ConnectionConfig,
-    #     set_offset: bool = True,
-    #     time_status_step: timedelta = None,
-    #     time_status_init: datetime = None,
-    #     shut_down_when_terminated: bool = False,
-    # ) -> None:
-    #     """
-    #     Starts up the application to prepare for scenario execution.
-    #     Connects to the message broker and starts a background event loop by establishing the simulation prefix,
-    #     the connection configuration, and the intervals for publishing time status messages.
-
-    #     Args:
-    #         prefix (str): messaging namespace (prefix)
-    #         config (:obj:`ConnectionConfig`): connection configuration
-    #         set_offset (bool): True, if the system clock offset shall be set using a NTP request prior to execution
-    #         time_status_step (:obj:`timedelta`): scenario duration between time status messages
-    #         time_status_init (:obj:`datetime`): scenario time for first time status message
-    #         shut_down_when_terminated (bool): True, if the application should shut down when the simulation is terminated
-    #     """
-    #     # Maybe configure wallclock offset
-    #     if set_offset:
-    #         self.set_wallclock_offset()
-
-    #     # Set test run prefix
-    #     self.prefix = prefix
-
-    #     # global otp
-    #     # otp = input("Enter OTP: ")
-
-    #     access_token, refresh_token = self.new_access_token(config)
-    #     parameters = pika.ConnectionParameters(
-    #             host=config.host,
-    #             virtual_host=config.virtual_host,
-    #             port=config.port,
-    #             # ssl_options=pika.SSLOptions() if config.is_tls else None,
-    #             credentials=pika.PlainCredentials('', access_token))
-
-    #     # Configure transport layer security (TLS) if needed
-    #     if config.is_tls:
-    #         logger.info("Using TLS/SSL.")
-    #         context = ssl.create_default_context()
-    #         parameters.ssl_options = pika.SSLOptions(context)
-
-    #     # Connect to server
-    #     try:
-    #         self.connection = pika.BlockingConnection(parameters)
-    #         logger.info("Connection established successfully.")
-    #     except pika.exceptions.ProbableAccessDeniedError as e:
-    #         logger.info(f"Access denied: {e}")
-    #         sys.exit(1)
-
-    #     self.channel = self.connection.channel()
-
-    #     # Configure observers
-    #     self._create_time_status_publisher(time_status_step, time_status_init)
-    #     self._create_mode_status_observer()
-    #     if shut_down_when_terminated:
-    #         self._create_shut_down_observer()
-
-    #     logger.info(f"Application {self.app_name} successfully started up.")
 
     def start_up(
         self,
@@ -287,22 +251,6 @@ class Application(object):
         self._shut_down_observer = ShutDownObserver(self)
         self.simulator.add_observer(self._shut_down_observer)
 
-    # def shut_down(self) -> None:
-    #     """
-    #     Shuts down the application by stopping the background event loop and disconnecting from the broker.
-    #     """
-    #     if self._time_status_publisher is not None:
-    #         # remove the time status observer
-    #         self.simulator.remove_observer(self._time_status_publisher)
-    #     self._time_status_publisher = None
-    #     # stop background loop
-    #     self.client.loop_stop()
-    #     # disconnect form server
-    #     self.client.disconnect()
-    #     # clear prefix
-    #     self.prefix = None
-    #     logger.info(f'Application "{self.app_name}" successfully shut down.')
-
     def shut_down(self) -> None:
         """
         Shuts down the application by stopping the background event loop and disconnecting from the broker.
@@ -332,7 +280,7 @@ class Application(object):
             payload (str): message payload (JSON-encoded string)
 
         """
-        logger.info(f"Publishing to topic {topic}: {payload}")
+        
 
         topic = f"{self.prefix}.{self.app_name}.{app_topic}"
         queue_name = topic #".".join(topic.split(".") + ["queue"]) 
@@ -348,11 +296,7 @@ class Application(object):
             body=payload
         )
 
-    # def add_message_callback(self, app_name: str, app_topic: str, callback: Callable) -> None:
-    #     topic = f"{self.prefix}.{app_name}.{app_topic}"
-    #     logger.debug(f"Subscribing and adding callback to topic: {topic}")
-    #     self.channel.queue_bind(exchange=self.prefix, queue=self.prefix, routing_key=topic)
-    #     self.channel.basic_consume(queue=topic, on_message_callback=callback, auto_ack=True)
+        logger.info(f"Successfully sent message {topic}: {payload}")
 
     def add_message_callback(self, app_name: str, app_topic: str, callback: Callable) -> None:
         """
@@ -380,15 +324,6 @@ class Application(object):
         
         # Consume messages from the queue
         self.channel.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack=True)
-        
-    # def remove_message_callback(self, app_name: str, app_topic: str, callback: Callable) -> None:
-
-    #     topic = f"{self.prefix}.{app_name}.{app_topic}"
-    #     logger.debug(f"Removing callback from topic: {topic}")
-
-    #     # Unbind the queue
-    #     # self.channel.queue_bind(exchange=self.prefix, queue=self.prefix, routing_key=topic)
-    #     self.channel.queue_unbind(queue=self.prefix, exchange=self.prefix, routing_key=topic)
 
     def remove_message_callback(self, app_name: str, app_topic: str) -> None:
         """
@@ -399,54 +334,6 @@ class Application(object):
             app_topic (str): The application topic
         """
         self.channel.stop_consuming()
-        # topic = f"{self.prefix}.{app_name}.{app_topic}"
-        # queue_name = topic #".".join(topic.split(".") + ["queue"])
-
-        # print(f'Removing callback from queue: {queue_name}')
-        # logger.info(f"Unsubscribing and removing callback from topic: {topic}")
-
-        # # Cancel the consumer
-        # self.channel.basic_cancel(consumer_tag=queue_name)
-
-        # # Unbind the queue from the exchange
-        # self.channel.queue_unbind(exchange=self.prefix, queue=queue_name, routing_key=topic)
-
-        # # Delete the queue
-        # self.channel.queue_delete(queue=queue_name)
-
-    # def add_message_callback(
-    #     self, app_name: str, app_topic: str, callback: Callable
-    # ) -> None:
-    #     """
-    #     Adds a message callback bound to an application name and topic `prefix/app_name/app_topic`.
-
-    #     Args:
-    #         app_name (str): application name
-    #         app_topic (str): application topic
-    #         callback (Callable): callback function
-    #     """
-    #     # topic = f"{self.prefix}/{app_name}/{app_topic}"
-    #     # logger.debug(f"Subscribing and adding callback to topic: {topic}")
-    #     # self.client.subscribe(topic)
-    #     # self.client.message_callback_add(topic, callback)
-    #     topic = f"{self.prefix}.{app_name}.{app_topic}"
-    #     logger.debug(f"Subscribing and adding callback to topic: {topic}")
-    #     self.channel.basic_consume(queue=self.prefix, on_message_callback=callback, auto_ack=True)
-    #     self.channel.add_on_return_callback(callback=callback)
-
-    # def remove_message_callback(self, app_name: str, app_topic: str) -> None:
-    #     """
-    #     Removes a message callback for application name and topic `prefix/app_name/app_topic`.
-
-    #     Args:
-    #         app_name (str): The application name
-    #         app_topic (str): The application topic
-    #     """
-    #     # topic = f"{self.prefix}/{app_name}/{app_topic}"
-    #     # logger.debug(f"Removing callback from topic: {topic}")
-    #     # self.client.message_callback_remove(topic)
-    #     topic = f"{self.prefix}.{app_name}.{app_topic}"
-    #     logger.debug(f"Subscribing and adding callback to topic: {topic}")
 
     def set_wallclock_offset(
         self, host="pool.ntp.org", retry_delay_s: int = 5, max_retry: int = 5
