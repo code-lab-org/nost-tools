@@ -339,16 +339,29 @@ class Manager(Application):
         #     f"{self.prefix}.{self.app_name}.init", command.json(by_alias=True)
         # )
         topic = f"{self.prefix}.{self.app_name}.init"
-        queue_name = topic #".".join(topic.split(".") + ["queue"])
+        # queue_name = topic #".".join(topic.split(".") + ["queue"])
 
-        self.channel.queue_declare(queue=queue_name, durable=True)
-        self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic) #f"{self.prefix}.{self.app_name}.status.time")
+        for required_app in required_apps:
+            queue_name = f"{topic}.{required_app}"
+            self.channel.queue_declare(queue=queue_name, durable=True)
+            self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic)
+
+        # Publish a message to the topic exchange
         self.channel.basic_publish(
             exchange=self.prefix,
             routing_key=topic,
             body=command.json(by_alias=True),
             properties=pika.BasicProperties(expiration='30000')
         )
+
+        # self.channel.queue_declare(queue=queue_name, durable=True)
+        # self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic) #f"{self.prefix}.{self.app_name}.status.time")
+        # self.channel.basic_publish(
+        #     exchange=self.prefix,
+        #     routing_key=topic,
+        #     body=command.json(by_alias=True),
+        #     properties=pika.BasicProperties(expiration='30000')
+        # )
 
     def start(
         self,
@@ -359,6 +372,7 @@ class Manager(Application):
         time_scale_factor: float = 1.0,
         time_status_step: timedelta = None,
         time_status_init: datetime = None,
+        required_apps: List[str] = [],
     ) -> None:
         """
 
@@ -394,10 +408,23 @@ class Manager(Application):
         #     f"{self.prefix}/{self.app_name}/start", command.json(by_alias=True)
         # )
         topic = f"{self.prefix}.{self.app_name}.start"
-        queue_name = topic #".".join(topic.split(".") + ["queue"])
+        # queue_name = topic #".".join(topic.split(".") + ["queue"])
 
-        self.channel.queue_declare(queue=queue_name, durable=True)
-        self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic) #f"{self.prefix}.{self.app_name}.status.time")
+        # self.channel.queue_declare(queue=queue_name, durable=True)
+        # self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic) #f"{self.prefix}.{self.app_name}.status.time")
+        # self.channel.basic_publish(
+        #     exchange=self.prefix,
+        #     routing_key=topic,
+        #     body=command.json(by_alias=True),
+        #     properties=pika.BasicProperties(expiration='30000')
+        # )
+
+        for required_app in required_apps:
+            queue_name = f"{topic}.{required_app}"
+            self.channel.queue_declare(queue=queue_name, durable=True)
+            self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic)
+
+        # Publish a message to the topic exchange
         self.channel.basic_publish(
             exchange=self.prefix,
             routing_key=topic,
@@ -405,17 +432,28 @@ class Manager(Application):
             properties=pika.BasicProperties(expiration='30000')
         )
 
+
         # start execution in a background thread
-        threading.Thread(
-            target=self.simulator.execute,
-            kwargs={
-                "init_time": sim_start_time,
-                "duration": sim_stop_time - sim_start_time,
-                "time_step": time_step,
-                "wallclock_epoch": start_time,
-                "time_scale_factor": time_scale_factor,
-            },
-        ).start()
+        # exec_thread = threading.Thread(
+        #     target=self.simulator.execute,
+        #     kwargs={
+        #         "init_time": sim_start_time,
+        #         "duration": sim_stop_time - sim_start_time,
+        #         "time_step": time_step,
+        #         "wallclock_epoch": start_time,
+        #         "time_scale_factor": time_scale_factor,
+        #     },
+        # )
+        # exec_thread.start()
+
+        # Start execution
+        self.simulator.execute(
+            init_time=sim_start_time,
+            duration=sim_stop_time - sim_start_time,
+            time_step=time_step,
+            wallclock_epoch=start_time,
+            time_scale_factor=time_scale_factor,
+        )
 
     def stop(self, sim_stop_time: datetime) -> None:
         """

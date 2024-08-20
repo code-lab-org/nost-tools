@@ -99,29 +99,29 @@ class ManagedApplication(Application):
         )
         self.time_step = time_step
         self.manager_app_name = manager_app_name
-        topic = f"{self.prefix}.{self.manager_app_name}.#"
-        queue_name = topic #".".join(topic.split(".") + ["queue"])
-
+        # topic = f"{self.prefix}.{self.manager_app_name}.#"
+        # queue_name = topic #".".join(topic.split(".") + ["queue"])
 
         # Declare the queues
-        queues = ["#", "init", "start", "stop", "update"]
+        queues = ["init", "start", "stop", "update"] # "#"]
         for queue in queues:
-            queue_name = f"{prefix}.{manager_app_name}.{queue}"
+            topic = f"{prefix}.{manager_app_name}.{queue}"
+            queue_name = f"{topic}.{self.app_name}" #topic #f"{topic}.{self.app_name}"
             self.channel.queue_declare(queue=queue_name, durable=True)
-            self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=queue_name)
+            self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic)
 
         # Register callback functions
         self.channel.basic_consume(
-            queue=f"{prefix}.{manager_app_name}.init", on_message_callback=self.on_manager_init, auto_ack=False #True
+            queue=f"{prefix}.{manager_app_name}.init.{self.app_name}", on_message_callback=self.on_manager_init, auto_ack=False #True
         )
         self.channel.basic_consume(
-            queue=f"{prefix}.{manager_app_name}.start", on_message_callback=self.on_manager_start, auto_ack=False #True
+            queue=f"{prefix}.{manager_app_name}.start.{self.app_name}", on_message_callback=self.on_manager_start, auto_ack=False #True
         )
         self.channel.basic_consume(
-            queue=f"{prefix}.{manager_app_name}.stop", on_message_callback=self.on_manager_stop, auto_ack=False #True
+            queue=f"{prefix}.{manager_app_name}.stop.{self.app_name}", on_message_callback=self.on_manager_stop, auto_ack=False #True
         )
         self.channel.basic_consume(
-            queue=f"{prefix}.{manager_app_name}.update", on_message_callback=self.on_manager_update, auto_ack=False #True
+            queue=f"{prefix}.{manager_app_name}.update.{self.app_name}", on_message_callback=self.on_manager_update, auto_ack=False #True
         )
 
         # print('Waiting for messages...')
@@ -220,8 +220,9 @@ class ManagedApplication(Application):
                 logger.info(f"Checking for optional end time")
 
             logger.info(f"Starting execution in a background thread")
+
             # # start execution in a background thread
-            # threading.Thread(
+            # exec_thread = threading.Thread(
             #     target=self.simulator.execute,
             #     kwargs={
             #         "init_time": self._sim_start_time,
@@ -230,8 +231,9 @@ class ManagedApplication(Application):
             #         "wallclock_epoch": params.start_time,
             #         "time_scale_factor": params.time_scaling_factor,
             #     },
-            # ).start()
-            
+            # )
+            # exec_thread.start()
+
             # Start execution
             self.simulator.execute(
                 init_time=self._sim_start_time,
@@ -239,9 +241,7 @@ class ManagedApplication(Application):
                 time_step=self.time_step,
                 wallclock_epoch=params.start_time,
                 time_scale_factor=params.time_scaling_factor)
-            
-            logger.info(f"Background thread complete.")
-            self.send_message('update', 'Manager start triggered application.')
+
         except Exception as e:
             logger.error(
                 # f"Exception (topic: {message.topic}, payload: {message.payload}): {e}"

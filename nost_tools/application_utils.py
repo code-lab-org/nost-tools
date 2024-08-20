@@ -230,7 +230,7 @@ class ModeStatusObserver(Observer):
                 body=status.json(by_alias=True, exclude_none=True),
                 properties=pika.BasicProperties(expiration='30000')
             )
-            logger.info(
-                f"SENT mode status {status.json(by_alias=True, exclude_none=True)}."
-            )
+            # logger.info(
+            #     f"SENT mode status {status.json(by_alias=True, exclude_none=True)}."
+            # )
 

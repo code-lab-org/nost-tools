@@ -325,7 +325,7 @@ class Application(object):
         # Specific destination (auto ack, or not)
         # Quality 
         # Send_message(): Set up the queue
-        print(f'Queue: {queue_name}')
+        # print(f'Queue: {queue_name}')
         logger.info(f"Subscribing and adding callback to topic: {topic}")
         
         # Declare the exchange
