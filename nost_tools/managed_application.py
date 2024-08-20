@@ -48,21 +48,6 @@ class ManagedApplication(Application):
         self._sim_start_time = None
         self._sim_stop_time = None
 
-    # def on_message(self, ch, method, properties, body):
-    #     try:
-    #         routing_key = method.routing_key
-    #         if routing_key == f"{self.prefix}.{self.manager_app_name}.init":
-    #             self.on_manager_init(ch, method, properties, body)
-    #         elif routing_key == f"{self.prefix}.{self.manager_app_name}.start":
-    #             self.on_manager_start(ch, method, properties, body)
-    #         elif routing_key == f"{self.prefix}.{self.manager_app_name}.stop":
-    #             self.on_manager_stop(ch, method, properties, body)
-    #         elif routing_key == f"{self.prefix}.{self.manager_app_name}.update":
-    #             self.on_manager_update(ch, method, properties, body)
-    #     except Exception as e:
-    #         print(f"Error handling message: {e}")
-
-
     def start_up(
         self,
         prefix: str,
@@ -165,15 +150,11 @@ class ManagedApplication(Application):
             message (:obj:`paho.mqtt.client.MQTTMessage`): MQTT message
         """
         try:
+            # Acknowledge message
             ch.basic_ack(delivery_tag=method.delivery_tag)
-            logger.info('Manager sent initilize command.')
-            message = body.decode('utf-8')
-            # message = json.loads(message)
-            
             # parse message payload
-            # params = InitCommand.parse_raw(message.payload).tasking_parameters
+            message = body.decode('utf-8')
             params = InitCommand.parse_raw(message).tasking_parameters
-
             # update default execution start/end time
             self._sim_start_time = params.sim_start_time
             self._sim_stop_time = params.sim_stop_time
@@ -198,28 +179,19 @@ class ManagedApplication(Application):
             message (:obj:`paho.mqtt.client.MQTTMessage`): MQTT message
         """
         try:
+            # Acknowledge message
             ch.basic_ack(delivery_tag=method.delivery_tag)
-            logger.info('Manager sent start command.')
-            message = body.decode('utf-8')
-            # message = json.loads(message)
-
             # parse message payload
-            # params = StartCommand.parse_raw(message.payload).tasking_parameters
-            # logger.info(f"Received start command {message.payload}")
+            message = body.decode('utf-8')
             params = StartCommand.parse_raw(message).tasking_parameters
             logger.info(f"Received start command {message}")
-
             # check for optional start time
             if params.sim_start_time is not None:
                 self._sim_start_time = params.sim_start_time
-                logger.info(f"Checking for optional start time")
-
             # check for optional end time
             if params.sim_stop_time is not None:
                 self._sim_stop_time = params.sim_stop_time
                 logger.info(f"Checking for optional end time")
-
-            logger.info(f"Starting execution in a background thread")
 
             # # start execution in a background thread
             # exec_thread = threading.Thread(
@@ -260,17 +232,12 @@ class ManagedApplication(Application):
             message (:obj:`paho.mqtt.client.MQTTMessage`): MQTT message
         """
         try:
+            # Acknowledge message
             ch.basic_ack(delivery_tag=method.delivery_tag)
-            logger.info('Manager sent stop command.')
-            message = body.decode('utf-8')
-            # message = json.loads(message)
-
             # parse message payload
-            # params = StopCommand.parse_raw(message.payload).tasking_parameters
-            # logger.info(f"Received stop command {message.payload}")
+            message = body.decode('utf-8')
             params = StopCommand.parse_raw(message).tasking_parameters
             logger.info(f"Received stop command {message}")
-
             # update execution end time
             self.simulator.set_end_time(params.sim_stop_time)
         except Exception as e:
@@ -291,17 +258,12 @@ class ManagedApplication(Application):
             message (:obj:`paho.mqtt.client.MQTTMessage`): MQTT message
         """
         try:
-            ch.basic_ack(delivery_tag=method.delivery_tag)
-            logger.info('Manager sent update command.')
-            message = body.decode('utf-8')
-            # message = json.loads(message)
-            
+            # Acknowledge message
+            ch.basic_ack(delivery_tag=method.delivery_tag)            
             # parse message payload
-            # params = UpdateCommand.parse_raw(message.payload).tasking_parameters
-            # logger.info(f"Received update command {message.payload}")
+            message = body.decode('utf-8')
             params = UpdateCommand.parse_raw(message).tasking_parameters
             logger.info(f"Received update command {message}")
-            
             # update execution time scale factor
             self.simulator.set_time_scale_factor(
                 params.time_scaling_factor, params.sim_update_time
