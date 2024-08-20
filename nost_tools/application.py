@@ -129,9 +129,8 @@ class Application(object):
             body=status.json(by_alias=True, exclude_none=True),
             properties=pika.BasicProperties(expiration='30000')
         )
-        logger.info(
-            f"Successfully sent time status {status.json(by_alias=True,exclude_none=True)}."
-        )
+        
+        logger.info(f'Application "{self.app_name}" successfully sent ready message.')
 
     def new_access_token(self, config, refresh_token=None):
 

@@ -178,7 +178,7 @@ class ManagedApplication(Application):
             self._sim_start_time = params.sim_start_time
             self._sim_stop_time = params.sim_stop_time
             self.ready()
-            logger.info('App sent ready message.')
+            
         except Exception as e:
             logger.error(
                 # f"Exception (topic: {message.topic}, payload: {message.payload}): {e}"
