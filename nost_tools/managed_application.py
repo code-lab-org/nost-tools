@@ -119,23 +119,27 @@ class ManagedApplication(Application):
             Shuts down the application by stopping the background event loop and disconnecting
             the application from the broker.
         """
-        # unregister callback functions
-        self.client.message_callback_remove(
-            # f"{self.prefix}/{self.manager_app_name}/init"
-            f"{self.prefix}.{self.manager_app_name}.init"
-        )
-        self.client.message_callback_remove(
-            # f"{self.prefix}/{self.manager_app_name}/start"
-            f"{self.prefix}.{self.manager_app_name}.start"
-        )
-        self.client.message_callback_remove(
-            # f"{self.prefix}/{self.manager_app_name}/stop"
-            f"{self.prefix}.{self.manager_app_name}.stop"
-        )
-        self.client.message_callback_remove(
-            # f"{self.prefix}/{self.manager_app_name}/update"
-            f"{self.prefix}.{self.manager_app_name}.update"
-        )
+        # # unregister callback functions
+        # self.client.message_callback_remove(
+        #     # f"{self.prefix}/{self.manager_app_name}/init"
+        #     f"{self.prefix}.{self.manager_app_name}.init"
+        # )
+        # self.client.message_callback_remove(
+        #     # f"{self.prefix}/{self.manager_app_name}/start"
+        #     f"{self.prefix}.{self.manager_app_name}.start"
+        # )
+        # self.client.message_callback_remove(
+        #     # f"{self.prefix}/{self.manager_app_name}/stop"
+        #     f"{self.prefix}.{self.manager_app_name}.stop"
+        # )
+        # self.client.message_callback_remove(
+        #     # f"{self.prefix}/{self.manager_app_name}/update"
+        #     f"{self.prefix}.{self.manager_app_name}.update"
+        # )
+
+        # self.channel.stop_consuming()
+        # self.connection.close()
+
         # shut down base application
         super().shut_down()
 

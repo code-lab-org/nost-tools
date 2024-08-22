@@ -269,13 +269,17 @@ class Application(object):
         # close the connection
         # if self.client.is_open:
         #     self.client.close()
-        if self.channel.is_open:
-            self.channel.close()
         
-        if self.channel.is_closed:
-            # clear prefix
-            # self.prefix = None
-            logger.info(f'Application "{self.app_name}" successfully shut down.')
+        # if self.channel.is_open:
+        #     self.channel.close()
+
+        # if self.connection.is_open:
+        #     self.connection.close()
+        
+        # if self.channel.is_closed and self.connection.is_closed:
+        #     # clear prefix
+        #     # self.prefix = None
+        #     logger.info(f'Application "{self.app_name}" successfully shut down.')
 
     def send_message(self, app_topic: str, payload: str) -> None:
         """

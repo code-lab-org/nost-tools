@@ -126,6 +126,7 @@ class Manager(Application):
             next_try = self.simulator.get_wallclock_time() + timedelta(
                 seconds=init_retry_delay_s
             )
+            logger.info(f'Required app status: {self.required_apps_status}')
             # wait until all required apps are ready
             while (
                 not all([self.required_apps_status[app] for app in required_apps])
@@ -187,6 +188,22 @@ class Manager(Application):
         )
         # issue the stop command
         self.stop(sim_stop_time)
+        # self.shut_down()
+
+        # self.channel.close()
+        # self.connection.close()
+
+        # # Stop application
+        # stop_timeout = timedelta(seconds=10)
+        # stop_start_time = self.simulator.get_wallclock_time()
+        # while self.simulator.get_mode() != Mode.TERMINATED and (self.simulator.get_wallclock_time() - stop_start_time) < stop_timeout:
+        #     time.sleep(0.1)
+
+        # if self.simulator.get_mode() != Mode.TERMINATED:
+        #     raise RuntimeError("Failed to stop the simulation within the timeout period.")
+
+        # self.channel.basic_cancel(consumer_tag=self)
+        # logger.info('Manager unsubscribed from all queues.')
 
     def on_app_ready_status(
         self, ch, method, properties, body

@@ -186,6 +186,83 @@ class ModeStatusObserver(Observer):
     #             routing_key=f"{self.app.prefix}.{self.app.app_name}.status.mode",
     #             body=status.json(by_alias=True, exclude_none=True)
     #         )
+    def stop(self):
+        """
+        Stops the application by closing the channel and connection if they are open.
+        """
+        if self.app.channel.is_open:
+            self.app.channel.close()
+            logger.info(f"Channel closed for application {self.app.app_name}.")
+
+        if self.app.connection.is_open:
+            self.app.connection.close()
+            logger.info(f"Connection closed for application {self.app.app_name}.")
+
+        logger.info(f'Application "{self.app.app_name}" successfully stopped.')
+
+    # def on_change(
+    #     self, source: object, property_name: str, old_value: object, new_value: object
+    # ) -> None:
+    #     """
+    #     Publishes a mode status message in response to a mode transition.
+
+    #     Args:
+    #         source (object): observable that triggered the change
+    #         property_name (str): name of the changed property
+    #         old_value (obj): old value of the named property
+    #         new_value (obj): new value of the named property
+    #     """
+    #     if property_name == Simulator.PROPERTY_MODE:
+    #         status = ModeStatus.parse_obj(
+    #             {
+    #                 "name": self.app.app_name,
+    #                 "description": self.app.app_description,
+    #                 "properties": {"mode": self.app.simulator.get_mode()},
+    #             }
+    #         )
+    #         logger.info(
+    #             f"Sending mode status {status.json(by_alias=True, exclude_none=True)}."
+    #         )
+
+    #         # Ensure self.app.prefix is a string
+    #         if not isinstance(self.app.prefix, str):
+    #             raise ValueError(f"Exchange ({self.app.prefix}) must be a string")
+
+    #         topic = f"{self.app.prefix}.{self.app.app_name}.status.mode"
+    #         queue_name = topic #".".join(topic.split(".") + ["queue"]) 
+
+    #         # Declare the topic exchange
+    #         # self.app.channel.exchange_declare(exchange=self.app.prefix, exchange_type='topic')
+    #         if self.app.channel.is_open and self.app.connection.is_open:
+    #             # Declare a queue and bind it to the exchange with the routing key
+    #             self.app.channel.queue_declare(queue=queue_name, durable=True)
+    #             self.app.channel.queue_bind(exchange=self.app.prefix, queue=queue_name, routing_key=topic)
+
+    #             self.app.channel.basic_publish(
+    #                 exchange=self.app.prefix,
+    #                 routing_key=topic,
+    #                 body=status.json(by_alias=True, exclude_none=True),
+    #                 properties=pika.BasicProperties(expiration='30000')
+    #             )
+    #             # logger.info(
+    #             #     f"SENT mode status {status.json(by_alias=True, exclude_none=True)}."
+    #             # )
+
+    #         if new_value == Mode.TERMINATED:
+    #             if self.app.channel.is_open:
+    #                 self.app.channel.close()
+
+    #             if self.app.connection.is_open:
+    #                 self.app.connection.close()
+
+    #         if self.app.channel.is_closed and self.app.connection.is_closed:
+    #             # clear prefix
+    #             # self.prefix = None
+    #             logger.info(f'Application "{self.app.app_name}" successfully shut down.')
+
+    #         # Additional check to ensure the application stops
+    #         if new_value == Mode.TERMINATED and not self.app.channel.is_open and not self.app.connection.is_open:
+    #             self.app.stop()
     def on_change(
         self, source: object, property_name: str, old_value: object, new_value: object
     ) -> None:
@@ -210,27 +287,30 @@ class ModeStatusObserver(Observer):
                 f"Sending mode status {status.json(by_alias=True, exclude_none=True)}."
             )
 
-            # Ensure self.app.prefix is a string
+            # Ensure self.prefix is a string
             if not isinstance(self.app.prefix, str):
                 raise ValueError(f"Exchange ({self.app.prefix}) must be a string")
 
             topic = f"{self.app.prefix}.{self.app.app_name}.status.mode"
-            queue_name = topic #".".join(topic.split(".") + ["queue"]) 
+            queue_name = topic
 
             # Declare the topic exchange
-            # self.app.channel.exchange_declare(exchange=self.app.prefix, exchange_type='topic')
-            
-            # Declare a queue and bind it to the exchange with the routing key
-            self.app.channel.queue_declare(queue=queue_name, durable=True)
-            self.app.channel.queue_bind(exchange=self.app.prefix, queue=queue_name, routing_key=topic)
+            if self.app.channel.is_open and self.app.connection.is_open:
+                # Declare a queue and bind it to the exchange with the routing key
+                self.app.channel.queue_declare(queue=queue_name, durable=True)
+                self.app.channel.queue_bind(exchange=self.app.prefix, queue=queue_name, routing_key=topic)
 
-            self.app.channel.basic_publish(
-                exchange=self.app.prefix,
-                routing_key=topic,
-                body=status.json(by_alias=True, exclude_none=True),
-                properties=pika.BasicProperties(expiration='30000')
-            )
-            # logger.info(
-            #     f"SENT mode status {status.json(by_alias=True, exclude_none=True)}."
-            # )
+                self.app.channel.basic_publish(
+                    exchange=self.app.prefix,
+                    routing_key=topic,
+                    body=status.json(by_alias=True, exclude_none=True),
+                    properties=pika.BasicProperties(expiration='30000')
+                )
 
+                # Stop the app
+            if new_value == Mode.TERMINATED:
+                self.stop()
+
+            # Additional check to ensure the application stops
+            if new_value == Mode.TERMINATED and not self.app.channel.is_open and not self.app.connection.is_open:
+                exit()
