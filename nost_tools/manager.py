@@ -154,6 +154,7 @@ class Manager(Application):
             time_scale_factor,
             time_status_step,
             time_status_init,
+            required_apps=required_apps
         )
         # wait for simulation to start executing
         while self.simulator.get_mode() != Mode.EXECUTING:
@@ -275,57 +276,6 @@ class Manager(Application):
             )
             print(traceback.format_exc())
         logger.info("App time status callback.")
-        # ch.stop_consuming()
-
-    # def on_app_ready_status(
-    #     self, ch, method, properties, body #client: Client, userdata: object, message: MQTTMessage
-    # ) -> None:
-    #     """
-    #     Callback to handle a message containing an application ready status.
-    #     """
-    #     try:
-    #         # split the message topic into components (prefix/app_name/...)
-    #         # topic_parts = message.topic.split(".")
-    #         topic_parts = method.routing_key.split(".")
-    #         message = body.decode('utf-8')
-
-    #         # check if app_name is monitored in the ready_status dict
-    #         if len(topic_parts) > 1 and topic_parts[1] in self.required_apps_status:
-    #             # update the ready status based on the payload value
-    #             self.required_apps_status[topic_parts[1]] = ReadyStatus.parse_raw(
-    #                 message
-    #             ).properties.ready
-    #     except Exception as e:
-    #         logger.error(
-    #             f"Exception (topic: {method.routing_key}, payload: {message}): {e}"
-    #         )
-    #         print(traceback.format_exc())
-
-    # def on_app_time_status(
-    #     self, ch, method, properties, body #, client: Client, userdata: object, message: MQTTMessage
-    # ) -> None:
-    #     """
-    #     Callback to handle a message containing an application time status.
-    #     """
-    #     try:
-    #         # split the message topic into components (prefix/app_name/...)
-    #         # topic_parts = message.topic.split(".")
-    #         topic_parts = method.routing_key.split(".")
-    #         message = body.decode('utf-8')
-        
-    #         # parse the message payload properties
-    #         props = TimeStatus.parse_raw(message).properties
-    #         wallclock_delta = self.simulator.get_wallclock_time() - props.time
-    #         scenario_delta = self.simulator.get_time() - props.sim_time
-    #         if len(topic_parts) > 1:
-    #             logger.info(
-    #                 f"Application {topic_parts[1]} latency: {scenario_delta} (scenario), {wallclock_delta} (wallclock)"
-    #             )
-    #     except Exception as e:
-    #         logger.error(
-    #             f"Exception (topic: {method.routing_key}, payload: {message}): {e}"
-    #         )
-    #         print(traceback.format_exc())
 
     def init(
         self,
@@ -472,7 +422,7 @@ class Manager(Application):
             time_scale_factor=time_scale_factor,
         )
 
-    def stop(self, sim_stop_time: datetime) -> None:
+    def stop(self, sim_stop_time: datetime, required_apps: List[str] = []) -> None:
         """
         Command to stop a test run execution by updating the execution end time and publishing a stop command.
 
@@ -489,9 +439,14 @@ class Manager(Application):
         # )
         topic = f"{self.prefix}.{self.app_name}.stop"
         queue_name = topic #".".join(topic.split(".") + ["queue"])
+        
+        for required_app in required_apps:
+            queue_name = f"{topic}.{required_app}"
+            self.channel.queue_declare(queue=queue_name, durable=True)
+            self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic)
 
-        self.channel.queue_declare(queue=queue_name, durable=True)
-        self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic) #f"{self.prefix}.{self.app_name}.status.time")
+        # self.channel.queue_declare(queue=queue_name, durable=True)
+        # self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic) #f"{self.prefix}.{self.app_name}.status.time")
         self.channel.basic_publish(
             exchange=self.prefix,
             routing_key=topic,
