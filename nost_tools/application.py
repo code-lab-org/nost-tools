@@ -4,10 +4,14 @@ Provides a base application that publishes messages from a simulator to a broker
 
 from datetime import datetime, timedelta
 import logging
+
+import pika.channel
+import pika.connection
 import ntplib
 import paho.mqtt.client as mqtt
 import time
 from typing import Callable
+import threading
 
 import pika
 from datetime import timedelta, datetime
@@ -46,7 +50,7 @@ class Application(object):
         time_status_init (:obj:`datetime`): Scenario time of first time status message
     """
 
-    def __init__(self, app_name: str, config: ConnectionConfig, app_description: str = None): #, 
+    def __init__(self, app_name: str, app_description: str = None): #,config: ConnectionConfig, 
         """
         Initializes a new application.
 
@@ -55,9 +59,8 @@ class Application(object):
             app_description (str): application description (optional)
         """
         self.simulator = Simulator()
-        # self.client = mqtt.Client()
-        # self.client = pika.BlockingConnection().channel()
-        # self.client = pika.BlockingConnection(pika.ConnectionParameters('localhost')).channel()
+        self.channel = pika.channel
+        self.connection = pika.connection
         self.prefix = None
         self.app_name = app_name
         self.app_description = app_description
@@ -65,31 +68,32 @@ class Application(object):
         self._mode_status_observer = None
         self._shut_down_observer = None
 
-        # Obtain access token and refresh token
-        access_token, refresh_token = self.new_access_token(config)
+        # # Obtain access token and refresh token
+        # access_token, refresh_token = self.new_access_token(config)
 
-        # Set up connection parameters
-        parameters = pika.ConnectionParameters(
-            host=config.host,
-            virtual_host=config.virtual_host,
-            port=config.rabbitmq_port,
-            credentials=pika.PlainCredentials('', access_token)
-        )
+        # # Set up connection parameters
+        # parameters = pika.ConnectionParameters(
+        #     host=config.host,
+        #     virtual_host=config.virtual_host,
+        #     port=config.rabbitmq_port,
+        #     credentials=pika.PlainCredentials('', access_token),
+        #     heartbeat=600
+        # )
 
-        # Configure transport layer security (TLS) if needed
-        if config.is_tls:
-            logger.info("Using TLS/SSL.")
-            context = ssl.create_default_context()
-            parameters.ssl_options = pika.SSLOptions(context)
+        # # Configure transport layer security (TLS) if needed
+        # if config.is_tls:
+        #     logger.info("Using TLS/SSL.")
+        #     context = ssl.create_default_context()
+        #     parameters.ssl_options = pika.SSLOptions(context)
 
-        # Connect to server
-        try:
-            self.connection = pika.BlockingConnection(parameters)
-            self.channel = self.connection.channel()
-            logger.info("Connection established successfully.")
-        except pika.exceptions.ProbableAccessDeniedError as e:
-            logger.info(f"Access denied: {e}")
-            sys.exit(1)
+        # # Connect to server
+        # try:
+        #     self.connection = pika.BlockingConnection(parameters)
+        #     self.channel = self.connection.channel()
+        #     logger.info("Connection established successfully.")
+        # except pika.exceptions.ProbableAccessDeniedError as e:
+        #     logger.info(f"Access denied: {e}")
+        #     sys.exit(1)
 
     def ready(self) -> None:
         """
@@ -186,33 +190,32 @@ class Application(object):
 
         # Set test run prefix
         self.prefix = prefix
+        access_token, refresh_token = self.new_access_token(config)
+        parameters = pika.ConnectionParameters(
+                host=config.host,
+                virtual_host=config.virtual_host,
+                port=config.rabbitmq_port,
+                credentials=pika.PlainCredentials('', access_token))
+
+        # Configure transport layer security (TLS) if needed
+        if config.is_tls:
+            logger.info("Using TLS/SSL.")
+            context = ssl.create_default_context()
+            parameters.ssl_options = pika.SSLOptions(context)
+
+        # Connect to server
+        try:
+            self.connection = pika.BlockingConnection(parameters)
+            logger.info("Connection established successfully.")
+        except pika.exceptions.ProbableAccessDeniedError as e:
+            logger.info(f"Access denied: {e}")
+            sys.exit(1)
+
+        self.channel = self.connection.channel()
 
         # Declare the topic exchange
         self.channel.exchange_declare(exchange=self.prefix, exchange_type='topic')
         
-        # access_token, refresh_token = self.new_access_token(config)
-        # parameters = pika.ConnectionParameters(
-        #         host=config.host,
-        #         virtual_host=config.virtual_host,
-        #         port=config.rabbitmq_port,
-        #         credentials=pika.PlainCredentials('', access_token))
-
-        # # Configure transport layer security (TLS) if needed
-        # if config.is_tls:
-        #     logger.info("Using TLS/SSL.")
-        #     context = ssl.create_default_context()
-        #     parameters.ssl_options = pika.SSLOptions(context)
-
-        # # Connect to server
-        # try:
-        #     self.connection = pika.BlockingConnection(parameters)
-        #     logger.info("Connection established successfully.")
-        # except pika.exceptions.ProbableAccessDeniedError as e:
-        #     logger.info(f"Access denied: {e}")
-        #     sys.exit(1)
-
-        # self.channel = self.connection.channel()
-
         # Configure observers
         self._create_time_status_publisher(time_status_step, time_status_init)
         self._create_mode_status_observer()
@@ -347,6 +350,8 @@ class Application(object):
         self.channel.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack=False) #True)
 
         ## Set expiry period: at queue or publishing? (max amount of time before being removed, would be important)
+        # mq_recieve_thread = threading.Thread(target=self.channel.start_consuming)
+        # mq_recieve_thread.start()
 
     def remove_message_callback(self, app_name: str, app_topic: str) -> None:
         """

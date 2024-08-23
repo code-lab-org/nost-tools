@@ -68,12 +68,12 @@ class Manager(Application):
         required_apps_status (dict): Ready status for all required applications
     """
 
-    def __init__(self, config: ConnectionConfig):
+    def __init__(self): #, config: ConnectionConfig):
         """
         Initializes a new manager.
         """
         # call super class constructor
-        super().__init__("manager", config)
+        super().__init__("manager") #, config)
         self.required_apps_status = {}
 
     def execute_test_plan(
@@ -126,7 +126,7 @@ class Manager(Application):
             next_try = self.simulator.get_wallclock_time() + timedelta(
                 seconds=init_retry_delay_s
             )
-            logger.info(f'Required app status: {self.required_apps_status}')
+            # logger.info(f'Required app status: {self.required_apps_status}')
             # wait until all required apps are ready
             while (
                 not all([self.required_apps_status[app] for app in required_apps])
@@ -172,7 +172,7 @@ class Manager(Application):
                 )
             )
             # issue the update command
-            self.update(update.time_scale_factor, update.sim_update_time)
+            self.update(update.time_scale_factor, update.sim_update_time, required_apps)
             # wait until the update command takes effect
             while self.simulator.get_time_scale_factor() != update.time_scale_factor:
                 time.sleep(command_lead / timedelta(seconds=1) / 100)
@@ -188,7 +188,7 @@ class Manager(Application):
             )
         )
         # issue the stop command
-        self.stop(sim_stop_time)
+        self.stop(sim_stop_time, required_apps)
         # self.shut_down()
 
         # self.channel.close()
@@ -401,26 +401,32 @@ class Manager(Application):
 
 
         # start execution in a background thread
-        # exec_thread = threading.Thread(
-        #     target=self.simulator.execute,
-        #     kwargs={
-        #         "init_time": sim_start_time,
-        #         "duration": sim_stop_time - sim_start_time,
-        #         "time_step": time_step,
-        #         "wallclock_epoch": start_time,
-        #         "time_scale_factor": time_scale_factor,
-        #     },
-        # )
-        # exec_thread.start()
-
-        # Start execution
-        self.simulator.execute(
-            init_time=sim_start_time,
-            duration=sim_stop_time - sim_start_time,
-            time_step=time_step,
-            wallclock_epoch=start_time,
-            time_scale_factor=time_scale_factor,
+        # logger.info(f'Init time: {sim_start_time}')
+        # logger.info(f'Duration: {sim_stop_time - sim_start_time}')
+        # logger.info(f'Time Step: {time_step}')
+        # logger.info(f'Wallclock Epoch: {start_time}')
+        # logger.info(f'Time Scale Factor: {type(time_scale_factor)}')
+        
+        exec_thread = threading.Thread(
+            target=self.simulator.execute,
+            kwargs={
+                "init_time": sim_start_time,
+                "duration": sim_stop_time - sim_start_time,
+                "time_step": time_step,
+                "wallclock_epoch": start_time,
+                "time_scale_factor": time_scale_factor,
+            },
         )
+        exec_thread.start()
+
+        # # Start execution
+        # self.simulator.execute(
+        #     init_time=sim_start_time,
+        #     duration=sim_stop_time - sim_start_time,
+        #     time_step=time_step,
+        #     wallclock_epoch=start_time,
+        #     time_scale_factor=time_scale_factor,
+        # )
 
     def stop(self, sim_stop_time: datetime, required_apps: List[str] = []) -> None:
         """
@@ -438,7 +444,7 @@ class Manager(Application):
         #     f"{self.prefix}.{self.app_name}.stop", command.json(by_alias=True)
         # )
         topic = f"{self.prefix}.{self.app_name}.stop"
-        queue_name = topic #".".join(topic.split(".") + ["queue"])
+        # queue_name = topic #".".join(topic.split(".") + ["queue"])
         
         for required_app in required_apps:
             queue_name = f"{topic}.{required_app}"
@@ -457,7 +463,7 @@ class Manager(Application):
         # update the execution end time
         self.simulator.set_end_time(sim_stop_time)
 
-    def update(self, time_scale_factor: float, sim_update_time: datetime) -> None:
+    def update(self, time_scale_factor: float, sim_update_time: datetime, required_apps: List[str] = []) -> None:
         """
         Command to update the time scaling factor for a test run execution by updating the execution time scale factor,
         and publishing an update command.
@@ -481,9 +487,14 @@ class Manager(Application):
         # )
         topic = f"{self.prefix}.{self.app_name}.update"
         queue_name = topic #".".join(topic.split(".") + ["queue"])
+        
+        for required_app in required_apps:
+            queue_name = f"{topic}.{required_app}"
+            self.channel.queue_declare(queue=queue_name, durable=True)
+            self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic)
 
-        self.channel.queue_declare(queue=queue_name, durable=True)
-        self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic) #f"{self.prefix}.{self.app_name}.status.time")
+        # self.channel.queue_declare(queue=queue_name, durable=True)
+        # self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic) #f"{self.prefix}.{self.app_name}.status.time")
         self.channel.basic_publish(
             exchange=self.prefix,
             routing_key=topic,

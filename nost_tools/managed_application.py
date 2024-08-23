@@ -35,7 +35,7 @@ class ManagedApplication(Application):
         time_step (:obj:`timedelta`): scenario time step used in execution
     """
 
-    def __init__(self, app_name: str, config: ConnectionConfig, app_description: str = None): #
+    def __init__(self, app_name: str, app_description: str = None): #config: ConnectionConfig, 
         """
         Initializes a new managed application.
 
@@ -43,7 +43,7 @@ class ManagedApplication(Application):
             app_name (str): application name
             app_description (str): application description
         """
-        super().__init__(app_name, config, app_description)
+        super().__init__(app_name, app_description) #config, 
         self.time_step = None
         self._sim_start_time = None
         self._sim_stop_time = None
@@ -111,6 +111,13 @@ class ManagedApplication(Application):
 
         # print('Waiting for messages...')
         # self.channel.start_consuming()
+        logger.info('Opened thread.')
+        # Start a background thread for consuming messages
+        self.consume_thread = threading.Thread(target=self.channel.start_consuming)
+        self.consume_thread.daemon = True  # Optional: makes the thread a daemon so it exits when the main thread does
+        # self.consume_thread.start()
+
+        # Now you can access the thread later via self.consume_thread
 
   
 
@@ -182,22 +189,29 @@ class ManagedApplication(Application):
             userdata (object): private user data as set in the client
             message (:obj:`paho.mqtt.client.MQTTMessage`): MQTT message
         """
+        # Acknowledge message
+        ch.basic_ack(delivery_tag=method.delivery_tag)
+        # parse message payload
+        message = body.decode('utf-8')
+        params = StartCommand.parse_raw(message).tasking_parameters
+        logger.info(f"Received start command {params}")
         try:
-            # Acknowledge message
-            ch.basic_ack(delivery_tag=method.delivery_tag)
-            # parse message payload
-            message = body.decode('utf-8')
-            params = StartCommand.parse_raw(message).tasking_parameters
-            logger.info(f"Received start command {message}")
+
             # check for optional start time
             if params.sim_start_time is not None:
                 self._sim_start_time = params.sim_start_time
+                logger.info(f'Sim start time: {params.sim_start_time}')
             # check for optional end time
             if params.sim_stop_time is not None:
                 self._sim_stop_time = params.sim_stop_time
-                logger.info(f"Checking for optional end time")
+                logger.info(f'Sim stop time: {params.sim_stop_time}')
+            # start execution in a background thread
+            # logger.info(f'Init time: {self._sim_start_time}')
+            # logger.info(f'Duration: {self._sim_stop_time - self._sim_start_time}')
+            # logger.info(f'Time Step: {self.time_step}')
+            # logger.info(f'Wallclock Epoch: {params.start_time}')
+            # logger.info(f'Time Scale Factor: {type(params.time_scaling_factor)}')
 
-            # # start execution in a background thread
             # exec_thread = threading.Thread(
             #     target=self.simulator.execute,
             #     kwargs={
