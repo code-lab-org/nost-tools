@@ -90,10 +90,11 @@ class ManagedApplication(Application):
         # Declare the queues
         queues = ["init", "start", "stop", "update"] # "#"]
         for queue in queues:
-            topic = f"{prefix}.{manager_app_name}.{queue}"
-            queue_name = f"{topic}.{self.app_name}" #topic #f"{topic}.{self.app_name}"
-            self.channel.queue_declare(queue=queue_name, durable=True)
-            self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic)
+            self.declare_bind_queue(prefix=prefix, manager_app_name=manager_app_name, queue=queue)
+            # topic = f"{prefix}.{manager_app_name}.{queue}"
+            # queue_name = f"{topic}.{self.app_name}" #topic #f"{topic}.{self.app_name}"
+            # self.channel.queue_declare(queue=queue_name, durable=True)
+            # self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic)
 
         # Register callback functions
         self.channel.basic_consume(
@@ -108,18 +109,6 @@ class ManagedApplication(Application):
         self.channel.basic_consume(
             queue=f"{prefix}.{manager_app_name}.update.{self.app_name}", on_message_callback=self.on_manager_update, auto_ack=False #True
         )
-
-        # print('Waiting for messages...')
-        # self.channel.start_consuming()
-        logger.info('Opened thread.')
-        # Start a background thread for consuming messages
-        self.consume_thread = threading.Thread(target=self.channel.start_consuming)
-        self.consume_thread.daemon = True  # Optional: makes the thread a daemon so it exits when the main thread does
-        # self.consume_thread.start()
-
-        # Now you can access the thread later via self.consume_thread
-
-  
 
     def shut_down(self) -> None:
         """
