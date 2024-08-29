@@ -35,6 +35,7 @@ class Application:
         self._should_stop = threading.Event()
         self.consuming = False
         self.closing = False
+        self._is_running = False
 
     def ready(self) -> None:
         status = ReadyStatus.parse_obj(
@@ -45,18 +46,20 @@ class Application:
             }
         )
 
-        # Declare topic and queue names
-        topic = f"{self.prefix}.{self.app_name}.status.ready"
-        queue_name = topic #".".join(topic.split(".") + ["queue"]) 
+        # # Declare topic and queue names
+        # topic = f"{self.prefix}.{self.app_name}.status.ready"
+        # queue_name = topic #".".join(topic.split(".") + ["queue"]) 
 
-        # Declare a queue and bind it to the exchange with the routing key
-        self.channel.queue_declare(queue=queue_name, durable=True)
-        self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic) #f"{self.prefix}.{self.app_name}.status.time")
+        # # Declare a queue and bind it to the exchange with the routing key
+        # self.channel.queue_declare(queue=queue_name, durable=True)
+        # self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic) #f"{self.prefix}.{self.app_name}.status.time")
+
+        routing_key, queue_name = self.declare_bind_queue(app_name=self.app_name, topic='status.ready')
         
         # Expiration of 60000 ms = 60 sec
         self.channel.basic_publish(
             exchange=self.prefix,
-            routing_key=topic, #f"{self.prefix}.{self.app_name}.status.ready",
+            routing_key=routing_key, #f"{self.prefix}.{self.app_name}.status.ready",
             body=status.json(by_alias=True, exclude_none=True),
             properties=pika.BasicProperties(expiration='30000')
         )
@@ -112,6 +115,7 @@ class Application:
         if set_offset:
             self.set_wallclock_offset()
         self.prefix = prefix
+        self._is_running = True
 
         # credentials = pika.PlainCredentials(config.username, config.password)
         # parameters = pika.ConnectionParameters(
@@ -145,11 +149,15 @@ class Application:
             on_close_callback=self.on_connection_closed,
         )
     
-        # Start Pika's event loop in a separate thread
-        connection_thread = threading.Thread(target=self.start_event_loop)
-        connection_thread.start()
+        # # Start Pika's event loop in a separate thread
+        # connection_thread = threading.Thread(target=self.start_event_loop)
+        # connection_thread.start()
 
-        # Wait for the connection to be established
+        # # Wait for the connection to be established
+        # self._is_connected.wait()
+
+        # Start the I/O loop in a separate thread
+        threading.Thread(target=self._start_io_loop).start()
         self._is_connected.wait()
         
         # Configure observers
@@ -160,8 +168,13 @@ class Application:
 
         logger.info(f"Application {self.app_name} successfully started up.")
 
+    def _start_io_loop(self):
+        while self._is_running:
+            self.connection.ioloop.start()
+
     def start_event_loop(self):
         # self.connection.ioloop.start()
+        logger.info("Starting threaded consumer.")
         while True:
             try:
                 # pass
@@ -185,11 +198,23 @@ class Application:
         self._is_connected.clear()
 
     def on_connection_closed(self, connection, reason):
-        logger.info(f"Connection closed: {reason}")
-        self._is_connected.clear()
-        if not self._should_stop.is_set():
-            # Try to reconnect if not shutting down
-            self.start_up(self.prefix, self.connection_parameters)
+        """This method is invoked by pika when the connection to RabbitMQ is
+        closed unexpectedly. Since it is unexpected, we will reconnect to
+        RabbitMQ if it disconnects.
+
+        :param pika.connection.Connection connection: The closed connection obj
+        :param Exception reason: exception representing reason for loss of
+            connection.
+
+        """
+        # logger.info(f"Connection closed: {reason}")
+        # self._is_connected.clear()
+        self.channel = None
+        if self.closing:
+            self.connection.ioloop.stop()
+        # else:
+        #     logger.warning('Connection closed, reconnect necessary: %s', reason)
+        #     self.reconnect()
 
     def shut_down(self) -> None:
         self._should_stop.set()
@@ -200,24 +225,34 @@ class Application:
             self.connection.close()
         logger.info(f"Application {self.app_name} successfully shut down.")
 
-    def send_message(self, app_topic: str, payload: str) -> None:
-        # Declare topic and queue names
-        topic = f"{self.prefix}.{self.app_name}.{app_topic}"
-        queue_name = topic #".".join(topic.split(".") + ["queue"]) 
+    def send_message(self, app_name, app_topic: str, payload: str, app_specific_extender: str = None) -> None:
+        # # Declare topic and queue names
+        # topic = f"{self.prefix}.{self.app_name}.{app_topic}"
+        # queue_name = topic #".".join(topic.split(".") + ["queue"]) 
 
-        # Declare a queue and bind it to the exchange with the routing key
-        self.channel.queue_declare(queue=queue_name, durable=True)
-        self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic) #f"{self.prefix}.{self.app_name}.status.time")
+        # # Declare a queue and bind it to the exchange with the routing key
+        # self.channel.queue_declare(queue=queue_name, durable=True)
+        # self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic) #f"{self.prefix}.{self.app_name}.status.time")
+
+        # routing_key, queue_name = self.declare_bind_queue(app_name=self.app_name, topic=app_topic)
+
+        if app_specific_extender:
+            routing_key, queue_name = self.declare_bind_queue(app_name=app_name, topic=app_topic, app_specific_extender=app_specific_extender)
+
+        else:
+            routing_key, queue_name = self.declare_bind_queue(app_name=app_name, topic=app_topic)
 
         # Expiration of 60000 ms = 60 sec
         self.channel.basic_publish(
             exchange=self.prefix,
-            routing_key=topic,
+            routing_key=routing_key,
             body=payload,
             properties=pika.BasicProperties(expiration='30000')
         )
+
+        logger.debug(f'Successfully sent message "{payload}" to topic "{routing_key}".')
 ###
-    def add_message_callback(self, app_name: str, app_topic: str, user_callback: Callable):
+    def add_message_callback(self, app_name: str, app_topic: str, user_callback: Callable, app_specific_extender: str = None):
         """This method sets up the consumer by first calling
         add_on_cancel_callback so that the object is notified if RabbitMQ
         cancels the consumer. It then issues the Basic.Consume RPC command
@@ -227,35 +262,29 @@ class Application:
         will invoke when a message is fully received.
 
         """
-        topic = f"{self.prefix}.{app_name}.{app_topic}"
-        queue_name = topic #".".join(topic.split(".") + ["queue"]) 
+        self.was_consuming = True
+        self.consuming = True
 
         logger.info('Issuing consumer related RPC commands')
         self.add_on_cancel_callback()
         combined_cb = self.combined_callback(user_callback)
 
-
-        # Declare the exchange
-        # self.channel.exchange_declare(exchange=self.prefix, exchange_type='topic')
-
-        # # Declare the queue, 60000 milliseconds = 60 seconds 
-        self.channel.queue_declare(queue=queue_name, durable=True) #, arguments={'x-message-ttl': 60000})
-        
-        # Bind the queue to the exchange with the routing key
-        self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic)
+        if app_specific_extender:
+            routing_key, queue_name = self.declare_bind_queue(app_name=app_name, topic=app_topic, app_specific_extender=app_specific_extender)
+        else:
+            routing_key, queue_name = self.declare_bind_queue(app_name=app_name, topic=app_topic)
         
         # Set QoS settings
         self.channel.basic_qos(prefetch_count=1)
 
         self._consumer_tag = self.channel.basic_consume(
-            queue=topic,
+            queue=queue_name,
             on_message_callback=combined_cb,
             auto_ack=False)
         
-        logger.debug(f"Subscribing and adding callback to topic: {topic}")
+        logger.info(f"Subscribing and adding callback to topic: {routing_key}")
 
-        self.was_consuming = True
-        self.consuming = True
+
 
         # self.remove_message_callback()
 
@@ -402,7 +431,8 @@ class Application:
             logger.info('Stopping')
             if self.consuming:
                 self.stop_consuming()
-                self.connection.ioloop.start()
+                # if not self.connection.is_open:
+                #     self.connection.ioloop.start()
             else:
                 self.connection.ioloop.stop()
             logger.info('Stopped')
@@ -476,11 +506,36 @@ class Application:
         self._shut_down_observer = ShutDownObserver(self)
         self.simulator.add_observer(self._shut_down_observer)
 
-    def declare_bind_queue(self, prefix, manager_app_name, queue) -> None:
-        topic = f"{prefix}.{manager_app_name}.{queue}"
-        queue_name = f"{topic}.{self.app_name}" #topic #f"{topic}.{self.app_name}"
-        self.channel.queue_declare(queue=queue_name, durable=True)
-        self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic)
+    def create_routing_key(self, app_name: str, topic: str):
+        # routing_key = f"{self.prefix}.{self.app_name}.{topic}"
+        routing_key = '.'.join([self.prefix, app_name, topic])
+        return routing_key
+
+    def declare_bind_queue(self, app_name: str, topic: str, app_specific_extender: str = None) -> None:
+        
+        try:
+
+            self.channel.exchange_declare(exchange=self.prefix, exchange_type='topic')
+
+            routing_key = self.create_routing_key(app_name=app_name, topic=topic)
+
+            if app_specific_extender:
+                queue_name = '.'.join([routing_key, app_specific_extender]) #f"{routing_key}.{app_specific_extender}"
+
+            else: 
+                queue_name = routing_key
+
+            self.channel.queue_declare(queue=queue_name, durable=True)
+            self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=routing_key)
+
+            logger.debug(f'Bound queue "{queue_name}" to topic "{routing_key}".')
+        
+        except:
+            routing_key = None
+            queue_name = None
+            pass
+
+        return routing_key, queue_name
 
 
 # """

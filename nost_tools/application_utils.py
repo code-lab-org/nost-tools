@@ -116,27 +116,29 @@ class TimeStatusPublisher(ScenarioTimeIntervalPublisher):
         logger.info(
             f"Sending time status {status.json(by_alias=True,exclude_none=True)}."
         )
-        # publish time status message
-        # self.app.client.publish(
-        #     f"{self.app.prefix}/{self.app.app_name}/status/time",
-        #     status.json(by_alias=True, exclude_none=True),
-        # )
-        topic = f"{self.app.prefix}.{self.app.app_name}.status.time"
-        queue_name = topic #".".join(topic.split(".") + ["queue"]) 
+        # # publish time status message
+        # # self.app.client.publish(
+        # #     f"{self.app.prefix}/{self.app.app_name}/status/time",
+        # #     status.json(by_alias=True, exclude_none=True),
+        # # )
+        # topic = f"{self.app.prefix}.{self.app.app_name}.status.time"
+        # queue_name = topic #".".join(topic.split(".") + ["queue"]) 
 
-        # Declare the topic exchange
-        # self.app.channel.exchange_declare(exchange=self.app.prefix, exchange_type='topic')
+        # # Declare the topic exchange
+        # # self.app.channel.exchange_declare(exchange=self.app.prefix, exchange_type='topic')
         
-        # Declare a queue and bind it to the exchange with the routing key
-        self.app.channel.queue_declare(queue=queue_name, durable=True)
-        self.app.channel.queue_bind(exchange=self.app.prefix, queue=queue_name, routing_key=topic)
+        # # Declare a queue and bind it to the exchange with the routing key
+        # self.app.channel.queue_declare(queue=queue_name, durable=True)
+        # self.app.channel.queue_bind(exchange=self.app.prefix, queue=queue_name, routing_key=topic)
 
-        self.app.channel.basic_publish(
-            exchange=self.app.prefix,
-            routing_key=topic,
-            body=status.json(by_alias=True, exclude_none=True),
-            properties=pika.BasicProperties(expiration='30000')
-        )
+        # self.app.channel.basic_publish(
+        #     exchange=self.app.prefix,
+        #     routing_key=topic,
+        #     body=status.json(by_alias=True, exclude_none=True),
+        #     properties=pika.BasicProperties(expiration='30000')
+        # )
+
+        self.app.send_message(app_name=self.app.app_name, app_topic='status.time', payload=status.json(by_alias=True, exclude_none=True))
 
 
 class ModeStatusObserver(Observer):
@@ -195,26 +197,31 @@ class ModeStatusObserver(Observer):
             if not isinstance(self.app.prefix, str):
                 raise ValueError(f"Exchange ({self.app.prefix}) must be a string")
 
-            topic = f"{self.app.prefix}.{self.app.app_name}.status.mode"
-            queue_name = topic
+            # topic = f"{self.app.prefix}.{self.app.app_name}.status.mode"
+            # queue_name = topic
+
+            # Declare a queue and bind it to the exchange with the routing key
+            # routing_key, queue_name = self.app.declare_bind_queue(app_name=self.app.app_name, topic="status.mode")
+            # routing_key, queue_name = self.declare_bind_queue(app_name=self.app.app_name, topic='status.mode')
 
             # Declare the topic exchange
             if self.app.channel.is_open and self.app.connection.is_open:
-                # Declare a queue and bind it to the exchange with the routing key
-                self.app.channel.queue_declare(queue=queue_name, durable=True)
-                self.app.channel.queue_bind(exchange=self.app.prefix, queue=queue_name, routing_key=topic)
+                # # Declare a queue and bind it to the exchange with the routing key
+                # self.app.channel.queue_declare(queue=queue_name, durable=True)
+                # self.app.channel.queue_bind(exchange=self.app.prefix, queue=queue_name, routing_key=routing_key)
 
-                self.app.channel.basic_publish(
-                    exchange=self.app.prefix,
-                    routing_key=topic,
-                    body=status.json(by_alias=True, exclude_none=True),
-                    properties=pika.BasicProperties(expiration='30000')
-                )
+                # self.app.channel.basic_publish(
+                #     exchange=self.app.prefix,
+                #     routing_key=routing_key,
+                #     body=status.json(by_alias=True, exclude_none=True),
+                #     properties=pika.BasicProperties(expiration='30000')
+                # )
+                self.app.send_message(app_name=self.app.app_name, app_topic='status.mode', payload=status.json(by_alias=True, exclude_none=True))
 
-            # Stop the app
-            if new_value == Mode.TERMINATED:
-                self.stop_application()
+            # # Stop the app
+            # if new_value == Mode.TERMINATED:
+            #     self.stop_application()
 
-            # Additional check to ensure the application stops
-            if new_value == Mode.TERMINATED and not self.app.channel.is_open and not self.app.connection.is_open:
-                exit()
+            # # Additional check to ensure the application stops
+            # if new_value == Mode.TERMINATED and not self.app.channel.is_open and not self.app.connection.is_open:
+            #     exit()

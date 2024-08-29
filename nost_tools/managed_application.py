@@ -89,26 +89,36 @@ class ManagedApplication(Application):
 
         # Declare the queues
         queues = ["init", "start", "stop", "update"] # "#"]
-        for queue in queues:
-            self.declare_bind_queue(prefix=prefix, manager_app_name=manager_app_name, queue=queue)
+        # for queue in queues:
+            # self.declare_bind_queue(prefix=prefix, manager_app_name=manager_app_name, queue=queue)
+     
             # topic = f"{prefix}.{manager_app_name}.{queue}"
             # queue_name = f"{topic}.{self.app_name}" #topic #f"{topic}.{self.app_name}"
             # self.channel.queue_declare(queue=queue_name, durable=True)
             # self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic)
 
+            # _, _ = self.declare_bind_queue(app_name=manager_app_name, topic=queue, app_specific_extender=self.app_name)
+        
+
         # Register callback functions
-        self.channel.basic_consume(
-            queue=f"{prefix}.{manager_app_name}.init.{self.app_name}", on_message_callback=self.on_manager_init, auto_ack=False #True
-        )
-        self.channel.basic_consume(
-            queue=f"{prefix}.{manager_app_name}.start.{self.app_name}", on_message_callback=self.on_manager_start, auto_ack=False #True
-        )
-        self.channel.basic_consume(
-            queue=f"{prefix}.{manager_app_name}.stop.{self.app_name}", on_message_callback=self.on_manager_stop, auto_ack=False #True
-        )
-        self.channel.basic_consume(
-            queue=f"{prefix}.{manager_app_name}.update.{self.app_name}", on_message_callback=self.on_manager_update, auto_ack=False #True
-        )
+        self.add_message_callback(app_name=manager_app_name, app_topic='init', app_specific_extender=self.app_name, user_callback=self.on_manager_init)
+        self.add_message_callback(app_name=manager_app_name, app_topic='start', app_specific_extender=self.app_name, user_callback=self.on_manager_start)
+        self.add_message_callback(app_name=manager_app_name, app_topic='stop', app_specific_extender=self.app_name, user_callback=self.on_manager_stop)
+        self.add_message_callback(app_name=manager_app_name, app_topic='update', app_specific_extender=self.app_name, user_callback=self.on_manager_update)
+
+        # # Register callback functions
+        # self.channel.basic_consume(
+        #     queue=f"{prefix}.{manager_app_name}.init.{self.app_name}", on_message_callback=self.on_manager_init, auto_ack=False #True
+        # )
+        # self.channel.basic_consume(
+        #     queue=f"{prefix}.{manager_app_name}.start.{self.app_name}", on_message_callback=self.on_manager_start, auto_ack=False #True
+        # )
+        # self.channel.basic_consume(
+        #     queue=f"{prefix}.{manager_app_name}.stop.{self.app_name}", on_message_callback=self.on_manager_stop, auto_ack=False #True
+        # )
+        # self.channel.basic_consume(
+        #     queue=f"{prefix}.{manager_app_name}.update.{self.app_name}", on_message_callback=self.on_manager_update, auto_ack=False #True
+        # )
 
     def shut_down(self) -> None:
         """
@@ -151,7 +161,7 @@ class ManagedApplication(Application):
         """
         try:
             # Acknowledge message
-            ch.basic_ack(delivery_tag=method.delivery_tag)
+            # ch.basic_ack(delivery_tag=method.delivery_tag)
             # parse message payload
             message = body.decode('utf-8')
             params = InitCommand.parse_raw(message).tasking_parameters
@@ -179,7 +189,7 @@ class ManagedApplication(Application):
             message (:obj:`paho.mqtt.client.MQTTMessage`): MQTT message
         """
         # Acknowledge message
-        ch.basic_ack(delivery_tag=method.delivery_tag)
+        # ch.basic_ack(delivery_tag=method.delivery_tag)
         # parse message payload
         message = body.decode('utf-8')
         params = StartCommand.parse_raw(message).tasking_parameters
@@ -201,25 +211,26 @@ class ManagedApplication(Application):
             # logger.info(f'Wallclock Epoch: {params.start_time}')
             # logger.info(f'Time Scale Factor: {type(params.time_scaling_factor)}')
 
-            # exec_thread = threading.Thread(
-            #     target=self.simulator.execute,
-            #     kwargs={
-            #         "init_time": self._sim_start_time,
-            #         "duration": self._sim_stop_time - self._sim_start_time,
-            #         "time_step": self.time_step,
-            #         "wallclock_epoch": params.start_time,
-            #         "time_scale_factor": params.time_scaling_factor,
-            #     },
-            # )
-            # exec_thread.start()
+            threading.Thread(
+                target=self.simulator.execute,
+                kwargs={
+                    "init_time": self._sim_start_time,
+                    "duration": self._sim_stop_time - self._sim_start_time,
+                    "time_step": self.time_step,
+                    "wallclock_epoch": params.start_time,
+                    "time_scale_factor": params.time_scaling_factor,
+                    },
+                ).start()
 
-            # Start execution
-            self.simulator.execute(
-                init_time=self._sim_start_time,
-                duration=self._sim_stop_time - self._sim_start_time,
-                time_step=self.time_step,
-                wallclock_epoch=params.start_time,
-                time_scale_factor=params.time_scaling_factor)
+            # # Start execution
+            # self.simulator.execute(
+            #     init_time=self._sim_start_time,
+            #     duration=self._sim_stop_time - self._sim_start_time,
+            #     time_step=self.time_step,
+            #     wallclock_epoch=params.start_time,
+            #     time_scale_factor=params.time_scaling_factor)
+            
+            logger.info('EXECUTION COMPLETED SUCCESSFULLY.')
 
         except Exception as e:
             logger.error(
@@ -240,7 +251,7 @@ class ManagedApplication(Application):
         """
         try:
             # Acknowledge message
-            ch.basic_ack(delivery_tag=method.delivery_tag)
+            # ch.basic_ack(delivery_tag=method.delivery_tag)
             # parse message payload
             message = body.decode('utf-8')
             params = StopCommand.parse_raw(message).tasking_parameters
@@ -266,7 +277,7 @@ class ManagedApplication(Application):
         """
         try:
             # Acknowledge message
-            ch.basic_ack(delivery_tag=method.delivery_tag)            
+            # ch.basic_ack(delivery_tag=method.delivery_tag)            
             # parse message payload
             message = body.decode('utf-8')
             params = UpdateCommand.parse_raw(message).tasking_parameters

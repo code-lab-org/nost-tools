@@ -213,7 +213,7 @@ class Manager(Application):
         Callback to handle a message containing an application ready status.
         """
         try:
-            ch.basic_ack(delivery_tag=method.delivery_tag)
+            # ch.basic_ack(delivery_tag=method.delivery_tag)
             # split the message topic into components (prefix/app_name/...)
             topic_parts = method.routing_key.split(".")
             message = body.decode('utf-8')
@@ -237,7 +237,7 @@ class Manager(Application):
                 f"Exception (topic: {method.routing_key}, payload: {message}): {e}"
             )
             print(traceback.format_exc())
-        logger.info("App ready status callback.")
+        # logger.info("App ready status callback.")
         # ch.stop_consuming()
 
     def on_app_time_status(
@@ -247,7 +247,7 @@ class Manager(Application):
         Callback to handle a message containing an application time status.
         """
         try:
-            ch.basic_ack(delivery_tag=method.delivery_tag)
+            # ch.basic_ack(delivery_tag=method.delivery_tag)
             # split the message topic into components (prefix/app_name/...)
             topic_parts = method.routing_key.split(".")
             message = body.decode('utf-8')
@@ -258,10 +258,10 @@ class Manager(Application):
                 # json.loads(message)
                 # parse the message payload properties
                 props = TimeStatus.parse_raw(message).properties
-                logger.info(f"Properties: {props}")
+                # logger.info(f"Properties: {props}")
                 wallclock_delta = self.simulator.get_wallclock_time() - props.time
                 scenario_delta = self.simulator.get_time() - props.sim_time
-                logger.info(f"Scenario: {scenario_delta}\nWallclock: {wallclock_delta}")
+                # logger.info(f"Scenario: {scenario_delta}\nWallclock: {wallclock_delta}")
                 if len(topic_parts) > 1:
                     logger.info(
                         f"Application {topic_parts[1]} latency: {scenario_delta} (scenario), {wallclock_delta} (wallclock)"
@@ -275,7 +275,7 @@ class Manager(Application):
                 f"Exception (topic: {method.routing_key}, payload: {message}): {e}"
             )
             print(traceback.format_exc())
-        logger.info("App time status callback.")
+        # logger.info("App time status callback.")
 
     def init(
         self,
@@ -305,21 +305,25 @@ class Manager(Application):
         # self.client.publish(
         #     f"{self.prefix}.{self.app_name}.init", command.json(by_alias=True)
         # )
-        topic = f"{self.prefix}.{self.app_name}.init"
+        # topic = f"{self.prefix}.{self.app_name}.init"
         # queue_name = topic #".".join(topic.split(".") + ["queue"])
 
         for required_app in required_apps:
-            queue_name = f"{topic}.{required_app}"
-            self.channel.queue_declare(queue=queue_name, durable=True)
-            self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic)
+            # queue_name = f"{topic}.{required_app}"
+            # self.channel.queue_declare(queue=queue_name, durable=True)
+            # self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic)
+            _, _ = self.declare_bind_queue(app_name=self.app_name, topic='init', app_specific_extender=required_app)
+        
 
-        # Publish a message to the topic exchange
-        self.channel.basic_publish(
-            exchange=self.prefix,
-            routing_key=topic,
-            body=command.json(by_alias=True),
-            properties=pika.BasicProperties(expiration='30000')
-        )
+        # # Publish a message to the topic exchange
+        # self.channel.basic_publish(
+        #     exchange=self.prefix,
+        #     routing_key=topic,
+        #     body=command.json(by_alias=True),
+        #     properties=pika.BasicProperties(expiration='30000')
+        # )
+
+        self.send_message(app_name=self.app_name, app_topic='init', payload=command.json(by_alias=True))
 
         # self.channel.queue_declare(queue=queue_name, durable=True)
         # self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic) #f"{self.prefix}.{self.app_name}.status.time")
@@ -374,7 +378,7 @@ class Manager(Application):
         # self.client.publish(
         #     f"{self.prefix}/{self.app_name}/start", command.json(by_alias=True)
         # )
-        topic = f"{self.prefix}.{self.app_name}.start"
+        # topic = f"{self.prefix}.{self.app_name}.start"
         # queue_name = topic #".".join(topic.split(".") + ["queue"])
 
         # self.channel.queue_declare(queue=queue_name, durable=True)
@@ -387,18 +391,20 @@ class Manager(Application):
         # )
 
         for required_app in required_apps:
-            queue_name = f"{topic}.{required_app}"
-            self.channel.queue_declare(queue=queue_name, durable=True)
-            self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic)
+            # queue_name = f"{topic}.{required_app}"
+            # self.channel.queue_declare(queue=queue_name, durable=True)
+            # self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic)
+            _, _ = self.declare_bind_queue(app_name=self.app_name, topic='start', app_specific_extender=required_app)
 
-        # Publish a message to the topic exchange
-        self.channel.basic_publish(
-            exchange=self.prefix,
-            routing_key=topic,
-            body=command.json(by_alias=True),
-            properties=pika.BasicProperties(expiration='30000')
-        )
+        # # Publish a message to the topic exchange
+        # self.channel.basic_publish(
+        #     exchange=self.prefix,
+        #     routing_key=topic,
+        #     body=command.json(by_alias=True),
+        #     properties=pika.BasicProperties(expiration='30000')
+        # )
 
+        self.send_message(app_name=self.app_name, app_topic='start', payload=command.json(by_alias=True))
 
         # start execution in a background thread
         # logger.info(f'Init time: {sim_start_time}')
@@ -443,22 +449,26 @@ class Manager(Application):
         # self.client.publish(
         #     f"{self.prefix}.{self.app_name}.stop", command.json(by_alias=True)
         # )
-        topic = f"{self.prefix}.{self.app_name}.stop"
+        # topic = f"{self.prefix}.{self.app_name}.stop"
         # queue_name = topic #".".join(topic.split(".") + ["queue"])
         
         for required_app in required_apps:
-            queue_name = f"{topic}.{required_app}"
-            self.channel.queue_declare(queue=queue_name, durable=True)
-            self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic)
+            # queue_name = f"{topic}.{required_app}"
+            # self.channel.queue_declare(queue=queue_name, durable=True)
+            # self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic)
+            _, _ = self.declare_bind_queue(app_name=self.app_name, topic='stop', app_specific_extender=required_app)
 
         # self.channel.queue_declare(queue=queue_name, durable=True)
         # self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic) #f"{self.prefix}.{self.app_name}.status.time")
-        self.channel.basic_publish(
-            exchange=self.prefix,
-            routing_key=topic,
-            body=command.json(by_alias=True),
-            properties=pika.BasicProperties(expiration='30000')
-        )
+
+        self.send_message(app_name=self.app_name, app_topic='stop', payload=command.json(by_alias=True))
+
+        # self.channel.basic_publish(
+        #     exchange=self.prefix,
+        #     routing_key=topic,
+        #     body=command.json(by_alias=True),
+        #     properties=pika.BasicProperties(expiration='30000')
+        # )
 
         # update the execution end time
         self.simulator.set_end_time(sim_stop_time)
@@ -485,22 +495,26 @@ class Manager(Application):
         # self.client.publish(
         #     f"{self.prefix}.{self.app_name}.update", command.json(by_alias=True)
         # )
-        topic = f"{self.prefix}.{self.app_name}.update"
-        queue_name = topic #".".join(topic.split(".") + ["queue"])
+        # topic = f"{self.prefix}.{self.app_name}.update"
+        # queue_name = topic #".".join(topic.split(".") + ["queue"])
         
         for required_app in required_apps:
-            queue_name = f"{topic}.{required_app}"
-            self.channel.queue_declare(queue=queue_name, durable=True)
-            self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic)
+            # queue_name = f"{topic}.{required_app}"
+            # self.channel.queue_declare(queue=queue_name, durable=True)
+            # self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic)
+            _, _ = self.declare_bind_queue(app_name=self.app_name, topic='update', app_specific_extender=required_app)
 
         # self.channel.queue_declare(queue=queue_name, durable=True)
         # self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic) #f"{self.prefix}.{self.app_name}.status.time")
-        self.channel.basic_publish(
-            exchange=self.prefix,
-            routing_key=topic,
-            body=command.json(by_alias=True),
-            properties=pika.BasicProperties(expiration='30000')
-        )
+
+        self.send_message(app_name=self.app_name, app_topic='update', payload=command.json(by_alias=True))
+
+        # self.channel.basic_publish(
+        #     exchange=self.prefix,
+        #     routing_key=topic,
+        #     body=command.json(by_alias=True),
+        #     properties=pika.BasicProperties(expiration='30000')
+        # )
 
         # update the execution time scale factor
         self.simulator.set_time_scale_factor(time_scale_factor, sim_update_time)
