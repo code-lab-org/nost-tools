@@ -428,7 +428,7 @@ class Application:
         
         try:
 
-            self.channel.exchange_declare(exchange=self.prefix, exchange_type='topic')
+            self.channel.exchange_declare(exchange=self.prefix, exchange_type='topic', durable=True)
 
             routing_key = self.create_routing_key(app_name=app_name, topic=topic)
 
