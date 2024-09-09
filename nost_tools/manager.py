@@ -68,12 +68,12 @@ class Manager(Application):
         required_apps_status (dict): Ready status for all required applications
     """
 
-    def __init__(self): #, config: ConnectionConfig):
+    def __init__(self):
         """
         Initializes a new manager.
         """
         # call super class constructor
-        super().__init__("manager") #, config)
+        super().__init__("manager")
         self.required_apps_status = {}
 
     def execute_test_plan(
@@ -117,8 +117,6 @@ class Manager(Application):
         self.add_message_callback("*", "status.ready", self.on_app_ready_status)
         self.add_message_callback("*", "status.time", self.on_app_time_status)
 
-        # self.channel.start_consuming() # This stalls manager if uncommented
-
         self._create_time_status_publisher(time_status_step, time_status_init)
         for i in range(init_max_retry):
             # issue the init command
@@ -126,7 +124,6 @@ class Manager(Application):
             next_try = self.simulator.get_wallclock_time() + timedelta(
                 seconds=init_retry_delay_s
             )
-            # logger.info(f'Required app status: {self.required_apps_status}')
             # wait until all required apps are ready
             while (
                 not all([self.required_apps_status[app] for app in required_apps])
@@ -154,7 +151,7 @@ class Manager(Application):
             time_scale_factor,
             time_status_step,
             time_status_init,
-            required_apps=required_apps
+            # required_apps=required_apps
         )
         # wait for simulation to start executing
         while self.simulator.get_mode() != Mode.EXECUTING:
@@ -188,23 +185,7 @@ class Manager(Application):
             )
         )
         # issue the stop command
-        self.stop(sim_stop_time, required_apps)
-        # self.shut_down()
-
-        # self.channel.close()
-        # self.connection.close()
-
-        # # Stop application
-        # stop_timeout = timedelta(seconds=10)
-        # stop_start_time = self.simulator.get_wallclock_time()
-        # while self.simulator.get_mode() != Mode.TERMINATED and (self.simulator.get_wallclock_time() - stop_start_time) < stop_timeout:
-        #     time.sleep(0.1)
-
-        # if self.simulator.get_mode() != Mode.TERMINATED:
-        #     raise RuntimeError("Failed to stop the simulation within the timeout period.")
-
-        # self.channel.basic_cancel(consumer_tag=self)
-        # logger.info('Manager unsubscribed from all queues.')
+        self.stop(sim_stop_time) #, required_apps)
 
     def on_app_ready_status(
         self, ch, method, properties, body
@@ -213,17 +194,14 @@ class Manager(Application):
         Callback to handle a message containing an application ready status.
         """
         try:
-            # ch.basic_ack(delivery_tag=method.delivery_tag)
             # split the message topic into components (prefix/app_name/...)
             topic_parts = method.routing_key.split(".")
             message = body.decode('utf-8')
-            # message = json.loads(message)
-
+            logger.info(f"Received ready status message: {message}")
             # check if app_name is monitored in the ready_status dict
             if len(topic_parts) > 1 and topic_parts[1] in self.required_apps_status:
                 # validate if message is a valid JSON
                 try:
-                    # json.loads(message)
                     # update the ready status based on the payload value
                     self.required_apps_status[topic_parts[1]] = ReadyStatus.parse_raw(
                         message
@@ -237,8 +215,6 @@ class Manager(Application):
                 f"Exception (topic: {method.routing_key}, payload: {message}): {e}"
             )
             print(traceback.format_exc())
-        # logger.info("App ready status callback.")
-        # ch.stop_consuming()
 
     def on_app_time_status(
         self, ch, method, properties, body
@@ -247,21 +223,15 @@ class Manager(Application):
         Callback to handle a message containing an application time status.
         """
         try:
-            # ch.basic_ack(delivery_tag=method.delivery_tag)
             # split the message topic into components (prefix/app_name/...)
             topic_parts = method.routing_key.split(".")
             message = body.decode('utf-8')
-            # message = json.loads(message)
-            
             # validate if message is a valid JSON
             try:
-                # json.loads(message)
                 # parse the message payload properties
                 props = TimeStatus.parse_raw(message).properties
-                # logger.info(f"Properties: {props}")
                 wallclock_delta = self.simulator.get_wallclock_time() - props.time
                 scenario_delta = self.simulator.get_time() - props.sim_time
-                # logger.info(f"Scenario: {scenario_delta}\nWallclock: {wallclock_delta}")
                 if len(topic_parts) > 1:
                     logger.info(
                         f"Application {topic_parts[1]} latency: {scenario_delta} (scenario), {wallclock_delta} (wallclock)"
@@ -275,7 +245,6 @@ class Manager(Application):
                 f"Exception (topic: {method.routing_key}, payload: {message}): {e}"
             )
             print(traceback.format_exc())
-        # logger.info("App time status callback.")
 
     def init(
         self,
@@ -302,37 +271,11 @@ class Manager(Application):
             }
         )
         logger.info(f"Sending initialize command {command.json(by_alias=True)}.")
-        # self.client.publish(
-        #     f"{self.prefix}.{self.app_name}.init", command.json(by_alias=True)
-        # )
-        # topic = f"{self.prefix}.{self.app_name}.init"
-        # queue_name = topic #".".join(topic.split(".") + ["queue"])
 
-        for required_app in required_apps:
-            # queue_name = f"{topic}.{required_app}"
-            # self.channel.queue_declare(queue=queue_name, durable=True)
-            # self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic)
-            _, _ = self.declare_bind_queue(app_name=self.app_name, topic='init', app_specific_extender=required_app)
-        
-
-        # # Publish a message to the topic exchange
-        # self.channel.basic_publish(
-        #     exchange=self.prefix,
-        #     routing_key=topic,
-        #     body=command.json(by_alias=True),
-        #     properties=pika.BasicProperties(expiration='30000')
-        # )
+        # for required_app in required_apps:
+        #     _, _ = self.declare_bind_queue(app_name=self.app_name, topic='init', app_specific_extender=required_app)
 
         self.send_message(app_name=self.app_name, app_topic='init', payload=command.json(by_alias=True))
-
-        # self.channel.queue_declare(queue=queue_name, durable=True)
-        # self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic) #f"{self.prefix}.{self.app_name}.status.time")
-        # self.channel.basic_publish(
-        #     exchange=self.prefix,
-        #     routing_key=topic,
-        #     body=command.json(by_alias=True),
-        #     properties=pika.BasicProperties(expiration='30000')
-        # )
 
     def start(
         self,
@@ -343,8 +286,7 @@ class Manager(Application):
         time_scale_factor: float = 1.0,
         time_status_step: timedelta = None,
         time_status_init: datetime = None,
-        required_apps: List[str] = [],
-    ) -> None:
+    ) -> None: #required_apps: List[str] = [],
         """
 
         Command to start a test run execution by starting the simulator execution with all necessary parameters and publishing
@@ -363,6 +305,7 @@ class Manager(Application):
             start_time = self.simulator.get_wallclock_time()
         self.time_status_step = time_status_step
         self.time_status_init = time_status_init
+
         # publish a start command message
         command = StartCommand.parse_obj(
             {
@@ -375,43 +318,11 @@ class Manager(Application):
             }
         )
         logger.info(f"Sending start command {command.json(by_alias=True)}.")
-        # self.client.publish(
-        #     f"{self.prefix}/{self.app_name}/start", command.json(by_alias=True)
-        # )
-        # topic = f"{self.prefix}.{self.app_name}.start"
-        # queue_name = topic #".".join(topic.split(".") + ["queue"])
 
-        # self.channel.queue_declare(queue=queue_name, durable=True)
-        # self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic) #f"{self.prefix}.{self.app_name}.status.time")
-        # self.channel.basic_publish(
-        #     exchange=self.prefix,
-        #     routing_key=topic,
-        #     body=command.json(by_alias=True),
-        #     properties=pika.BasicProperties(expiration='30000')
-        # )
-
-        for required_app in required_apps:
-            # queue_name = f"{topic}.{required_app}"
-            # self.channel.queue_declare(queue=queue_name, durable=True)
-            # self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic)
-            _, _ = self.declare_bind_queue(app_name=self.app_name, topic='start', app_specific_extender=required_app)
-
-        # # Publish a message to the topic exchange
-        # self.channel.basic_publish(
-        #     exchange=self.prefix,
-        #     routing_key=topic,
-        #     body=command.json(by_alias=True),
-        #     properties=pika.BasicProperties(expiration='30000')
-        # )
+        # for required_app in required_apps:
+        #     _, _ = self.declare_bind_queue(app_name=self.app_name, topic='start', app_specific_extender=required_app)
 
         self.send_message(app_name=self.app_name, app_topic='start', payload=command.json(by_alias=True))
-
-        # start execution in a background thread
-        # logger.info(f'Init time: {sim_start_time}')
-        # logger.info(f'Duration: {sim_stop_time - sim_start_time}')
-        # logger.info(f'Time Step: {time_step}')
-        # logger.info(f'Wallclock Epoch: {start_time}')
-        # logger.info(f'Time Scale Factor: {type(time_scale_factor)}')
         
         exec_thread = threading.Thread(
             target=self.simulator.execute,
@@ -425,16 +336,7 @@ class Manager(Application):
         )
         exec_thread.start()
 
-        # # Start execution
-        # self.simulator.execute(
-        #     init_time=sim_start_time,
-        #     duration=sim_stop_time - sim_start_time,
-        #     time_step=time_step,
-        #     wallclock_epoch=start_time,
-        #     time_scale_factor=time_scale_factor,
-        # )
-
-    def stop(self, sim_stop_time: datetime, required_apps: List[str] = []) -> None:
+    def stop(self, sim_stop_time: datetime) -> None: #, required_apps: List[str] = []
         """
         Command to stop a test run execution by updating the execution end time and publishing a stop command.
 
@@ -446,34 +348,16 @@ class Manager(Application):
             {"taskingParameters": {"simStopTime": sim_stop_time}}
         )
         logger.info(f"Sending stop command {command.json(by_alias=True)}.")
-        # self.client.publish(
-        #     f"{self.prefix}.{self.app_name}.stop", command.json(by_alias=True)
-        # )
-        # topic = f"{self.prefix}.{self.app_name}.stop"
-        # queue_name = topic #".".join(topic.split(".") + ["queue"])
         
-        for required_app in required_apps:
-            # queue_name = f"{topic}.{required_app}"
-            # self.channel.queue_declare(queue=queue_name, durable=True)
-            # self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic)
-            _, _ = self.declare_bind_queue(app_name=self.app_name, topic='stop', app_specific_extender=required_app)
-
-        # self.channel.queue_declare(queue=queue_name, durable=True)
-        # self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic) #f"{self.prefix}.{self.app_name}.status.time")
+        # for required_app in required_apps:
+        #     _, _ = self.declare_bind_queue(app_name=self.app_name, topic='stop', app_specific_extender=required_app)
 
         self.send_message(app_name=self.app_name, app_topic='stop', payload=command.json(by_alias=True))
-
-        # self.channel.basic_publish(
-        #     exchange=self.prefix,
-        #     routing_key=topic,
-        #     body=command.json(by_alias=True),
-        #     properties=pika.BasicProperties(expiration='30000')
-        # )
 
         # update the execution end time
         self.simulator.set_end_time(sim_stop_time)
 
-    def update(self, time_scale_factor: float, sim_update_time: datetime, required_apps: List[str] = []) -> None:
+    def update(self, time_scale_factor: float, sim_update_time: datetime) -> None: #, required_apps: List[str] = []
         """
         Command to update the time scaling factor for a test run execution by updating the execution time scale factor,
         and publishing an update command.
@@ -492,29 +376,11 @@ class Manager(Application):
             }
         )
         logger.info(f"Sending update command {command.json(by_alias=True)}.")
-        # self.client.publish(
-        #     f"{self.prefix}.{self.app_name}.update", command.json(by_alias=True)
-        # )
-        # topic = f"{self.prefix}.{self.app_name}.update"
-        # queue_name = topic #".".join(topic.split(".") + ["queue"])
         
-        for required_app in required_apps:
-            # queue_name = f"{topic}.{required_app}"
-            # self.channel.queue_declare(queue=queue_name, durable=True)
-            # self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic)
-            _, _ = self.declare_bind_queue(app_name=self.app_name, topic='update', app_specific_extender=required_app)
-
-        # self.channel.queue_declare(queue=queue_name, durable=True)
-        # self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic) #f"{self.prefix}.{self.app_name}.status.time")
+        # for required_app in required_apps:
+        #     _, _ = self.declare_bind_queue(app_name=self.app_name, topic='update', app_specific_extender=required_app)
 
         self.send_message(app_name=self.app_name, app_topic='update', payload=command.json(by_alias=True))
-
-        # self.channel.basic_publish(
-        #     exchange=self.prefix,
-        #     routing_key=topic,
-        #     body=command.json(by_alias=True),
-        #     properties=pika.BasicProperties(expiration='30000')
-        # )
 
         # update the execution time scale factor
         self.simulator.set_time_scale_factor(time_scale_factor, sim_update_time)

@@ -8,6 +8,11 @@ import getpass
 import ssl
 from keycloak.exceptions import KeycloakAuthenticationError
 import functools
+from pika.adapters.asyncio_connection import AsyncioConnection
+import time
+import ntplib
+
+import pika.connection
 
 from .schemas import ReadyStatus
 from .simulator import Simulator
@@ -21,7 +26,30 @@ from .application_utils import (
 logger = logging.getLogger(__name__)
 
 class Application:
+    """
+    Base class for a member application.
+
+    This object class defines the main functionality of a NOS-T application which can be modified for user needs.
+
+    Attributes:
+        prefix (str): The test run namespace (prefix)
+        simulator (:obj:`Simulator`): Application simulator -- calls on the simulator.py class for functionality
+        client (:obj:`Client`): Application MQTT client
+        app_name (str): Test run application name
+        app_description (str): Test run application description (optional)
+        time_status_step (:obj:`timedelta`): Scenario duration between time status messages
+        time_status_init (:obj:`datetime`): Scenario time of first time status message
+    """
+
     def __init__(self, app_name: str, app_description: str = None):
+        """
+        Initializes a new application.
+
+        Args:
+            app_name (str): application name
+            app_description (str): application description (optional)
+        """
+                
         self.simulator = Simulator()
         self.connection = None
         self.channel = None
@@ -38,6 +66,10 @@ class Application:
         self._is_running = False
 
     def ready(self) -> None:
+        """
+        Signals the application is ready to initialize scenario execution.
+        Publishes a :obj:`ReadyStatus` message to the topic `prefix.app_name.status.ready`.
+        """
         status = ReadyStatus.parse_obj(
             {
                 "name": self.app_name,
@@ -46,27 +78,26 @@ class Application:
             }
         )
 
-        # # Declare topic and queue names
-        # topic = f"{self.prefix}.{self.app_name}.status.ready"
-        # queue_name = topic #".".join(topic.split(".") + ["queue"]) 
-
-        # # Declare a queue and bind it to the exchange with the routing key
-        # self.channel.queue_declare(queue=queue_name, durable=True)
-        # self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic) #f"{self.prefix}.{self.app_name}.status.time")
-
         routing_key, queue_name = self.declare_bind_queue(app_name=self.app_name, topic='status.ready')
         
         # Expiration of 60000 ms = 60 sec
         self.channel.basic_publish(
             exchange=self.prefix,
-            routing_key=routing_key, #f"{self.prefix}.{self.app_name}.status.ready",
+            routing_key=routing_key,
             body=status.json(by_alias=True, exclude_none=True),
             properties=pika.BasicProperties(expiration='30000')
         )
 
     def new_access_token(self, config, refresh_token=None):
+        """
+        Obtains a new access token and refresh token from Keycloak. If a refresh token is provided, the access token is refreshed using the refresh token. Otherwise, the access token is obtained using the username and password provided in the configuration.
+        
+        Args:
+            config (:obj:`ConnectionConfig`): connection configuration
+            refresh_token (str): refresh token (optional)
+        """
 
-        keycloak_openid = KeycloakOpenID(server_url=f'{'http' if 'localhost' in config.host else 'https'}://{config.host}:{config.keycloak_port}', #"http://localhost:8080/",
+        keycloak_openid = KeycloakOpenID(server_url=f'{'http' if 'localhost' in config.host else 'https'}://{config.host}:{config.keycloak_port}',
                                         client_id=config.client_id,
                                         realm_name="test",
                                         client_secret_key=config.client_secret_key
@@ -112,6 +143,19 @@ class Application:
         time_status_init: datetime = None,
         shut_down_when_terminated: bool = False,
     ) -> None:
+        """
+        Starts up the application to prepare for scenario execution.
+        Connects to the message broker and starts a background event loop by establishing the simulation prefix,
+        the connection configuration, and the intervals for publishing time status messages.
+
+        Args:
+            prefix (str): messaging namespace (prefix)
+            config (:obj:`ConnectionConfig`): connection configuration
+            set_offset (bool): True, if the system clock offset shall be set using a NTP request prior to execution
+            time_status_step (:obj:`timedelta`): scenario duration between time status messages
+            time_status_init (:obj:`datetime`): scenario time for first time status message
+            shut_down_when_terminated (bool): True, if the application should shut down when the simulation is terminated
+        """
         if set_offset:
             self.set_wallclock_offset()
         self.prefix = prefix
@@ -154,41 +198,43 @@ class Application:
         logger.info(f"Application {self.app_name} successfully started up.")
 
     def _start_io_loop(self):
+        """
+        Starts the I/O loop for the connection.
+        """
         while self._is_running:
             self.connection.ioloop.start()
 
-    def start_event_loop(self):
-        # self.connection.ioloop.start()
-        logger.info("Starting threaded consumer.")
-        while True:
-            try:
-                # pass
-                self.connection.ioloop.start()
-                # self.run()
-                # self._start_event_loop()
-            except KeyboardInterrupt:
-                self.stop()
-                break
-            # self._maybe_reconnect()
-
     def on_channel_open(self, channel):
+        """
+        Callback function for when the channel is opened.
+        
+        Args:
+            channel (:obj:`pika.channel.Channel`): channel object
+        """
         self.channel = channel
         # Signal that connection is established
         self._is_connected.set()
 
     def on_connection_error(self, connection, error):
+        """
+        Callback function for when a connection error occurs.
+
+        Args:
+            connection (:obj:`pika.connection.Connection`): connection object
+            error (Exception): exception representing reason for loss of connection
+        """
         logger.error(f"Connection error: {error}")
         self._is_connected.clear()
 
     def on_connection_closed(self, connection, reason):
-        """This method is invoked by pika when the connection to RabbitMQ is
+        """
+        This method is invoked by pika when the connection to RabbitMQ is
         closed unexpectedly. Since it is unexpected, we will reconnect to
         RabbitMQ if it disconnects.
 
-        :param pika.connection.Connection connection: The closed connection obj
-        :param Exception reason: exception representing reason for loss of
-            connection.
-
+        Args:
+            connection (:obj:`pika.connection.Connection`): closed connection object
+            reason (Exception): exception representing reason for loss of connection
         """
         self.channel = None
         if self.closing:
@@ -196,16 +242,29 @@ class Application:
 
 
     def shut_down(self) -> None:
+        """
+        Shuts down the application by stopping the background event loop and disconnecting from the broker.
+        """
         self._should_stop.set()
         if self._time_status_publisher is not None:
             self.simulator.remove_observer(self._time_status_publisher)
         self._time_status_publisher = None
         if self.connection:
-            self.connection.close()
+            self.stop_application() # self.connection.ioloop.close()
+            # self.connection.close()
+            self.consuming = False
         logger.info(f"Application {self.app_name} successfully shut down.")
 
     def send_message(self, app_name, app_topic: str, payload: str, app_specific_extender: str = None) -> None:
-
+        """
+        Sends a message to the broker. The message is sent to the exchange using the routing key. The routing key is created using the application name and topic. The message is published with an expiration of 60 seconds.
+        
+        Args:
+            app_name (str): application name
+            app_topic (str): topic name
+            payload (str): message payload
+            app_specific_extender (str): application specific extender, used to create a unique queue name for the application. If the app_specific_extender is not provided, the queue name is the same as the routing key.
+        """
         if app_specific_extender:
             routing_key, queue_name = self.declare_bind_queue(app_name=app_name, topic=app_topic, app_specific_extender=app_specific_extender)
 
@@ -223,14 +282,14 @@ class Application:
         logger.debug(f'Successfully sent message "{payload}" to topic "{routing_key}".')
 
     def add_message_callback(self, app_name: str, app_topic: str, user_callback: Callable, app_specific_extender: str = None):
-        """This method sets up the consumer by first calling
+        """
+        This method sets up the consumer by first calling
         add_on_cancel_callback so that the object is notified if RabbitMQ
         cancels the consumer. It then issues the Basic.Consume RPC command
         which returns the consumer tag that is used to uniquely identify the
         consumer with RabbitMQ. We keep the value to use it when we want to
         cancel consuming. The on_message method is passed in as a callback pika
         will invoke when a message is fully received.
-
         """
         self.was_consuming = True
         self.consuming = True
@@ -345,16 +404,15 @@ class Application:
         Channel.Close RPC command.
 
         """
-        logger.info('Closing the channel')
+        logger.info('Closing channel')
         self.channel.close()
 
     def stop_loop(self):
         """Stop the IO loop
         """
         self.connection.ioloop.stop()
-        # self.connection.ioloop.clo
 
-    def stop(self):
+    def stop_application(self):
         """Cleanly shutdown the connection to RabbitMQ by stopping the consumer
         with RabbitMQ. When RabbitMQ confirms the cancellation, on_cancelok
         will be invoked by pika, which will then closing the channel and
@@ -386,7 +444,7 @@ class Application:
         if self._consumer_tag:
             logger.info('Cancelling the consumer')
             # self.channel.basic_cancel(self._consumer_tag)
-            self.stop()
+            self.stop_application()
             self._consumer_tag = None
             self.was_consuming = False
             self.consuming = False
@@ -395,12 +453,39 @@ class Application:
             logger.warning('No consumer to cancel')
 
 
-    def set_wallclock_offset(self, host="pool.ntp.org", retry_delay_s: int = 5, max_retry: int = 5) -> None:
-        # Implementation for setting wallclock offset
-        pass
+    def set_wallclock_offset(
+        self, host="pool.ntp.org", retry_delay_s: int = 5, max_retry: int = 5
+    ) -> None:
+        """
+        Issues a Network Time Protocol (NTP) request to determine the system clock offset.
 
-    # Helper methods for creating and managing observers
+        Args:
+            host (str): NTP host (default: 'pool.ntp.org')
+            retry_delay_s (int): number of seconds to wait before retrying
+            max_retry (int): maximum number of retries allowed
+        """
+        for i in range(max_retry):
+            try:
+                logger.info(f"Contacting {host} to retrieve wallclock offset.")
+                response = ntplib.NTPClient().request(host, version=3, timeout=2)
+                offset = timedelta(seconds=response.offset)
+                self.simulator.set_wallclock_offset(offset)
+                logger.info(f"Wallclock offset updated to {offset}.")
+                return
+            except ntplib.NTPException:
+                logger.warn(
+                    f"Could not connect to {host}, attempt #{i+1}/{max_retry} in {retry_delay_s} s."
+                )
+                time.sleep(retry_delay_s)
+
     def _create_time_status_publisher(self, time_status_step: timedelta, time_status_init: datetime) -> None:
+        """
+        Creates a new time status publisher to publish the time status when it changes.
+
+        Args:
+            time_status_step (:obj:`timedelta`): scenario duration between time status messages
+            time_status_init (:obj:`datetime`): scenario time for first time status message
+        """
         if time_status_step is not None:
             if self._time_status_publisher is not None:
                 self.simulator.remove_observer(self._time_status_publisher)
@@ -408,24 +493,42 @@ class Application:
             self.simulator.add_observer(self._time_status_publisher)
 
     def _create_mode_status_observer(self) -> None:
+        """
+        Creates a mode status observer to publish the mode status when it changes.
+        """
         if self._mode_status_observer is not None:
             self.simulator.remove_observer(self._mode_status_observer)
         self._mode_status_observer = ModeStatusObserver(self)
         self.simulator.add_observer(self._mode_status_observer)
 
     def _create_shut_down_observer(self) -> None:
+        """
+        Creates an observer to shut down the application when the simulation is terminated.
+        """
         if self._shut_down_observer is not None:
             self.simulator.remove_observer(self._shut_down_observer)
         self._shut_down_observer = ShutDownObserver(self)
         self.simulator.add_observer(self._shut_down_observer)
 
     def create_routing_key(self, app_name: str, topic: str):
-        # routing_key = f"{self.prefix}.{self.app_name}.{topic}"
+        """
+        Creates a routing key for the application. The routing key is used to bind the queue to the exchange.
+
+        Args:
+            app_name (str): application name
+            topic (str): topic name
+        """
         routing_key = '.'.join([self.prefix, app_name, topic])
         return routing_key
 
     def declare_bind_queue(self, app_name: str, topic: str, app_specific_extender: str = None) -> None:
-        
+        """
+        Declares and binds a queue to the exchange. The queue is bound to the exchange using the routing key. The routing key is created using the application name and topic.
+        Args:
+            app_name (str): application name
+            topic (str): topic name 
+            app_specific_extender (str): application specific extender, used to create a unique queue name for the application. If the app_specific_extender is not provided, the queue name is the same as the routing key.
+        """
         try:
 
             self.channel.exchange_declare(exchange=self.prefix, exchange_type='topic', durable=True)

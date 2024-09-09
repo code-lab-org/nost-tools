@@ -84,21 +84,6 @@ class ManagedApplication(Application):
         )
         self.time_step = time_step
         self.manager_app_name = manager_app_name
-        # topic = f"{self.prefix}.{self.manager_app_name}.#"
-        # queue_name = topic #".".join(topic.split(".") + ["queue"])
-
-        # Declare the queues
-        queues = ["init", "start", "stop", "update"] # "#"]
-        # for queue in queues:
-            # self.declare_bind_queue(prefix=prefix, manager_app_name=manager_app_name, queue=queue)
-     
-            # topic = f"{prefix}.{manager_app_name}.{queue}"
-            # queue_name = f"{topic}.{self.app_name}" #topic #f"{topic}.{self.app_name}"
-            # self.channel.queue_declare(queue=queue_name, durable=True)
-            # self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=topic)
-
-            # _, _ = self.declare_bind_queue(app_name=manager_app_name, topic=queue, app_specific_extender=self.app_name)
-        
 
         # Register callback functions
         self.add_message_callback(app_name=manager_app_name, app_topic='init', app_specific_extender=self.app_name, user_callback=self.on_manager_init)
@@ -106,46 +91,11 @@ class ManagedApplication(Application):
         self.add_message_callback(app_name=manager_app_name, app_topic='stop', app_specific_extender=self.app_name, user_callback=self.on_manager_stop)
         self.add_message_callback(app_name=manager_app_name, app_topic='update', app_specific_extender=self.app_name, user_callback=self.on_manager_update)
 
-        # # Register callback functions
-        # self.channel.basic_consume(
-        #     queue=f"{prefix}.{manager_app_name}.init.{self.app_name}", on_message_callback=self.on_manager_init, auto_ack=False #True
-        # )
-        # self.channel.basic_consume(
-        #     queue=f"{prefix}.{manager_app_name}.start.{self.app_name}", on_message_callback=self.on_manager_start, auto_ack=False #True
-        # )
-        # self.channel.basic_consume(
-        #     queue=f"{prefix}.{manager_app_name}.stop.{self.app_name}", on_message_callback=self.on_manager_stop, auto_ack=False #True
-        # )
-        # self.channel.basic_consume(
-        #     queue=f"{prefix}.{manager_app_name}.update.{self.app_name}", on_message_callback=self.on_manager_update, auto_ack=False #True
-        # )
-
     def shut_down(self) -> None:
         """
             Shuts down the application by stopping the background event loop and disconnecting
             the application from the broker.
         """
-        # # unregister callback functions
-        # self.client.message_callback_remove(
-        #     # f"{self.prefix}/{self.manager_app_name}/init"
-        #     f"{self.prefix}.{self.manager_app_name}.init"
-        # )
-        # self.client.message_callback_remove(
-        #     # f"{self.prefix}/{self.manager_app_name}/start"
-        #     f"{self.prefix}.{self.manager_app_name}.start"
-        # )
-        # self.client.message_callback_remove(
-        #     # f"{self.prefix}/{self.manager_app_name}/stop"
-        #     f"{self.prefix}.{self.manager_app_name}.stop"
-        # )
-        # self.client.message_callback_remove(
-        #     # f"{self.prefix}/{self.manager_app_name}/update"
-        #     f"{self.prefix}.{self.manager_app_name}.update"
-        # )
-
-        # self.channel.stop_consuming()
-        # self.connection.close()
-
         # shut down base application
         super().shut_down()
 
@@ -160,9 +110,7 @@ class ManagedApplication(Application):
             message (:obj:`paho.mqtt.client.MQTTMessage`): MQTT message
         """
         try:
-            # Acknowledge message
-            # ch.basic_ack(delivery_tag=method.delivery_tag)
-            # parse message payload
+            # Parse message payload
             message = body.decode('utf-8')
             params = InitCommand.parse_raw(message).tasking_parameters
             # update default execution start/end time
@@ -188,9 +136,7 @@ class ManagedApplication(Application):
             userdata (object): private user data as set in the client
             message (:obj:`paho.mqtt.client.MQTTMessage`): MQTT message
         """
-        # Acknowledge message
-        # ch.basic_ack(delivery_tag=method.delivery_tag)
-        # parse message payload
+        # Parse message payload
         message = body.decode('utf-8')
         params = StartCommand.parse_raw(message).tasking_parameters
         logger.info(f"Received start command {params}")
@@ -204,12 +150,6 @@ class ManagedApplication(Application):
             if params.sim_stop_time is not None:
                 self._sim_stop_time = params.sim_stop_time
                 logger.info(f'Sim stop time: {params.sim_stop_time}')
-            # start execution in a background thread
-            # logger.info(f'Init time: {self._sim_start_time}')
-            # logger.info(f'Duration: {self._sim_stop_time - self._sim_start_time}')
-            # logger.info(f'Time Step: {self.time_step}')
-            # logger.info(f'Wallclock Epoch: {params.start_time}')
-            # logger.info(f'Time Scale Factor: {type(params.time_scaling_factor)}')
 
             threading.Thread(
                 target=self.simulator.execute,
@@ -222,19 +162,8 @@ class ManagedApplication(Application):
                     },
                 ).start()
 
-            # # Start execution
-            # self.simulator.execute(
-            #     init_time=self._sim_start_time,
-            #     duration=self._sim_stop_time - self._sim_start_time,
-            #     time_step=self.time_step,
-            #     wallclock_epoch=params.start_time,
-            #     time_scale_factor=params.time_scaling_factor)
-            
-            logger.info('EXECUTION COMPLETED SUCCESSFULLY.')
-
         except Exception as e:
             logger.error(
-                # f"Exception (topic: {message.topic}, payload: {message.payload}): {e}"
                 f"Exception (topic: {method.routing_key}, payload: {message}): {e}"
             )
             print(traceback.format_exc())
@@ -250,9 +179,7 @@ class ManagedApplication(Application):
             message (:obj:`paho.mqtt.client.MQTTMessage`): MQTT message
         """
         try:
-            # Acknowledge message
-            # ch.basic_ack(delivery_tag=method.delivery_tag)
-            # parse message payload
+            # Parse message payload
             message = body.decode('utf-8')
             params = StopCommand.parse_raw(message).tasking_parameters
             logger.info(f"Received stop command {message}")
@@ -260,7 +187,6 @@ class ManagedApplication(Application):
             self.simulator.set_end_time(params.sim_stop_time)
         except Exception as e:
             logger.error(
-                # f"Exception (topic: {message.topic}, payload: {message.payload}): {e}"
                 f"Exception (topic: {method.routing_key}, payload: {message}): {e}"
             )
             print(traceback.format_exc())
@@ -275,10 +201,8 @@ class ManagedApplication(Application):
             userdata (object): private user data as set in the client
             message (:obj:`paho.mqtt.client.MQTTMessage`): MQTT message
         """
-        try:
-            # Acknowledge message
-            # ch.basic_ack(delivery_tag=method.delivery_tag)            
-            # parse message payload
+        try:       
+            # Parse message payload
             message = body.decode('utf-8')
             params = UpdateCommand.parse_raw(message).tasking_parameters
             logger.info(f"Received update command {message}")
@@ -288,7 +212,6 @@ class ManagedApplication(Application):
             )
         except Exception as e:
             logger.error(
-                # f"Exception (topic: {message.topic}, payload: {message.payload}): {e}"
                 f"Exception (topic: {method.routing_key}, payload: {message}): {e}"
             )
             print(traceback.format_exc())
