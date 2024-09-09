@@ -77,17 +77,6 @@ class Application:
                 "properties": {"ready": True},
             }
         )
-
-        # routing_key, queue_name = self.declare_bind_queue(app_name=self.app_name, topic='status.ready')
-        
-        # # Expiration of 60000 ms = 60 sec
-        # self.channel.basic_publish(
-        #     exchange=self.prefix,
-        #     routing_key=routing_key,
-        #     body=status.json(by_alias=True, exclude_none=True),
-        #     properties=pika.BasicProperties(expiration='30000')
-        # )
-
         self.send_message(app_name=self.app_name, app_topic='status.ready', payload=status.json(by_alias=True, exclude_none=True))
 
     def new_access_token(self, config, refresh_token=None):
