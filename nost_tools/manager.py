@@ -185,7 +185,7 @@ class Manager(Application):
             )
         )
         # issue the stop command
-        self.stop(sim_stop_time) #, required_apps)
+        self.stop(sim_stop_time)
 
     def on_app_ready_status(
         self, ch, method, properties, body
@@ -203,7 +203,6 @@ class Manager(Application):
             # split the message topic into components (prefix/app_name/...)
             topic_parts = method.routing_key.split(".")
             message = body.decode('utf-8')
-            logger.info(f"Received ready status message: {message}")
             # check if app_name is monitored in the ready_status dict
             if len(topic_parts) > 1 and topic_parts[1] in self.required_apps_status:
                 # validate if message is a valid JSON
