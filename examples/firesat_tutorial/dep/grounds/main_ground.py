@@ -10,7 +10,6 @@ from datetime import timedelta
 import logging
 from datetime import datetime, timezone
 from dotenv import dotenv_values
-import threading
 
 from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
 from nost_tools.simulator import Simulator, Mode
@@ -25,7 +24,6 @@ from ground_config_files.config import (
 )
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger() #__name__)
 
 # define an observer to manage ground updates
 class Environment(Observer):
@@ -54,7 +52,6 @@ class Environment(Observer):
         if property_name == Simulator.PROPERTY_MODE and new_value == Mode.EXECUTING:
             for index, ground in self.grounds.iterrows():
                 self.app.send_message(
-                    self.app.app_name,
                     "location",
                     GroundLocation(
                         groundId=ground.groundId,
@@ -68,37 +65,15 @@ class Environment(Observer):
 
 # name guard used to ensure script only executes if it is run as the __main__
 if __name__ == "__main__":
-    # # Note that these are loaded from a .env file in current working directory
-    # credentials = dotenv_values(".env")
-    # HOST, PORT = credentials["HOST"], int(credentials["PORT"])
-    # USERNAME, PASSWORD = credentials["USERNAME"], credentials["PASSWORD"]
-
-    # # set the client credentials
-    # config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, False)
-
-    # Load credentials from a .env file in current working directory
+    # Note that these are loaded from a .env file in current working directory
     credentials = dotenv_values(".env")
-    HOST, RABBITMQ_PORT, KEYCLOAK_PORT = credentials["HOST"], int(credentials["RABBITMQ_PORT"]), int(credentials["KEYCLOAK_PORT"])
+    HOST, PORT = credentials["HOST"], int(credentials["PORT"])
     USERNAME, PASSWORD = credentials["USERNAME"], credentials["PASSWORD"]
-    CLIENT_ID = credentials["CLIENT_ID"]
-    CLIENT_SECRET_KEY = credentials["CLIENT_SECRET_KEY"]
-    VIRTUAL_HOST = credentials["VIRTUAL_HOST"]
-    IS_TLS = credentials["IS_TLS"].lower() == 'true'  # Convert to boolean
-
-    # Set the client credentials from the config file
-    config = ConnectionConfig(
-        USERNAME,
-        PASSWORD,
-        HOST,
-        RABBITMQ_PORT,
-        KEYCLOAK_PORT,
-        CLIENT_ID,
-        CLIENT_SECRET_KEY,
-        VIRTUAL_HOST,
-        IS_TLS)
+    # set the client credentials
+    config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, True)
 
     # create the managed application
-    app = ManagedApplication("ground") #, config=config)
+    app = ManagedApplication("ground")
 
     # add the environment observer to monitor simulation for switch to EXECUTING mode
     app.simulator.add_observer(Environment(app, GROUND))
@@ -114,17 +89,4 @@ if __name__ == "__main__":
         time_status_step=timedelta(seconds=10) * SCALE,
         time_status_init=datetime(2020, 1, 1, 7, 20, tzinfo=timezone.utc),
         time_step=timedelta(seconds=1) * SCALE,
-        # shut_down_when_terminated=True,
     )
-    
-    # app.ready()
-
-    # app.channel.start_consuming()
-    # mq_recieve_thread = threading.Thread(target=app.channel.start_consuming)
-    # mq_recieve_thread.start()
-
-    while True:
-        pass
-
-    # while app.consuming:
-    #     pass
