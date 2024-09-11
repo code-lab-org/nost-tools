@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>NOS-T</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cesium.com/downloads/cesiumjs/releases/1.85/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" crossorigin="anonymous">
+    <script type="text/javascript" src="env.js"></script>
+</head>
+<body>
+    <main role="main" class="container-fluid">
+        <div id="cesiumContainer"></div>
+    </main>
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.85/Build/Cesium/Cesium.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/amqp/1.0.0/amqp.min.js" type="text/javascript"></script> <!-- Load AMQP library -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    <script>
+        var CESIUM_ACCESS_TOKEN = TOKEN;
+        var BROKER_HOST = HOST;
+        var BROKER_PORT = PORT;
+        var BROKER_CLIENT_USERNAME = USERNAME;
+        var BROKER_CLIENT_PASSWORD = PASSWORD;
+
+        $(document).ready(function() {
+            Cesium.Ion.defaultAccessToken = CESIUM_ACCESS_TOKEN;
+            var clock = new Cesium.Clock({
+                currentTime: Cesium.JulianDate.fromIso8601("1900-01-01"),
+                clockStep: Cesium.ClockStep.SYSTEM_CLOCK_MULTIPLIER,
+                multiplier: 0,
+                shouldAnimate: false,
+            });
+            const viewer = new Cesium.Viewer('cesiumContainer', {
+                terrainProvider: Cesium.createWorldTerrain(),
+                baseLayerPicker: false,
+                homeButton: false,
+                infoBox: false,
+                geocoder: false,
+                selectionIndicator: false,
+                navigationHelpButton: false,
+                navigationInstructionsInitiallyVisible: false,
+                timeline: true,
+                imageryProvider: new Cesium.IonImageryProvider({ assetId: 3845 }),
+                clockViewModel: new Cesium.ClockViewModel(clock)
+            });
+
+            var conn = new AMQP.Connection(BROKER_HOST, BROKER_PORT, {
+                username: BROKER_CLIENT_USERNAME,
+                password: BROKER_CLIENT_PASSWORD,
+                vhost: '/',
+                protocol: 'amqp',
+                frameMax: 0,
+                heartbeat: 0,
+                connectionTimeout: 10000,
+                failIfNoPeerCert: false,
+                servername: '',
+                noDelay: true,
+                ssl: { enabled: true }
+            });
+
+            var channel;
+            var satellites = {};
+            var sensorCircles = {};
+            var commsCones = {};
+            var commsRange = false;
+            var satColor = Cesium.Color.BLUE;
+            var fires = viewer.scene.primitives.add(new Cesium.PointPrimitiveCollection());
+            var grounds = {};
+            var updates = {};
+
+            conn.on('error', function(err) {
+                console.error('Connection error:', err);
+            });
+
+            conn.open(function() {
+                conn.createChannel(function(err, ch) {
+                    if (err) {
+                        console.error('Channel creation error:', err);
+                        return;
+                    }
+                    channel = ch;
+                    channel.assertExchange('greenfield', 'topic', { durable: true });
+
+                    var queue = channel.assertQueue('', { exclusive: true }, function(err, q) {
+                        if (err) {
+                            console.error('Queue assertion error:', err);
+                            return;
+                        }
+
+                        // Subscribe to all topics under 'greenfield'
+                        channel.bindQueue(q.queue, 'greenfield', '#');
+
+                        channel.consume(q.queue, function(msg) {
+                            if (msg.content) {
+                                var payload = msg.content.toString();
+                                var topic = msg.fields.routingKey.replace(/\//g, '.');
+                                handleMessage(topic, payload);
+                            }
+                        }, { noAck: true });
+                    });
+                });
+            });
+
+            function handleMessage(topic, payload) {
+                try {
+                    payload = JSON.parse(payload);
+
+                    if(topic === "greenfield.manager.init") {
+                        viewer.clockViewModel.currentTime = Cesium.JulianDate.fromIso8601(payload.taskingParameters.simStartTime);
+                        viewer.clockViewModel.startTime = Cesium.JulianDate.fromIso8601(payload.taskingParameters.simStartTime);
+                        viewer.clockViewModel.stopTime = Cesium.JulianDate.fromIso8601(payload.taskingParameters.simStopTime);
+                        viewer.clockViewModel.clockRange = Cesium.ClockRange.CLAMPED;
+                        viewer.timeline.zoomTo(viewer.clockViewModel.startTime, viewer.clockViewModel.stopTime);
+                    } else if(topic === "greenfield.manager.start") {
+                        viewer.clockViewModel.multiplier = payload.taskingParameters.timeScalingFactor;
+                    } else if(topic === "greenfield.manager.time" || topic === "greenfield.manager.status.time") {
+                        viewer.clockViewModel.currentTime = Cesium.JulianDate.fromIso8601(payload.properties.simTime);
+                        viewer.timeline.updateFromClock();
+                    } else if(topic === "greenfield.manager.update") {
+                        viewer.clockViewModel.multiplier = payload.taskingParameters.timeScalingFactor;
+                    } else if(topic === "greenfield.constellation.location") {
+                        commRange = payload.commRange;
+                        satColor = commRange ? Cesium.Color.GREEN : Cesium.Color.BLUE;
+
+                        if(satellites[payload.id]) {
+                            satellites[payload.id].position = Cesium.Cartesian3.fromDegrees(
+                                payload.longitude,
+                                payload.latitude,
+                                payload.altitude
+                            );
+                            satellites[payload.id].point.color = satColor;
+                            sensorCircles[payload.id].ellipse.semiMajorAxis = payload.radius;
+                            sensorCircles[payload.id].ellipse.semiMinorAxis = payload.radius;
+                            sensorCircles[payload.id].position = Cesium.Cartesian3.fromDegrees(
+                                payload.longitude,
+                                payload.latitude
+                            );
+                        } else {
+                            satellites[payload.id] = viewer.entities.add({
+                                position: Cesium.Cartesian3.fromDegrees(
+                                    payload.longitude,
+                                    payload.latitude,
+                                    payload.altitude
+                                ),
+                                point: {
+                                    pixelSize: 8,
+                                    color: satColor
+                                },
+                                label: {
+                                    text: payload.name,
+                                    font: "12px Georgia",
+                                    fillColor: Cesium.Color.SKYBLUE,
+                                    outlineColor: Cesium.Color.BLACK,
+                                    outlineWidth: 2,
+                                    style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                                    pixelOffset: new Cesium.Cartesian2(40.0, 8.0),
+                                    pixelOffsetScaleByDistance: new Cesium.NearFarScalar(
+                                        1.5e2,
+                                        3.0,
+                                        1.5e7,
+                                        0.5
+                                    ),
+                                    scaleByDistance: new Cesium.NearFarScalar(1.5e2, 2.0, 1.5e7, 0.5),
+                                    translucencyByDistance: new Cesium.NearFarScalar(
+                                        1.5e2,
+                                        1.0,
+                                        1.5e8,
+                                        0.0
+                                    ),
+                                },
+                                show: true
+                            });
+                            sensorCircles[payload.id] = viewer.entities.add({
+                                position: Cesium.Cartesian3.fromDegrees(
+                                    payload.longitude,
+                                    payload.latitude
+                                ),
+                                ellipse: {
+                                    semiMajorAxis: payload.radius,
+                                    semiMinorAxis: payload.radius,
+                                    material: Cesium.Color.BLUE.withAlpha(0.2)
+                                }
+                            });
+                        }
+                    } else if(topic === "greenfield.fire.location") {
+                        fires.add({
+                            position: new Cesium.Cartesian3.fromDegrees(
+                                payload.longitude,
+                                payload.latitude
+                            ),
+                            pixelSize: 8,
+                            color: Cesium.Color.RED,
+                            show: true
+                        });
+                    } else if(topic === "greenfield.constellation.detected") {
+                        fires.get(payload.fireId).color = Cesium.Color.DARKORANGE;
+                    } else if(topic === "greenfield.constellation.reported") {
+                        fires.get(payload.fireId).color = Cesium.Color.YELLOW;
+                    } else if(topic === "greenfield.ground.location") {
+                        var activeCheck = payload.operational;
+                        var groundColor = activeCheck ? Cesium.Color.PINK : Cesium.Color.LIGHTGRAY;
+                        var groundMaterial = groundColor.withAlpha(0.1);
+
+                        if (!grounds[payload.groundId]) {
+                            grounds[payload.groundId] = viewer.entities.add({
+                                position: Cesium.Cartesian3.fromDegrees(
+                                    payload.longitude,
+                                    payload.latitude
+                                ),
+                                point: {
+                                    pixelSize: 8,
+                                    color: groundColor
+                                },
+                                show: true
+                            });
+                            commsCones[payload.groundId] = viewer.entities.add({
+                                position: Cesium.Cartesian3.fromDegrees(
+                                    payload.longitude,
+                                    payload.latitude,
+                                    100000.0
+                                ),
+                                cylinder: {
+                                    length: 200000.0,
+                                    topRadius: 200000.0 * Math.tan((90 - payload.elevAngle) * Math.PI / 180),
+                                    bottomRadius: 0.0,
+                                    material: groundMaterial,
+                                    outline: true,
+                                    outlineWidth: 1.0,
+                                }
+                            });
+                        }
+                    }
+                } catch (err) {
+                    console.log('An error was caught somewhere...', err);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

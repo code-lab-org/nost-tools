@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>AMQP Connection Test</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-5">AMQP Connection Test</h1>
+        <div id="status" class="alert alert-info mt-3">Connecting...</div>
+    </div>
+    <script type="module">
+        const status = document.getElementById("status");
+        import { AMQPWebSocketClient } from './js/amqp-websocket-client.mjs';
+    
+        const url = `ws://localhost:15670`;
+        fetch('http://localhost:8080/realms/test/protocol/openid-connect/token', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({
+                'client_id': 'producer',
+                'client_secret': 'kbOFBXI9tANgKUq8vXHLhT6YhbivgXxn',
+                'grant_type': 'client_credentials'
+            })
+        }).then(response => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                throw new Error('Failed to obtain access token');
+            }
+        }).then(data => {
+            console.log(data.access_token);
+            const accessToken = data.access_token;
+            const amqp = new AMQPWebSocketClient(url, "/", "", accessToken);
+            async function start(amqp) {
+                try {
+                    const conn = await amqp.connect();
+                    const ch = await conn.channel();
+                    status.innerText = "Connected";
+                } catch (err) {
+                    console.error("Error", err, "reconnecting in 1s");
+                    status.innerText = "Connection Failed";
+                    setTimeout(() => start(amqp), 1000);
+                }
+            }
+            start(amqp);
+        }).catch(error => {
+            console.error(error);
+        });
+    </script>
+</body>
+</html>
