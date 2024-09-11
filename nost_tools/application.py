@@ -11,6 +11,7 @@ import functools
 from pika.adapters.asyncio_connection import AsyncioConnection
 import time
 import ntplib
+import sys
 
 import pika.connection
 
@@ -64,6 +65,7 @@ class Application:
         self.consuming = False
         self.closing = False
         self._is_running = False
+        self.io_thread = None
 
     def ready(self) -> None:
         """
@@ -165,8 +167,13 @@ class Application:
             on_close_callback=self.on_connection_closed,
         )
         # Start the I/O loop in a separate thread
-        threading.Thread(target=self._start_io_loop).start()
+        # threading.Thread(target=self._start_io_loop).start()
+        # self._is_connected.wait()
+        self.stop_event = threading.Event()
+        self.io_thread = threading.Thread(target=self._start_io_loop)
+        self.io_thread.start()
         self._is_connected.wait()
+        
         # Configure observers
         self._create_time_status_publisher(time_status_step, time_status_init)
         self._create_mode_status_observer()
@@ -178,7 +185,10 @@ class Application:
         """
         Starts the I/O loop for the connection.
         """
-        while self._is_running:
+        self.stop_event = threading.Event()
+
+        # while self._is_running:
+        while not self.stop_event.is_set():
             self.connection.ioloop.start()
 
     def on_channel_open(self, channel):
@@ -225,9 +235,11 @@ class Application:
         if self._time_status_publisher is not None:
             self.simulator.remove_observer(self._time_status_publisher)
         self._time_status_publisher = None
+
         if self.connection:
             self.stop_application()
             self.consuming = False
+        
         logger.info(f"Application {self.app_name} successfully shut down.")
 
     def send_message(self, app_name, app_topic: str, payload: str, app_specific_extender: str = None) -> None:
@@ -384,12 +396,16 @@ class Application:
         """
         if not self.closing:
             self.closing = True
-            logger.info('Stopping')
             if self.consuming:
                 self.stop_consuming()
+                # Signal the thread to stop
+                if hasattr(self, 'stop_event'):
+                    self.stop_event.set()
+                if hasattr(self, 'io_thread'):
+                    self.io_thread.join()
+                sys.exit()
             else:
                 self.connection.ioloop.stop()
-            logger.info('Stopped')
 
     def remove_message_callback(self):
         """This method cancels the consumer by issuing the Basic.Cancel RPC command

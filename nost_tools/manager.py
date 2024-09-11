@@ -131,6 +131,7 @@ class Manager(Application):
             ):
                 time.sleep(0.001)
         # self.remove_message_callback("*", "status.ready")
+        # self.remove_message_callback()
         # configure start time
         if start_time is None:
             start_time = self.simulator.get_wallclock_time() + command_lead

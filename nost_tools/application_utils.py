@@ -89,14 +89,6 @@ class ShutDownObserver(Observer):
         """
         if property_name == Simulator.PROPERTY_MODE and new_value == Mode.TERMINATED:
             self.app.shut_down()
-            
-            # # Signal all threads to exit
-            # for thread in threading.enumerate():
-            #     if thread is not threading.main_thread():
-            #         thread.do_run = False
-            #         thread.join()
-
-            # exit()
 
 class TimeStatusPublisher(ScenarioTimeIntervalPublisher):
     """
