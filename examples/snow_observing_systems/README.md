@@ -12,7 +12,7 @@ This project visualizes the position and sensor radius of the CAPELLA-14 (ACADIA
 
 ## Environment Variables
 
-The **env.js** file must contain the Cesium API token in the following format:
+You must create the **env.js** file at ```nost-tools/examples/snow_observing_systems```, which contains the Cesium API token in the following format:
 
 ```
 var TOKEN="your_cesium_api_token"
