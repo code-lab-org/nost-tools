@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Satellite Position Visualization</title>
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.88/Build/Cesium/Cesium.js"></script>
+    <link href="https://cesium.com/downloads/cesiumjs/releases/1.88/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+    <style>
+        #cesiumContainer {
+            width: 100%; 
+            height: 100vh; 
+            margin: 0; 
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="cesiumContainer"></div>
+    <script src="env.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            Cesium.Ion.defaultAccessToken = TOKEN;
+
+            const viewer = new Cesium.Viewer('cesiumContainer');
+            const positions = [];
+            const previousSensorCircles = [];
+            let firstUpdate = true;
+            let previousLabelEntity = null;
+
+            async function updateSatellitePosition() {
+                const response = await fetch('/get_position');
+                const data = await response.json();
+
+                const position = Cesium.Cartesian3.fromDegrees(data.longitude, data.latitude, data.altitude * 1000);
+                positions.push(position);
+
+                // Remove previous sensor circles
+                previousSensorCircles.forEach(circle => {
+                    viewer.scene.primitives.remove(circle);
+                });
+                previousSensorCircles.length = 0;
+        
+                // Remove previous label entity
+                if (previousLabelEntity) {
+                    viewer.entities.remove(previousLabelEntity);
+                }
+        
+                // Add current position as red point with label
+                previousLabelEntity = viewer.entities.add({
+                    position: position,
+                    point: {
+                        pixelSize: 10,
+                        color: Cesium.Color.RED
+                    },
+                    label: {
+                        text: `{name: ${data.name},\nlatitude: ${data.latitude.toFixed(6)},\nlongitude: ${data.longitude.toFixed(6)},\naltitude: ${data.altitude.toFixed(2)} km,\nradius: ${data.sensor_radius.toFixed(2)} m}`,
+                        font: '14pt monospace',
+                        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                        outlineWidth: 2,
+                        verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                        pixelOffset: new Cesium.Cartesian2(0, -15)
+                    }
+                });
+        
+                // Add current sensor radius as red circle
+                const sensorRadius = data.sensor_radius;
+                const currentSensorCircle = new Cesium.CircleGeometry({
+                    center: position,
+                    radius: sensorRadius,
+                    vertexFormat: Cesium.PerInstanceColorAppearance.VERTEX_FORMAT
+                });
+        
+                const currentSensorCircleInstance = new Cesium.GeometryInstance({
+                    geometry: currentSensorCircle,
+                    attributes: {
+                        color: Cesium.ColorGeometryInstanceAttribute.fromColor(Cesium.Color.RED.withAlpha(0.5))
+                    }
+                });
+        
+                const currentPrimitive = new Cesium.Primitive({
+                    geometryInstances: currentSensorCircleInstance,
+                    appearance: new Cesium.PerInstanceColorAppearance()
+                });
+        
+                viewer.scene.primitives.add(currentPrimitive);
+        
+                // Store the current sensor circle primitive for future removal
+                previousSensorCircles.push(currentPrimitive);
+        
+                // Plot previous positions
+                for (let i = 0; i < positions.length; i++) {
+                    const previousPosition = positions[i];
+                    const previousPoint = viewer.entities.add({
+                        position: previousPosition,
+                        point: {
+                            pixelSize: 5,
+                            color: Cesium.Color.BLUE
+                        }
+                    });
+                    previousSensorCircles.push(previousPoint);
+                }
+
+                var currentPosition = viewer.camera.positionCartographic;
+
+                // Zoom to the new position only for the first point
+                if (firstUpdate) {
+                    viewer.camera.flyTo({
+                        destination: Cesium.Cartesian3.fromDegrees(data.longitude, data.latitude, currentPosition.height), //data.altitude * 50000),
+                        orientation: {
+                            heading: Cesium.Math.toRadians(0),
+                            pitch: Cesium.Math.toRadians(-90),
+                            roll: Cesium.Math.toRadians(0)
+                        },
+                        duration: 2 // Increase the duration to 2 seconds
+                    });
+                    firstUpdate = false;
+                }
+            }
+
+            setInterval(updateSatellitePosition, 1000); // Update every second
+        });
+    </script>
+</body>
+</html>
