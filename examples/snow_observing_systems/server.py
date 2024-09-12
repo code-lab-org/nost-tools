@@ -71,7 +71,7 @@ def get_position():
     velocity_x, velocity_y, velocity_z = velocity
 
     # Calculate the sensor radius
-    min_elevation = 5 #10  # Example minimum elevation angle in degrees
+    min_elevation = 10
     sensor_radius_meters = compute_sensor_radius(altitude_meters, min_elevation)
 
     return jsonify({
