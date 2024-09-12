@@ -43,7 +43,7 @@ var TOKEN="your_cesium_api_token"
     python3 server.py
     ```
 
-2. Open `index.html` in a web browser to view the visualization.
+2. Open `index.html` in a web browser to view the visualization. You can do this by navigating to http://localhost:5000/.
 
 ## Endpoints
 - **/**: Serves the main page.
