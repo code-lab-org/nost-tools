@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, send_from_directory
 from skyfield.api import EarthSatellite, load, utc
-from datetime import datetime
+from datetime import datetime, timezone
 from skyfield.api import wgs84
 import numpy as np
 
@@ -48,19 +48,38 @@ def index():
 
 @app.route('/get_position')
 def get_position():
-    current_time = datetime.now().replace(tzinfo=utc)
-    position = capella.at(ts.from_datetime(current_time))
+
+    # Get the current time
+    # current_datetime = datetime.now().replace(tzinfo=utc)
+    current_datetime = datetime.now(timezone.utc)
+    
+    # Get the position of Capella at the current time
+    position = capella.at(ts.from_datetime(current_datetime))
+
+    # Get the latitude, longitude, and altitude of the satellite
     lat, lon = wgs84.latlon_of(position)
     height = wgs84.height_of(position)
     altitude_meters = height.m
+    
+    # Calculate velocity
+    velocity = position.velocity.km_per_s
+
+    # Split the velocity ndarray into x, y, z components
+    velocity_x, velocity_y, velocity_z = velocity
+    print(velocity_x, velocity_y, velocity_z)
+    # Calculate the sensor radius
     min_elevation = 10  # Example minimum elevation angle in degrees
     sensor_radius = compute_sensor_radius(altitude_meters, min_elevation)
+
     return jsonify({
         'name': satellite_name,
         'latitude': lat.degrees,
         'longitude': lon.degrees,
-        'altitude': height.km,
-        'sensor_radius': sensor_radius
+        'altitude': height.m,
+        'radius': sensor_radius,
+        'velocity': [velocity_x, velocity_y, velocity_z],
+        'state': True, # Update logic
+        'time': current_datetime
     })
 
 @app.route('/env.js')

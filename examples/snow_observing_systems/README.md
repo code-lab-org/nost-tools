@@ -5,10 +5,10 @@ This project visualizes the position and sensor radius of the CAPELLA-14 (ACADIA
 
 ## Project Structure
 
-- **env.js**: Contains environment variables such as the API token.
 - **index.html**: The frontend of the application, which uses CesiumJS to visualize the satellite's position.
-- **requirements.txt**: Lists the Python dependencies required to run the project.
 - **server.py**: The backend of the application, which uses Flask to serve endpoints and Skyfield to compute satellite positions.
+- **env.js**: Contains environment variables such as the API token.
+- **requirements.txt**: Lists the Python dependencies required to run the project.
 
 ## Environment Variables
 
@@ -50,6 +50,9 @@ var TOKEN="your_cesium_api_token"
     "latitude": 37.7749,
     "longitude": -122.4194,
     "altitude": 500.0,
-    "sensor_radius": 1000.0
+    "radius": 1000.0,
+    "velocity": [7.5, 0.0, 0.0],
+    "state": true,
+    "time": "2023-10-01T12:00:00Z"
 }
 ```

@@ -31,7 +31,7 @@
                 const response = await fetch('/get_position');
                 const data = await response.json();
 
-                const position = Cesium.Cartesian3.fromDegrees(data.longitude, data.latitude, data.altitude * 1000);
+                const position = Cesium.Cartesian3.fromDegrees(data.longitude, data.latitude, data.altitude); // * 1000 if km 
                 positions.push(position);
 
                 // Remove previous sensor circles
@@ -49,12 +49,12 @@
                 previousLabelEntity = viewer.entities.add({
                     position: position,
                     point: {
-                        pixelSize: 10,
-                        color: Cesium.Color.RED
+                        pixelSize: 20,
+                        color: Cesium.Color.YELLOW
                     },
                     label: {
-                        text: `{name: ${data.name},\nlatitude: ${data.latitude.toFixed(6)},\nlongitude: ${data.longitude.toFixed(6)},\naltitude: ${data.altitude.toFixed(2)} km,\nradius: ${data.sensor_radius.toFixed(2)} m}`,
-                        font: '14pt monospace',
+                        text: `{name: ${data.name},\nlatitude: ${data.latitude.toFixed(6)},\nlongitude: ${data.longitude.toFixed(6)},\naltitude: ${data.altitude.toFixed(2)} m,\nradius: ${data.radius.toFixed(2)} m,\nvelocity: [${data.velocity[0].toFixed(2)} ${data.velocity[1].toFixed(2)} ${data.velocity[2].toFixed(2)}] km/s\nstate: ${data.state}\ntime: ${data.time}}`,
+                        font: '10pt monospace',
                         style: Cesium.LabelStyle.FILL_AND_OUTLINE,
                         outlineWidth: 2,
                         verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
@@ -63,7 +63,7 @@
                 });
         
                 // Add current sensor radius as red circle
-                const sensorRadius = data.sensor_radius;
+                const sensorRadius = data.radius;
                 const currentSensorCircle = new Cesium.CircleGeometry({
                     center: position,
                     radius: sensorRadius,
