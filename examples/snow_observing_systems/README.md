@@ -34,13 +34,13 @@ var TOKEN="your_cesium_api_token"
 
 2. Install the required Python packages:
     ```sh
-    pip install -r requirements.txt
+    python3 -m pip install -r requirements.txt
     ```
 
 ## Running the Project
 1. Start the Flask server:
     ```sh
-    python server.py
+    python3 server.py
     ```
 
 2. Open `index.html` in a web browser to view the visualization.

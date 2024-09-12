@@ -8,8 +8,11 @@ app = Flask(__name__)
 
 # Load the timescale
 ts = load.timescale()
+
+# Define the satellite name
 satellite_name = "CAPELLA-14 (ACADIA-4)"
-# Load the TLE data for Capella
+
+# Load the TLE data for satellite
 capella = EarthSatellite(
     "1 59444U 24066C   24255.58733490  .00027683  00000+0  27717-2 0  9992",
     "2 59444  45.6105 355.6094 0002469 338.3298  21.7475 14.91016875 15732",
@@ -66,7 +69,7 @@ def get_position():
 
     # Split the velocity ndarray into x, y, z components
     velocity_x, velocity_y, velocity_z = velocity
-    print(velocity_x, velocity_y, velocity_z)
+
     # Calculate the sensor radius
     min_elevation = 10  # Example minimum elevation angle in degrees
     sensor_radius = compute_sensor_radius(altitude_meters, min_elevation)
