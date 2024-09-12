@@ -5,19 +5,24 @@ This project visualizes the position and sensor radius of the CAPELLA-14 (ACADIA
 
 ## Project Structure
 
-. ├── env.js ├── index.html ├── README.md ├── requirements.txt └── server.py
-
 - **env.js**: Contains environment variables such as the API token.
 - **index.html**: The frontend of the application, which uses CesiumJS to visualize the satellite's position.
-- **README.md**: This file, providing an overview and documentation of the project.
 - **requirements.txt**: Lists the Python dependencies required to run the project.
 - **server.py**: The backend of the application, which uses Flask to serve endpoints and Skyfield to compute satellite positions.
+
+## Environment Variables
+
+The **env.js** file must contain the Cesium API token in the following format:
+
+```
+var TOKEN="your_cesium_api_token"
+```
 
 ## Installation
 1. Clone the repository:
     ```sh
-    git clone <repository-url>
-    cd <repository-directory>
+    git clone git@github.com:emmanuelgonz/nost-tools.git
+    cd nost-tools
     ```
 
 2. Install the required Python packages:
