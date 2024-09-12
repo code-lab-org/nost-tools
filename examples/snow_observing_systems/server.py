@@ -13,12 +13,23 @@ ts = load.timescale()
 satellite_name = "CAPELLA-14 (ACADIA-4)"
 
 # Load the TLE data for satellite
-capella = EarthSatellite(
+satellite = EarthSatellite(
     "1 59444U 24066C   24255.58733490  .00027683  00000+0  27717-2 0  9992",
     "2 59444  45.6105 355.6094 0002469 338.3298  21.7475 14.91016875 15732",
     satellite_name,
     ts=ts,
 )
+
+# # Define the satellite name
+# satellite_name = "GCOM-W1 (SHIZUKU)"
+
+# # Load the TLE data for satellite
+# satellite = EarthSatellite(
+#     "1 38337U 12025A   24256.58148722  .00002449  00000+0  55400-3 0  9995",
+#     "2 38337  98.2068 195.3055 0002169 106.7341  66.3204 14.57058865655452",
+#     satellite_name,
+#     ts=ts,
+# )
 
 def compute_sensor_radius(altitude, min_elevation):
     """
@@ -57,7 +68,7 @@ def get_position():
     current_datetime = datetime.now(timezone.utc)
     
     # Get the position of Capella at the current time
-    position = capella.at(ts.from_datetime(current_datetime))
+    position = satellite.at(ts.from_datetime(current_datetime))
 
     # Get the latitude, longitude, and altitude of the satellite
     lat, lon = wgs84.latlon_of(position)
