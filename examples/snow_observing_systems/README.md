@@ -10,7 +10,7 @@ This project visualizes the position and sensor radius of the CAPELLA-14 (ACADIA
 - **env.js**: Contains environment variables such as the API token.
 - **requirements.txt**: Lists the Python dependencies required to run the project.
 
-## Cesium Access Token and Assets
+## Cesium Access Token and Assets
 The SOS application uses the Cesium geospatial visualization tool which requires getting an access token and an 3D Earth map asset. You will get an access token by signing in at the following link:
 
 https://cesium.com/ion/signin/tokens
