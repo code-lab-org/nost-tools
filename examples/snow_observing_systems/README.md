@@ -43,7 +43,7 @@ var TOKEN="your_cesium_api_token"
 - **/get_position**: Returns the current position and sensor radius of the satellite in JSON format.
 - **/env.js**: Serves the environment variables.
 
-## Example Response from [`/get_position`](command:_github.copilot.openSymbolFromReferences?%5B%22%2Fget_position%22%2C%5B%7B%22uri%22%3A%7B%22%24mid%22%3A1%2C%22fsPath%22%3A%22%2Fmnt%2Fc%2FUsers%2Femgonz38%2FOneDrive%20-%20Arizona%20State%20University%2Fubuntu_files%2Fwork%2Fcode%2Fgit_repos%2Fforks%2Fnost-tools%2Fexamples%2Fsnow_observing_systems%2Fserver.py%22%2C%22external%22%3A%22file%3A%2F%2F%2Fmnt%2Fc%2FUsers%2Femgonz38%2FOneDrive%2520-%2520Arizona%2520State%2520University%2Fubuntu_files%2Fwork%2Fcode%2Fgit_repos%2Fforks%2Fnost-tools%2Fexamples%2Fsnow_observing_systems%2Fserver.py%22%2C%22path%22%3A%22%2Fmnt%2Fc%2FUsers%2Femgonz38%2FOneDrive%20-%20Arizona%20State%20University%2Fubuntu_files%2Fwork%2Fcode%2Fgit_repos%2Fforks%2Fnost-tools%2Fexamples%2Fsnow_observing_systems%2Fserver.py%22%2C%22scheme%22%3A%22file%22%7D%2C%22pos%22%3A%7B%22line%22%3A48%2C%22character%22%3A12%7D%7D%5D%5D "Go to definition")
+## Example Output
 ```json
 {
     "name": "CAPELLA-14 (ACADIA-4)",
@@ -52,3 +52,4 @@ var TOKEN="your_cesium_api_token"
     "altitude": 500.0,
     "sensor_radius": 1000.0
 }
+```
