@@ -22,7 +22,7 @@ var TOKEN="your_cesium_api_token"
 1. Clone the repository:
     ```sh
     git clone git@github.com:emmanuelgonz/nost-tools.git
-    cd nost-tools
+    cd nost-tools/examples/snow_observing_systems
     ```
 
 2. Install the required Python packages:
@@ -36,7 +36,7 @@ var TOKEN="your_cesium_api_token"
     python server.py
     ```
 
-2. Open [`index.html`](command:_github.copilot.openRelativePath?%5B%7B%22scheme%22%3A%22file%22%2C%22authority%22%3A%22%22%2C%22path%22%3A%22%2Fmnt%2Fc%2FUsers%2Femgonz38%2FOneDrive%20-%20Arizona%20State%20University%2Fubuntu_files%2Fwork%2Fcode%2Fgit_repos%2Fforks%2Fnost-tools%2Fexamples%2Fsnow_observing_systems%2Findex.html%22%2C%22query%22%3A%22%22%2C%22fragment%22%3A%22%22%7D%5D "/mnt/c/Users/emgonz38/OneDrive - Arizona State University/ubuntu_files/work/code/git_repos/forks/nost-tools/examples/snow_observing_systems/index.html") in a web browser to view the visualization.
+2. Open `index.html` in a web browser to view the visualization.
 
 ## Endpoints
 - **/**: Serves the main page.
