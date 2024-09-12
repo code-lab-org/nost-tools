@@ -72,14 +72,14 @@ def get_position():
 
     # Calculate the sensor radius
     min_elevation = 5 #10  # Example minimum elevation angle in degrees
-    sensor_radius = compute_sensor_radius(altitude_meters, min_elevation)
+    sensor_radius_meters = compute_sensor_radius(altitude_meters, min_elevation)
 
     return jsonify({
         'name': satellite_name,
         'latitude': lat.degrees,
         'longitude': lon.degrees,
-        'altitude': height.m,
-        'radius': sensor_radius,
+        'altitude': altitude_meters,
+        'radius': sensor_radius_meters,
         'velocity': [velocity_x, velocity_y, velocity_z],
         'state': True, # Update logic
         'time': current_datetime
