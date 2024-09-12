@@ -10,7 +10,14 @@ This project visualizes the position and sensor radius of the CAPELLA-14 (ACADIA
 - **env.js**: Contains environment variables such as the API token.
 - **requirements.txt**: Lists the Python dependencies required to run the project.
 
-## Environment Variables
+## Cesium Access Token and Assets
+The SOS application uses the Cesium geospatial visualization tool which requires getting an access token and an 3D Earth map asset. You will get an access token by signing in at the following link:
+
+https://cesium.com/ion/signin/tokens
+
+After creating an account, you must add the Asset “Blue Marble Next Generation July, 2004” from the Asset Depot (ID 3845) to your account assets to enable visualization.
+
+## Setting Up Environment Files
 
 You must create the **env.js** file at ```nost-tools/examples/snow_observing_systems```, which contains the Cesium API token in the following format:
 
