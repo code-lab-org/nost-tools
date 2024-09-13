@@ -518,8 +518,6 @@ class FireReportedObserver(Observer):
                 ).json(),
             )
 
-
-# name guard used to ensure script only executes if it is run as the __main__
 if __name__ == "__main__":
     # Load credentials from a .env file in current working directory
     credentials = dotenv_values(".env")
@@ -591,5 +589,5 @@ if __name__ == "__main__":
     app.add_message_callback("fire", "location", constellation.on_fire, app_specific_extender=app.app_name)
     app.add_message_callback("ground", "location", constellation.on_ground)
 
-    while True:
-        pass
+    # while True:
+    #     pass

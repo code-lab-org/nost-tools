@@ -113,7 +113,7 @@
                 // Zoom to the new position only for the first point
                 if (firstUpdate) {
                     viewer.camera.flyTo({
-                        destination: Cesium.Cartesian3.fromDegrees(data.longitude, data.latitude, currentPosition.height / 5), //data.altitude * 50000),
+                        destination: Cesium.Cartesian3.fromDegrees(data.longitude, data.latitude, currentPosition.height / 3), //data.altitude * 50000),
                         orientation: {
                             heading: Cesium.Math.toRadians(0),
                             pitch: Cesium.Math.toRadians(-90),

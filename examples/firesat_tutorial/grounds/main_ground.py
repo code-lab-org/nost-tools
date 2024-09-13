@@ -65,17 +65,7 @@ class Environment(Observer):
                     ).json(),
                 )
 
-
-# name guard used to ensure script only executes if it is run as the __main__
 if __name__ == "__main__":
-    # # Note that these are loaded from a .env file in current working directory
-    # credentials = dotenv_values(".env")
-    # HOST, PORT = credentials["HOST"], int(credentials["PORT"])
-    # USERNAME, PASSWORD = credentials["USERNAME"], credentials["PASSWORD"]
-
-    # # set the client credentials
-    # config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, False)
-
     # Load credentials from a .env file in current working directory
     credentials = dotenv_values(".env")
     HOST, RABBITMQ_PORT, KEYCLOAK_PORT = credentials["HOST"], int(credentials["RABBITMQ_PORT"]), int(credentials["KEYCLOAK_PORT"])
@@ -116,15 +106,6 @@ if __name__ == "__main__":
         time_step=timedelta(seconds=1) * SCALE,
         # shut_down_when_terminated=True,
     )
-    
-    # app.ready()
 
-    # app.channel.start_consuming()
-    # mq_recieve_thread = threading.Thread(target=app.channel.start_consuming)
-    # mq_recieve_thread.start()
-
-    while True:
-        pass
-
-    # while app.consuming:
+    # while True:
     #     pass

@@ -144,23 +144,7 @@ def on_reported(ch, method, properties, body):
         if isinstance(observer, Environment):
             app.simulator._observers[index].on_reported(ch, method, properties, body)
 
-def callback(ch, method, properties, body):
-    print(f" [x] {method.routing_key}:{body.decode('utf-8')}")
-    # body = body.decode('utf-8')
-    # body = json.loads(body)
-    # print(body_dict)
-
-
-# name guard used to ensure script only executes if it is run as the __main__
 if __name__ == "__main__":
-    # # Note that these are loaded from a .env file in current working directory
-    # credentials = dotenv_values(".env")
-    # HOST, PORT = credentials["HOST"], int(credentials["PORT"])
-    # USERNAME, PASSWORD = credentials["USERNAME"], credentials["PASSWORD"]
-
-    # # set the client credentials
-    # config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, False)
-
     # Load credentials from a .env file in current working directory
     credentials = dotenv_values(".env")
     HOST, RABBITMQ_PORT, KEYCLOAK_PORT = credentials["HOST"], int(credentials["RABBITMQ_PORT"]), int(credentials["KEYCLOAK_PORT"])
@@ -225,23 +209,10 @@ if __name__ == "__main__":
         # shut_down_when_terminated=True,
     )
     
-    # app.ready()
-    
     # Add message callbacks for fire ignition, detection, and report
     app.add_message_callback("fire", "location", on_fire, app_specific_extender=app.app_name)
     app.add_message_callback("constellation", "detected", on_detected)
     app.add_message_callback("constellation", "reported", on_reported)
-    # app.add_message_callback("fire", "location", callback)
-    # app.add_message_callback("constellation", "detected", callback)
-    # app.add_message_callback("constellation", "reported", callback)
-    # app.add_message_callback("manager", "status.time", callback)
 
-    # app.channel.start_consuming()
-    # mq_recieve_thread = threading.Thread(target=app.channel.start_consuming)
-    # mq_recieve_thread.start()
-
-    while True:
-        pass
-    
-    # while app.consuming:
+    # while True:
     #     pass

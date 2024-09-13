@@ -3,6 +3,7 @@ from skyfield.api import EarthSatellite, load, utc
 from datetime import datetime, timezone
 from skyfield.api import wgs84
 import numpy as np
+import math
 
 app = Flask(__name__)
 
@@ -30,6 +31,48 @@ satellite = EarthSatellite(
 #     satellite_name,
 #     ts=ts,
 # )
+
+def calculate_angular_width(altitude_m):
+
+    # Convert altitude from meters to kilometers
+    altitude_km = altitude_m / 1000
+    
+    # Radius of the Earth in kilometers
+    R = 6371
+    
+    # Calculate the angular width in radians
+    theta_radians = 2 * math.atan(R / (R + altitude_km))
+    
+    # Convert the angular width to degrees
+    theta_degrees = math.degrees(theta_radians)
+    
+    return theta_degrees
+
+def compute_min_elevation(altitude, field_of_regard):
+    """
+    Computes the minimum elevation angle required for a satellite to observe a point from current location.
+
+    Args:
+        altitude (float): Altitude (meters) above surface of the observation
+        field_of_regard (float): Angular width (degrees) of observation
+
+    Returns:
+        float : min_elevation
+            The minimum elevation angle (degrees) for observation
+    """
+    earth_equatorial_radius = 6378137.000000000
+    earth_polar_radius = 6356752.314245179
+    earth_mean_radius = (2 * earth_equatorial_radius + earth_polar_radius) / 3
+
+    # eta is the angular radius of the region viewable by the satellite
+    sin_eta = np.sin(np.radians(field_of_regard / 2))
+    # rho is the angular radius of the earth viewed by the satellite
+    sin_rho = earth_mean_radius / (earth_mean_radius + altitude)
+    # epsilon is the min satellite elevation for obs (grazing angle)
+    cos_epsilon = sin_eta / sin_rho
+    if cos_epsilon > 1:
+        return 0.0
+    return np.degrees(np.arccos(cos_epsilon))
 
 def compute_sensor_radius(altitude, min_elevation):
     """
@@ -82,7 +125,9 @@ def get_position():
     velocity_x, velocity_y, velocity_z = velocity
 
     # Calculate the sensor radius
-    min_elevation = 5
+    min_elevation = 0
+    # field_of_regard = calculate_angular_width(altitude_meters)
+    # min_elevation = compute_min_elevation(altitude_meters, field_of_regard)
     sensor_radius_meters = compute_sensor_radius(altitude_meters, min_elevation)
 
     return jsonify({
