@@ -33,7 +33,17 @@ satellite = EarthSatellite(
 # )
 
 def calculate_angular_width(altitude_m):
+    """
+    Calculates the angular width of the Earth as seen from a satellite at a given altitude.
 
+    Args:
+        altitude_m (float): Altitude of the satellite in meters
+
+    Returns:
+        float: theta_degrees 
+            Angular width of the Earth in degrees
+
+    """
     # Convert altitude from meters to kilometers
     altitude_km = altitude_m / 1000
     
