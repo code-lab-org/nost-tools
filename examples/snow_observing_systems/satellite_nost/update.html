@@ -168,11 +168,11 @@
                         await ch.exchangeDeclare("greenfield", "topic", {durable: true, autoDelete: false});
                         const q = await ch.queue("greenfield.#");
                         await q.bind("greenfield", "greenfield.#");
-                        const consumer = await q.subscribe({noAck: false}, (msg) => {
+                        const consumer = await q.subscribe({noAck: true}, (msg) => {
                             const topic = msg.routingKey;
                             const payload = JSON.parse(msg.bodyToString());
                             handleMessage(topic, payload);
-                            msg.ack();
+                            // msg.ack();
                         })
                     } catch (err) {
                         console.error("Error", err, "reconnecting in 1s");

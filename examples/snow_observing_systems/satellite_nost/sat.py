@@ -230,7 +230,7 @@ if __name__ == "__main__":
         config,
         True,
         time_status_step=timedelta(seconds=10) * SCALE,
-        time_status_init=datetime(2020, 1, 1, 7, 20, tzinfo=timezone.utc),
+        time_status_init=datetime.now(timezone.utc), #datetime(2020, 1, 1, 7, 20, tzinfo=timezone.utc),
         time_step=timedelta(seconds=1) * SCALE,
         # shut_down_when_terminated=True,
     )
