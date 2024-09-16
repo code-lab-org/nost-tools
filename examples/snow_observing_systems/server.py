@@ -2,6 +2,7 @@ from flask import Flask, jsonify, send_from_directory
 from skyfield.api import EarthSatellite, load, utc
 from datetime import datetime, timezone
 from skyfield.api import wgs84
+from skyfield.framelib import itrs
 import numpy as np
 import math
 
@@ -117,21 +118,19 @@ def index():
 def get_position():
 
     # Get the current time
-    # current_datetime = datetime.now().replace(tzinfo=utc)
     current_datetime = datetime.now(timezone.utc)
     
     # Get the position of Capella at the current time
     position = satellite.at(ts.from_datetime(current_datetime))
+    subpoint = wgs84.subpoint(position)
+    lat, lon = subpoint.latitude, subpoint.longitude
+    altitude_meters = subpoint.elevation.m
 
-    # Get the latitude, longitude, and altitude of the satellite
-    lat, lon = wgs84.latlon_of(position)
-    height = wgs84.height_of(position)
-    altitude_meters = height.m
-    
+    # Calculate cartesian coordinates (Earth-centered, Earth-fixed [ECEF]) of the satellite
+    x, y, z = position.frame_xyz(itrs).m
+
     # Calculate velocity
     velocity = position.velocity.km_per_s
-
-    # Split the velocity ndarray into x, y, z components
     velocity_x, velocity_y, velocity_z = velocity
 
     # Calculate the sensor radius
@@ -139,6 +138,10 @@ def get_position():
     # field_of_regard = calculate_angular_width(altitude_meters)
     # min_elevation = compute_min_elevation(altitude_meters, field_of_regard)
     sensor_radius_meters = compute_sensor_radius(altitude_meters, min_elevation)
+
+    # Get the Earth-centered Earth-fixed (ECEF) coordinates
+    ecef_position = position.position.m
+    ecef_x, ecef_y, ecef_z = ecef_position
 
     return jsonify({
         'name': satellite_name,
@@ -148,7 +151,8 @@ def get_position():
         'radius': sensor_radius_meters,
         'velocity': [velocity_x, velocity_y, velocity_z],
         'state': True, # Update logic
-        'time': current_datetime
+        'time': current_datetime,
+        'ecef': [x, y, z]
     })
 
 @app.route('/env.js')
@@ -156,4 +160,4 @@ def env_js():
     return send_from_directory('.', 'env.js')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=8080)

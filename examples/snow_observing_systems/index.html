@@ -31,8 +31,9 @@
             async function updateSatellitePosition() {
                 const response = await fetch('/get_position');
                 const data = await response.json();
-
-                const position = Cesium.Cartesian3.fromDegrees(data.longitude, data.latitude, data.altitude); // * 1000 if km 
+                
+                const position = new Cesium.Cartesian3(data.ecef[0], data.ecef[1], data.ecef[2]);
+                // const position = Cesium.Cartesian3.fromDegrees(data.longitude, data.latitude, data.altitude);
                 positions.push(position);
                 const altitude_km = data.altitude / 1000;
                 const radius_km = data.radius / 1000;
