@@ -22,111 +22,150 @@
             Cesium.Ion.defaultAccessToken = TOKEN;
 
             const viewer = new Cesium.Viewer('cesiumContainer');
-            const positions = [];
-            const previousSensorCircles = [];
+            const positions = {};
+            const previousSensorCircles = {};
             let firstUpdate = true;
-            let previousLabelEntity = null;
-            let polylineEntity = null;
+            let previousLabelEntities = {};
 
-            async function updateSatellitePosition() {
-                const response = await fetch('/get_position');
+            async function updateSatellitePositions() {
+                const response = await fetch('/get_positions');
                 const data = await response.json();
-                
-                const position = new Cesium.Cartesian3(data.ecef[0], data.ecef[1], data.ecef[2]);
-                // const position = Cesium.Cartesian3.fromDegrees(data.longitude, data.latitude, data.altitude);
-                positions.push(position);
-                const altitude_km = data.altitude / 1000;
-                const radius_km = data.radius / 1000;
 
-                // Remove previous sensor circles
-                previousSensorCircles.forEach(circle => {
-                    viewer.scene.primitives.remove(circle);
-                });
-                previousSensorCircles.length = 0;
-
-                // Remove previous label entity
-                if (previousLabelEntity) {
-                    viewer.entities.remove(previousLabelEntity);
-                }
-
-                // Add current position as red point with label
-                previousLabelEntity = viewer.entities.add({
-                    position: position,
-                    point: {
-                        pixelSize: 10,
-                        color: Cesium.Color.RED
-                    },
-                    label: {
-                        text: `{name: ${data.name},\nlatitude: ${data.latitude.toFixed(6)},\nlongitude: ${data.longitude.toFixed(6)},\naltitude: ${altitude_km.toFixed(2)} km,\nradius: ${radius_km.toFixed(2)} km,\nvelocity: [${data.velocity[0].toFixed(2)} ${data.velocity[1].toFixed(2)} ${data.velocity[2].toFixed(2)}] km/s\nstate: ${data.state}\ntime: ${data.time}}`,
-                        font: '10pt Arial',
-                        style: Cesium.LabelStyle.FILL, // Cesium.LabelStyle.FILL_AND_OUTLINE,
-                        fillColor: Cesium.Color.WHITE,
-                        // outlineWidth: 5,
-                        verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-                        pixelOffset: new Cesium.Cartesian2(0, -15),
-                        eyeOffset: new Cesium.Cartesian3(0, 0, -5000), // Add this line to make the label the top-most layer
-                        showBackground: true, // Show background box
-                        backgroundColor: Cesium.Color.BLACK.withAlpha(0.7) // Set background color with transparency
+                data.forEach(satellite => {
+                    const position = new Cesium.Cartesian3(satellite.ecef[0], satellite.ecef[1], satellite.ecef[2]);
+                    if (!positions[satellite.name]) {
+                        positions[satellite.name] = [];
                     }
-                });
+                    positions[satellite.name].push(position);
+                    const altitude_km = satellite.altitude / 1000;
+                    const radius_km = satellite.radius / 1000;
 
-                // Add current sensor radius as red circle
-                const sensorRadius = data.radius;
-                const currentSensorCircle = new Cesium.CircleGeometry({
-                    center: position,
-                    radius: sensorRadius,
-                    vertexFormat: Cesium.PerInstanceColorAppearance.VERTEX_FORMAT
-                });
-
-                const currentSensorCircleInstance = new Cesium.GeometryInstance({
-                    geometry: currentSensorCircle,
-                    attributes: {
-                        color: Cesium.ColorGeometryInstanceAttribute.fromColor(Cesium.Color.RED.withAlpha(0.3))
+                    // Remove previous sensor circles
+                    if (previousSensorCircles[satellite.name]) {
+                        previousSensorCircles[satellite.name].forEach(circle => {
+                            viewer.scene.primitives.remove(circle);
+                        });
+                        previousSensorCircles[satellite.name].length = 0;
+                    } else {
+                        previousSensorCircles[satellite.name] = [];
                     }
-                });
 
-                const currentPrimitive = new Cesium.Primitive({
-                    geometryInstances: currentSensorCircleInstance,
-                    appearance: new Cesium.PerInstanceColorAppearance()
-                });
-
-                viewer.scene.primitives.add(currentPrimitive);
-
-                // Store the current sensor circle primitive for future removal
-                previousSensorCircles.push(currentPrimitive);
-
-                // Remove previous polyline entity
-                if (polylineEntity) {
-                    viewer.entities.remove(polylineEntity);
-                }
-
-                // Add polyline to indicate the satellite's path
-                polylineEntity = viewer.entities.add({
-                    polyline: {
-                        positions: positions,
-                        width: 2,
-                        material: Cesium.Color.YELLOW
+                    // Remove previous label entity
+                    if (previousLabelEntities[satellite.name]) {
+                        viewer.entities.remove(previousLabelEntities[satellite.name]);
                     }
-                });
 
-                var currentPosition = viewer.camera.positionCartographic;
+                    // Determine color based on satellite name
+                    let color = Cesium.Color.RED;
+                    if (satellite.name === 'GCOM-W1 (SHIZUKU)') {
+                        color = Cesium.Color.GREEN;
+                    } else if (satellite.name === 'CAPELLA-14 (ACADIA-4)') {
+                        color = Cesium.Color.YELLOW;
+                    }
 
-                // Zoom to the new position only for the first point
-                if (firstUpdate) {
-                    viewer.camera.flyTo({
-                        destination: Cesium.Cartesian3.fromDegrees(data.longitude, data.latitude, currentPosition.height / 3), //data.altitude * 50000),
-                        orientation: {
-                            heading: Cesium.Math.toRadians(0),
-                            pitch: Cesium.Math.toRadians(-90),
-                            roll: Cesium.Math.toRadians(0)
+                    // Add current position as point with label
+                    previousLabelEntities[satellite.name] = viewer.entities.add({
+                        position: position,
+                        point: {
+                            pixelSize: 10,
+                            color: color
                         },
-                        duration: 2 // Increase the duration to 2 seconds
+                        label: {
+                            text: `{name: ${satellite.name},\nlatitude: ${satellite.latitude.toFixed(6)},\nlongitude: ${satellite.longitude.toFixed(6)},\naltitude: ${altitude_km.toFixed(2)} km,\nradius: ${radius_km.toFixed(2)} km,\nvelocity: [${satellite.velocity[0].toFixed(2)} ${satellite.velocity[1].toFixed(2)} ${satellite.velocity[2].toFixed(2)}] km/s\nstate: ${satellite.state}\ntime: ${satellite.time}}`,
+                            font: '10pt Arial',
+                            style: Cesium.LabelStyle.FILL,
+                            fillColor: Cesium.Color.WHITE,
+                            verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                            pixelOffset: new Cesium.Cartesian2(0, -15),
+                            eyeOffset: new Cesium.Cartesian3(0, 0, -5000),
+                            showBackground: true,
+                            backgroundColor: Cesium.Color.BLACK.withAlpha(0.7)
+                        }
                     });
-                    firstUpdate = false;
-                }
+
+                    // Add current sensor radius as circle
+                    const sensorRadius = satellite.radius;
+                    const currentSensorCircle = new Cesium.CircleGeometry({
+                        center: position,
+                        radius: sensorRadius,
+                        vertexFormat: Cesium.PerInstanceColorAppearance.VERTEX_FORMAT
+                    });
+
+                    const currentSensorCircleInstance = new Cesium.GeometryInstance({
+                        geometry: currentSensorCircle,
+                        attributes: {
+                            color: Cesium.ColorGeometryInstanceAttribute.fromColor(color.withAlpha(0.3))
+                        }
+                    });
+
+                    const currentPrimitive = new Cesium.Primitive({
+                        geometryInstances: currentSensorCircleInstance,
+                        appearance: new Cesium.PerInstanceColorAppearance()
+                    });
+
+                    viewer.scene.primitives.add(currentPrimitive);
+
+                    // Store the current sensor circle primitive for future removal
+                    previousSensorCircles[satellite.name].push(currentPrimitive);
+
+                    // Ensure positions array is initialized
+                    if (!positions[satellite.name]) {
+                        positions[satellite.name] = [];
+                    }
+
+                    // Remove previous polyline entity if it exists
+                    if (positions[satellite.name].polylineEntity) {
+                        viewer.entities.remove(positions[satellite.name].polylineEntity);
+                    }
+
+                    // Add polyline entity
+                    if (positions[satellite.name].length > 1) {
+                        positions[satellite.name].polylineEntity = viewer.entities.add({
+                            polyline: {
+                                positions: positions[satellite.name],
+                                width: 2,
+                                material: color
+                            }
+                        });
+                    }
+
+                    var currentPosition = viewer.camera.positionCartographic;
+
+                    // Ensure currentPosition is defined and has the height property
+                    if (currentPosition && currentPosition.height) {
+                        // Zoom to the new position only for the first point
+                        if (firstUpdate) {
+                            viewer.camera.flyTo({
+                                destination: Cesium.Cartesian3.fromDegrees(satellite.longitude, satellite.latitude, currentPosition.height / 3),
+                                orientation: {
+                                    heading: Cesium.Math.toRadians(0),
+                                    pitch: Cesium.Math.toRadians(-90),
+                                    roll: Cesium.Math.toRadians(0)
+                                },
+                                duration: 2
+                            });
+                            firstUpdate = false;
+                        }
+                    } else {
+                        // Set a default height value if currentPosition is not available
+                        const defaultHeight = 1000000; // 1,000 km
+                        if (firstUpdate) {
+                            viewer.camera.flyTo({
+                                destination: Cesium.Cartesian3.fromDegrees(satellite.longitude, satellite.latitude, defaultHeight),
+                                orientation: {
+                                    heading: Cesium.Math.toRadians(0),
+                                    pitch: Cesium.Math.toRadians(-90),
+                                    roll: Cesium.Math.toRadians(0)
+                                },
+                                duration: 2
+                            });
+                            firstUpdate = false;
+                        }
+                    }
+                });
             }
 
-            setInterval(updateSatellitePosition, 1000); // Update every second
+            setInterval(updateSatellitePositions, 1000); // Update every second
         });
     </script>
 </body>
