@@ -7,64 +7,6 @@ import numpy as np
 import math
 from satellite_tle import fetch_all_tles, fetch_latest_tles
 
-# Taskable: Yellow
-# Nontaskable: Green
-
-app = Flask(__name__)
-
-# Load the timescale
-ts = load.timescale()
-
-# # Define the satellites
-# satellites = [
-#     {
-#         "name": "CAPELLA-14 (ACADIA-4)",
-#         "tle": [
-#             "1 59444U 24066C   24255.58733490  .00027683  00000+0  27717-2 0  9992",
-#             "2 59444  45.6105 355.6094 0002469 338.3298  21.7475 14.91016875 15732"
-#         ]
-#     },
-#     {
-#         "name": "GCOM-W1 (SHIZUKU)",
-#         "tle": [
-#             "1 38337U 12025A   24256.58148722  .00002449  00000+0  55400-3 0  9995",
-#             "2 38337  98.2068 195.3055 0002169 106.7341  66.3204 14.57058865655452"
-#         ]
-#     },
-#     {
-#         "name": "NOAA 20 (JPSS-1)",
-#         "tle": [
-#             "1 43013U 17073A   24260.54824830  .00000349  00000+0  18598-3 0  9996",
-#             "2 43013  98.7099 196.9501 0001127  22.2184 337.9041 14.19588559353863"
-#         ]
-#     }
-# ]
-
-# # Load the satellites
-# satellite_objects = [
-#     EarthSatellite(sat["tle"][0], sat["tle"][1], sat["name"], ts=ts)
-#     for sat in satellites
-# ]
-
-# Define the NORAD IDs
-norad_ids = [59444,  # CAPELLA-14 (ACADIA-4)
-             38337,  # GCOM-W1 (SHIZUKU)
-             43013]  # NOAA 20 (JPSS-1)
-
-# Fetch the latest TLEs for the satellites
-tles = fetch_latest_tles(norad_ids)
-
-# # Create the satellite objects
-# satellite_objects = [
-#     EarthSatellite(tle[0], tle[1], str(norad_id), ts=ts)
-#     for norad_id, tle in tles.items()
-# ]
-satellite_objects = []
-
-for norad_id, tle in tles.items():
-    satellite = EarthSatellite(tle[1][1], tle[1][2], str(tle[1][0]), ts=ts)
-    satellite_objects.append(satellite)
-
 def calculate_angular_width(altitude_m):
     altitude_km = altitude_m / 1000
     R = 6371
@@ -94,6 +36,67 @@ def compute_sensor_radius(altitude, min_elevation):
         return 0.0
     return earth_mean_radius * np.radians(sw_HalfAngle)
 
+def get_tles(automate=True):
+    if automate:
+        # Define the NORAD IDs
+        norad_ids = [59444,  # CAPELLA-14 (ACADIA-4)
+                     38337]  # GCOM-W1 (SHIZUKU)
+                    #  43013]  # NOAA 20 (JPSS-1)
+
+        # Fetch the latest TLEs for the satellites
+        tles = fetch_latest_tles(norad_ids)
+
+        # Define the satellite objects
+        satellite_objects = [EarthSatellite(tle[1][1], tle[1][2], str(tle[1][0]), ts=ts) for norad_id, tle in tles.items()]
+        
+        # Check if satellite_objects is empty
+        if not satellite_objects:
+            return use_manual_tles()
+        return satellite_objects
+    else:
+        return use_manual_tles()
+
+def use_manual_tles():
+
+    # Define the satellites
+    satellites = [
+        {
+            "name": "CAPELLA-14 (ACADIA-4)",
+            "tle": [
+                "1 59444U 24066C   24255.58733490  .00027683  00000+0  27717-2 0  9992",
+                "2 59444  45.6105 355.6094 0002469 338.3298  21.7475 14.91016875 15732"
+            ]
+        },
+        {
+            "name": "GCOM-W1 (SHIZUKU)",
+            "tle": [
+                "1 38337U 12025A   24256.58148722  .00002449  00000+0  55400-3 0  9995",
+                "2 38337  98.2068 195.3055 0002169 106.7341  66.3204 14.57058865655452"
+            ]
+        },
+        # {
+        #     "name": "NOAA 20 (JPSS-1)",
+        #     "tle": [
+        #         "1 43013U 17073A   24260.54824830  .00000349  00000+0  18598-3 0  9996",
+        #         "2 43013  98.7099 196.9501 0001127  22.2184 337.9041 14.19588559353863"
+        #     ]
+        # }
+    ]
+
+    # Load the satellites
+    satellite_objects = [
+        EarthSatellite(sat["tle"][0], sat["tle"][1], sat["name"], ts=ts)
+        for sat in satellites
+    ]
+    return satellite_objects
+
+app = Flask(__name__)
+
+# Load the timescale
+ts = load.timescale()
+
+satellite_objects = get_tles() #automate=False)
+
 @app.route('/')
 def index():
     return send_from_directory('.', 'index.html')
@@ -104,18 +107,27 @@ def get_positions():
     positions = []
 
     for satellite in satellite_objects:
+
+        # Get the geographic position of the satellite
         position = satellite.at(ts.from_datetime(current_datetime))
         subpoint = wgs84.subpoint(position)
         lat, lon = subpoint.latitude, subpoint.longitude
         altitude_meters = subpoint.elevation.m
+
+        # Get the cartesian posotion of the satellite
         x, y, z = position.frame_xyz(itrs).m
-        velocity = position.velocity.km_per_s
-        velocity_x, velocity_y, velocity_z = velocity
-        min_elevation = 0
-        sensor_radius_meters = compute_sensor_radius(altitude_meters, min_elevation)
         ecef_position = position.position.m
         ecef_x, ecef_y, ecef_z = ecef_position
 
+        # Get the velocity of the satellite
+        velocity = position.velocity.km_per_s
+        velocity_x, velocity_y, velocity_z = velocity
+        
+        #Get the angular width of the satellite
+        min_elevation = 0
+        sensor_radius_meters = compute_sensor_radius(altitude_meters, min_elevation)
+        
+        # Add the satellite to the list of positions
         positions.append({
             'name': satellite.name,
             'latitude': lat.degrees,
