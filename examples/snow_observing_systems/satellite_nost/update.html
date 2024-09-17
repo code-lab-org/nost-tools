@@ -41,6 +41,7 @@
             function handleMessage(topic, payload) {
                 if(topic === "greenfield.constellation.location") {
                     const position = new Cesium.Cartesian3(payload.ecef[0], payload.ecef[1], payload.ecef[2]);
+                    // const position = new Cesium.Cartesian3.fromDegrees(payload.longitude, payload.latitude, payload.altitude);
                     const altitude_km = payload.altitude / 1000;
                     const radius_km = payload.radius / 1000;
 

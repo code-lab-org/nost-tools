@@ -144,7 +144,7 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
     ):
         super().__init__(app, time_status_step, time_status_init)
         self.constellation = constellation
-        
+
         if self.time_status_init is None:
             self.time_status_init = self.constellation.ts.now().utc_datetime()
         
@@ -188,7 +188,7 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
             # Get the cartesian posotion of the satellite
             x, y, z = satSpaceTime.frame_xyz(itrs).m
             ecef_position = satSpaceTime.position.m
-            # ecef_x, ecef_y, ecef_z = ecef_position
+            ecef_x, ecef_y, ecef_z = ecef_position
 
             # Get the velocity of the satellite
             velocity = satSpaceTime.velocity.km_per_s
