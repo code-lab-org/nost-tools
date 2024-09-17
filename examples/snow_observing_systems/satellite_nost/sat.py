@@ -173,28 +173,19 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
             next_time = constellation.ts.from_datetime(
                 constellation.get_time() + 60 * self.time_status_step
             )
-            # logger.info(f"Next time: {next_time}; Satellite: {satellite.name}")
+            
+            # Get the subpoint of the satellite
             satSpaceTime = satellite.at(next_time)
             subpoint = wgs84.subpoint(satSpaceTime)
-            # lat, lon = subpoint.latitude, subpoint.longitude
-            # altitude_meters = subpoint.elevation.m
 
+            # Determine if the satellite is operational
             if satellite.name=='CAPELLA-14 (ACADIA-4)':
                 state = current_minute < 1
             elif satellite.name=='GCOM-W1 (SHIZUKU)':
                 state = True
 
-            # # Determine if the satellite is above the horizon (scanning)
-            # alt, az, distance = satSpaceTime.altaz()
-            # if alt.degrees > 0:
-            #     scanning = True
-            # else:
-            #     scanning = False
-
             # Get the cartesian posotion of the satellite
             x, y, z = satSpaceTime.frame_xyz(itrs).m
-            # ecef_position = satSpaceTime.position.m
-            # ecef_x, ecef_y, ecef_z = ecef_position
 
             # Get the velocity of the satellite
             velocity = satSpaceTime.velocity.km_per_s
@@ -205,9 +196,6 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
                 subpoint.elevation.m, 0
             )
 
-            # self.isInRange[i], groundId = check_in_range(
-            #     next_time, satellite, constellation.grounds
-            # )
             self.app.send_message(
                 self.app.app_name,
                 "location",
@@ -253,7 +241,8 @@ if __name__ == "__main__":
     activesats = load.tle_file(activesats_url, reload=False)
 
     by_name = {sat.name: sat for sat in activesats}
-    names = ['CAPELLA-14 (ACADIA-4)', 'GCOM-W1 (SHIZUKU)'] #'CAPELLA-14 (ACADIA)'
+    names = ['CAPELLA-14 (ACADIA-4)', 'GCOM-W1 (SHIZUKU)',]
+            #  "AQUA", "TERRA", "SUOMI NPP", "NOAA 20 (JPSS-1)", "SENTINEL-2A", "SENTINEL-2B"] #'CAPELLA-14 (ACADIA)'
 
     ES = []
     indices = []
