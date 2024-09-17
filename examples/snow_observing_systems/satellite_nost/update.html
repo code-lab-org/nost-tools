@@ -42,7 +42,6 @@
                 if(topic === "greenfield.constellation.location") {
                     console.log(payload);
                     const position = new Cesium.Cartesian3(payload.ecef[0], payload.ecef[1], payload.ecef[2]);
-                    // const position = new Cesium.Cartesian3.fromDegrees(payload.longitude, payload.latitude, payload.altitude);
                     const altitude_km = payload.altitude / 1000;
                     const radius_km = payload.radius / 1000;
 
@@ -71,17 +70,13 @@
                         color = Cesium.Color.YELLOW;
                     }
 
-                    // const pixelSize = payload.state ? 20 : 5;
-                    // const outlineWidth = payload.state ? 2 : 0;
                     const dotcolor = payload.state ? Cesium.Color.LIME : Cesium.Color.RED;
 
                     previousLabelEntities[payload.name] = viewer.entities.add({
                         position: position,
                         point: {
-                            pixelSize: 10, //pixelSize,
-                            color: dotcolor, //color,
-                            // outlineColor: Cesium.Color.GREEN,
-                            // outlineWidth: outlineWidth,
+                            pixelSize: 10,
+                            color: dotcolor,
                         },
                         label: {
                             text: `{name: ${payload.name},\nlatitude: ${payload.latitude.toFixed(6)},\nlongitude: ${payload.longitude.toFixed(6)},\naltitude: ${altitude_km.toFixed(2)} km,\nradius: ${radius_km.toFixed(2)} km,\nvelocity: [${payload.velocity[0].toFixed(2)} ${payload.velocity[1].toFixed(2)} ${payload.velocity[2].toFixed(2)}] km/s\nstate: ${payload.state}\ntime: ${payload.time}}`,
@@ -134,6 +129,17 @@
                                 material: color
                             }
                         });
+                    }
+
+                    // Zoom to the first position and calculate the center point between the two entities
+                    if (firstUpdate && Object.keys(positions).length === 2) {
+                        const allPositions = Object.values(positions).flat();
+                        const boundingBox = Cesium.BoundingSphere.fromPoints(allPositions);
+                        viewer.camera.flyToBoundingSphere(boundingBox, {
+                            duration: 2,
+                            offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-90), boundingBox.radius * 5)
+                        });
+                        firstUpdate = false;
                     }
                 }
             }
