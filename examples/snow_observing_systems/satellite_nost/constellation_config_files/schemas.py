@@ -80,6 +80,19 @@ class SatelliteStatus(BaseModel):
     )
     time: datetime = Field(..., description="Time in satellite reference frame")
 
+    velocity: list[float] = Field(
+        ..., description="Velocity of satellite in ECI frame"
+    )
+    state: bool = Field(
+        ..., description="Boolean for if satellite is operational"
+    )
+    ecef: list[float] = Field(
+        ..., description="ECEF position of satellite"
+    )
+    # scanning: bool = Field(
+    #     ..., description="Boolean for if satellite is scanning"
+    # )
+
 
 class GroundLocation(BaseModel):
     """

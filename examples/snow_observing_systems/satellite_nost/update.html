@@ -40,7 +40,8 @@
 
             function handleMessage(topic, payload) {
                 if(topic === "greenfield.constellation.location") {
-                    const position = Cesium.Cartesian3.fromDegrees(payload.longitude, payload.latitude, payload.altitude);
+                    console.log(payload);
+                    const position = new Cesium.Cartesian3(payload.ecef[0], payload.ecef[1], payload.ecef[2]);
                     const altitude_km = payload.altitude / 1000;
                     const radius_km = payload.radius / 1000;
 
@@ -49,7 +50,6 @@
                     }
                     positions[payload.name].push(position);
 
-                    // Remove previous sensor circles
                     if (previousSensorCircles[payload.name]) {
                         previousSensorCircles[payload.name].forEach(circle => {
                             viewer.scene.primitives.remove(circle);
@@ -59,28 +59,31 @@
                         previousSensorCircles[payload.name] = [];
                     }
 
-                    // Remove previous label entity
                     if (previousLabelEntities[payload.name]) {
                         viewer.entities.remove(previousLabelEntities[payload.name]);
                     }
 
-                    // Determine color based on satellite name; Taskable=Yellow; Nontaskable=Green
                     let color = Cesium.Color.RED;
                     if (payload.name === 'GCOM-W1 (SHIZUKU)') {
-                        color = Cesium.Color.GREEN;
+                        color = Cesium.Color.DARKGREEN;
                     } else if (payload.name === 'CAPELLA-14 (ACADIA-4)') {
                         color = Cesium.Color.YELLOW;
                     }
 
-                    // Add current position as point with label
+                    // const pixelSize = payload.state ? 20 : 5;
+                    // const outlineWidth = payload.state ? 2 : 0;
+                    const dotcolor = payload.state ? Cesium.Color.LIME : Cesium.Color.RED;
+
                     previousLabelEntities[payload.name] = viewer.entities.add({
                         position: position,
                         point: {
-                            pixelSize: 10,
-                            color: color
+                            pixelSize: 10, //pixelSize,
+                            color: dotcolor, //color,
+                            // outlineColor: Cesium.Color.GREEN,
+                            // outlineWidth: outlineWidth,
                         },
                         label: {
-                            text: `{name: ${payload.name},\nlatitude: ${payload.latitude.toFixed(6)},\nlongitude: ${payload.longitude.toFixed(6)},\naltitude: ${altitude_km.toFixed(2)} km,\nradius: ${radius_km.toFixed(2)} km,\nstate: ${payload.state}\ntime: ${payload.time}}`,
+                            text: `{name: ${payload.name},\nlatitude: ${payload.latitude.toFixed(6)},\nlongitude: ${payload.longitude.toFixed(6)},\naltitude: ${altitude_km.toFixed(2)} km,\nradius: ${radius_km.toFixed(2)} km,\nvelocity: [${payload.velocity[0].toFixed(2)} ${payload.velocity[1].toFixed(2)} ${payload.velocity[2].toFixed(2)}] km/s\nstate: ${payload.state}\ntime: ${payload.time}}`,
                             font: '10pt Arial',
                             style: Cesium.LabelStyle.FILL,
                             fillColor: Cesium.Color.WHITE,
@@ -92,7 +95,6 @@
                         }
                     });
 
-                    // Add current sensor radius as circle
                     const sensorRadius = payload.radius;
                     const currentSensorCircle = new Cesium.CircleGeometry({
                         center: position,
@@ -113,21 +115,16 @@
                     });
 
                     viewer.scene.primitives.add(currentPrimitive);
-
-                    // Store the current sensor circle primitive for future removal
                     previousSensorCircles[payload.name].push(currentPrimitive);
 
-                    // Ensure positions array is initialized
                     if (!positions[payload.name]) {
                         positions[payload.name] = [];
                     }
 
-                    // Remove previous polyline entity if it exists
                     if (positions[payload.name].polylineEntity) {
                         viewer.entities.remove(positions[payload.name].polylineEntity);
                     }
 
-                    // Add polyline entity
                     if (positions[payload.name].length > 1) {
                         positions[payload.name].polylineEntity = viewer.entities.add({
                             polyline: {
@@ -172,11 +169,9 @@
                             const topic = msg.routingKey;
                             const payload = JSON.parse(msg.bodyToString());
                             handleMessage(topic, payload);
-                            // msg.ack();
                         })
                     } catch (err) {
                         console.error("Error", err, "reconnecting in 1s");
-                        // setTimeout(() => start(amqp), 1000);
                     }
                 }
                 start(amqp);

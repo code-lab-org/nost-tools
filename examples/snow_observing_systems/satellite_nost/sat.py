@@ -1,6 +1,7 @@
 from datetime import datetime, timezone, timedelta
 from dotenv import dotenv_values
 from skyfield.api import load, wgs84, EarthSatellite
+from skyfield.framelib import itrs
 import numpy as np
 import logging
 import pandas as pd
@@ -143,6 +144,10 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
     ):
         super().__init__(app, time_status_step, time_status_init)
         self.constellation = constellation
+        
+        if self.time_status_init is None:
+            self.time_status_init = self.constellation.ts.now().utc_datetime()
+        
         # self.isInRange = [
         #     False for i, satellite in enumerate(self.constellation.satellites)
         # ]
@@ -154,6 +159,10 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
         This method sends a :obj:`SatelliteStatus` message to the *PREFIX/constellation/location* topic for each satellite in the constellation (:obj:`Constellation`).
 
         """
+        current_time = constellation.get_time()
+        elapsed_seconds = (current_time - self.time_status_init).total_seconds()
+        current_minute = (elapsed_seconds // 60) % 100
+
         for i, satellite in enumerate(self.constellation.satellites):
             next_time = constellation.ts.from_datetime(
                 constellation.get_time() + 60 * self.time_status_step
@@ -161,9 +170,35 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
             # logger.info(f"Next time: {next_time}; Satellite: {satellite.name}")
             satSpaceTime = satellite.at(next_time)
             subpoint = wgs84.subpoint(satSpaceTime)
+            # lat, lon = subpoint.latitude, subpoint.longitude
+            # altitude_meters = subpoint.elevation.m
+
+            if satellite.name=='CAPELLA-14 (ACADIA-4)':
+                state = current_minute < 1
+            elif satellite.name=='GCOM-W1 (SHIZUKU)':
+                state = True
+
+            # # Determine if the satellite is above the horizon (scanning)
+            # alt, az, distance = satSpaceTime.altaz()
+            # if alt.degrees > 0:
+            #     scanning = True
+            # else:
+            #     scanning = False
+
+            # Get the cartesian posotion of the satellite
+            x, y, z = satSpaceTime.frame_xyz(itrs).m
+            ecef_position = satSpaceTime.position.m
+            # ecef_x, ecef_y, ecef_z = ecef_position
+
+            # Get the velocity of the satellite
+            velocity = satSpaceTime.velocity.km_per_s
+            velocity_x, velocity_y, velocity_z = velocity
+
+            #Get the angular width of the satellite
             sensorRadius = compute_sensor_radius(
                 subpoint.elevation.m, 0
             )
+
             # self.isInRange[i], groundId = check_in_range(
             #     next_time, satellite, constellation.grounds
             # )
@@ -177,8 +212,11 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
                     longitude=subpoint.longitude.degrees,
                     altitude=subpoint.elevation.m,
                     radius=sensorRadius,
+                    velocity=[velocity_x, velocity_y, velocity_z],
+                    state=state,
                     # commRange=self.isInRange[i],
                     time=constellation.get_time(),
+                    ecef=[x, y, z],
                 ).json(),
             )
 
