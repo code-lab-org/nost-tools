@@ -165,8 +165,8 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
         current_minute = (elapsed_seconds // 60) % 100
         
         swath_data = {
-            'CAPELLA-14 (ACADIA-4)': 30, # Swath value in km 
-            'GCOM-W1 (SHIZUKU)': 1450 # Swath value in km
+            'CAPELLA-14 (ACADIA-4)': 30000, # Swath value in m 
+            'GCOM-W1 (SHIZUKU)': 1450000 # Swath value in m
             }
         
         for i, satellite in enumerate(self.constellation.satellites):
@@ -193,8 +193,8 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
 
             # Get the cartesian posotion of the satellite
             x, y, z = satSpaceTime.frame_xyz(itrs).m
-            ecef_position = satSpaceTime.position.m
-            ecef_x, ecef_y, ecef_z = ecef_position
+            # ecef_position = satSpaceTime.position.m
+            # ecef_x, ecef_y, ecef_z = ecef_position
 
             # Get the velocity of the satellite
             velocity = satSpaceTime.velocity.km_per_s
