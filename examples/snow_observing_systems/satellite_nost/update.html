@@ -42,6 +42,7 @@
                 if(topic === "greenfield.constellation.location") {
                     console.log(payload);
                     const position = new Cesium.Cartesian3(payload.ecef[0], payload.ecef[1], payload.ecef[2]);
+                    // const position = new Cesium.Cartesian3.fromDegrees(payload.longitude, payload.latitude, payload.altitude);
                     const altitude_km = payload.altitude / 1000;
                     const radius_km = payload.radius / 1000;
 
@@ -65,7 +66,7 @@
 
                     let color = Cesium.Color.RED;
                     if (payload.name === 'GCOM-W1 (SHIZUKU)') {
-                        color = Cesium.Color.DARKGREEN;
+                        color = Cesium.Color.GREEN;
                     } else if (payload.name === 'CAPELLA-14 (ACADIA-4)') {
                         color = Cesium.Color.YELLOW;
                     }

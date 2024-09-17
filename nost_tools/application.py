@@ -67,6 +67,10 @@ class Application:
         self._is_running = False
         self.io_thread = None
 
+        self.refresh_token = None
+        self.token_refresh_thread = None
+        self.token_refresh_interval = 180  # seconds
+
     def ready(self) -> None:
         """
         Signals the application is ready to initialize scenario execution.
@@ -111,14 +115,45 @@ class Application:
                                                 password=config.password, 
                                                 totp=otp)
             if 'access_token' in token:
-                logger.info("Access token successfully acquired.")
-                logger.info(f"Access token scopes: {token['scope']}")
+                logger.info(f"Access token successfully acquired with scopes: {token['scope']}")
                 return token['access_token'], token['refresh_token']
             else:
                 raise Exception("Error: The request was unsuccessful.")
         except Exception as e:
             logger.error(f"An error occurred: {e}")
             raise
+
+    def start_token_refresh_thread(self, config):
+        """
+        Starts a background thread to refresh the access token periodically.
+
+        Args:
+            config (:obj:`ConnectionConfig`): connection configuration
+        """
+        def refresh_token_periodically():
+            while not self._should_stop.is_set():
+                time.sleep(self.token_refresh_interval)
+                try:
+                    access_token, refresh_token = self.new_access_token(config, self.refresh_token)
+                    self.refresh_token = refresh_token
+                    self.update_connection_credentials(access_token)
+                    logger.info("Access token refreshed successfully.")
+                except Exception as e:
+                    logger.error(f"Failed to refresh access token: {e}")
+
+        self.token_refresh_thread = threading.Thread(target=refresh_token_periodically)
+        self.token_refresh_thread.start()
+
+    def update_connection_credentials(self, access_token):
+        """
+        Updates the connection credentials with the new access token.
+
+        Args:
+            access_token (str): new access token
+        """
+        self.connection.update_secret(access_token, 'secret')
+        # self.connection._credentials = pika.PlainCredentials('', access_token)
+        # self.connection._adapter_disconnect()
 
     def start_up(
         self,
@@ -148,6 +183,7 @@ class Application:
         self._is_running = True
         # Obtain access token and refresh token
         access_token, refresh_token = self.new_access_token(config)
+        self.start_token_refresh_thread(config)
         # Set up connection parameters
         parameters = pika.ConnectionParameters(
             host=config.host,
