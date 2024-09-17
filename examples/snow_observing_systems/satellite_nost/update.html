@@ -40,7 +40,6 @@
 
             function handleMessage(topic, payload) {
                 if(topic === "greenfield.constellation.location") {
-                    console.log(payload);
                     const position = new Cesium.Cartesian3(payload.ecef[0], payload.ecef[1], payload.ecef[2]);
                     const altitude_km = payload.altitude / 1000;
                     const radius_km = payload.radius / 1000;
@@ -145,45 +144,69 @@
             }
 
             const url = `ws://${BROKER_HOST}:${BROKER_PORT}`;
-            fetch(`${BROKER_HOST.includes("localhost") ? "http" : "https"}://${BROKER_HOST}:${AUTH_PORT}/realms/test/protocol/openid-connect/token`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: new URLSearchParams({
-                    'client_id': BROKER_CLIENT_ID,
-                    'client_secret': BROKER_CLIENT_SECRET,
-                    'grant_type': 'client_credentials'
-                })
-            }).then(response => {
-                if (response.ok) {
-                    return response.json();
-                } else {
-                    throw new Error('Failed to obtain access token');
-                }
-            }).then(data => {
-                console.log("Access token obtained.");
-                const accessToken = data.access_token;
-                const amqp = new AMQPWebSocketClient(url, "/", "", accessToken);
-                async function start(amqp) {
-                    try {
-                        const conn = await amqp.connect();
-                        const ch = await conn.channel();
-                        await ch.exchangeDeclare("greenfield", "topic", {durable: true, autoDelete: false});
-                        const q = await ch.queue("greenfield.#");
-                        await q.bind("greenfield", "greenfield.#");
-                        const consumer = await q.subscribe({noAck: true}, (msg) => {
-                            const topic = msg.routingKey;
-                            const payload = JSON.parse(msg.bodyToString());
-                            handleMessage(topic, payload);
-                        })
-                    } catch (err) {
-                        console.error("Error", err, "reconnecting in 1s");
+            let accessToken;
+
+            function fetchAccessToken() {
+                return fetch(`${BROKER_HOST.includes("localhost") ? "http" : "https"}://${BROKER_HOST}:${AUTH_PORT}/realms/test/protocol/openid-connect/token`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams({
+                        'client_id': BROKER_CLIENT_ID,
+                        'client_secret': BROKER_CLIENT_SECRET,
+                        'grant_type': 'client_credentials'
+                    })
+                }).then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error('Failed to obtain access token');
                     }
+                }).then(data => {
+                    console.log("Access token obtained.");
+                    accessToken = data.access_token;
+                    return accessToken;
+                }).catch(error => {
+                    console.error(error);
+                });
+            }
+
+            function startTokenRefresh(conn) {
+                setInterval(() => {
+                    fetchAccessToken().then(newToken => {
+                        if (newToken) {
+                            accessToken = newToken;
+                            conn.updateSecret(accessToken);
+                            console.log("Access token refreshed.");
+                        }
+                    });
+                }, 3 * 60 * 1000); // Refresh every 3 minutes
+            }
+
+            fetchAccessToken().then(token => {
+                if (token) {
+                    accessToken = token;
+                    const amqp = new AMQPWebSocketClient(url, "/", "", accessToken);
+                    async function start(amqp) {
+                        try {
+                            const conn = await amqp.connect();
+                            const ch = await conn.channel();
+                            await ch.exchangeDeclare("greenfield", "topic", {durable: true, autoDelete: false});
+                            const q = await ch.queue("greenfield.#");
+                            await q.bind("greenfield", "greenfield.#");
+                            const consumer = await q.subscribe({noAck: true}, (msg) => {
+                                const topic = msg.routingKey;
+                                const payload = JSON.parse(msg.bodyToString());
+                                handleMessage(topic, payload);
+                            });
+                            startTokenRefresh(conn); // Pass the connection object here
+                        } catch (err) {
+                            console.error("Error", err, "reconnecting in 1s");
+                        }
+                    }
+                    start(amqp);
                 }
-                start(amqp);
-            }).catch(error => {
-                console.error(error);
             });
         });
     </script>
