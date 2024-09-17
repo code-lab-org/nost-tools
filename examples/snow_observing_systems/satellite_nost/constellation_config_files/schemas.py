@@ -89,6 +89,9 @@ class SatelliteStatus(BaseModel):
     ecef: list[float] = Field(
         ..., description="ECEF position of satellite"
     )
+    swath: float = Field(
+        ..., description="Swath width of satellite"
+    )
     # scanning: bool = Field(
     #     ..., description="Boolean for if satellite is scanning"
     # )

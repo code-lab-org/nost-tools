@@ -37,28 +37,29 @@ def get_elevation_angle(t, sat, loc):
     return alt.degrees
 
 def compute_sensor_radius(altitude, min_elevation):
+    """
+    Computes the sensor radius for a satellite at current altitude given minimum elevation constraints.
+
+    Args:
+        altitude (float): Altitude (meters) above surface of the observation
+        min_elevation (float): Minimum angle (degrees) with horizon for visibility
+
+    Returns:
+        float : sensor_radius
+            The radius (meters) of the nadir pointing sensors circular view of observation
+    """
     earth_equatorial_radius = 6378137.0
     earth_polar_radius = 6356752.314245179
     earth_mean_radius = (2 * earth_equatorial_radius + earth_polar_radius) / 3
+    # rho is the angular radius of the earth viewed by the satellite
     sin_rho = earth_mean_radius / (earth_mean_radius + altitude)
+    # eta is the nadir angle between the sub-satellite direction and the target location on the surface
     eta = np.degrees(np.arcsin(np.cos(np.radians(min_elevation)) * sin_rho))
+    # calculate swath width half angle from trigonometry
     sw_HalfAngle = 90 - eta - min_elevation
     if sw_HalfAngle < 0.0:
         return 0.0
     return earth_mean_radius * np.radians(sw_HalfAngle)
-
-# def check_in_range(t, satellite, grounds):
-#     isInRange = False
-#     groundId = None
-#     for k, ground in grounds.iterrows():
-#         if ground.operational:
-#             groundLatLon = wgs84.latlon(ground.latitude, ground.longitude)
-#             satelliteElevation = get_elevation_angle(t, satellite, groundLatLon)
-#             if satelliteElevation >= ground.elevAngle:
-#                 isInRange = True
-#                 groundId = k
-#                 break
-#     return isInRange, groundId
 
 class Constellation(Entity):
     ts = load.timescale()
@@ -162,7 +163,12 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
         current_time = constellation.get_time()
         elapsed_seconds = (current_time - self.time_status_init).total_seconds()
         current_minute = (elapsed_seconds // 60) % 100
-
+        
+        swath_data = {
+            'CAPELLA-14 (ACADIA-4)': 30, # Swath value in km 
+            'GCOM-W1 (SHIZUKU)': 1450 # Swath value in km
+            }
+        
         for i, satellite in enumerate(self.constellation.satellites):
             next_time = constellation.ts.from_datetime(
                 constellation.get_time() + 60 * self.time_status_step
@@ -214,6 +220,7 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
                     radius=sensorRadius,
                     velocity=[velocity_x, velocity_y, velocity_z],
                     state=state,
+                    swath=swath_data.get(satellite.name, 0),
                     # commRange=self.isInRange[i],
                     time=constellation.get_time(),
                     ecef=[x, y, z],

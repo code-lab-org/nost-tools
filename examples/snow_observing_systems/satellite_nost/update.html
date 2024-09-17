@@ -79,7 +79,7 @@
                             color: dotcolor,
                         },
                         label: {
-                            text: `{name: ${payload.name},\nlatitude: ${payload.latitude.toFixed(6)},\nlongitude: ${payload.longitude.toFixed(6)},\naltitude: ${altitude_km.toFixed(2)} km,\nradius: ${radius_km.toFixed(2)} km,\nvelocity: [${payload.velocity[0].toFixed(2)} ${payload.velocity[1].toFixed(2)} ${payload.velocity[2].toFixed(2)}] km/s\nstate: ${payload.state}\ntime: ${payload.time}}`,
+                            text: `{name: ${payload.name},\nlatitude: ${payload.latitude.toFixed(6)},\nlongitude: ${payload.longitude.toFixed(6)},\naltitude: ${altitude_km.toFixed(2)} km,\nradius: ${radius_km.toFixed(2)} km,\nvelocity: [${payload.velocity[0].toFixed(2)} ${payload.velocity[1].toFixed(2)} ${payload.velocity[2].toFixed(2)}] km/s\nstate: ${payload.state}\nswath: ${payload.swath} km\ntime: ${payload.time}}`,
                             font: '10pt Arial',
                             style: Cesium.LabelStyle.FILL,
                             fillColor: Cesium.Color.WHITE,
