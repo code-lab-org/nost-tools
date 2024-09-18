@@ -87,44 +87,7 @@ class Constellation(Entity):
             wgs84.subpoint(satellite.at(self.ts.from_datetime(init_time)))
             for satellite in self.satellites
         ]
-
-    # def tick(self, time_step):
-    #     super().tick(time_step)
-    #     self.next_positions = [
-    #         wgs84.subpoint(
-    #             satellite.at(self.ts.from_datetime(self.get_time() + time_step))
-    #         )
-    #         for satellite in self.satellites
-    #     ]
-
-    # def tock(self):
-    #     self.positions = self.next_positions
-    #     for i, satellite in enumerate(self.satellites):
-    #         current_time = self.ts.from_datetime(self.get_time())
-    #         position = satellite.at(current_time)
-    #         subpoint = wgs84.subpoint(position)
-    #         altitude_meters = subpoint.elevation.m
-    #         velocity = position.velocity.km_per_s
-    #         velocity_x, velocity_y, velocity_z = velocity
-    #         sensor_radius_meters = compute_sensor_radius(altitude_meters, 0)
-    #         # logger.info(f"Message sent: {subpoint.longitude.degrees}")
-    #         self.app.send_message(
-    #             self.app.app_name,
-    #             "location",
-    #             SatelliteStatus(
-    #                 id=i,
-    #                 name=satellite.name,
-    #                 latitude=subpoint.latitude.degrees,
-    #                 longitude=subpoint.longitude.degrees,
-    #                 altitude=altitude_meters,
-    #                 radius=sensor_radius_meters,
-    #                 # velocity = {velocity_x, velocity_y, velocity_z},
-    #                 commRange=False,  # Assuming no ground stations for simplicity
-    #                 time=self.get_time(),
-    #             ).json(),
-    #         )
-    #     super().tock()
-
+        
 # define a publisher to report satellite status
 class PositionPublisher(WallclockTimeIntervalPublisher):
     """
@@ -264,9 +227,8 @@ if __name__ == "__main__":
         config,
         True,
         time_status_step=timedelta(seconds=10) * SCALE,
-        time_status_init=datetime.now(timezone.utc), #datetime(2020, 1, 1, 7, 20, tzinfo=timezone.utc),
+        time_status_init=datetime.now(timezone.utc),
         time_step=timedelta(seconds=1) * SCALE,
-        # shut_down_when_terminated=True,
     )
 
     # while True:
