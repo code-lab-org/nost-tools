@@ -51,7 +51,7 @@ if __name__ == "__main__":
 
     manager.execute_test_plan(
         datetime.now(timezone.utc),                         # scenario start datetime
-        datetime.now(timezone.utc) + timedelta(minutes=1),     # scenario stop datetime
+        datetime.now(timezone.utc) + timedelta(days=1),     # scenario stop datetime
         start_time=None,                                    # optionally specify a wallclock start datetime for synchronization
         time_step=timedelta(seconds=1),                     # wallclock time resolution for simulation
         time_scale_factor=SCALE,                            # initial scale between wallclock and scenario clock (e.g. if SCALE = 60.0 then  1 wallclock second = 1 scenario minute)
