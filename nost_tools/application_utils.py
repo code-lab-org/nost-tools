@@ -33,7 +33,7 @@ class ConnectionConfig(object):
     """
 
     def __init__(
-        self, username: str, password: str, host: str, rabbitmq_port: int, keycloak_port: int, client_id: str, client_secret_key: str, virtual_host: str, is_tls: bool = True
+        self, username: str, password: str, host: str, rabbitmq_port: int, keycloak_port: int, keycloak_realm: str, client_id: str, client_secret_key: str, virtual_host: str, is_tls: bool = True
     ):
         """
         Initializes a new connection configuration.
@@ -52,6 +52,7 @@ class ConnectionConfig(object):
         self.host = host
         self.rabbitmq_port = rabbitmq_port
         self.keycloak_port = keycloak_port
+        self.keycloak_realm = keycloak_realm
         self.client_id = client_id
         self.client_secret_key = client_secret_key
         self.virtual_host = virtual_host

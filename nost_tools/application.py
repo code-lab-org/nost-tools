@@ -95,7 +95,7 @@ class Application:
         """
         keycloak_openid = KeycloakOpenID(server_url=f'{'http' if 'localhost' in config.host else 'https'}://{config.host}:{config.keycloak_port}',
                                         client_id=config.client_id,
-                                        realm_name="test",
+                                        realm_name=config.keycloak_realm,
                                         client_secret_key=config.client_secret_key
                                         )
         try:
@@ -184,6 +184,27 @@ class Application:
         # Obtain access token and refresh token
         access_token, refresh_token = self.new_access_token(config)
         self.start_token_refresh_thread(config)
+
+        # # Set up connection parameters
+        # if config.is_tls:
+        #     ssl_options = pika.SSLOptions(ssl.create_default_context(), config.host)
+        #     parameters = pika.ConnectionParameters(
+        #         host=config.host,
+        #         virtual_host=config.virtual_host,
+        #         port=config.rabbitmq_port,
+        #         credentials=pika.PlainCredentials('', access_token),
+        #         heartbeat=600,
+        #         ssl_options=ssl_options
+        #     )
+        # else:
+        #     parameters = pika.ConnectionParameters(
+        #         host=config.host,
+        #         virtual_host=config.virtual_host,
+        #         port=config.rabbitmq_port,
+        #         credentials=pika.PlainCredentials('', access_token),
+        #         heartbeat=600
+        #     )
+
         # Set up connection parameters
         parameters = pika.ConnectionParameters(
             host=config.host,
@@ -192,6 +213,13 @@ class Application:
             credentials=pika.PlainCredentials('', access_token),
             heartbeat=600
         )
+
+        # Configure transport layer security (TLS) if needed
+        if config.is_tls:
+            logger.info("Using TLS/SSL.")
+            context = ssl.create_default_context()
+            parameters.ssl_options = pika.SSLOptions(context)
+            
         def on_connection_open(connection):
             self.connection = connection
             self.connection.channel(on_open_callback=self.on_channel_open)

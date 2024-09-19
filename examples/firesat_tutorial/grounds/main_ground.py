@@ -68,7 +68,7 @@ class Environment(Observer):
 if __name__ == "__main__":
     # Load credentials from a .env file in current working directory
     credentials = dotenv_values(".env")
-    HOST, RABBITMQ_PORT, KEYCLOAK_PORT = credentials["HOST"], int(credentials["RABBITMQ_PORT"]), int(credentials["KEYCLOAK_PORT"])
+    HOST, RABBITMQ_PORT, KEYCLOAK_PORT, KEYCLOAK_REALM = credentials["HOST"], int(credentials["RABBITMQ_PORT"]), int(credentials["KEYCLOAK_PORT"]), str(credentials["KEYCLOAK_REALM"])
     USERNAME, PASSWORD = credentials["USERNAME"], credentials["PASSWORD"]
     CLIENT_ID = credentials["CLIENT_ID"]
     CLIENT_SECRET_KEY = credentials["CLIENT_SECRET_KEY"]
@@ -82,6 +82,7 @@ if __name__ == "__main__":
         HOST,
         RABBITMQ_PORT,
         KEYCLOAK_PORT,
+        KEYCLOAK_REALM,
         CLIENT_ID,
         CLIENT_SECRET_KEY,
         VIRTUAL_HOST,

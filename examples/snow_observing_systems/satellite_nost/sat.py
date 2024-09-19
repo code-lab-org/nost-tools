@@ -128,7 +128,7 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
         current_minute = (elapsed_seconds // 60) % 100
         
         swath_data = {
-            'CAPELLA-14 (ACADIA-4)': 30000, # Swath value in m 
+            'CAPELLA-14 (ACADIA-4)': 5000, #30000, # Swath value in m 
             'GCOM-W1 (SHIZUKU)': 1450000 # Swath value in m
             }
         
@@ -139,7 +139,7 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
             
             # Get the subpoint of the satellite
             satSpaceTime = satellite.at(next_time)
-            subpoint = wgs84.subpoint(satSpaceTime)
+            # subpoint = wgs84.subpoint(satSpaceTime)
 
             # Determine if the satellite is operational
             if satellite.name=='CAPELLA-14 (ACADIA-4)':
@@ -147,16 +147,23 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
             elif satellite.name=='GCOM-W1 (SHIZUKU)':
                 state = True
 
-            # Get the cartesian posotion of the satellite
-            x, y, z = satSpaceTime.frame_xyz(itrs).m
+            # Get the cartesian position of the satellite
+            position, velocity = satSpaceTime.frame_xyz_and_velocity(itrs)
+            x, y, z = position.m
+            velocity_x, velocity_y, velocity_z = velocity.km_per_s
 
-            # Get the velocity of the satellite
-            velocity = satSpaceTime.velocity.km_per_s
-            velocity_x, velocity_y, velocity_z = velocity
+            # Get the geographic position of the satellite
+            lat, lon = wgs84.latlon_of(satSpaceTime)
+            altitude = wgs84.height_of(satSpaceTime)
+
+            # # Get the velocity of the satellite
+            # velocity = satSpaceTime.velocity.km_per_s
+            # velocity_x, velocity_y, velocity_z = velocity
 
             #Get the angular width of the satellite
             sensorRadius = compute_sensor_radius(
-                subpoint.elevation.m, 0
+                altitude.m, # subpoint.elevation.m, 
+                0
             )
 
             self.app.send_message(
@@ -165,9 +172,9 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
                 SatelliteStatus(
                     id=i,
                     name=satellite.name,
-                    latitude=subpoint.latitude.degrees,
-                    longitude=subpoint.longitude.degrees,
-                    altitude=subpoint.elevation.m,
+                    latitude=lat.degrees,
+                    longitude=lon.degrees,
+                    altitude=altitude.m,
                     radius=sensorRadius,
                     velocity=[velocity_x, velocity_y, velocity_z],
                     state=state,
@@ -180,7 +187,7 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
 
 if __name__ == "__main__":
     credentials = dotenv_values(".env")
-    HOST, RABBITMQ_PORT, KEYCLOAK_PORT = credentials["HOST"], int(credentials["RABBITMQ_PORT"]), int(credentials["KEYCLOAK_PORT"])
+    HOST, RABBITMQ_PORT, KEYCLOAK_PORT, KEYCLOAK_REALM = credentials["HOST"], int(credentials["RABBITMQ_PORT"]), int(credentials["KEYCLOAK_PORT"]), str(credentials["KEYCLOAK_REALM"])
     USERNAME, PASSWORD = credentials["USERNAME"], credentials["PASSWORD"]
     CLIENT_ID = credentials["CLIENT_ID"]
     CLIENT_SECRET_KEY = credentials["CLIENT_SECRET_KEY"]
@@ -193,6 +200,7 @@ if __name__ == "__main__":
         HOST,
         RABBITMQ_PORT,
         KEYCLOAK_PORT,
+        KEYCLOAK_REALM,
         CLIENT_ID,
         CLIENT_SECRET_KEY,
         VIRTUAL_HOST,
@@ -201,10 +209,10 @@ if __name__ == "__main__":
     app = ManagedApplication(NAME)
 
     activesats_url = "https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle"
-    activesats = load.tle_file(activesats_url, reload=False)
+    activesats = load.tle_file(activesats_url, reload=False, filename='./active.txt')
 
     by_name = {sat.name: sat for sat in activesats}
-    names = ['CAPELLA-14 (ACADIA-4)', 'GCOM-W1 (SHIZUKU)',]
+    names = ['CAPELLA-14 (ACADIA-4)', 'GCOM-W1 (SHIZUKU)']
             #  "AQUA", "TERRA", "SUOMI NPP", "NOAA 20 (JPSS-1)", "SENTINEL-2A", "SENTINEL-2B"] #'CAPELLA-14 (ACADIA)'
 
     ES = []
@@ -230,6 +238,6 @@ if __name__ == "__main__":
         time_status_init=datetime.now(timezone.utc),
         time_step=timedelta(seconds=1) * SCALE,
     )
-
+    # os.remove('./gp.php')
     # while True:
     #     pass
