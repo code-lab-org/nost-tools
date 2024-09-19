@@ -69,7 +69,7 @@ class Application:
 
         self.refresh_token = None
         self.token_refresh_thread = None
-        self.token_refresh_interval = 180  # seconds
+        self.token_refresh_interval = 60  # seconds
 
     def ready(self) -> None:
         """
@@ -138,6 +138,13 @@ class Application:
                     self.refresh_token = refresh_token
                     self.update_connection_credentials(access_token)
                     logger.info("Access token refreshed successfully.")
+
+                    # Check every second if we should stop
+                    for _ in range(self.token_refresh_interval):
+                        if self._should_stop.is_set():
+                            return
+                        time.sleep(1)
+                        
                 except Exception as e:
                     logger.error(f"Failed to refresh access token: {e}")
 
@@ -233,7 +240,7 @@ class Application:
         # Start the I/O loop in a separate thread
         # threading.Thread(target=self._start_io_loop).start()
         # self._is_connected.wait()
-        self.stop_event = threading.Event()
+        # self.stop_event = threading.Event()
         self.io_thread = threading.Thread(target=self._start_io_loop)
         self.io_thread.start()
         self._is_connected.wait()
