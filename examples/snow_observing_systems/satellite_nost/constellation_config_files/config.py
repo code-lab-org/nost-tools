@@ -27,4 +27,4 @@ FIELD_OF_REGARD = [float(os.getenv("FIELD_OF_REGARD", 110)),
 # )  # degrees (comms more forgiving than sensor, not currently used)
 # MIN_INTENSITY = float(os.getenv("MIN_INTENSITY", 10.0))  # square meters
 
-SCALE = 10 #60.0
+SCALE = 10 #60
