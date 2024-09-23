@@ -111,10 +111,6 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
 
         if self.time_status_init is None:
             self.time_status_init = self.constellation.ts.now().utc_datetime()
-        
-        # self.isInRange = [
-        #     False for i, satellite in enumerate(self.constellation.satellites)
-        # ]
 
     def publish_message(self):
         """
@@ -139,7 +135,6 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
             
             # Get the subpoint of the satellite
             satSpaceTime = satellite.at(next_time)
-            # subpoint = wgs84.subpoint(satSpaceTime)
 
             # Determine if the satellite is operational
             if satellite.name=='CAPELLA-14 (ACADIA-4)':
@@ -155,10 +150,6 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
             # Get the geographic position of the satellite
             lat, lon = wgs84.latlon_of(satSpaceTime)
             altitude = wgs84.height_of(satSpaceTime)
-
-            # # Get the velocity of the satellite
-            # velocity = satSpaceTime.velocity.km_per_s
-            # velocity_x, velocity_y, velocity_z = velocity
 
             #Get the angular width of the satellite
             sensorRadius = compute_sensor_radius(
@@ -179,7 +170,6 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
                     velocity=[velocity_x, velocity_y, velocity_z],
                     state=state,
                     swath=swath_data.get(satellite.name, 0),
-                    # commRange=self.isInRange[i],
                     time=constellation.get_time(),
                     ecef=[x, y, z],
                 ).json(),
@@ -238,6 +228,6 @@ if __name__ == "__main__":
         time_status_init=datetime.now(timezone.utc),
         time_step=timedelta(seconds=1) * SCALE,
     )
-    # os.remove('./gp.php')
+    
     # while True:
     #     pass
