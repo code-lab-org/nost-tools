@@ -142,8 +142,9 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
             elif satellite.name=='GCOM-W1 (SHIZUKU)':
                 state = True
 
-            # Get the cartesian position of the satellite
+            # Get the cartesian position of the satellite in International Terrestrial Reference System (ITRS)
             position, velocity = satSpaceTime.frame_xyz_and_velocity(itrs)
+            # Origin of the coordinate system is at the center of mass of the Earth, and the axes are fixed relative to the Earth
             x, y, z = position.m
             velocity_x, velocity_y, velocity_z = velocity.km_per_s
 
@@ -228,6 +229,6 @@ if __name__ == "__main__":
         time_status_init=datetime.now(timezone.utc),
         time_step=timedelta(seconds=1) * SCALE,
     )
-    
+
     # while True:
     #     pass
