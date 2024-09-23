@@ -147,4 +147,4 @@ def env_js():
     return send_from_directory('.', 'env.js')
 
 if __name__ == '__main__':
-    app.run(debug=True, port=8080)
+    app.run(debug=True, port=7000) #8080)

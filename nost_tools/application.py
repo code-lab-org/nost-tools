@@ -50,7 +50,6 @@ class Application:
             app_name (str): application name
             app_description (str): application description (optional)
         """
-                
         self.simulator = Simulator()
         self.connection = None
         self.channel = None
@@ -159,8 +158,6 @@ class Application:
             access_token (str): new access token
         """
         self.connection.update_secret(access_token, 'secret')
-        # self.connection._credentials = pika.PlainCredentials('', access_token)
-        # self.connection._adapter_disconnect()
 
     def start_up(
         self,

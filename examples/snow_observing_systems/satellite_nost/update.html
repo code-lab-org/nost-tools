@@ -50,16 +50,17 @@
                     console.log("Start command received.");
                     viewer.clockViewModel.multiplier = payload.taskingParameters.timeScalingFactor;
                 } else if (topic == "greenfield.manager.time" || topic == "greenfield.manager.status.time") {
-                    // console.log("Time message received.");
+                    console.log("Time message received.");
                     viewer.clockViewModel.currentTime = Cesium.JulianDate.fromIso8601(payload.properties.simTime);
                     viewer.timeline.updateFromClock();
                 } else if (topic == "greenfield.manager.update") {
-                    // console.log("Update message received.");
+                    console.log("Update message received.");
                     viewer.clockViewModel.multiplier = payload.taskingParameters.timeScalingFactor;
-                    // } else if(topic=="greenfield.manager.stop"){
-                    //     console.log("Stop command received.");
-                    //     viewer.clockViewModel.multiplier = 0;
+                } else if(topic=="greenfield.manager.stop"){
+                    console.log("Stop command received.");
+                    viewer.clockViewModel.multiplier = 0;
                 } else if (topic === "greenfield.constellation.location") {
+                    console.log("Location message received.");
                     const position = new Cesium.Cartesian3(payload.ecef[0], payload.ecef[1], payload.ecef[2]);
                     // const position = new Cesium.Cartesian3.fromDegrees(payload.longitude, payload.latitude, payload.altitude);
                     const altitude_km = payload.altitude / 1000;
