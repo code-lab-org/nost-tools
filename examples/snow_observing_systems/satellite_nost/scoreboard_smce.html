@@ -39,27 +39,27 @@
             let previousLabelEntities = {};
 
             function handleMessage(topic, payload) {
-                if (topic == "greenfield.manager.init") {
+                if (topic == "sos.manager.init") {
                     console.log("Initialize command received.");
                     viewer.clockViewModel.currentTime = Cesium.JulianDate.fromIso8601(payload.taskingParameters.simStartTime);
                     viewer.clockViewModel.startTime = Cesium.JulianDate.fromIso8601(payload.taskingParameters.simStartTime);
                     viewer.clockViewModel.stopTime = Cesium.JulianDate.fromIso8601(payload.taskingParameters.simStopTime);
                     viewer.clockViewModel.clockRange = Cesium.ClockRange.CLAMPED;
                     viewer.timeline.zoomTo(viewer.clockViewModel.startTime, viewer.clockViewModel.stopTime);
-                } else if (topic == "greenfield.manager.start") {
+                } else if (topic == "sos.manager.start") {
                     console.log("Start command received.");
                     viewer.clockViewModel.multiplier = payload.taskingParameters.timeScalingFactor;
-                } else if (topic == "greenfield.manager.time" || topic == "greenfield.manager.status.time") {
+                } else if (topic == "sos.manager.time" || topic == "sos.manager.status.time") {
                     console.log("Time message received.");
                     viewer.clockViewModel.currentTime = Cesium.JulianDate.fromIso8601(payload.properties.simTime);
                     viewer.timeline.updateFromClock();
-                } else if (topic == "greenfield.manager.update") {
+                } else if (topic == "sos.manager.update") {
                     console.log("Update message received.");
                     viewer.clockViewModel.multiplier = payload.taskingParameters.timeScalingFactor;
-                } else if(topic=="greenfield.manager.stop"){
+                } else if(topic=="sos.manager.stop"){
                     console.log("Stop command received.");
                     viewer.clockViewModel.multiplier = 0;
-                } else if (topic === "greenfield.constellation.location") {
+                } else if (topic === "sos.constellation.location") {
                     // console.log("Location message received.");
                     console.log(payload);
                     const position = new Cesium.Cartesian3(payload.ecef[0], payload.ecef[1], payload.ecef[2]);
@@ -223,13 +223,14 @@
                             const conn = await amqp.connect();
                             const ch = await conn.channel();
                             console.log("Connected to the broker.");
-                            await ch.exchangeDeclare("greenfield", "topic", {durable: true, autoDelete: false});
-                            const q = await ch.queue("greenfield.#");
-                            await q.bind("greenfield", "greenfield.#");
-                            const consumer = await q.subscribe({noAck: true}, (msg) => {
+                            await ch.exchangeDeclare("sos", "topic", {durable: true, autoDelete: false});
+                            const q = await ch.queue("sos.#");
+                            await q.bind("sos", "sos.#");
+                            const consumer = await q.subscribe({noAck: false}, (msg) => {
                                 const topic = msg.routingKey;
                                 const payload = JSON.parse(msg.bodyToString());
                                 handleMessage(topic, payload);
+                                msg.ack();
                             });
                             startTokenRefresh(conn); // Pass the connection object here
                         } catch (err) {

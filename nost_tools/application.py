@@ -190,26 +190,6 @@ class Application:
         access_token, refresh_token = self.new_access_token(config)
         self.start_token_refresh_thread(config)
 
-        # # Set up connection parameters
-        # if config.is_tls:
-        #     ssl_options = pika.SSLOptions(ssl.create_default_context(), config.host)
-        #     parameters = pika.ConnectionParameters(
-        #         host=config.host,
-        #         virtual_host=config.virtual_host,
-        #         port=config.rabbitmq_port,
-        #         credentials=pika.PlainCredentials('', access_token),
-        #         heartbeat=600,
-        #         ssl_options=ssl_options
-        #     )
-        # else:
-        #     parameters = pika.ConnectionParameters(
-        #         host=config.host,
-        #         virtual_host=config.virtual_host,
-        #         port=config.rabbitmq_port,
-        #         credentials=pika.PlainCredentials('', access_token),
-        #         heartbeat=600
-        #     )
-
         # Set up connection parameters
         parameters = pika.ConnectionParameters(
             host=config.host,
@@ -222,8 +202,6 @@ class Application:
         # Configure transport layer security (TLS) if needed
         if config.is_tls:
             logger.info("Using TLS/SSL.")
-            # context = ssl.create_default_context()
-            # parameters.ssl_options = pika.SSLOptions(context)
             parameters.ssl_options = pika.SSLOptions(ssl.SSLContext())
             
         def on_connection_open(connection):
@@ -331,7 +309,7 @@ class Application:
             exchange=self.prefix,
             routing_key=routing_key,
             body=payload,
-            properties=pika.BasicProperties(expiration='30000')
+            properties=pika.BasicProperties(expiration='60000')
         )
         logger.debug(f'Successfully sent message "{payload}" to topic "{routing_key}".')
 
