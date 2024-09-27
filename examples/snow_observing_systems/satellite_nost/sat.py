@@ -200,7 +200,7 @@ if __name__ == "__main__":
     app = ManagedApplication(NAME)
 
     activesats_url = "https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle"
-    activesats = load.tle_file(activesats_url, reload=False, filename='./active.txt')
+    activesats = load.tle_file(activesats_url, reload=True, filename='./active.txt')
 
     by_name = {sat.name: sat for sat in activesats}
     names = ['CAPELLA-14 (ACADIA-4)', 'GCOM-W1 (SHIZUKU)']
