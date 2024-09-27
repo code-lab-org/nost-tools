@@ -173,10 +173,11 @@
             }
 
             const url = `ws://${BROKER_HOST}:${BROKER_PORT}`;
+            // const url = `http://${BROKER_HOST}:${BROKER_PORT}`;
             let accessToken;
 
             function fetchAccessToken() {
-                return fetch(`${BROKER_HOST.includes("localhost") ? "http" : "https"}://${BROKER_HOST}:${AUTH_PORT}/realms/test/protocol/openid-connect/token`, {
+                return fetch(`${BROKER_HOST.includes("localhost") ? "http" : "https"}://${BROKER_HOST}:${AUTH_PORT}/realms/NOS-T/protocol/openid-connect/token`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded'
@@ -221,6 +222,7 @@
                         try {
                             const conn = await amqp.connect();
                             const ch = await conn.channel();
+                            console.log("Connected to the broker.");
                             await ch.exchangeDeclare("greenfield", "topic", {durable: true, autoDelete: false});
                             const q = await ch.queue("greenfield.#");
                             await q.bind("greenfield", "greenfield.#");

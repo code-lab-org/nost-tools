@@ -95,7 +95,8 @@ class Application:
         keycloak_openid = KeycloakOpenID(server_url=f'{'http' if 'localhost' in config.host else 'https'}://{config.host}:{config.keycloak_port}',
                                         client_id=config.client_id,
                                         realm_name=config.keycloak_realm,
-                                        client_secret_key=config.client_secret_key
+                                        client_secret_key=config.client_secret_key,
+                                        verify=False
                                         )
         try:
             if refresh_token:
@@ -221,8 +222,9 @@ class Application:
         # Configure transport layer security (TLS) if needed
         if config.is_tls:
             logger.info("Using TLS/SSL.")
-            context = ssl.create_default_context()
-            parameters.ssl_options = pika.SSLOptions(context)
+            # context = ssl.create_default_context()
+            # parameters.ssl_options = pika.SSLOptions(context)
+            parameters.ssl_options = pika.SSLOptions(ssl.SSLContext())
             
         def on_connection_open(connection):
             self.connection = connection
