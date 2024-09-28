@@ -107,61 +107,80 @@
                             color: dotcolor,
                         },
                         label: {
-                            text: `{name: ${payload.name},\nlatitude: ${payload.latitude.toFixed(6)},\nlongitude: ${payload.longitude.toFixed(6)},\naltitude: ${altitude_km.toFixed(2)} km,\nradius: ${radius_km.toFixed(2)} km,\nvelocity: [${payload.velocity[0].toFixed(2)} ${payload.velocity[1].toFixed(2)} ${payload.velocity[2].toFixed(2)}] km/s\nstate: ${payload.state}\nswath: ${swath_km.toFixed(2)} km\ntime: ${payload.time}}`,
+                            text: payload.name,
+                            // text: `{name: ${payload.name},\nlatitude: ${payload.latitude.toFixed(6)},\nlongitude: ${payload.longitude.toFixed(6)},\naltitude: ${altitude_km.toFixed(2)} km,\nradius: ${radius_km.toFixed(2)} km,\nvelocity: [${payload.velocity[0].toFixed(2)} ${payload.velocity[1].toFixed(2)} ${payload.velocity[2].toFixed(2)}] km/s\nstate: ${payload.state}\nswath: ${swath_km.toFixed(2)} km\ntime: ${payload.time}}`,
                             font: '10pt Arial',
                             style: Cesium.LabelStyle.FILL,
-                            fillColor: Cesium.Color.WHITE,
+                            fillColor: dotcolor,
                             verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
                             pixelOffset: new Cesium.Cartesian2(0, -15),
                             eyeOffset: new Cesium.Cartesian3(0, 0, -5000),
-                            showBackground: true,
-                            backgroundColor: Cesium.Color.BLACK.withAlpha(0.5)
+                            // showBackground: true,
+                            // backgroundColor: Cesium.Color.BLACK.withAlpha(0.5)
                         }
                     });
 
                     const sensorRadius = payload.radius;
+                    // const sensorRadius = payload.radius * (50 / 180); // 50 degrees in radians
                     const sensorHeight = payload.altitude;
-                    const innerRadius = sensorRadius / 2; // Example inner radius for hollow cone
+                    // const hollowRadius = payload.radius * (5 / 180); // 5 degrees in radians
+                    const hollowRadius = payload.radius * (5 / 50); // 5 degrees in radians
 
-                    const outerEllipsoid = new Cesium.EllipsoidGeometry({
-                        radii: new Cesium.Cartesian3(sensorRadius, sensorRadius, sensorHeight)
+                    const outerCone = new Cesium.CylinderGeometry({
+                        length: sensorHeight * 2,
+                        topRadius: 0.0,
+                        bottomRadius: sensorRadius,
+                        vertexFormat: Cesium.PerInstanceColorAppearance.VERTEX_FORMAT
                     });
 
-                    const innerEllipsoid = new Cesium.EllipsoidGeometry({
-                        radii: new Cesium.Cartesian3(innerRadius, innerRadius, sensorHeight)
-                    });
-
-                    const outerEllipsoidInstance = new Cesium.GeometryInstance({
-                        geometry: outerEllipsoid,
+                    const outerConeInstance = new Cesium.GeometryInstance({
+                        geometry: outerCone,
                         modelMatrix: Cesium.Matrix4.multiplyByTranslation(
                             Cesium.Transforms.eastNorthUpToFixedFrame(position),
                             new Cesium.Cartesian3(0.0, 0.0, -sensorHeight),
                             new Cesium.Matrix4()
                         ),
                         attributes: {
-                            color: Cesium.ColorGeometryInstanceAttribute.fromColor(color.withAlpha(0.3))
+                            color: Cesium.ColorGeometryInstanceAttribute.fromColor(color.withAlpha(0.4))
                         }
                     });
 
-                    const innerEllipsoidInstance = new Cesium.GeometryInstance({
-                        geometry: innerEllipsoid,
-                        modelMatrix: Cesium.Matrix4.multiplyByTranslation(
-                            Cesium.Transforms.eastNorthUpToFixedFrame(position),
-                            new Cesium.Cartesian3(0.0, 0.0, -sensorHeight),
-                            new Cesium.Matrix4()
-                        ),
-                        attributes: {
-                            color: Cesium.ColorGeometryInstanceAttribute.fromColor(Cesium.Color.TRANSPARENT)
-                        }
-                    });
-
-                    const currentPrimitive = new Cesium.Primitive({
-                        geometryInstances: [outerEllipsoidInstance, innerEllipsoidInstance],
+                    const outerPrimitive = new Cesium.Primitive({
+                        geometryInstances: outerConeInstance,
                         appearance: new Cesium.PerInstanceColorAppearance()
                     });
 
-                    viewer.scene.primitives.add(currentPrimitive);
-                    previousSensorCircles[payload.name].push(currentPrimitive);
+                    viewer.scene.primitives.add(outerPrimitive);
+                    previousSensorCircles[payload.name].push(outerPrimitive);
+
+                    if (payload.name === "CAPELLA-14 (ACADIA-4)") {
+                        const innerCone = new Cesium.CylinderGeometry({
+                            length: sensorHeight * 2,
+                            topRadius: 0.0,
+                            bottomRadius: hollowRadius,
+                            vertexFormat: Cesium.PerInstanceColorAppearance.VERTEX_FORMAT
+                        });
+
+                        const innerConeInstance = new Cesium.GeometryInstance({
+                            geometry: innerCone,
+                            modelMatrix: Cesium.Matrix4.multiplyByTranslation(
+                                Cesium.Transforms.eastNorthUpToFixedFrame(position),
+                                new Cesium.Cartesian3(0.0, 0.0, -sensorHeight),
+                                new Cesium.Matrix4()
+                            ),
+                            attributes: {
+                                color: Cesium.ColorGeometryInstanceAttribute.fromColor(Cesium.Color.BLACK.withAlpha(0.9))
+                            }
+                        });
+
+                        const innerPrimitive = new Cesium.Primitive({
+                            geometryInstances: innerConeInstance,
+                            appearance: new Cesium.PerInstanceColorAppearance()
+                        });
+
+                        viewer.scene.primitives.add(innerPrimitive);
+                        previousSensorCircles[payload.name].push(innerPrimitive);
+                    }
 
                     if (!positions[payload.name]) {
                         positions[payload.name] = [];
@@ -181,15 +200,32 @@
                         });
                     }
 
-                    // Zoom to the first position and calculate the center point between the two entities
-                    if (firstUpdate && Object.keys(positions).length === 2) {
-                        const allPositions = Object.values(positions).flat();
-                        const boundingBox = Cesium.BoundingSphere.fromPoints(allPositions);
-                        viewer.camera.flyToBoundingSphere(boundingBox, {
-                            duration: 2,
-                            offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-90), boundingBox.radius * 5)
+                    // // Zoom to the first position and calculate the center point between the two entities
+                    // if (firstUpdate && Object.keys(positions).length === 2) {
+                    //     const allPositions = Object.values(positions).flat();
+                    //     const boundingBox = Cesium.BoundingSphere.fromPoints(allPositions);
+                    //     viewer.camera.flyToBoundingSphere(boundingBox, {
+                    //         duration: 2,
+                    //         offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-90), boundingBox.radius * 5)
+                    //     });
+                    //     firstUpdate = false;
+                    // }
+                    
+                    // Fly to the location of "Capella-14 (ACADIA)" and keep it in focus
+                    if (payload.name === "GCOM-W1 (SHIZUKU)") { //"CAPELLA-14 (ACADIA-4)") {
+                        viewer.camera.flyTo({
+                            destination: Cesium.Cartesian3.fromDegrees(
+                                Cesium.Cartographic.fromCartesian(position).longitude * Cesium.Math.DEGREES_PER_RADIAN,
+                                Cesium.Cartographic.fromCartesian(position).latitude * Cesium.Math.DEGREES_PER_RADIAN,
+                                Cesium.Cartographic.fromCartesian(position).height + 20000000 // Increase height to zoom out
+                            ),
+                            duration: 1,
+                            orientation: {
+                                heading: Cesium.Math.toRadians(0), // Adjust heading for side view
+                                pitch: Cesium.Math.toRadians(-90.0), // Adjust pitch for side view
+                                roll: 0.0 // Keep roll at 0 for a stable view
+                            },
                         });
-                        firstUpdate = false;
                     }
                 }
             }

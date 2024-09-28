@@ -138,7 +138,7 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
 
             # Determine if the satellite is operational
             if satellite.name=='CAPELLA-14 (ACADIA-4)':
-                state = current_minute < 1
+                state = current_minute < 5
             elif satellite.name=='GCOM-W1 (SHIZUKU)':
                 state = True
 

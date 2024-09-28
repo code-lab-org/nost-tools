@@ -120,8 +120,10 @@
                     });
 
                     const sensorRadius = payload.radius;
+                    // const sensorRadius = payload.radius * (50 / 180); // 50 degrees in radians
                     const sensorHeight = payload.altitude;
-                    const hollowRadius = sensorRadius * (10 / 360); // 10 degrees in radians
+                    // const hollowRadius = payload.radius * (5 / 180); // 5 degrees in radians
+                    const hollowRadius = payload.radius * (5 / 50); // 5 degrees in radians
 
                     const outerCone = new Cesium.CylinderGeometry({
                         length: sensorHeight * 2,
