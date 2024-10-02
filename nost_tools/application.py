@@ -123,6 +123,34 @@ class Application:
             logger.error(f"An error occurred: {e}")
             raise
 
+    # def start_token_refresh_thread(self, config):
+    #     """
+    #     Starts a background thread to refresh the access token periodically.
+
+    #     Args:
+    #         config (:obj:`ConnectionConfig`): connection configuration
+    #     """
+    #     def refresh_token_periodically():
+    #         while not self._should_stop.is_set():
+    #             time.sleep(self.token_refresh_interval)
+    #             try:
+    #                 access_token, refresh_token = self.new_access_token(config, self.refresh_token)
+    #                 self.refresh_token = refresh_token
+    #                 self.update_connection_credentials(access_token)
+    #                 logger.info("Access token refreshed successfully.")
+
+    #                 # Check every second if we should stop
+    #                 for _ in range(self.token_refresh_interval):
+    #                     if self._should_stop.is_set():
+    #                         return
+    #                     time.sleep(1)
+                        
+    #             except Exception as e:
+    #                 logger.error(f"Failed to refresh access token: {e}")
+    #     # while not self._should_stop.is_set():
+    #     self.token_refresh_thread = threading.Thread(target=refresh_token_periodically)
+    #     self.token_refresh_thread.start()
+    
     def start_token_refresh_thread(self, config):
         """
         Starts a background thread to refresh the access token periodically.
@@ -132,19 +160,20 @@ class Application:
         """
         def refresh_token_periodically():
             while not self._should_stop.is_set():
-                time.sleep(self.token_refresh_interval)
+                sleep_interval = 1  # Check every second
+                total_sleep_time = 0
+
+                while total_sleep_time < self.token_refresh_interval:
+                    if self._should_stop.is_set():
+                        return
+                    time.sleep(sleep_interval)
+                    total_sleep_time += sleep_interval
+
                 try:
                     access_token, refresh_token = self.new_access_token(config, self.refresh_token)
                     self.refresh_token = refresh_token
                     self.update_connection_credentials(access_token)
                     logger.info("Access token refreshed successfully.")
-
-                    # Check every second if we should stop
-                    for _ in range(self.token_refresh_interval):
-                        if self._should_stop.is_set():
-                            return
-                        time.sleep(1)
-                        
                 except Exception as e:
                     logger.error(f"Failed to refresh access token: {e}")
 
@@ -239,6 +268,15 @@ class Application:
         while not self.stop_event.is_set():
             self.connection.ioloop.start()
 
+    ###
+    def _start_token_loop(self):
+        self.stop_refresh_token = threading.Event()
+
+        # while self._is_running:
+        while not self.stop_refresh_token.is_set():
+            self.start_token_refresh_thread()
+    ###
+
     def on_channel_open(self, channel):
         """
         Callback function for when the channel is opened.
@@ -279,7 +317,7 @@ class Application:
         """
         Shuts down the application by stopping the background event loop and disconnecting from the broker.
         """
-        self._should_stop.set()
+        # self._should_stop.set()
         if self._time_status_publisher is not None:
             self.simulator.remove_observer(self._time_status_publisher)
         self._time_status_publisher = None
@@ -449,6 +487,8 @@ class Application:
                 # Signal the thread to stop
                 if hasattr(self, 'stop_event'):
                     self.stop_event.set()
+                if hasattr(self, '_should_stop'):
+                    self._should_stop.set()
                 if hasattr(self, 'io_thread'):
                     self.io_thread.join()
                 sys.exit()
@@ -549,13 +589,13 @@ class Application:
         """
         try:
 
-            self.channel.exchange_declare(exchange=self.prefix, exchange_type='topic', durable=True)
+            self.channel.exchange_declare(exchange=self.prefix, exchange_type='topic', durable=False, auto_delete=True) #, durable=True)
             routing_key = self.create_routing_key(app_name=app_name, topic=topic)
             if app_specific_extender:
                 queue_name = '.'.join([routing_key, app_specific_extender])
             else:
                 queue_name = routing_key
-            self.channel.queue_declare(queue=queue_name, durable=True)
+            self.channel.queue_declare(queue=queue_name, durable=False, auto_delete=True) #, durable=True)
             self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=routing_key)
             logger.debug(f'Bound queue "{queue_name}" to topic "{routing_key}".')
         

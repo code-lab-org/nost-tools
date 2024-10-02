@@ -61,7 +61,7 @@
                     viewer.clockViewModel.multiplier = 0;
                 } else if (topic === "sos.constellation.location") {
                     // console.log("Location message received.");
-                    console.log(payload);
+                    // console.log(payload);
                     const position = new Cesium.Cartesian3(payload.ecef[0], payload.ecef[1], payload.ecef[2]);
                     // const position = new Cesium.Cartesian3.fromDegrees(payload.longitude, payload.latitude, payload.altitude);
                     const altitude_km = payload.altitude / 1000;
@@ -211,27 +211,29 @@
                     //     firstUpdate = false;
                     // }
                     
-                    // Fly to the location of "Capella-14 (ACADIA)" and keep it in focus
-                    if (payload.name === "GCOM-W1 (SHIZUKU)") { //"CAPELLA-14 (ACADIA-4)") {
-                        viewer.camera.flyTo({
-                            destination: Cesium.Cartesian3.fromDegrees(
-                                Cesium.Cartographic.fromCartesian(position).longitude * Cesium.Math.DEGREES_PER_RADIAN,
-                                Cesium.Cartographic.fromCartesian(position).latitude * Cesium.Math.DEGREES_PER_RADIAN,
-                                Cesium.Cartographic.fromCartesian(position).height + 20000000 // Increase height to zoom out
-                            ),
-                            duration: 1,
-                            orientation: {
-                                heading: Cesium.Math.toRadians(0), // Adjust heading for side view
-                                pitch: Cesium.Math.toRadians(-90.0), // Adjust pitch for side view
-                                roll: 0.0 // Keep roll at 0 for a stable view
-                            },
-                        });
-                    }
+                    // // Fly to the location of "Capella-14 (ACADIA)" and keep it in focus
+                    // if (payload.name === "GCOM-W1 (SHIZUKU)") { //"CAPELLA-14 (ACADIA-4)") {
+                    //     viewer.camera.flyTo({
+                    //         destination: Cesium.Cartesian3.fromDegrees(
+                    //             Cesium.Cartographic.fromCartesian(position).longitude * Cesium.Math.DEGREES_PER_RADIAN,
+                    //             Cesium.Cartographic.fromCartesian(position).latitude * Cesium.Math.DEGREES_PER_RADIAN,
+                    //             Cesium.Cartographic.fromCartesian(position).height + 20000000 // Increase height to zoom out
+                    //         ),
+                    //         duration: 1,
+                    //         orientation: {
+                    //             heading: Cesium.Math.toRadians(0), // Adjust heading for side view
+                    //             pitch: Cesium.Math.toRadians(-90.0), // Adjust pitch for side view
+                    //             roll: 0.0 // Keep roll at 0 for a stable view
+                    //         },
+                    //     });
+                    // }
                 }
             }
 
-            const url = `ws://${BROKER_HOST}:${BROKER_PORT}`;
-            // const url = `http://${BROKER_HOST}:${BROKER_PORT}`;
+            // const url = `ws://${BROKER_HOST}:${BROKER_PORT}`;
+            const tls = window.location.protocol === "https:"
+            const url = `${tls ? "wss" : "ws"}://${BROKER_HOST}:${BROKER_PORT}`
+            
             let accessToken;
 
             function fetchAccessToken() {
@@ -281,8 +283,8 @@
                             const conn = await amqp.connect();
                             const ch = await conn.channel();
                             console.log("Connected to the broker.");
-                            await ch.exchangeDeclare("sos", "topic", {durable: true, autoDelete: false});
-                            const q = await ch.queue("sos.#");
+                            await ch.exchangeDeclare("sos", "topic", {durable: false, autoDelete: true}); //{durable: true, autoDelete: false});
+                            const q = await ch.queue("sos.#", {durable: false, autoDelete: true});
                             await q.bind("sos", "sos.#");
                             const consumer = await q.subscribe({noAck: false}, (msg) => {
                                 const topic = msg.routingKey;

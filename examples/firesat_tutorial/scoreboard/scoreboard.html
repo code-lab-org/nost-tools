@@ -237,7 +237,7 @@
 
                 const url = `ws://${BROKER_HOST}:${BROKER_PORT}`;
                 // fetch('http://localhost:8080/realms/test/protocol/openid-connect/token', {
-                fetch(`${BROKER_HOST.includes("localhost") ? "http" : "https"}://${BROKER_HOST}:${AUTH_PORT}/realms/test/protocol/openid-connect/token`, {
+                fetch(`${BROKER_HOST.includes("localhost") ? "http" : "https"}://${BROKER_HOST}:${AUTH_PORT}/realms/NOS-T/protocol/openid-connect/token`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded'
@@ -261,8 +261,8 @@
                         try {
                             const conn = await amqp.connect();
                             const ch = await conn.channel();
-                            await ch.exchangeDeclare("greenfield", "topic", {durable: true, autoDelete: false});
-                            const q = await ch.queue("greenfield.#");
+                            await ch.exchangeDeclare("greenfield", "topic", {durable: false, autoDelete: true}); //{durable: true, autoDelete: false});
+                            const q = await ch.queue("greenfield.#", {durable: false, autoDelete: true});
                             await q.bind("greenfield", "greenfield.#");
                             const consumer = await q.subscribe({noAck: true}, (msg) => {
                                 const topic = msg.routingKey;

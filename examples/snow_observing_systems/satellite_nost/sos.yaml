@@ -1,0 +1,54 @@
+# asyncapi: '2.0.0'
+info:
+  title: Novel Observing Strategies Testbed (NOS-T) YAML Configuration
+  version: '1.0.0'
+  description: Version-controlled document for RabbitMQ with Keycloak authentication within NOS-T.
+servers:
+  rabbitmq:
+    host: localhost
+    port: 5672
+    tls: False
+  keycloak:
+    host: localhost
+    port: 8080
+    tls: False
+channels:
+  manager:
+    description: Manager application
+    channels:
+      init:
+        description: Channel for user signup events
+        # subscribe:
+        #   summary: Receive user signup events
+        #   message:
+        #     contentType: application/json
+        #     payload:
+        #       type: object
+        #       properties:
+        #         userId:
+        #           type: string
+        #         email:
+        #           type: string
+        #           format: email
+        #         signupDate:
+        #           type: string
+        #           format: date-time
+      start:
+        description: Channel for time events
+      stop:
+        description: Channel for status mode events
+      status.time:
+        description: Channel for time events
+      status.mode:
+        description: Channel for status mode events
+  satellite: 
+    description: Satellite application
+    channels:
+      status.ready:
+        description: Channel for user signup events
+      status.time:
+        description: Channel for time events
+      status.mode:
+        description: Channel for status mode events
+      location:
+        description: Channel for location events
