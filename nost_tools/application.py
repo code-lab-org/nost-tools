@@ -323,6 +323,12 @@ class Application:
         consumer with RabbitMQ. We keep the value to use it when we want to
         cancel consuming. The on_message method is passed in as a callback pika
         will invoke when a message is fully received.
+
+        Args:
+            app_name (str): application name
+            app_topic (str): topic name
+            user_callback (Callable): user-provided callback function
+            app_specific_extender (str): application specific extender, used to create a unique queue name for the application. If the app_specific_extender is not provided, the queue name is the same as the routing key.
         """
         self.was_consuming = True
         self.consuming = True
@@ -342,6 +348,12 @@ class Application:
         logger.info(f"Subscribing and adding callback to topic: {routing_key}")
 
     def combined_callback(self, user_callback):
+        """
+        Combines the user-provided callback with the on_message method.
+
+        Args:
+            user_callback (Callable): user-provided callback function
+        """
         def wrapper(ch, method, properties, body):
             # Call the on_message method
             self.on_message(ch, method, properties, body)
