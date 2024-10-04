@@ -291,7 +291,7 @@ class Application:
         
         logger.info(f"Application {self.app_name} successfully shut down.")
 
-    def send_message(self, app_name, app_topic: str, payload: str, app_specific_extender: str = None) -> None:
+    def send_message(self, app_name, app_topic: str, payload: str) -> None: #, app_specific_extender: str = None) -> None:
         """
         Sends a message to the broker. The message is sent to the exchange using the routing key. The routing key is created using the application name and topic. The message is published with an expiration of 60 seconds.
         
@@ -301,10 +301,14 @@ class Application:
             payload (str): message payload
             app_specific_extender (str): application specific extender, used to create a unique queue name for the application. If the app_specific_extender is not provided, the queue name is the same as the routing key.
         """
-        if app_specific_extender:
-            routing_key, queue_name = self.declare_bind_queue(app_name=app_name, topic=app_topic, app_specific_extender=app_specific_extender)
-        else:
-            routing_key, queue_name = self.declare_bind_queue(app_name=app_name, topic=app_topic)
+
+        # if app_specific_extender:
+        #     routing_key, queue_name = self.declare_bind_queue(app_name=app_name, topic=app_topic, app_specific_extender=app_specific_extender)
+        # else:
+        #     routing_key, queue_name = self.declare_bind_queue(app_name=app_name, topic=app_topic)
+
+        routing_key, queue_name = self.declare_bind_queue(app_name=app_name, topic=app_topic)
+
         # Expiration of 60000 ms = 60 sec
         self.channel.basic_publish(
             exchange=self.prefix,
@@ -314,7 +318,7 @@ class Application:
         )
         logger.debug(f'Successfully sent message "{payload}" to topic "{routing_key}".')
 
-    def add_message_callback(self, app_name: str, app_topic: str, user_callback: Callable, app_specific_extender: str = None):
+    def add_message_callback(self, app_name: str, app_topic: str, user_callback: Callable): #, app_specific_extender: str = None):
         """
         This method sets up the consumer by first calling
         add_on_cancel_callback so that the object is notified if RabbitMQ
@@ -328,17 +332,20 @@ class Application:
             app_name (str): application name
             app_topic (str): topic name
             user_callback (Callable): user-provided callback function
-            app_specific_extender (str): application specific extender, used to create a unique queue name for the application. If the app_specific_extender is not provided, the queue name is the same as the routing key.
         """
         self.was_consuming = True
         self.consuming = True
         logger.info('Issuing consumer related RPC commands')
         self.add_on_cancel_callback()
         combined_cb = self.combined_callback(user_callback)
-        if app_specific_extender:
-            routing_key, queue_name = self.declare_bind_queue(app_name=app_name, topic=app_topic, app_specific_extender=app_specific_extender)
-        else:
-            routing_key, queue_name = self.declare_bind_queue(app_name=app_name, topic=app_topic)
+
+        # if app_specific_extender:
+        #     routing_key, queue_name = self.declare_bind_queue(app_name=app_name, topic=app_topic, app_specific_extender=app_specific_extender)
+        # else:
+        #     routing_key, queue_name = self.declare_bind_queue(app_name=app_name, topic=app_topic)
+
+        routing_key, queue_name = self.declare_bind_queue(app_name=app_name, topic=app_topic, app_specific_extender=self.app_name)
+
         # Set QoS settings
         self.channel.basic_qos(prefetch_count=1)
         self._consumer_tag = self.channel.basic_consume(

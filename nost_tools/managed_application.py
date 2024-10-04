@@ -86,10 +86,14 @@ class ManagedApplication(Application):
         self.manager_app_name = manager_app_name
 
         # Register callback functions
-        self.add_message_callback(app_name=manager_app_name, app_topic='init', app_specific_extender=self.app_name, user_callback=self.on_manager_init)
-        self.add_message_callback(app_name=manager_app_name, app_topic='start', app_specific_extender=self.app_name, user_callback=self.on_manager_start)
-        self.add_message_callback(app_name=manager_app_name, app_topic='stop', app_specific_extender=self.app_name, user_callback=self.on_manager_stop)
-        self.add_message_callback(app_name=manager_app_name, app_topic='update', app_specific_extender=self.app_name, user_callback=self.on_manager_update)
+        # self.add_message_callback(app_name=manager_app_name, app_topic='init', app_specific_extender=self.app_name, user_callback=self.on_manager_init)
+        # self.add_message_callback(app_name=manager_app_name, app_topic='start', app_specific_extender=self.app_name, user_callback=self.on_manager_start)
+        # self.add_message_callback(app_name=manager_app_name, app_topic='stop', app_specific_extender=self.app_name, user_callback=self.on_manager_stop)
+        # self.add_message_callback(app_name=manager_app_name, app_topic='update', app_specific_extender=self.app_name, user_callback=self.on_manager_update)
+        self.add_message_callback(app_name=manager_app_name, app_topic='init', user_callback=self.on_manager_init)
+        self.add_message_callback(app_name=manager_app_name, app_topic='start', user_callback=self.on_manager_start)
+        self.add_message_callback(app_name=manager_app_name, app_topic='stop', user_callback=self.on_manager_stop)
+        self.add_message_callback(app_name=manager_app_name, app_topic='update', user_callback=self.on_manager_update)
 
     def shut_down(self) -> None:
         """

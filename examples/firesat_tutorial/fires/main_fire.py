@@ -211,7 +211,7 @@ if __name__ == "__main__":
     )
     
     # Add message callbacks for fire ignition, detection, and report
-    app.add_message_callback("fire", "location", on_fire, app_specific_extender=app.app_name)
+    app.add_message_callback("fire", "location", on_fire) #, app_specific_extender=app.app_name)
     app.add_message_callback("constellation", "detected", on_detected)
     app.add_message_callback("constellation", "reported", on_reported)
 
