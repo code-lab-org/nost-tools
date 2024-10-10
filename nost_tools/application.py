@@ -190,6 +190,7 @@ class Application:
         # Obtain access token and refresh token
         access_token, refresh_token = self.new_access_token(config)
         self.start_token_refresh_thread(config)
+        logger.info(f"Config: {config.yaml_config}")
 
         # Set up connection parameters
         parameters = pika.ConnectionParameters(
@@ -288,8 +289,23 @@ class Application:
         if self.connection:
             self.stop_application()
             self.consuming = False
+
+        # self.delete_queues()
         
         logger.info(f"Application {self.app_name} successfully shut down.")
+
+    # def delete_queues(self):
+    #     """
+    #     Deletes the queues from RabbitMQ.
+    #     """
+    #     if self.channel:
+    #         try:
+    #             for method_frame, properties, body in self.channel.queue_declare(queue='', passive=True):
+    #                 queue_name = method_frame.method.queue
+    #                 self.channel.queue_delete(queue=queue_name)
+    #                 logger.info(f"Queue {queue_name} deleted.")
+    #         except Exception as e:
+    #             logger.error(f"Failed to delete queues: {e}")
 
     def send_message(self, app_name, app_topic: str, payload: str) -> None: #, app_specific_extender: str = None) -> None:
         """
