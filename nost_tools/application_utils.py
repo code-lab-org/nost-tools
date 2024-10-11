@@ -64,10 +64,12 @@ class ConnectionConfig(object):
             yaml_file (str): Path to the YAML configuration file
         """
         self.yaml_config = None  # Initialize the attribute to store YAML data
+        self.yaml_mode = False # Initialize the attribute to store the mode of operation
 
         if env_file and yaml_file:
             logger.info(f"Loading configuration from {env_file} and {yaml_file}.")
             self.load_from_files(env_file, yaml_file)
+            self.yaml_mode = True
         else:
             logger.info("Loading configuration from arguments.")
             self.username = username

@@ -172,7 +172,7 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
                     state=state,
                     swath=swath_data.get(satellite.name, 0),
                     time=constellation.get_time(),
-                    ecef=[x, y, z],
+                    ecef=[x, y, z]
                 ).json(),
             )
 

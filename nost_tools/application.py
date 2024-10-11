@@ -65,10 +65,16 @@ class Application:
         self.closing = False
         self._is_running = False
         self.io_thread = None
+        self.channel_configs = []  # Initialize channel_configs
+        self.unique_exchanges = {}  # Initialize unique_exchanges
+
+        self.declared_queues = set()  # Initialize list to store declared queues
+        self.declared_exchanges = set()  # Initialize list to store declared exchanges
 
         self.refresh_token = None
         self.token_refresh_thread = None
         self.token_refresh_interval = 60  # seconds
+        self.yaml_mode = False
 
     def ready(self) -> None:
         """
@@ -161,6 +167,131 @@ class Application:
         """
         self.connection.update_secret(access_token, 'secret')
 
+    def parse_yaml(self, config):
+        """
+        Parses the YAML configuration file to extract exchange and channel configurations.
+
+        Args:
+            config (:obj:`ConnectionConfig`): connection configuration
+        """
+        channels = config.get('channels', {})
+        unique_exchanges = {}
+
+        for app, app_channels in channels.items():
+            for channel, details in app_channels.items():
+                bindings = details.get('bindings', {}).get('amqp', {})
+                exchange = bindings.get('exchange', {})
+                exchange_name = exchange.get('name')
+                if exchange_name:
+                    exchange_config = {
+                        'type': exchange.get('type', 'topic'),
+                        'durable': exchange.get('durable', True),
+                        'auto_delete': exchange.get('autoDelete', False),
+                        'vhost': exchange.get('vhost', '/')
+                    }
+                    if exchange_name in unique_exchanges:
+                        if unique_exchanges[exchange_name] != exchange_config:
+                            raise ValueError(f"Conflicting configurations for exchange '{exchange_name}': {unique_exchanges[exchange_name]} vs {exchange_config}")
+                    else:
+                        unique_exchanges[exchange_name] = exchange_config
+
+        # Step 3: Extract channel addresses and their configurations
+        channel_configs = []
+
+        for app, app_channels in channels.items():
+            for channel, details in app_channels.items():
+                address = details.get('address')
+                bindings = details.get('bindings', {}).get('amqp', {})
+                if address and bindings:
+                    channel_configs.append({
+                        'app': app,
+                        'address': address,
+                        'exchange': bindings.get('exchange', {}).get('name', 'default_exchange'),
+                        'durable': bindings.get('exchange', {}).get('durable', True),
+                        'auto_delete': bindings.get('exchange', {}).get('autoDelete', False),
+                        'vhost': bindings.get('exchange', {}).get('vhost', '/')
+                    })
+        logger.info("Parsed YAML configuration file.")
+
+        return unique_exchanges, channel_configs
+
+    def declare_bind_queue(self, configs, app_name):
+        """
+        Declares and binds a queue to the exchange. The queue is bound to the exchange using the routing key. The routing key is created using the application name and topic.
+        
+        Args:
+            configs (list): list of channel configurations
+            app_name (str): application name
+        """
+        for config in configs:
+            if config['app'] == app_name:
+                exchange_name = config['exchange']
+                queue_name = config['address']
+                self.channel.queue_declare(queue=queue_name, durable=config['durable'])
+                self.channel.queue_bind(exchange=exchange_name, queue=queue_name, routing_key=config['address'])
+        logger.info(f"Successfully bound queues.")
+
+    def declare_exchange(self, unique_exchanges):
+        """
+        Declares the exchanges in RabbitMQ.
+        
+        Args:
+            unique_exchanges (dict): dictionary of unique exchanges
+        """
+        for exchange_name, exchange_config in unique_exchanges.items():
+            logger.info(f'Declaring exchange: {exchange_name}')
+            
+            self.channel.exchange_declare(
+                exchange=exchange_name,
+                exchange_type=exchange_config['type'],
+                durable=exchange_config['durable'],
+                auto_delete=exchange_config['auto_delete']
+            )
+        logger.info("Successfully declared exchanges.")
+
+    def delete_queue(self, configs, app_name):
+        """
+        Deletes the queues from RabbitMQ.
+        
+        Args:
+            configs (list): list of channel configurations
+            app_name (str): application name
+        """
+        for config in configs:
+            if config['app'] == app_name:
+                logger.info(f"Deleting queue: {config['address']}")
+                self.channel.queue_delete(queue=config['address'])
+        logger.info("Successfully deleted queues.")
+
+    def delete_exchange(self, unique_exchanges):
+        """
+        Deletes the exchanges from RabbitMQ.
+        
+        Args:
+            unique_exchanges (dict): dictionary of unique exchanges
+        """
+        for exchange_name, exchange_config in unique_exchanges.items():
+            self.channel.exchange_delete(exchange=exchange_name)
+        logger.info("Successfully deleted exchanges.")
+
+    def delete_all_queues_and_exchanges(self):
+        """
+        Deletes all declared queues and exchanges from RabbitMQ.
+        """
+        for queue_name in list(self.declared_queues):
+            try:
+                self.channel.queue_delete(queue=queue_name)
+                logger.info(f"Deleted queue: {queue_name}")
+            except Exception as e:
+                logger.error(f"Failed to delete queue {queue_name}: {e}")
+
+        for exchange_name in list(self.declared_exchanges):
+            try:
+                self.channel.exchange_delete(exchange=exchange_name)
+                logger.info(f"Deleted exchange: {exchange_name}")
+            except Exception as e:
+                logger.error(f"Failed to delete exchange {exchange_name}: {e}")
+
     def start_up(
         self,
         prefix: str,
@@ -190,7 +321,6 @@ class Application:
         # Obtain access token and refresh token
         access_token, refresh_token = self.new_access_token(config)
         self.start_token_refresh_thread(config)
-        logger.info(f"Config: {config.yaml_config}")
 
         # Set up connection parameters
         parameters = pika.ConnectionParameters(
@@ -223,6 +353,21 @@ class Application:
         self.io_thread = threading.Thread(target=self._start_io_loop)
         self.io_thread.start()
         self._is_connected.wait()
+
+        logger.info(config.yaml_mode)
+
+        if config.yaml_mode:
+            self.yaml_mode = True
+            logger.info("Running NOS-T in YAML mode.")
+
+            # Get the unique exchanges and channel configurations
+            self.unique_exchanges, self.channel_configs = self.parse_yaml(config.yaml_config)
+            
+            # Declare exchanges
+            self.declare_exchange(self.unique_exchanges)
+
+            # Setup channels/queues for a specific app
+            self.declare_bind_queue(self.channel_configs, self.app_name)
         
         # Configure observers
         self._create_time_status_publisher(time_status_step, time_status_init)
@@ -289,23 +434,7 @@ class Application:
         if self.connection:
             self.stop_application()
             self.consuming = False
-
-        # self.delete_queues()
-        
         logger.info(f"Application {self.app_name} successfully shut down.")
-
-    # def delete_queues(self):
-    #     """
-    #     Deletes the queues from RabbitMQ.
-    #     """
-    #     if self.channel:
-    #         try:
-    #             for method_frame, properties, body in self.channel.queue_declare(queue='', passive=True):
-    #                 queue_name = method_frame.method.queue
-    #                 self.channel.queue_delete(queue=queue_name)
-    #                 logger.info(f"Queue {queue_name} deleted.")
-    #         except Exception as e:
-    #             logger.error(f"Failed to delete queues: {e}")
 
     def send_message(self, app_name, app_topic: str, payload: str) -> None: #, app_specific_extender: str = None) -> None:
         """
@@ -323,7 +452,10 @@ class Application:
         # else:
         #     routing_key, queue_name = self.declare_bind_queue(app_name=app_name, topic=app_topic)
 
-        routing_key, queue_name = self.declare_bind_queue(app_name=app_name, topic=app_topic)
+        if self.yaml_mode:
+            routing_key = self.create_routing_key(app_name=app_name, topic=app_topic)
+        else:
+            routing_key, queue_name = self.yamless_declare_bind_queue(app_name=app_name, topic=app_topic)
 
         # Expiration of 60000 ms = 60 sec
         self.channel.basic_publish(
@@ -360,7 +492,13 @@ class Application:
         # else:
         #     routing_key, queue_name = self.declare_bind_queue(app_name=app_name, topic=app_topic)
 
-        routing_key, queue_name = self.declare_bind_queue(app_name=app_name, topic=app_topic, app_specific_extender=self.app_name)
+        
+        if self.yaml_mode:
+            routing_key = self.create_routing_key(app_name=app_name, topic=app_topic)
+            queue_name = '.'.join([routing_key, self.app_name])
+        else:
+            routing_key, queue_name = self.yamless_declare_bind_queue(app_name=app_name, topic=app_topic, app_specific_extender=self.app_name)
+
 
         # Set QoS settings
         self.channel.basic_qos(prefetch_count=1)
@@ -431,11 +569,20 @@ class Application:
         except:
             pass
 
+    # def delete_queues_with_prefix(self, prefix):
+    #     # List all queues
+    #     queues = self.channel.queue_declare(queue='', passive=True).method.queue
+    #     for queue in queues:
+    #         if queue.startswith(prefix):
+    #             self.channel.queue_delete(queue=queue)
+    #             logger.info(f"Deleted queue: {queue}")
+
     def stop_consuming(self):
         """Tell RabbitMQ that you would like to stop consuming by sending the
         Basic.Cancel RPC command.
         """
         if self.channel:
+            # Acknowledge cancel
             logger.info('Sending a Basic.Cancel RPC command to RabbitMQ')
             cb = functools.partial(
                 self.on_cancelok, userdata=self._consumer_tag)
@@ -460,6 +607,14 @@ class Application:
         """Call to close the channel with RabbitMQ cleanly by issuing the
         Channel.Close RPC command.
         """
+        logger.info('Deleting queues and exchanges.')
+
+        if self.yaml_mode:
+            self.delete_queue(self.channel_configs, self.app_name)
+            self.delete_exchange(self.unique_exchanges)
+        else:
+            self.delete_all_queues_and_exchanges()
+
         logger.info('Closing channel')
         self.channel.close()
 
@@ -577,7 +732,7 @@ class Application:
         routing_key = '.'.join([self.prefix, app_name, topic])
         return routing_key
 
-    def declare_bind_queue(self, app_name: str, topic: str, app_specific_extender: str = None) -> None:
+    def yamless_declare_bind_queue(self, app_name: str, topic: str, app_specific_extender: str = None) -> None:
         """
         Declares and binds a queue to the exchange. The queue is bound to the exchange using the routing key. The routing key is created using the application name and topic.
         Args:
@@ -595,6 +750,12 @@ class Application:
                 queue_name = routing_key
             self.channel.queue_declare(queue=queue_name, durable=False, auto_delete=True) #, durable=True)
             self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=routing_key)
+            
+            # Create list of declared queues and exchanges
+            self.declared_queues.add(queue_name.strip())
+            self.declared_queues.add(routing_key.strip())
+            self.declared_exchanges.add(self.prefix.strip())
+
             logger.debug(f'Bound queue "{queue_name}" to topic "{routing_key}".')
         
         except:
