@@ -153,16 +153,18 @@
                     if (!snowLayer && !resolutionLayer) {
                         const layers = viewer.scene.imageryLayers;
                         
-                        // // Decode base64 images
-                        // const snowLayerImage = `data:image/png;base64,${satellite.snow_layer}`;
-                        // const resolutionLayerImage = `data:image/png;base64,${satellite.resolution_layer}`;
+                        // Decode base64 images
+                        const snowLayerImage = `data:image/png;base64,${satellite.snow_layer}`;
+                        const resolutionLayerImage = `data:image/png;base64,${satellite.resolution_layer}`;
+                        
                         // // Log base64 strings to debug
                         // console.log('Snow Layer Image:', snowLayerImage);
                         // console.log('Resolution Layer Image:', resolutionLayerImage);
+
                         // Add resolution layer image
                         resolutionLayer = new Cesium.ImageryLayer(
                             new Cesium.SingleTileImageryProvider({
-                                url: '/resolution_raster_layer_high_resolution.png',
+                                url: resolutionLayerImage, //'/resolution_raster_layer_high_resolution.png',
                                 rectangle: Cesium.Rectangle.fromDegrees(
                                     satellite.top_left[0], satellite.bottom_right[1], 
                                     satellite.bottom_right[0], satellite.top_left[1]
@@ -173,7 +175,7 @@
                                                 // Add snow layer image
                                                 snowLayer = new Cesium.ImageryLayer(
                             new Cesium.SingleTileImageryProvider({
-                                url: '/snow_raster_layer_high_resolution.png',
+                                url: snowLayerImage, //'/snow_raster_layer_high_resolution.png',
                                 rectangle: Cesium.Rectangle.fromDegrees(
                                     satellite.top_left[0], satellite.bottom_right[1], 
                                     satellite.bottom_right[0], satellite.top_left[1]

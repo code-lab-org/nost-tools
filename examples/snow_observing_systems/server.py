@@ -6,6 +6,7 @@ from skyfield.framelib import itrs
 import numpy as np
 import math
 from satellite_tle import fetch_all_tles, fetch_latest_tles
+import matplotlib.pyplot as plt
 
 import netCDF4 as nc
 # import matplotlib.pyplot as plt
@@ -157,7 +158,11 @@ def open_encode(file_path, variable):
     # Decode the raster layer
     decoded_raster_layer = decode_raster_layer(raster_layer, base64_raster_layer)
 
-    return base64_raster_layer, top_left, top_right, bottom_left, bottom_right
+    return raster_layer, base64_raster_layer, top_left, top_right, bottom_left, bottom_right
+
+def encode_image(image_path):
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode('utf-8')
 
 app = Flask(__name__)
 
@@ -175,16 +180,25 @@ def get_positions():
     current_datetime = datetime.now(timezone.utc)
     positions = []
 
-    # snow_layer, top_left, top_right, bottom_left, bottom_right = open_encode(file_path='/mnt/c/Users/emgonz38/OneDrive - Arizona State University/ubuntu_files/netcdf_encode/input_data/Efficiency_high_resolution_Caesium/efficiency_snow_cover_highest_resolution.nc',
+    # snow_layer_raster, snow_layer, top_left, top_right, bottom_left, bottom_right = open_encode(file_path='/mnt/c/Users/emgonz38/OneDrive - Arizona State University/ubuntu_files/netcdf_encode/input_data/Efficiency_high_resolution_Caesium/efficiency_snow_cover_highest_resolution.nc',
     #                                                  variable='Weekly_Snow_Cover')
-    # resolution_layer, top_left, top_right, bottom_left, bottom_right = open_encode(file_path='/mnt/c/Users/emgonz38/OneDrive - Arizona State University/ubuntu_files/netcdf_encode/input_data/Efficiency_high_resolution_Caesium/efficiency_resolution_layer_highest_resolution.nc',
+    # resolution_layer_raster, resolution_layer, top_left, top_right, bottom_left, bottom_right = open_encode(file_path='/mnt/c/Users/emgonz38/OneDrive - Arizona State University/ubuntu_files/netcdf_encode/input_data/Efficiency_high_resolution_Caesium/efficiency_resolution_layer_highest_resolution.nc',
     #                                                        variable='Monthly_Resolution_Abs')
     
-    snow_layer, top_left, top_right, bottom_left, bottom_right = open_encode(file_path='/mnt/c/Users/emgonz38/OneDrive - Arizona State University/ubuntu_files/netcdf_encode/input_data/Efficiency_resolution20_Optimization/efficiency_snow_cover.nc',
+    snow_layer_raster, snow_layer, top_left, top_right, bottom_left, bottom_right = open_encode(file_path='/mnt/c/Users/emgonz38/OneDrive - Arizona State University/ubuntu_files/netcdf_encode/input_data/Efficiency_resolution20_Optimization/efficiency_snow_cover.nc',
                                                      variable='Day_CMG_Snow_Cover')
-    resolution_layer, top_left, top_right, bottom_left, bottom_right = open_encode(file_path='/mnt/c/Users/emgonz38/OneDrive - Arizona State University/ubuntu_files/netcdf_encode/input_data/Efficiency_resolution20_Optimization/efficiency_resolution_layer.nc',
+    resolution_layer_raster, resolution_layer, top_left, top_right, bottom_left, bottom_right = open_encode(file_path='/mnt/c/Users/emgonz38/OneDrive - Arizona State University/ubuntu_files/netcdf_encode/input_data/Efficiency_resolution20_Optimization/efficiency_resolution_layer.nc',
                                                            variable='Monthly_Resolution_Abs')
     
+    plt.imsave('snow_raster_layer_high_resolution.png', snow_layer_raster, cmap='viridis')
+    plt.imsave('resolution_raster_layer_high_resolution.png', resolution_layer_raster, cmap='viridis')
+
+    snow_layer_path = './snow_raster_layer_high_resolution.png'
+    resolution_layer_path = './resolution_raster_layer_high_resolution.png'
+
+    snow_layer = encode_image(snow_layer_path)
+    resolution_layer = encode_image(resolution_layer_path)
+
     for satellite in satellite_objects:
 
         # Get the geographic position of the satellite
