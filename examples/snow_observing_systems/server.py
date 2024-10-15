@@ -145,6 +145,28 @@ def decode_raster_layer(raster_layer, base64_raster_layer):
 
     return decoded_raster_layer
 
+# def open_encode(file_path, variable, output_path):
+#     # Open the NetCDF file
+#     dataset = open_netcdf(file_path)
+
+#     # Extract array
+#     raster_layer = dataset.variables[variable][0, :, :]
+
+#     # Get the extents (four corners) coordinates
+#     top_left, top_right, bottom_left, bottom_right = get_extents(dataset, variable=variable)
+
+#     # # Encode the raster layer
+#     # raster_layer, base64_raster_layer = encode_raster_layer(dataset, variable=variable)
+
+#     # # Decode the raster layer
+#     # decoded_raster_layer = decode_raster_layer(raster_layer, base64_raster_layer)
+
+#     # Save array to PNG, then encode to base64
+#     plt.imsave(output_path, raster_layer, cmap='cividis')
+#     raster_layer_encoded = encode_image(output_path)
+
+#     return raster_layer_encoded, top_left, top_right, bottom_left, bottom_right #raster_layer, base64_raster_layer, top_left, top_right, bottom_left, bottom_right
+
 def open_encode(file_path, variable, output_path):
     # Open the NetCDF file
     dataset = open_netcdf(file_path)
@@ -152,20 +174,17 @@ def open_encode(file_path, variable, output_path):
     # Extract array
     raster_layer = dataset.variables[variable][0, :, :]
 
+    # Normalize the raster layer to the range [0, 1]
+    raster_layer_normalized = (raster_layer - np.min(raster_layer)) / (np.max(raster_layer) - np.min(raster_layer))
+
     # Get the extents (four corners) coordinates
     top_left, top_right, bottom_left, bottom_right = get_extents(dataset, variable=variable)
 
-    # # Encode the raster layer
-    # raster_layer, base64_raster_layer = encode_raster_layer(dataset, variable=variable)
-
-    # # Decode the raster layer
-    # decoded_raster_layer = decode_raster_layer(raster_layer, base64_raster_layer)
-
-    # Save array to PNG, then encode to base64
-    plt.imsave(output_path, raster_layer, cmap='viridis')
+    # Save normalized array to PNG with colormap
+    plt.imsave(output_path, raster_layer_normalized, cmap='viridis')
     raster_layer_encoded = encode_image(output_path)
 
-    return raster_layer_encoded, top_left, top_right, bottom_left, bottom_right #raster_layer, base64_raster_layer, top_left, top_right, bottom_left, bottom_right
+    return raster_layer_encoded, top_left, top_right, bottom_left, bottom_right
 
 def encode_image(image_path):
     with open(image_path, "rb") as image_file:
@@ -187,23 +206,23 @@ def get_positions():
     current_datetime = datetime.now(timezone.utc)
     positions = []
 
-    #snow_layer_raster, snow_layer, top_left, top_right, bottom_left, bottom_right = open_encode(
     snow_layer, top_left, top_right, bottom_left, bottom_right = open_encode(
-        file_path='/mnt/c/Users/emgonz38/OneDrive - Arizona State University/ubuntu_files/netcdf_encode/input_data/Efficiency_resolution20_Optimization/efficiency_snow_cover.nc',
-        variable='Day_CMG_Snow_Cover',
+        # file_path='/mnt/c/Users/emgonz38/OneDrive - Arizona State University/ubuntu_files/netcdf_encode/input_data/Efficiency_resolution20_Optimization/efficiency_snow_cover.nc',
+        # variable='Day_CMG_Snow_Cover',
+        # output_path='snow_raster_layer_high_resolution.png'
+        file_path='/mnt/c/Users/emgonz38/OneDrive - Arizona State University/ubuntu_files/netcdf_encode/input_data/Efficiency_high_resolution_Caesium/efficiency_snow_cover_highest_resolution.nc',
+        variable='Weekly_Snow_Cover',
         output_path='snow_raster_layer_high_resolution.png'
         )
-    # snow_layer_raster, snow_layer, top_left, top_right, bottom_left, bottom_right = open_encode(file_path='/mnt/c/Users/emgonz38/OneDrive - Arizona State University/ubuntu_files/netcdf_encode/input_data/Efficiency_high_resolution_Caesium/efficiency_snow_cover_highest_resolution.nc',
-    #                                                  variable='Weekly_Snow_Cover')
 
-    #resolution_layer_raster, resolution_layer, top_left, top_right, bottom_left, bottom_right = open_encode(
     resolution_layer, top_left, top_right, bottom_left, bottom_right = open_encode(
-        file_path='/mnt/c/Users/emgonz38/OneDrive - Arizona State University/ubuntu_files/netcdf_encode/input_data/Efficiency_resolution20_Optimization/efficiency_resolution_layer.nc',
+        # file_path='/mnt/c/Users/emgonz38/OneDrive - Arizona State University/ubuntu_files/netcdf_encode/input_data/Efficiency_resolution20_Optimization/efficiency_resolution_layer.nc',
+        # variable='Monthly_Resolution_Abs',
+        # output_path='resolution_raster_layer_high_resolution.png'
+        file_path='/mnt/c/Users/emgonz38/OneDrive - Arizona State University/ubuntu_files/netcdf_encode/input_data/Efficiency_high_resolution_Caesium/efficiency_resolution_layer_highest_resolution.nc',
         variable='Monthly_Resolution_Abs',
         output_path='resolution_raster_layer_high_resolution.png'
         )
-    # resolution_layer_raster, resolution_layer, top_left, top_right, bottom_left, bottom_right = open_encode(file_path='/mnt/c/Users/emgonz38/OneDrive - Arizona State University/ubuntu_files/netcdf_encode/input_data/Efficiency_high_resolution_Caesium/efficiency_resolution_layer_highest_resolution.nc',
-    #                                                        variable='Monthly_Resolution_Abs')
 
     for satellite in satellite_objects:
 
