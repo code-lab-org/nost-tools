@@ -7,6 +7,12 @@ import numpy as np
 import math
 from satellite_tle import fetch_all_tles, fetch_latest_tles
 
+import netCDF4 as nc
+# import matplotlib.pyplot as plt
+import base64
+# import numpy as np
+# from mpl_toolkits.axes_grid1 import make_axes_locatable
+
 def calculate_angular_width(altitude_m):
     altitude_km = altitude_m / 1000
     R = 6371
@@ -90,6 +96,69 @@ def use_manual_tles():
     ]
     return satellite_objects
 
+def get_extents(dataset, variable):
+    # Extract the GeoTransform attribute
+    geo_transform = dataset.variables['spatial_ref'].GeoTransform.split()
+    print(geo_transform)
+
+    # Convert GeoTransform values to float
+    geo_transform = [float(value) for value in geo_transform]
+
+    # Calculate the extents (four corners)
+    min_x = geo_transform[0]
+    pixel_width = geo_transform[1]
+    max_y = geo_transform[3]
+    pixel_height = geo_transform[5]
+
+    # Get the actual dimensions of the raster layer
+    n_rows, n_cols = dataset.variables[variable][0, :, :].shape
+
+    # Calculate the coordinates of the four corners
+    top_left = (min_x, max_y)
+    top_right = (min_x + n_cols * pixel_width, max_y)
+    bottom_left = (min_x, max_y + n_rows * pixel_height)
+    bottom_right = (min_x + n_cols * pixel_width, max_y + n_rows * pixel_height)
+
+    return top_left, top_right, bottom_left, bottom_right
+
+def open_netcdf(file_path):
+    # Open the NetCDF file
+    dataset = nc.Dataset(file_path, mode='r')
+
+    return dataset
+
+def encode_raster_layer(dataset, variable):
+    # Extract snow cover
+    raster_layer = dataset.variables[variable][0, :, :]
+
+    # Convert the array to bytes and encode the bytes in base64
+    bytes = raster_layer.tobytes()
+    base64_raster_layer = base64.b64encode(bytes).decode('utf-8')
+
+    return raster_layer, base64_raster_layer
+
+def decode_raster_layer(raster_layer, base64_raster_layer):
+    # Decode the base64 string back to bytes
+    decoded_bytes = base64.b64decode(base64_raster_layer)
+    decoded_raster_layer = np.frombuffer(decoded_bytes, dtype=raster_layer.dtype).reshape(raster_layer.shape)
+
+    return decoded_raster_layer
+
+def open_encode(file_path, variable):
+    # Open the NetCDF file
+    dataset = open_netcdf(file_path)
+
+    # Get the extents (four corners) coordinates
+    top_left, top_right, bottom_left, bottom_right = get_extents(dataset, variable=variable)
+
+    # Encode the raster layer
+    raster_layer, base64_raster_layer = encode_raster_layer(dataset, variable=variable)
+
+    # Decode the raster layer
+    decoded_raster_layer = decode_raster_layer(raster_layer, base64_raster_layer)
+
+    return base64_raster_layer, top_left, top_right, bottom_left, bottom_right
+
 app = Flask(__name__)
 
 # Load the timescale
@@ -106,6 +175,16 @@ def get_positions():
     current_datetime = datetime.now(timezone.utc)
     positions = []
 
+    # snow_layer, top_left, top_right, bottom_left, bottom_right = open_encode(file_path='/mnt/c/Users/emgonz38/OneDrive - Arizona State University/ubuntu_files/netcdf_encode/input_data/Efficiency_high_resolution_Caesium/efficiency_snow_cover_highest_resolution.nc',
+    #                                                  variable='Weekly_Snow_Cover')
+    # resolution_layer, top_left, top_right, bottom_left, bottom_right = open_encode(file_path='/mnt/c/Users/emgonz38/OneDrive - Arizona State University/ubuntu_files/netcdf_encode/input_data/Efficiency_high_resolution_Caesium/efficiency_resolution_layer_highest_resolution.nc',
+    #                                                        variable='Monthly_Resolution_Abs')
+    
+    snow_layer, top_left, top_right, bottom_left, bottom_right = open_encode(file_path='/mnt/c/Users/emgonz38/OneDrive - Arizona State University/ubuntu_files/netcdf_encode/input_data/Efficiency_resolution20_Optimization/efficiency_snow_cover.nc',
+                                                     variable='Day_CMG_Snow_Cover')
+    resolution_layer, top_left, top_right, bottom_left, bottom_right = open_encode(file_path='/mnt/c/Users/emgonz38/OneDrive - Arizona State University/ubuntu_files/netcdf_encode/input_data/Efficiency_resolution20_Optimization/efficiency_resolution_layer.nc',
+                                                           variable='Monthly_Resolution_Abs')
+    
     for satellite in satellite_objects:
 
         # Get the geographic position of the satellite
@@ -126,7 +205,7 @@ def get_positions():
         #Get the angular width of the satellite
         min_elevation = 0
         sensor_radius_meters = compute_sensor_radius(altitude_meters, min_elevation)
-        
+        print(top_left, top_right, bottom_left, bottom_right)
         # Add the satellite to the list of positions
         positions.append({
             'name': satellite.name,
@@ -137,7 +216,13 @@ def get_positions():
             'velocity': [velocity_x, velocity_y, velocity_z],
             'state': True,
             'time': current_datetime,
-            'ecef': [x, y, z]
+            'ecef': [x, y, z],
+            'snow_layer': snow_layer,
+            'resolution_layer': resolution_layer,
+            'top_left': top_left,
+            'top_right': top_right,
+            'bottom_left': bottom_left,
+            'bottom_right': bottom_right
         })
 
     return jsonify(positions)
@@ -145,6 +230,14 @@ def get_positions():
 @app.route('/env.js')
 def env_js():
     return send_from_directory('.', 'env.js')
+
+@app.route('/resolution_raster_layer_high_resolution.png')
+def get_resolution_raster_layer():
+    return send_from_directory(directory='.', path='resolution_raster_layer_high_resolution.png')
+
+@app.route('/snow_raster_layer_high_resolution.png')
+def get_snow_raster_layer():
+    return send_from_directory(directory='.', path='snow_raster_layer_high_resolution.png')
 
 if __name__ == '__main__':
     app.run(debug=True, port=7000) #8080)

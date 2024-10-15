@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cesium Base64 Image</title>
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.90/Build/Cesium/Cesium.js"></script>
+    <link href="https://cesium.com/downloads/cesiumjs/releases/1.90/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+</head>
+<body>
+    <div id="cesiumContainer" style="width: 100%; height: 100vh;"></div>
+    <script>
+        // Initialize the Cesium Viewer
+        var viewer = new Cesium.Viewer('cesiumContainer');
+
+        // Base64 encoded image string
+        var base64Image = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA...';
+
+        // Create an image element
+        var img = new Image();
+        img.src = base64Image;
+
+        // Wait for the image to load
+        img.onload = function() {
+            // Create a canvas to draw the image
+            var canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            var context = canvas.getContext('2d');
+            context.drawImage(img, 0, 0);
+
+            // Convert the canvas to a data URL
+            var dataUrl = canvas.toDataURL();
+
+            // Add the image as a billboard to Cesium
+            viewer.entities.add({
+                position: Cesium.Cartesian3.fromDegrees(-75.59777, 40.03883),
+                billboard: {
+                    image: dataUrl,
+                    width: 50,
+                    height: 50
+                }
+            });
+
+            // // Zoom to the billboard
+            // viewer.zoomTo(viewer.entities);
+        };
+    </script>
+</body>
+</html>

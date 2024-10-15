@@ -12,10 +12,30 @@
             margin: 0; 
             padding: 0;
         }
+        #controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(42, 42, 42, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            color: white;
+        }
     </style>
 </head>
 <body>
     <div id="cesiumContainer"></div>
+    <div id="controls">
+        <label>
+            <input type="checkbox" id="toggleSnowLayer" checked>
+            Show Snow Layer
+        </label>
+        <br>
+        <label>
+            <input type="checkbox" id="toggleResolutionLayer" checked>
+            Show Resolution Layer
+        </label>
+    </div>
     <script src="env.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -25,7 +45,7 @@
             const positions = {};
             const previousSensorCircles = {};
             let firstUpdate = true;
-            let previousLabelEntities = {};
+            let snowLayer, resolutionLayer;
 
             async function updateSatellitePositions() {
                 const response = await fetch('/get_positions');
@@ -50,11 +70,6 @@
                         previousSensorCircles[satellite.name] = [];
                     }
 
-                    // Remove previous label entity
-                    if (previousLabelEntities[satellite.name]) {
-                        viewer.entities.remove(previousLabelEntities[satellite.name]);
-                    }
-
                     // Determine color based on satellite name; Taskable=Yellow; Nontaskable=Green
                     let color = Cesium.Color.RED;
                     if (satellite.name === 'GCOM-W1 (SHIZUKU)') {
@@ -64,7 +79,7 @@
                     }
 
                     // Add current position as point with label
-                    previousLabelEntities[satellite.name] = viewer.entities.add({
+                    viewer.entities.add({
                         position: position,
                         point: {
                             pixelSize: 10,
@@ -128,6 +143,35 @@
                             }
                         });
                     }
+
+                    // Add image layers only once
+                    if (!snowLayer && !resolutionLayer) {
+                        const layers = viewer.scene.imageryLayers;
+
+                        // Add snow layer image
+                        snowLayer = new Cesium.ImageryLayer(
+                            new Cesium.SingleTileImageryProvider({
+                                url: '/snow_raster_layer_high_resolution.png',
+                                rectangle: Cesium.Rectangle.fromDegrees(
+                                    satellite.top_left[0], satellite.bottom_right[1], 
+                                    satellite.bottom_right[0], satellite.top_left[1]
+                                )
+                            })
+                        );
+                        layers.add(snowLayer);
+
+                        // Add resolution layer image
+                        resolutionLayer = new Cesium.ImageryLayer(
+                            new Cesium.SingleTileImageryProvider({
+                                url: '/resolution_raster_layer_high_resolution.png',
+                                rectangle: Cesium.Rectangle.fromDegrees(
+                                    satellite.top_left[0], satellite.bottom_right[1], 
+                                    satellite.bottom_right[0], satellite.top_left[1]
+                                )
+                            })
+                        );
+                        layers.add(resolutionLayer);
+                    }
                 });
 
                 // Calculate bounding box
@@ -144,6 +188,19 @@
             }
 
             setInterval(updateSatellitePositions, 1000); // Update every second
+
+            // Event listeners for toggling layers
+            document.getElementById('toggleSnowLayer').addEventListener('change', function() {
+                if (snowLayer) {
+                    snowLayer.show = this.checked;
+                }
+            });
+
+            document.getElementById('toggleResolutionLayer').addEventListener('change', function() {
+                if (resolutionLayer) {
+                    resolutionLayer.show = this.checked;
+                }
+            });
         });
     </script>
 </body>
