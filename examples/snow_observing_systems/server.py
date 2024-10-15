@@ -14,6 +14,11 @@ import base64
 # import numpy as np
 # from mpl_toolkits.axes_grid1 import make_axes_locatable
 
+import rasterio
+from rasterio.mask import mask
+import json
+from shapely.geometry import shape
+
 def calculate_angular_width(altitude_m):
     altitude_km = altitude_m / 1000
     R = 6371
@@ -181,7 +186,7 @@ def open_encode(file_path, variable, output_path):
     top_left, top_right, bottom_left, bottom_right = get_extents(dataset, variable=variable)
 
     # Save normalized array to PNG with colormap
-    plt.imsave(output_path, raster_layer_normalized, cmap='viridis')
+    plt.imsave(output_path, raster_layer_normalized, cmap='Blues')
     raster_layer_encoded = encode_image(output_path)
 
     return raster_layer_encoded, top_left, top_right, bottom_left, bottom_right
@@ -206,23 +211,36 @@ def get_positions():
     current_datetime = datetime.now(timezone.utc)
     positions = []
 
+    # Divya
     snow_layer, top_left, top_right, bottom_left, bottom_right = open_encode(
         # file_path='/mnt/c/Users/emgonz38/OneDrive - Arizona State University/ubuntu_files/netcdf_encode/input_data/Efficiency_resolution20_Optimization/efficiency_snow_cover.nc',
         # variable='Day_CMG_Snow_Cover',
         # output_path='snow_raster_layer_high_resolution.png'
-        file_path='/mnt/c/Users/emgonz38/OneDrive - Arizona State University/ubuntu_files/netcdf_encode/input_data/Efficiency_high_resolution_Caesium/efficiency_snow_cover_highest_resolution.nc',
+        file_path='./input_data/Efficiency_high_resolution_Caesium/efficiency_snow_cover_highest_resolution.nc',
         variable='Weekly_Snow_Cover',
-        output_path='snow_raster_layer_high_resolution.png'
+        output_path='snow_raster_layer.png'
         )
 
     resolution_layer, top_left, top_right, bottom_left, bottom_right = open_encode(
         # file_path='/mnt/c/Users/emgonz38/OneDrive - Arizona State University/ubuntu_files/netcdf_encode/input_data/Efficiency_resolution20_Optimization/efficiency_resolution_layer.nc',
         # variable='Monthly_Resolution_Abs',
         # output_path='resolution_raster_layer_high_resolution.png'
-        file_path='/mnt/c/Users/emgonz38/OneDrive - Arizona State University/ubuntu_files/netcdf_encode/input_data/Efficiency_high_resolution_Caesium/efficiency_resolution_layer_highest_resolution.nc',
+        file_path='./input_data/Efficiency_high_resolution_Caesium/efficiency_resolution_layer_highest_resolution.nc',
         variable='Monthly_Resolution_Abs',
-        output_path='resolution_raster_layer_high_resolution.png'
+        output_path='resolution_raster_layer.png'
         )
+
+    # Hadis
+    gcom_layer, top_left, top_right, bottom_left, bottom_right = open_encode(
+    file_path='./input_data/Optimization/final_eta_combined_output_GCOM.nc',
+    variable='final_eta_result',
+    output_path='gcom_optimization.png'
+    )
+    capella_layer, top_left, top_right, bottom_left, bottom_right = open_encode(
+    file_path='./input_data/Optimization/final_eta_combined_output_Capella.nc',
+    variable='final_eta_result',
+    output_path='capella_optimization.png'
+    )
 
     for satellite in satellite_objects:
 
@@ -258,6 +276,8 @@ def get_positions():
             'ecef': [x, y, z],
             'snow_layer': snow_layer,
             'resolution_layer': resolution_layer,
+            'gcom_layer': gcom_layer,
+            'capella_layer': capella_layer,
             'top_left': top_left,
             'top_right': top_right,
             'bottom_left': bottom_left,
@@ -270,13 +290,13 @@ def get_positions():
 def env_js():
     return send_from_directory('.', 'env.js')
 
-@app.route('/resolution_raster_layer_high_resolution.png')
-def get_resolution_raster_layer():
-    return send_from_directory(directory='.', path='resolution_raster_layer_high_resolution.png')
+@app.route('/WBD_10_HU2_4326.geojson')
+def get_wbd_geojson():
+    return send_from_directory(directory='.', path='WBD_10_HU2_4326.geojson')
 
-@app.route('/snow_raster_layer_high_resolution.png')
-def get_snow_raster_layer():
-    return send_from_directory(directory='.', path='snow_raster_layer_high_resolution.png')
+@app.route('/Optimization_result.geojson')
+def get_optimization_geojson():
+    return send_from_directory(directory='.', path='Optimization_result.geojson')
 
 if __name__ == '__main__':
     app.run(debug=True, port=7000) #8080)

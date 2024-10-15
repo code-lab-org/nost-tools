@@ -26,15 +26,43 @@
 <body>
     <div id="cesiumContainer"></div>
     <div id="controls">
+        <h3>Layer Selection</h3>
+        <hr>
+        
+        <h4>Focal Area Extents</h4>
         <label>
-            <input type="checkbox" id="toggleSnowLayer" checked>
-            Show Snow Layer
+            <input type="checkbox" id="toggleMissouriLayer" checked>
+            Missouri River Basin Layer
+        </label>
+        <br>
+        
+        <h4>Optimization Layers</h4>
+        <label>
+            <input type="checkbox" id="toggleSnowLayer">
+            Snow
         </label>
         <br>
         <label>
-            <input type="checkbox" id="toggleResolutionLayer" checked>
-            Show Resolution Layer
+            <input type="checkbox" id="toggleResolutionLayer">
+            Resolution
         </label>
+        <br>
+        <label>
+            <input type="checkbox" id="toggleOptimizationLayer" checked>
+            Optimization
+        </label>
+        <br>
+
+        <h4>Satellite Layers</h4>
+        <label>
+            <input type="checkbox" id="toggleGcomLayer">
+            GCOM
+        <label>
+        <br>
+        <label>
+            <input type="checkbox" id="toggleCapellaLayer">
+            Capella
+        <label>
     </div>
     <script src="env.js"></script>
     <script>
@@ -47,6 +75,35 @@
             let firstUpdate = true;
             let previousLabelEntities = {};
             let snowLayer, resolutionLayer;
+            let optimizationLayer, missouriLayer;
+            let gcomLayer, capellaLayer;
+
+            // Load the optimization GeoJSON file
+            Cesium.GeoJsonDataSource.load('/Optimization_result.geojson', {
+                clampToGround: false,
+                stroke: Cesium.Color.YELLOW,
+                fill: Cesium.Color.YELLOW.withAlpha(0.8),
+                strokeWidth: 3,
+            }).then(function (dataSource) {
+                optimizationLayer = dataSource;
+                viewer.dataSources.add(dataSource);
+                viewer.zoomTo(dataSource);
+            }).otherwise(function (error) {
+                console.error(error);
+            });
+            
+            // Load the Missouri River Basin GeoJSON file
+            Cesium.GeoJsonDataSource.load('/WBD_10_HU2_4326.geojson', {
+                clampToGround: true,
+                stroke: Cesium.Color.RED,
+                fill: Cesium.Color.RED.withAlpha(0.2),
+                strokeWidth: 3,
+            }).then(function (dataSource) {
+                missouriLayer = dataSource;
+                viewer.dataSources.add(dataSource);
+            }).otherwise(function (error) {
+                console.error(error);
+            });
 
             async function updateSatellitePositions() {
                 const response = await fetch('/get_positions');
@@ -149,68 +206,107 @@
                             }
                         });
                     }
-                    // Add image layers only once
-                    if (!snowLayer && !resolutionLayer) {
-                        const layers = viewer.scene.imageryLayers;
-                        
-                        // Decode base64 images
-                        const snowLayerImage = `data:image/png;base64,${satellite.snow_layer}`;
-                        const resolutionLayerImage = `data:image/png;base64,${satellite.resolution_layer}`;
-                        
-                        // // Log base64 strings to debug
-                        // console.log('Snow Layer Image:', snowLayerImage);
-                        // console.log('Resolution Layer Image:', resolutionLayerImage);
+                    
+                    // Event listeners for toggling layers
+                    document.getElementById('toggleSnowLayer').addEventListener('change', function() {
+                        if (this.checked && !snowLayer) {
+                            const snowLayerImage = `data:image/png;base64,${satellite.snow_layer}`;
+                            snowLayer = new Cesium.ImageryLayer(
+                                new Cesium.SingleTileImageryProvider({
+                                    url: snowLayerImage,
+                                    rectangle: Cesium.Rectangle.fromDegrees(
+                                        satellite.top_left[0], satellite.bottom_right[1], 
+                                        satellite.bottom_right[0], satellite.top_left[1]
+                                    )
+                                })
+                            );
+                            viewer.scene.imageryLayers.add(snowLayer);
+                        } else if (snowLayer) {
+                            snowLayer.show = this.checked;
+                        }
+                    });
 
-                        // Add resolution layer image
-                        resolutionLayer = new Cesium.ImageryLayer(
-                            new Cesium.SingleTileImageryProvider({
-                                url: resolutionLayerImage, //'/resolution_raster_layer_high_resolution.png',
-                                rectangle: Cesium.Rectangle.fromDegrees(
-                                    satellite.top_left[0], satellite.bottom_right[1], 
-                                    satellite.bottom_right[0], satellite.top_left[1]
-                                )
-                            })
-                        );
-                        layers.add(resolutionLayer);
-                                                // Add snow layer image
-                                                snowLayer = new Cesium.ImageryLayer(
-                            new Cesium.SingleTileImageryProvider({
-                                url: snowLayerImage, //'/snow_raster_layer_high_resolution.png',
-                                rectangle: Cesium.Rectangle.fromDegrees(
-                                    satellite.top_left[0], satellite.bottom_right[1], 
-                                    satellite.bottom_right[0], satellite.top_left[1]
-                                )
-                            })
-                        );
-                        layers.add(snowLayer);
-                    }
+                    document.getElementById('toggleResolutionLayer').addEventListener('change', function() {
+                        if (this.checked && !resolutionLayer) {
+                            const resolutionLayerImage = `data:image/png;base64,${satellite.resolution_layer}`;
+                            resolutionLayer = new Cesium.ImageryLayer(
+                                new Cesium.SingleTileImageryProvider({
+                                    url: resolutionLayerImage,
+                                    rectangle: Cesium.Rectangle.fromDegrees(
+                                        satellite.top_left[0], satellite.bottom_right[1], 
+                                        satellite.bottom_right[0], satellite.top_left[1]
+                                    )
+                                })
+                            );
+                            viewer.scene.imageryLayers.add(resolutionLayer);
+                        } else if (resolutionLayer) {
+                            resolutionLayer.show = this.checked;
+                        }
+                    });
+
+                    document.getElementById('toggleOptimizationLayer').addEventListener('change', function() {
+                        if (optimizationLayer) {
+                            optimizationLayer.show = this.checked;
+                        }
+                    });
+
+                    document.getElementById('toggleMissouriLayer').addEventListener('change', function() {
+                        if (missouriLayer) {
+                            missouriLayer.show = this.checked;
+                        }
+                    });
+
+                    document.getElementById('toggleGcomLayer').addEventListener('change', function() {
+                        if (this.checked && !gcomLayer) {
+                            const gcomLayerImage = `data:image/png;base64,${satellite.gcom_layer}`;
+                            gcomLayer = new Cesium.ImageryLayer(
+                                new Cesium.SingleTileImageryProvider({
+                                    url: gcomLayerImage,
+                                    rectangle: Cesium.Rectangle.fromDegrees(
+                                        satellite.top_left[0], satellite.bottom_right[1], 
+                                        satellite.bottom_right[0], satellite.top_left[1]
+                                    )
+                                })
+                            );
+                            viewer.scene.imageryLayers.add(gcomLayer);
+                        } else if (gcomLayer) {
+                            gcomLayer.show = this.checked;
+                        }
+                    });
+
+                    document.getElementById('toggleCapellaLayer').addEventListener('change', function() {
+                        if (this.checked && !capellaLayer) {
+                            const capellaLayerImage = `data:image/png;base64,${satellite.capella_layer}`;
+                            capellaLayer = new Cesium.ImageryLayer(
+                                new Cesium.SingleTileImageryProvider({
+                                    url: capellaLayerImage,
+                                    rectangle: Cesium.Rectangle.fromDegrees(
+                                        satellite.top_left[0], satellite.bottom_right[1], 
+                                        satellite.bottom_right[0], satellite.top_left[1]
+                                    )
+                                })
+                            );
+                            viewer.scene.imageryLayers.add(capellaLayer);
+                        } else if (capellaLayer) {
+                            capellaLayer.show = this.checked;
+                        }
+                    });
                 });
 
-                // Calculate bounding box
-                const boundingBox = Cesium.BoundingSphere.fromPoints(Object.values(positions).flat());
+                // // Calculate bounding box
+                // const boundingBox = Cesium.BoundingSphere.fromPoints(Object.values(positions).flat());
 
-                // Fly to the bounding box only on the first update
-                if (firstUpdate) {
-                    viewer.camera.flyToBoundingSphere(boundingBox, {
-                        duration: 2,
-                        offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-90), boundingBox.radius * 5)
-                    });
-                    firstUpdate = false;
-                }
+                // // Fly to the bounding box only on the first update
+                // if (firstUpdate) {
+                //     viewer.camera.flyToBoundingSphere(boundingBox, {
+                //         duration: 2,
+                //         offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-90), boundingBox.radius * 5)
+                //     });
+                //     firstUpdate = false;
+                // }
             }
 
             setInterval(updateSatellitePositions, 1000); // Update every second
-            // Event listeners for toggling layers
-            document.getElementById('toggleSnowLayer').addEventListener('change', function() {
-                if (snowLayer) {
-                    snowLayer.show = this.checked;
-                }
-            });
-            document.getElementById('toggleResolutionLayer').addEventListener('change', function() {
-                if (resolutionLayer) {
-                    resolutionLayer.show = this.checked;
-                }
-            });
         });
     </script>
 </body>
