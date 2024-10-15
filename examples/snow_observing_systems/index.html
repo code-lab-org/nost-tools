@@ -45,6 +45,7 @@
             const positions = {};
             const previousSensorCircles = {};
             let firstUpdate = true;
+            let previousLabelEntities = {};
             let snowLayer, resolutionLayer;
 
             async function updateSatellitePositions() {
@@ -70,6 +71,11 @@
                         previousSensorCircles[satellite.name] = [];
                     }
 
+                    // Remove previous label entity
+                    if (previousLabelEntities[satellite.name]) {
+                        viewer.entities.remove(previousLabelEntities[satellite.name]);
+                    }
+
                     // Determine color based on satellite name; Taskable=Yellow; Nontaskable=Green
                     let color = Cesium.Color.RED;
                     if (satellite.name === 'GCOM-W1 (SHIZUKU)') {
@@ -79,7 +85,7 @@
                     }
 
                     // Add current position as point with label
-                    viewer.entities.add({
+                    previousLabelEntities[satellite.name] = viewer.entities.add({
                         position: position,
                         point: {
                             pixelSize: 10,
@@ -143,7 +149,6 @@
                             }
                         });
                     }
-
                     // Add image layers only once
                     if (!snowLayer && !resolutionLayer) {
                         const layers = viewer.scene.imageryLayers;
@@ -154,7 +159,6 @@
                         // // Log base64 strings to debug
                         // console.log('Snow Layer Image:', snowLayerImage);
                         // console.log('Resolution Layer Image:', resolutionLayerImage);
-
                         // Add resolution layer image
                         resolutionLayer = new Cesium.ImageryLayer(
                             new Cesium.SingleTileImageryProvider({
@@ -165,7 +169,6 @@
                                 )
                             })
                         );
-
                         layers.add(resolutionLayer);
                                                 // Add snow layer image
                                                 snowLayer = new Cesium.ImageryLayer(
@@ -195,14 +198,12 @@
             }
 
             setInterval(updateSatellitePositions, 1000); // Update every second
-
             // Event listeners for toggling layers
             document.getElementById('toggleSnowLayer').addEventListener('change', function() {
                 if (snowLayer) {
                     snowLayer.show = this.checked;
                 }
             });
-
             document.getElementById('toggleResolutionLayer').addEventListener('change', function() {
                 if (resolutionLayer) {
                     resolutionLayer.show = this.checked;
