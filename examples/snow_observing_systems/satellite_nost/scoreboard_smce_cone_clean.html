@@ -60,10 +60,7 @@
                     console.log("Stop command received.");
                     viewer.clockViewModel.multiplier = 0;
                 } else if (topic === "sos.constellation.location") {
-                    // console.log("Location message received.");
-                    // console.log(payload);
                     const position = new Cesium.Cartesian3(payload.ecef[0], payload.ecef[1], payload.ecef[2]);
-                    // const position = new Cesium.Cartesian3.fromDegrees(payload.longitude, payload.latitude, payload.altitude);
                     const altitude_km = payload.altitude / 1000;
                     const radius_km = payload.radius / 1000;
                     const swath_km = payload.swath / 1000;
@@ -97,34 +94,24 @@
 
                     previousLabelEntities[payload.name] = viewer.entities.add({
                         position: position,
-                        // model: {
-                        //     uri: 'path/to/your/satellite_model.gltf',
-                        //     minimumPixelSize: 64,
-                        //     maximumScale: 20000
-                        // },
                         point: {
                             pixelSize: 10,
                             color: dotcolor,
                         },
                         label: {
                             text: payload.name,
-                            // text: `{name: ${payload.name},\nlatitude: ${payload.latitude.toFixed(6)},\nlongitude: ${payload.longitude.toFixed(6)},\naltitude: ${altitude_km.toFixed(2)} km,\nradius: ${radius_km.toFixed(2)} km,\nvelocity: [${payload.velocity[0].toFixed(2)} ${payload.velocity[1].toFixed(2)} ${payload.velocity[2].toFixed(2)}] km/s\nstate: ${payload.state}\nswath: ${swath_km.toFixed(2)} km\ntime: ${payload.time}}`,
                             font: '10pt Arial',
                             style: Cesium.LabelStyle.FILL,
                             fillColor: dotcolor,
                             verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
                             pixelOffset: new Cesium.Cartesian2(0, -15),
                             eyeOffset: new Cesium.Cartesian3(0, 0, -5000),
-                            // showBackground: true,
-                            // backgroundColor: Cesium.Color.BLACK.withAlpha(0.5)
                         }
                     });
 
                     const sensorRadius = payload.radius;
-                    // const sensorRadius = payload.radius * (50 / 180); // 50 degrees in radians
                     const sensorHeight = payload.altitude;
-                    // const hollowRadius = payload.radius * (5 / 180); // 5 degrees in radians
-                    const hollowRadius = payload.radius * (5 / 50); // 5 degrees in radians
+                    const hollowRadius = payload.radius * (5 / 50);
 
                     const outerCone = new Cesium.CylinderGeometry({
                         length: sensorHeight * 2,
@@ -199,45 +186,16 @@
                             }
                         });
                     }
-
-                    // // Zoom to the first position and calculate the center point between the two entities
-                    // if (firstUpdate && Object.keys(positions).length === 2) {
-                    //     const allPositions = Object.values(positions).flat();
-                    //     const boundingBox = Cesium.BoundingSphere.fromPoints(allPositions);
-                    //     viewer.camera.flyToBoundingSphere(boundingBox, {
-                    //         duration: 2,
-                    //         offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-90), boundingBox.radius * 5)
-                    //     });
-                    //     firstUpdate = false;
-                    // }
-                    
-                    // // Fly to the location of "Capella-14 (ACADIA)" and keep it in focus
-                    // if (payload.name === "GCOM-W1 (SHIZUKU)") { //"CAPELLA-14 (ACADIA-4)") {
-                    //     viewer.camera.flyTo({
-                    //         destination: Cesium.Cartesian3.fromDegrees(
-                    //             Cesium.Cartographic.fromCartesian(position).longitude * Cesium.Math.DEGREES_PER_RADIAN,
-                    //             Cesium.Cartographic.fromCartesian(position).latitude * Cesium.Math.DEGREES_PER_RADIAN,
-                    //             Cesium.Cartographic.fromCartesian(position).height + 20000000 // Increase height to zoom out
-                    //         ),
-                    //         duration: 1,
-                    //         orientation: {
-                    //             heading: Cesium.Math.toRadians(0), // Adjust heading for side view
-                    //             pitch: Cesium.Math.toRadians(-90.0), // Adjust pitch for side view
-                    //             roll: 0.0 // Keep roll at 0 for a stable view
-                    //         },
-                    //     });
-                    // }
                 }
             }
 
-            // const url = `ws://${BROKER_HOST}:${BROKER_PORT}`;
-            const tls = window.location.protocol === "https:"
-            const url = `${tls ? "wss" : "ws"}://${BROKER_HOST}:${BROKER_PORT}`
-            
+            const url = `ws://${BROKER_HOST}:${BROKER_PORT}`;
+            console.log(`Connecting to ${url}`);
+
             let accessToken;
 
             function fetchAccessToken() {
-                return fetch(`${BROKER_HOST.includes("localhost") ? "http" : "https"}://${BROKER_HOST}:${AUTH_PORT}/realms/NOS-T/protocol/openid-connect/token`, {
+                return fetch(`https://${BROKER_HOST}:${AUTH_PORT}/realms/NOS-T/protocol/openid-connect/token`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded'
@@ -277,13 +235,15 @@
             fetchAccessToken().then(token => {
                 if (token) {
                     accessToken = token;
+                    console.log("Starting.");
+                    console.log(accessToken);
                     const amqp = new AMQPWebSocketClient(url, "/", "", accessToken);
                     async function start(amqp) {
                         try {
                             const conn = await amqp.connect();
                             const ch = await conn.channel();
                             console.log("Connected to the broker.");
-                            await ch.exchangeDeclare("sos", "topic", {durable: false, autoDelete: true}); //{durable: true, autoDelete: false});
+                            await ch.exchangeDeclare("sos", "topic", {durable: false, autoDelete: true});
                             const q = await ch.queue("sos.#", {durable: false, autoDelete: true});
                             await q.bind("sos", "sos.#");
                             const consumer = await q.subscribe({noAck: false}, (msg) => {
@@ -292,7 +252,7 @@
                                 handleMessage(topic, payload);
                                 msg.ack();
                             });
-                            startTokenRefresh(conn); // Pass the connection object here
+                            startTokenRefresh(conn);
                         } catch (err) {
                             console.error("Error", err, "reconnecting in 1s");
                         }
