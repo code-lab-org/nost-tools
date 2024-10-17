@@ -92,10 +92,6 @@ class SatelliteStatus(BaseModel):
     swath: float = Field(
         ..., description="Swath width of satellite"
     )
-    # scanning: bool = Field(
-    #     ..., description="Boolean for if satellite is scanning"
-    # )
-
     snow_layer: str = Field(
         ..., description="Snow layer of satellite"
     )
