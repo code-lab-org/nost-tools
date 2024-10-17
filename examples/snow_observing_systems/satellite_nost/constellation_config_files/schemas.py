@@ -95,6 +95,7 @@ class SatelliteStatus(BaseModel):
     # scanning: bool = Field(
     #     ..., description="Boolean for if satellite is scanning"
     # )
+
     snow_layer: str = Field(
         ..., description="Snow layer of satellite"
     )

@@ -113,10 +113,20 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
     """
 
     def __init__(
-        self, app, constellation, time_status_step=None, time_status_init=None
+        self, app, constellation, time_status_step=None, time_status_init=None,
+        snow_layer=None, resolution_layer=None, gcom_layer=None, capella_layer=None,
+        top_left=None, top_right=None, bottom_left=None, bottom_right=None
     ):
         super().__init__(app, time_status_step, time_status_init)
         self.constellation = constellation
+        self.snow_layer = snow_layer
+        self.resolution_layer = resolution_layer
+        self.gcom_layer = gcom_layer
+        self.capella_layer = capella_layer
+        self.top_left = top_left
+        self.top_right = top_right
+        self.bottom_left = bottom_left
+        self.bottom_right = bottom_right
 
         if self.time_status_init is None:
             self.time_status_init = self.constellation.ts.now().utc_datetime()
@@ -223,8 +233,21 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
     #     raster_layer_encoded = base64.b64encode(buffered.getvalue()).decode('utf-8')
 
     #     return raster_layer_encoded, top_left, top_right, bottom_left, bottom_right
+
+    def downsample_array(self, array, factor):
+        """
+        Downsamples the given array by the specified factor.
+
+        Args:
+            array (np.ndarray): The array to downsample.
+            factor (int): The factor by which to downsample the array.
+
+        Returns:
+            np.ndarray: The downsampled array.
+        """
+        return array[::factor, ::factor]
     
-    def open_encode(self, file_path, variable, output_path, time_step, scale, geojson_path):
+    def open_encode(self, file_path, variable, output_path, time_step, scale, geojson_path, downsample_factor=1):
         # Load the GeoJSON file to get the polygon geometry
         geojson = gpd.read_file(geojson_path)
         polygons = geojson.geometry
@@ -244,7 +267,10 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
             raster_layer = clipped_layer.isel(week=time_step).values
         elif scale == 'month':
             raster_layer = clipped_layer.isel(month=time_step).values
-    
+        
+        # Downsample the array
+        raster_layer = self.downsample_array(raster_layer, downsample_factor)
+
         # Normalize the array to the range [0, 1]
         raster_layer_min = np.nanmin(raster_layer)
         raster_layer_max = np.nanmax(raster_layer)
@@ -333,49 +359,58 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
                 0
             )
 
-            # Divya
-            snow_layer, top_left, top_right, bottom_left, bottom_right = self.open_encode(
-                # file_path='/mnt/c/Users/emgonz38/OneDrive - Arizona State University/ubuntu_files/netcdf_encode/input_data/Efficiency_resolution20_Optimization/efficiency_snow_cover.nc',
-                # variable='Day_CMG_Snow_Cover',
-                # output_path='snow_raster_layer_high_resolution.png'
-                file_path='../input_data/Efficiency_high_resolution_Caesium/efficiency_snow_cover_highest_resolution.nc',
-                variable='Weekly_Snow_Cover',
-                output_path='snow_raster_layer.png',
-                scale='week',
-                time_step=3,
-                geojson_path='../WBD_10_HU2_4326.geojson'
-                )
+            # # Divya
+            # snow_layer, top_left, top_right, bottom_left, bottom_right = self.open_encode(
+            #     # file_path='/mnt/c/Users/emgonz38/OneDrive - Arizona State University/ubuntu_files/netcdf_encode/input_data/Efficiency_resolution20_Optimization/efficiency_snow_cover.nc',
+            #     # variable='Day_CMG_Snow_Cover',
+            #     # output_path='snow_raster_layer_high_resolution.png'
+            #     file_path='../input_data/Efficiency_high_resolution_Caesium/efficiency_snow_cover_highest_resolution.nc',
+            #     variable='Weekly_Snow_Cover',
+            #     output_path='snow_raster_layer.png',
+            #     scale='week',
+            #     time_step=3,
+            #     geojson_path='../WBD_10_HU2_4326.geojson'
+            #     )
 
-            resolution_layer, top_left, top_right, bottom_left, bottom_right = self.open_encode(
-                # file_path='/mnt/c/Users/emgonz38/OneDrive - Arizona State University/ubuntu_files/netcdf_encode/input_data/Efficiency_resolution20_Optimization/efficiency_resolution_layer.nc',
-                # variable='Monthly_Resolution_Abs',
-                # output_path='resolution_raster_layer_high_resolution.png'
-                file_path='../input_data/Efficiency_high_resolution_Caesium/efficiency_resolution_layer_highest_resolution.nc',
-                variable='Monthly_Resolution_Abs',
-                output_path='resolution_raster_layer.png',
-                scale='month',
-                time_step=0,
-                geojson_path='../WBD_10_HU2_4326.geojson'
-                )
+            # resolution_layer, top_left, top_right, bottom_left, bottom_right = self.open_encode(
+            #     # file_path='/mnt/c/Users/emgonz38/OneDrive - Arizona State University/ubuntu_files/netcdf_encode/input_data/Efficiency_resolution20_Optimization/efficiency_resolution_layer.nc',
+            #     # variable='Monthly_Resolution_Abs',
+            #     # output_path='resolution_raster_layer_high_resolution.png'
+            #     file_path='../input_data/Efficiency_high_resolution_Caesium/efficiency_resolution_layer_highest_resolution.nc',
+            #     variable='Monthly_Resolution_Abs',
+            #     output_path='resolution_raster_layer.png',
+            #     scale='month',
+            #     time_step=0,
+            #     geojson_path='../WBD_10_HU2_4326.geojson'
+            #     )
 
-            # Hadis
-            gcom_layer, top_left, top_right, bottom_left, bottom_right = self.open_encode(
-            file_path='../input_data/Optimization/final_eta_combined_output_GCOM.nc',
-            variable='final_eta_result',
-            output_path='gcom_optimization.png',
-            scale='time',
-            time_step=1,
-            geojson_path='../WBD_10_HU2_4326.geojson'
-            )
+            # # Hadis
+            # gcom_layer, top_left, top_right, bottom_left, bottom_right = self.open_encode(
+            # file_path='../input_data/Optimization/final_eta_combined_output_GCOM.nc',
+            # variable='final_eta_result',
+            # output_path='gcom_optimization.png',
+            # scale='time',
+            # time_step=1,
+            # geojson_path='../WBD_10_HU2_4326.geojson'
+            # )
 
-            capella_layer, top_left, top_right, bottom_left, bottom_right = self.open_encode(
-            file_path='../input_data/Optimization/final_eta_combined_output_Capella.nc',
-            variable='final_eta_result',
-            output_path='capella_optimization.png',
-            scale='time',
-            time_step=1,
-            geojson_path='../WBD_10_HU2_4326.geojson'
-            )
+            # capella_layer, top_left, top_right, bottom_left, bottom_right = self.open_encode(
+            # file_path='../input_data/Optimization/final_eta_combined_output_Capella.nc',
+            # variable='final_eta_result',
+            # output_path='capella_optimization.png',
+            # scale='time',
+            # time_step=1,
+            # geojson_path='../WBD_10_HU2_4326.geojson'
+            # )
+
+            # print(type(snow_layer))
+            # print(type(resolution_layer))
+            # print(type(gcom_layer))
+            # print(type(capella_layer))
+            # print(type(top_left))
+            # print(type(top_right))
+            # print(type(bottom_left))
+            # print(type(bottom_right))
 
             self.app.send_message(
                 self.app.app_name,
@@ -392,17 +427,58 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
                     swath=swath_data.get(satellite.name, 0),
                     time=constellation.get_time(),
                     ecef=[x, y, z],
-                    snow_layer=snow_layer,
-                    resolution_layer=resolution_layer,
-                    gcom_layer=gcom_layer,
-                    capella_layer=capella_layer,
-                    top_left=top_left,
-                    top_right=top_right,
-                    bottom_left=bottom_left,
-                    bottom_right=bottom_right
+                    snow_layer=self.snow_layer,
+                    resolution_layer=self.resolution_layer,
+                    gcom_layer=self.gcom_layer,
+                    capella_layer=self.capella_layer,
+                    top_left=self.top_left,
+                    top_right=self.top_right,
+                    bottom_left=self.bottom_left,
+                    bottom_right=self.bottom_right
                 ).json(),
             )
 
+# Function to read and encode the layers
+def read_and_encode_layers(position_publisher):
+    snow_layer, top_left, top_right, bottom_left, bottom_right = position_publisher.open_encode(
+        file_path='../input_data/Efficiency_high_resolution_Caesium/efficiency_snow_cover_highest_resolution.nc',
+        variable='Weekly_Snow_Cover',
+        output_path='snow_raster_layer.png',
+        scale='week',
+        time_step=3,
+        geojson_path='../WBD_10_HU2_4326.geojson'
+    )
+
+    resolution_layer, top_left, top_right, bottom_left, bottom_right = position_publisher.open_encode(
+        file_path='../input_data/Efficiency_high_resolution_Caesium/efficiency_resolution_layer_highest_resolution.nc',
+        variable='Monthly_Resolution_Abs',
+        output_path='resolution_raster_layer.png',
+        scale='month',
+        time_step=0,
+        geojson_path='../WBD_10_HU2_4326.geojson'
+    )
+
+    gcom_layer, top_left, top_right, bottom_left, bottom_right = position_publisher.open_encode(
+        file_path='../input_data/Optimization/final_eta_combined_output_GCOM.nc',
+        variable='final_eta_result',
+        output_path='gcom_optimization.png',
+        scale='time',
+        time_step=1,
+        geojson_path='../WBD_10_HU2_4326.geojson'
+    )
+
+    capella_layer, top_left, top_right, bottom_left, bottom_right = position_publisher.open_encode(
+        file_path='../input_data/Optimization/final_eta_combined_output_Capella.nc',
+        variable='final_eta_result',
+        output_path='capella_optimization.png',
+        scale='time',
+        time_step=1,
+        geojson_path='../WBD_10_HU2_4326.geojson'
+    )
+
+    return snow_layer, resolution_layer, gcom_layer, capella_layer, top_left, top_right, bottom_left, bottom_right
+
+# Main function
 if __name__ == "__main__":
     credentials = dotenv_values(".env")
     HOST, RABBITMQ_PORT, KEYCLOAK_PORT, KEYCLOAK_REALM = credentials["HOST"], int(credentials["RABBITMQ_PORT"]), int(credentials["KEYCLOAK_PORT"]), str(credentials["KEYCLOAK_REALM"])
@@ -446,7 +522,22 @@ if __name__ == "__main__":
     constellation = Constellation("constellation", app, indices, names, ES)
     app.simulator.add_entity(constellation)
     app.simulator.add_observer(ShutDownObserver(app))
-    app.simulator.add_observer(PositionPublisher(app, constellation, timedelta(seconds=1)))
+
+    # Initialize PositionPublisher and read layers
+    position_publisher = PositionPublisher(app, constellation, timedelta(seconds=1))
+    snow_layer, resolution_layer, gcom_layer, capella_layer, top_left, top_right, bottom_left, bottom_right = read_and_encode_layers(position_publisher)
+    
+    # Pass the layers to the PositionPublisher
+    position_publisher.snow_layer = snow_layer
+    position_publisher.resolution_layer = resolution_layer
+    position_publisher.gcom_layer = gcom_layer
+    position_publisher.capella_layer = capella_layer
+    position_publisher.top_left = top_left
+    position_publisher.top_right = top_right
+    position_publisher.bottom_left = bottom_left
+    position_publisher.bottom_right = bottom_right
+
+    app.simulator.add_observer(position_publisher)
 
     app.start_up(
         PREFIX,

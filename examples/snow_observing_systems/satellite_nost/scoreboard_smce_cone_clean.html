@@ -105,8 +105,8 @@
             
             // Load the Missouri River Basin GeoJSON file
             Cesium.GeoJsonDataSource.load('../WBD_10_HU2_4326.geojson', {
-                clampToGround: true,
-                // stroke: Cesium.Color.RED,
+                clampToGround: false,
+                stroke: Cesium.Color.RED,
                 fill: Cesium.Color.RED.withAlpha(0.2),
                 // strokeWidth: 3,
             }).then(function (dataSource) {
@@ -399,8 +399,6 @@
             fetchAccessToken().then(token => {
                 if (token) {
                     accessToken = token;
-                    console.log("Starting.");
-                    console.log(accessToken);
                     const amqp = new AMQPWebSocketClient(url, "/", "", accessToken);
                     async function start(amqp) {
                         try {
