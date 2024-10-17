@@ -138,6 +138,7 @@
                     console.log("Stop command received.");
                     viewer.clockViewModel.multiplier = 0;
                 } else if (topic === "sos.constellation.location") {
+                    // console.log(payload);
                     const position = new Cesium.Cartesian3(payload.ecef[0], payload.ecef[1], payload.ecef[2]);
                     const altitude_km = payload.altitude / 1000;
                     const radius_km = payload.radius / 1000;
