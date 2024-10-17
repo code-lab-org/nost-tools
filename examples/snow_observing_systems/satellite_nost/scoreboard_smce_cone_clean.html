@@ -92,9 +92,9 @@
             // Load the optimization GeoJSON file
             Cesium.GeoJsonDataSource.load('../Optimization_result.geojson', {
                 clampToGround: false,
-                stroke: Cesium.Color.YELLOW,
+                // stroke: Cesium.Color.YELLOW,
                 fill: Cesium.Color.YELLOW.withAlpha(0.8),
-                strokeWidth: 3,
+                // strokeWidth: 3,
             }).then(function (dataSource) {
                 optimizationLayer = dataSource;
                 viewer.dataSources.add(dataSource);
@@ -106,9 +106,9 @@
             // Load the Missouri River Basin GeoJSON file
             Cesium.GeoJsonDataSource.load('../WBD_10_HU2_4326.geojson', {
                 clampToGround: true,
-                stroke: Cesium.Color.RED,
+                // stroke: Cesium.Color.RED,
                 fill: Cesium.Color.RED.withAlpha(0.2),
-                strokeWidth: 3,
+                // strokeWidth: 3,
             }).then(function (dataSource) {
                 missouriLayer = dataSource;
                 viewer.dataSources.add(dataSource);

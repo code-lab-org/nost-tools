@@ -343,7 +343,7 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
                 output_path='snow_raster_layer.png',
                 scale='week',
                 time_step=3,
-                geojson_path='./WBD_10_HU2_4326.geojson'
+                geojson_path='../WBD_10_HU2_4326.geojson'
                 )
 
             resolution_layer, top_left, top_right, bottom_left, bottom_right = self.open_encode(
@@ -355,7 +355,7 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
                 output_path='resolution_raster_layer.png',
                 scale='month',
                 time_step=0,
-                geojson_path='./WBD_10_HU2_4326.geojson'
+                geojson_path='../WBD_10_HU2_4326.geojson'
                 )
 
             # Hadis
@@ -365,7 +365,7 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
             output_path='gcom_optimization.png',
             scale='time',
             time_step=1,
-            geojson_path='./WBD_10_HU2_4326.geojson'
+            geojson_path='../WBD_10_HU2_4326.geojson'
             )
 
             capella_layer, top_left, top_right, bottom_left, bottom_right = self.open_encode(
@@ -374,7 +374,7 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
             output_path='capella_optimization.png',
             scale='time',
             time_step=1,
-            geojson_path='./WBD_10_HU2_4326.geojson'
+            geojson_path='../WBD_10_HU2_4326.geojson'
             )
 
             self.app.send_message(
