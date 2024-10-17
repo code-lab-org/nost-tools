@@ -95,6 +95,30 @@ class SatelliteStatus(BaseModel):
     # scanning: bool = Field(
     #     ..., description="Boolean for if satellite is scanning"
     # )
+    snow_layer: str = Field(
+        ..., description="Snow layer of satellite"
+    )
+    resolution_layer: str = Field(
+        ..., description="Resolution layer of satellite"
+    )
+    gcom_layer: str = Field(
+        ..., description="GCOM layer of satellite"
+    )
+    capella_layer: str = Field(
+        ..., description="Capella layer of satellite"
+    )
+    top_left: list[float] = Field(
+        ..., description="Top left corner of satellite"
+    )
+    top_right: list[float] = Field(
+        ..., description="Top right corner of satellite"
+    )
+    bottom_left: list[float] = Field(
+        ..., description="Bottom left corner of satellite"
+    )
+    bottom_right: list[float] = Field(
+        ..., description="Bottom right corner of satellite"
+    )
 
 
 class GroundLocation(BaseModel):

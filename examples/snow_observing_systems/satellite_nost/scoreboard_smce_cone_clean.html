@@ -12,10 +12,58 @@
             margin: 0; 
             padding: 0;
         }
+        #controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(42, 42, 42, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            color: white;
+        }
     </style>
 </head>
 <body>
     <div id="cesiumContainer"></div>
+    <div id="controls">
+        <h3>Layer Selection</h3>
+        <hr>
+        
+        <h4>Focal Area Extents</h4>
+        <label>
+            <input type="checkbox" id="toggleMissouriLayer" checked>
+            Missouri River Basin Layer
+        </label>
+        <br>
+        
+        <h4>Optimization Layers</h4>
+        <label>
+            <input type="checkbox" id="toggleSnowLayer">
+            Snow
+        </label>
+        <br>
+        <label>
+            <input type="checkbox" id="toggleResolutionLayer">
+            Resolution
+        </label>
+        <br>
+        <label>
+            <input type="checkbox" id="toggleOptimizationLayer" checked>
+            Optimization - Selected Locations
+        </label>
+        <br>
+
+        <h4>Reward Layers</h4>
+        <label>
+            <input type="checkbox" id="toggleGcomLayer">
+            GCOM-W
+        <label>
+        <br>
+        <label>
+            <input type="checkbox" id="toggleCapellaLayer">
+            Capella 14
+        <label>
+    </div>
     <script src="env.js"></script>
     <script type="module">
         import { AMQPWebSocketClient } from './js/amqp-websocket-client.mjs';
@@ -37,6 +85,36 @@
             const previousSensorCircles = {};
             let firstUpdate = true;
             let previousLabelEntities = {};
+            let snowLayer, resolutionLayer;
+            let optimizationLayer, missouriLayer;
+            let gcomLayer, capellaLayer;
+
+            // Load the optimization GeoJSON file
+            Cesium.GeoJsonDataSource.load('../Optimization_result.geojson', {
+                clampToGround: false,
+                stroke: Cesium.Color.YELLOW,
+                fill: Cesium.Color.YELLOW.withAlpha(0.8),
+                strokeWidth: 3,
+            }).then(function (dataSource) {
+                optimizationLayer = dataSource;
+                viewer.dataSources.add(dataSource);
+                viewer.zoomTo(dataSource);
+            }).otherwise(function (error) {
+                console.error(error);
+            });
+            
+            // Load the Missouri River Basin GeoJSON file
+            Cesium.GeoJsonDataSource.load('../WBD_10_HU2_4326.geojson', {
+                clampToGround: true,
+                stroke: Cesium.Color.RED,
+                fill: Cesium.Color.RED.withAlpha(0.2),
+                strokeWidth: 3,
+            }).then(function (dataSource) {
+                missouriLayer = dataSource;
+                viewer.dataSources.add(dataSource);
+            }).otherwise(function (error) {
+                console.error(error);
+            });
 
             function handleMessage(topic, payload) {
                 if (topic == "sos.manager.init") {
@@ -186,6 +264,91 @@
                             }
                         });
                     }
+
+                    // Event listeners for toggling layers
+                    document.getElementById('toggleSnowLayer').addEventListener('change', function() {
+                        if (this.checked && !snowLayer) {
+                            const snowLayerImage = `data:image/png;base64,${payload.snow_layer}`;
+                            snowLayer = new Cesium.ImageryLayer(
+                                new Cesium.SingleTileImageryProvider({
+                                    url: snowLayerImage,
+                                    rectangle: Cesium.Rectangle.fromDegrees(
+                                        payload.top_left[0], payload.bottom_right[1], 
+                                        payload.bottom_right[0], payload.top_left[1]
+                                    )
+                                })
+                            );
+                            viewer.scene.imageryLayers.add(snowLayer);
+                        } else if (snowLayer) {
+                            snowLayer.show = this.checked;
+                        }
+                    });
+
+                    document.getElementById('toggleResolutionLayer').addEventListener('change', function() {
+                        if (this.checked && !resolutionLayer) {
+                            const resolutionLayerImage = `data:image/png;base64,${payload.resolution_layer}`;
+                            resolutionLayer = new Cesium.ImageryLayer(
+                                new Cesium.SingleTileImageryProvider({
+                                    url: resolutionLayerImage,
+                                    rectangle: Cesium.Rectangle.fromDegrees(
+                                        payload.top_left[0], payload.bottom_right[1], 
+                                        payload.bottom_right[0], payload.top_left[1]
+                                    )
+                                })
+                            );
+                            viewer.scene.imageryLayers.add(resolutionLayer);
+                        } else if (resolutionLayer) {
+                            resolutionLayer.show = this.checked;
+                        }
+                    });
+
+                    document.getElementById('toggleOptimizationLayer').addEventListener('change', function() {
+                        if (optimizationLayer) {
+                            optimizationLayer.show = this.checked;
+                        }
+                    });
+
+                    document.getElementById('toggleMissouriLayer').addEventListener('change', function() {
+                        if (missouriLayer) {
+                            missouriLayer.show = this.checked;
+                        }
+                    });
+
+                    document.getElementById('toggleGcomLayer').addEventListener('change', function() {
+                        if (this.checked && !gcomLayer) {
+                            const gcomLayerImage = `data:image/png;base64,${payload.gcom_layer}`;
+                            gcomLayer = new Cesium.ImageryLayer(
+                                new Cesium.SingleTileImageryProvider({
+                                    url: gcomLayerImage,
+                                    rectangle: Cesium.Rectangle.fromDegrees(
+                                        payload.top_left[0], payload.bottom_right[1], 
+                                        payload.bottom_right[0], payload.top_left[1]
+                                    )
+                                })
+                            );
+                            viewer.scene.imageryLayers.add(gcomLayer);
+                        } else if (gcomLayer) {
+                            gcomLayer.show = this.checked;
+                        }
+                    });
+
+                    document.getElementById('toggleCapellaLayer').addEventListener('change', function() {
+                        if (this.checked && !capellaLayer) {
+                            const capellaLayerImage = `data:image/png;base64,${payload.capella_layer}`;
+                            capellaLayer = new Cesium.ImageryLayer(
+                                new Cesium.SingleTileImageryProvider({
+                                    url: capellaLayerImage,
+                                    rectangle: Cesium.Rectangle.fromDegrees(
+                                        payload.top_left[0], payload.bottom_right[1], 
+                                        payload.bottom_right[0], payload.top_left[1]
+                                    )
+                                })
+                            );
+                            viewer.scene.imageryLayers.add(capellaLayer);
+                        } else if (capellaLayer) {
+                            capellaLayer.show = this.checked;
+                        }
+                    });
                 }
             }
 

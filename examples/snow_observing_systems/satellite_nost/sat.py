@@ -6,6 +6,15 @@ import numpy as np
 import logging
 import pandas as pd
 
+import netCDF4 as nc
+import base64
+import matplotlib.pyplot as plt
+from PIL import Image
+import io
+import xarray as xr
+import geopandas as gpd
+import rioxarray
+
 from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
 from nost_tools.entity import Entity
 from nost_tools.managed_application import ManagedApplication
@@ -111,7 +120,173 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
 
         if self.time_status_init is None:
             self.time_status_init = self.constellation.ts.now().utc_datetime()
+    
+    def get_extents(self, dataset, variable):
+        # Extract the GeoTransform attribute
+        geo_transform = dataset['spatial_ref'].GeoTransform.split()
+        # Convert GeoTransform values to float
+        geo_transform = [float(value) for value in geo_transform]
+        # Calculate the extents (four corners)
+        min_x = geo_transform[0]
+        pixel_width = geo_transform[1]
+        max_y = geo_transform[3]
+        pixel_height = geo_transform[5]
+        # Get the actual dimensions of the raster layer
+        n_rows, n_cols = dataset[variable][0, :, :].shape
+        # Calculate the coordinates of the four corners
+        top_left = (min_x, max_y)
+        top_right = (min_x + n_cols * pixel_width, max_y)
+        bottom_left = (min_x, max_y + n_rows * pixel_height)
+        bottom_right = (min_x + n_cols * pixel_width, max_y + n_rows * pixel_height)
+        return top_left, top_right, bottom_left, bottom_right
 
+    def open_netcdf(self, file_path, time_step):
+        # Open the NetCDF file
+        # dataset = nc.Dataset(file_path, mode='r')
+        dataset = xr.open_dataset(file_path)
+        # dataset = dataset.time.isel(time=time_step)
+
+        return dataset
+
+    # def open_encode(self, file_path, variable, output_path, time_step, scale):
+    #     # Open the NetCDF file
+    #     dataset = self.open_netcdf(file_path, time_step)
+    #     # Extract array
+    #     # raster_layer = dataset[variable][0, :, :]
+    #     if scale == 'time':
+    #         raster_layer = dataset[variable].isel(time=time_step).values
+    #     elif scale == 'week':
+    #         raster_layer = dataset[variable].isel(week=time_step).values
+    #     elif scale == 'month':
+    #         raster_layer = dataset[variable].isel(month=time_step).values
+
+    #     # raster_layer = raster_layer.values
+        
+    #     # print('Raster layer shape:', raster_layer.shape)
+
+    #     # Get the extents (four corners) coordinates
+    #     top_left, top_right, bottom_left, bottom_right = self.get_extents(dataset, variable=variable)
+
+    #     # Save normalized array to PNG with colormap
+    #     plt.imsave(output_path, raster_layer, cmap='Blues_r')
+    #     raster_layer_encoded = self.encode_image(output_path)
+    #     print("Raster layer encoded successfully.")
+        
+    #     return raster_layer_encoded, top_left, top_right, bottom_left, bottom_right
+
+    # def open_encode(self, file_path, variable, output_path, time_step, scale):
+    #     # Open the NetCDF file
+    #     dataset = self.open_netcdf(file_path, time_step)
+    #     # Extract array
+    #     if scale == 'time':
+    #         raster_layer = dataset[variable].isel(time=time_step).values
+    #     elif scale == 'week':
+    #         raster_layer = dataset[variable].isel(week=time_step).values
+    #     elif scale == 'month':
+    #         raster_layer = dataset[variable].isel(month=time_step).values
+    #     # print(raster_layer.shape)
+
+    #     # Normalize the array to the range [0, 1]
+    #     raster_layer_min = np.nanmin(raster_layer)
+    #     raster_layer_max = np.nanmax(raster_layer)
+
+    #     # Create a mask for NA values
+    #     na_mask = np.isnan(raster_layer)
+
+    #     if raster_layer_max > raster_layer_min:  # Avoid division by zero
+    #         normalized_layer = (raster_layer - raster_layer_min) / (raster_layer_max - raster_layer_min)
+    #     else:
+    #         normalized_layer = np.zeros_like(raster_layer)  # If all values are the same, set to zero
+
+    #     # Apply the Blues colormap
+    #     colormap = plt.get_cmap('Blues_r')
+    #     rgba_image = colormap(normalized_layer)
+
+    #     # Set the alpha channel: 0 for NA, 1 for others
+    #     rgba_image[..., 3] = np.where(na_mask, 0, 1)
+
+    #     # Convert to 8-bit unsigned integer
+    #     rgba_image = (rgba_image * 255).astype(np.uint8)
+
+    #     # Save the RGBA image
+    #     image = Image.fromarray(rgba_image, 'RGBA')
+    #     image.save(output_path)
+
+    #     # Get the extents (four corners) coordinates
+    #     top_left, top_right, bottom_left, bottom_right = self.get_extents(dataset, variable=variable)
+
+    #     # Save the image to a BytesIO object
+    #     buffered = io.BytesIO()
+    #     image.save(buffered, format="PNG")
+
+    #     # Encode image to base64
+    #     raster_layer_encoded = base64.b64encode(buffered.getvalue()).decode('utf-8')
+
+    #     return raster_layer_encoded, top_left, top_right, bottom_left, bottom_right
+    
+    def open_encode(self, file_path, variable, output_path, time_step, scale, geojson_path):
+        # Load the GeoJSON file to get the polygon geometry
+        geojson = gpd.read_file(geojson_path)
+        polygons = geojson.geometry
+    
+        # Open the NetCDF file
+        dataset = self.open_netcdf(file_path, time_step)
+        raster_layer = dataset[variable]
+    
+        # Clip the raster layer to the polygon geometry
+        raster_layer = raster_layer.rio.write_crs("EPSG:4326")  # Ensure the CRS is set
+        clipped_layer = raster_layer.rio.clip(polygons, all_touched=True)
+    
+        # Extract array
+        if scale == 'time':
+            raster_layer = clipped_layer.isel(time=time_step).values
+        elif scale == 'week':
+            raster_layer = clipped_layer.isel(week=time_step).values
+        elif scale == 'month':
+            raster_layer = clipped_layer.isel(month=time_step).values
+    
+        # Normalize the array to the range [0, 1]
+        raster_layer_min = np.nanmin(raster_layer)
+        raster_layer_max = np.nanmax(raster_layer)
+    
+        # Create a mask for NA values
+        na_mask = np.isnan(raster_layer)
+    
+        if raster_layer_max > raster_layer_min:  # Avoid division by zero
+            normalized_layer = (raster_layer - raster_layer_min) / (raster_layer_max - raster_layer_min)
+        else:
+            normalized_layer = np.zeros_like(raster_layer)  # If all values are the same, set to zero
+    
+        # Apply the Blues colormap
+        colormap = plt.get_cmap('Blues_r')
+        rgba_image = colormap(normalized_layer)
+    
+        # Set the alpha channel: 0 for NA, 1 for others
+        rgba_image[..., 3] = np.where(na_mask, 0, 1)
+    
+        # Convert to 8-bit unsigned integer
+        rgba_image = (rgba_image * 255).astype(np.uint8)
+    
+        # Save the RGBA image
+        image = Image.fromarray(rgba_image, 'RGBA')
+        image.save(output_path)
+    
+        # Get the extents (four corners) coordinates
+        top_left, top_right, bottom_left, bottom_right = self.get_extents(dataset, variable=variable)
+    
+        # Save the image to a BytesIO object
+        buffered = io.BytesIO()
+        image.save(buffered, format="PNG")
+    
+        # Encode image to base64
+        raster_layer_encoded = base64.b64encode(buffered.getvalue()).decode('utf-8')
+    
+        return raster_layer_encoded, top_left, top_right, bottom_left, bottom_right
+
+    def encode_image(self, image_path):
+        with open(image_path, "rb") as image_file:
+            return base64.b64encode(image_file.read()).decode('utf-8')
+        
     def publish_message(self):
         """
         *Abstract publish_message method inherited from the WallclockTimeIntervalPublisher object class from the publisher template in the NOS-T tools library*
@@ -158,6 +333,50 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
                 0
             )
 
+            # Divya
+            snow_layer, top_left, top_right, bottom_left, bottom_right = self.open_encode(
+                # file_path='/mnt/c/Users/emgonz38/OneDrive - Arizona State University/ubuntu_files/netcdf_encode/input_data/Efficiency_resolution20_Optimization/efficiency_snow_cover.nc',
+                # variable='Day_CMG_Snow_Cover',
+                # output_path='snow_raster_layer_high_resolution.png'
+                file_path='../input_data/Efficiency_high_resolution_Caesium/efficiency_snow_cover_highest_resolution.nc',
+                variable='Weekly_Snow_Cover',
+                output_path='snow_raster_layer.png',
+                scale='week',
+                time_step=3,
+                geojson_path='./WBD_10_HU2_4326.geojson'
+                )
+
+            resolution_layer, top_left, top_right, bottom_left, bottom_right = self.open_encode(
+                # file_path='/mnt/c/Users/emgonz38/OneDrive - Arizona State University/ubuntu_files/netcdf_encode/input_data/Efficiency_resolution20_Optimization/efficiency_resolution_layer.nc',
+                # variable='Monthly_Resolution_Abs',
+                # output_path='resolution_raster_layer_high_resolution.png'
+                file_path='../input_data/Efficiency_high_resolution_Caesium/efficiency_resolution_layer_highest_resolution.nc',
+                variable='Monthly_Resolution_Abs',
+                output_path='resolution_raster_layer.png',
+                scale='month',
+                time_step=0,
+                geojson_path='./WBD_10_HU2_4326.geojson'
+                )
+
+            # Hadis
+            gcom_layer, top_left, top_right, bottom_left, bottom_right = self.open_encode(
+            file_path='../input_data/Optimization/final_eta_combined_output_GCOM.nc',
+            variable='final_eta_result',
+            output_path='gcom_optimization.png',
+            scale='time',
+            time_step=1,
+            geojson_path='./WBD_10_HU2_4326.geojson'
+            )
+
+            capella_layer, top_left, top_right, bottom_left, bottom_right = self.open_encode(
+            file_path='../input_data/Optimization/final_eta_combined_output_Capella.nc',
+            variable='final_eta_result',
+            output_path='capella_optimization.png',
+            scale='time',
+            time_step=1,
+            geojson_path='./WBD_10_HU2_4326.geojson'
+            )
+
             self.app.send_message(
                 self.app.app_name,
                 "location",
@@ -172,7 +391,15 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
                     state=state,
                     swath=swath_data.get(satellite.name, 0),
                     time=constellation.get_time(),
-                    ecef=[x, y, z]
+                    ecef=[x, y, z],
+                    snow_layer=snow_layer,
+                    resolution_layer=resolution_layer,
+                    gcom_layer=gcom_layer,
+                    capella_layer=capella_layer,
+                    top_left=top_left,
+                    top_right=top_right,
+                    bottom_left=bottom_left,
+                    bottom_right=bottom_right
                 ).json(),
             )
 
@@ -200,7 +427,7 @@ if __name__ == "__main__":
     app = ManagedApplication(NAME)
 
     activesats_url = "https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle"
-    activesats = load.tle_file(activesats_url, reload=True, filename='./active.txt')
+    activesats = load.tle_file(activesats_url, reload=False, filename='./active.txt') #True
 
     by_name = {sat.name: sat for sat in activesats}
     names = ['CAPELLA-14 (ACADIA-4)', 'GCOM-W1 (SHIZUKU)']
