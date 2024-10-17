@@ -207,7 +207,7 @@
                             new Cesium.Matrix4()
                         ),
                         attributes: {
-                            color: Cesium.ColorGeometryInstanceAttribute.fromColor(color.withAlpha(0.4))
+                            color: Cesium.ColorGeometryInstanceAttribute.fromColor(color.withAlpha(0.2))
                         }
                     });
 
@@ -235,7 +235,7 @@
                                 new Cesium.Matrix4()
                             ),
                             attributes: {
-                                color: Cesium.ColorGeometryInstanceAttribute.fromColor(Cesium.Color.BLACK.withAlpha(0.9))
+                                color: Cesium.ColorGeometryInstanceAttribute.fromColor(Cesium.Color.BLACK.withAlpha(0.6))
                             }
                         });
 
@@ -260,7 +260,7 @@
                         positions[payload.name].polylineEntity = viewer.entities.add({
                             polyline: {
                                 positions: positions[payload.name],
-                                width: 2,
+                                width: 0.5,
                                 material: color
                             }
                         });
