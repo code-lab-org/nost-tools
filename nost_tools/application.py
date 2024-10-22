@@ -347,9 +347,6 @@ class Application:
             on_close_callback=self.on_connection_closed,
         )
         # Start the I/O loop in a separate thread
-        # threading.Thread(target=self._start_io_loop).start()
-        # self._is_connected.wait()
-        # self.stop_event = threading.Event()
         self.io_thread = threading.Thread(target=self._start_io_loop)
         self.io_thread.start()
         self._is_connected.wait()
