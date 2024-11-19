@@ -98,7 +98,7 @@ class Application:
             config (:obj:`ConnectionConfig`): connection configuration
             refresh_token (str): refresh token (optional)
         """
-        keycloak_openid = KeycloakOpenID(server_url=f'{'http' if 'localhost' in config.host else 'https'}://{config.host}:{config.keycloak_port}',
+        keycloak_openid = KeycloakOpenID(server_url=f"{'http' if 'localhost' in config.host else 'https'}://{config.host}:{config.keycloak_port}",
                                         client_id=config.client_id,
                                         realm_name=config.keycloak_realm,
                                         client_secret_key=config.client_secret_key,
@@ -174,6 +174,8 @@ class Application:
         Args:
             config (:obj:`ConnectionConfig`): connection configuration
         """
+        # Pydantic, may be compatible with YAML, or extension > check that out
+        # Living documentation, serialization > makes formating easier
         channels = config.get('channels', {})
         unique_exchanges = {}
 
@@ -353,6 +355,8 @@ class Application:
 
         logger.info(config.yaml_mode)
 
+        # If YAML is not provided, create a default one (not written as file), default values/structure assigned
+        # SIngle location of exhanges and quueues, modify default structure of YAML file > recommended to look into, centralization of info
         if config.yaml_mode:
             self.yaml_mode = True
             logger.info("Running NOS-T in YAML mode.")
