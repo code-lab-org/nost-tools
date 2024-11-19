@@ -241,7 +241,7 @@ class Application:
             unique_exchanges (dict): dictionary of unique exchanges
         """
         for exchange_name, exchange_config in unique_exchanges.items():
-            logger.info(f'Declaring exchange: {exchange_name}')
+            logger.info(f"Declaring exchange: {exchange_name}")
             
             self.channel.exchange_declare(
                 exchange=exchange_name,
@@ -465,7 +465,7 @@ class Application:
             body=payload,
             properties=pika.BasicProperties(expiration='60000')
         )
-        logger.debug(f'Successfully sent message "{payload}" to topic "{routing_key}".')
+        logger.debug(f"Successfully sent message '{payload}' to topic '{routing_key}'.")
 
     def add_message_callback(self, app_name: str, app_topic: str, user_callback: Callable): #, app_specific_extender: str = None):
         """
@@ -554,7 +554,7 @@ class Application:
         :param pika.Spec.BasicProperties: properties
         :param bytes body: The message body
         """
-        logger.debug(f'Received message # {method.delivery_tag}: {body.decode('utf8')}')
+        logger.debug(f"Received message # {method.delivery_tag}: {body.decode('utf8')}")
         self.acknowledge_message(method.delivery_tag)
 
     def acknowledge_message(self, delivery_tag):
@@ -565,7 +565,7 @@ class Application:
 
         """
         try:
-            logger.debug(f'Acknowledging message {delivery_tag}')
+            logger.debug(f"Acknowledging message {delivery_tag}")
             self.channel.basic_ack(delivery_tag, True)
         except:
             pass
@@ -757,7 +757,7 @@ class Application:
             self.declared_queues.add(routing_key.strip())
             self.declared_exchanges.add(self.prefix.strip())
 
-            logger.debug(f'Bound queue "{queue_name}" to topic "{routing_key}".')
+            logger.debug(f"Bound queue '{queue_name}' to topic '{routing_key}'.")
         
         except:
             routing_key = None
