@@ -141,6 +141,9 @@ de421.bsp
 # Ignore env.js files
 **/env.js
 
+# Ignore png files
+**/*.png
+
 # Ignore ZoneIdentifier files
 *:Zone.Identifier
 
