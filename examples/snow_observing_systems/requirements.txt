@@ -1,2 +1,0 @@
-skyfield==1.49
-flask==3.0.3
