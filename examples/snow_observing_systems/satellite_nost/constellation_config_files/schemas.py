@@ -92,30 +92,30 @@ class SatelliteStatus(BaseModel):
     swath: float = Field(
         ..., description="Swath width of satellite"
     )
-    snow_layer: str = Field(
-        ..., description="Snow layer of satellite"
-    )
-    resolution_layer: str = Field(
-        ..., description="Resolution layer of satellite"
-    )
-    gcom_layer: str = Field(
-        ..., description="GCOM layer of satellite"
-    )
-    capella_layer: str = Field(
-        ..., description="Capella layer of satellite"
-    )
-    top_left: list[float] = Field(
-        ..., description="Top left corner of satellite"
-    )
-    top_right: list[float] = Field(
-        ..., description="Top right corner of satellite"
-    )
-    bottom_left: list[float] = Field(
-        ..., description="Bottom left corner of satellite"
-    )
-    bottom_right: list[float] = Field(
-        ..., description="Bottom right corner of satellite"
-    )
+    # snow_layer: str = Field(
+    #     ..., description="Snow layer of satellite"
+    # )
+    # resolution_layer: str = Field(
+    #     ..., description="Resolution layer of satellite"
+    # )
+    # gcom_layer: str = Field(
+    #     ..., description="GCOM layer of satellite"
+    # )
+    # capella_layer: str = Field(
+    #     ..., description="Capella layer of satellite"
+    # )
+    # top_left: list[float] = Field(
+    #     ..., description="Top left corner of satellite"
+    # )
+    # top_right: list[float] = Field(
+    #     ..., description="Top right corner of satellite"
+    # )
+    # bottom_left: list[float] = Field(
+    #     ..., description="Bottom left corner of satellite"
+    # )
+    # bottom_right: list[float] = Field(
+    #     ..., description="Bottom right corner of satellite"
+    # )
 
 
 class GroundLocation(BaseModel):
@@ -135,4 +135,84 @@ class GroundLocation(BaseModel):
     )
     operational: bool = Field(
         True, description="True, if this ground station is operational."
+    )
+
+class SnowLayer(BaseModel):
+    """
+    
+    """
+    snow_layer: str = Field(
+        ..., description="Snow layer of satellite"
+    )
+    top_left: list[float] = Field(
+        ..., description="Top left corner of satellite"
+    )
+    top_right: list[float] = Field(
+        ..., description="Top right corner of satellite"
+    )
+    bottom_left: list[float] = Field(
+        ..., description="Bottom left corner of satellite"
+    )
+    bottom_right: list[float] = Field(
+        ..., description="Bottom right corner of satellite"
+    )
+
+class ResolutionLayer(BaseModel):
+    """
+    
+    """
+    resolution_layer: str = Field(
+        ..., description="Resolution layer of satellite"
+    )
+    top_left: list[float] = Field(
+        ..., description="Top left corner of satellite"
+    )
+    top_right: list[float] = Field(
+        ..., description="Top right corner of satellite"
+    )
+    bottom_left: list[float] = Field(
+        ..., description="Bottom left corner of satellite"
+    )
+    bottom_right: list[float] = Field(
+        ..., description="Bottom right corner of satellite"
+    )
+
+class GcomLayer(BaseModel):
+    """
+    
+    """
+    gcom_layer: str = Field(
+        ..., description="GCOM layer of satellite"
+    )
+    top_left: list[float] = Field(
+        ..., description="Top left corner of satellite"
+    )
+    top_right: list[float] = Field(
+        ..., description="Top right corner of satellite"
+    )
+    bottom_left: list[float] = Field(
+        ..., description="Bottom left corner of satellite"
+    )
+    bottom_right: list[float] = Field(
+        ..., description="Bottom right corner of satellite"
+    )
+
+class CapellaLayer(BaseModel):
+    """
+    
+    """
+    capella_layer: str = Field(
+        ..., description="Capella layer of satellite"
+    )
+    top_left: list[float] = Field(
+        ..., description="Top left corner of satellite"
+    )
+    top_right: list[float] = Field(
+        ..., description="Top right corner of satellite"
+    )
+    bottom_left: list[float] = Field(
+        ..., description="Bottom left corner of satellite"
+    )
+    bottom_right: list[float] = Field(
+        ..., description="Bottom right corner of satellite"
     )

@@ -12,7 +12,7 @@ authors = [
     {"name" = "Paul T. Grogan", "email" = "paul.grogan@asu.edu"}
 ]
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.11"
 license = {text = "BSD 3-Clause License"}
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -57,7 +57,8 @@ examples = [
     "rioxarray >= 0.17.0",
     "geopandas >= 1.0.1",
     "numpy >= 2.0.0",
-    "netCDF4 >= 1.7.1.post2"
+    "netCDF4 >= 1.7.1.post2",
+    "aiobotocore >=2.5.4"
 ]
 docs = [
     "autodoc_pydantic >= 2",

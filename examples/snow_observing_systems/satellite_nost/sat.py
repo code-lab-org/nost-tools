@@ -20,7 +20,7 @@ from nost_tools.entity import Entity
 from nost_tools.managed_application import ManagedApplication
 from nost_tools.publisher import WallclockTimeIntervalPublisher
 
-from constellation_config_files.schemas import SatelliteStatus
+from constellation_config_files.schemas import SatelliteStatus, SnowLayer, ResolutionLayer, GcomLayer, CapellaLayer
 from constellation_config_files.config import PREFIX, NAME, SCALE, TLES, FIELD_OF_REGARD
 
 logging.basicConfig(level=logging.INFO)
@@ -298,14 +298,14 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
                     swath=swath_data.get(satellite.name, 0),
                     time=constellation.get_time(),
                     ecef=[x, y, z],
-                    snow_layer=self.snow_layer,
-                    resolution_layer=self.resolution_layer,
-                    gcom_layer=self.gcom_layer,
-                    capella_layer=self.capella_layer,
-                    top_left=self.top_left,
-                    top_right=self.top_right,
-                    bottom_left=self.bottom_left,
-                    bottom_right=self.bottom_right
+                    # snow_layer=self.snow_layer,
+                    # resolution_layer=self.resolution_layer,
+                    # gcom_layer=self.gcom_layer,
+                    # capella_layer=self.capella_layer,
+                    # top_left=self.top_left,
+                    # top_right=self.top_right,
+                    # bottom_left=self.bottom_left,
+                    # bottom_right=self.bottom_right
                 ).json(),
             )
 
