@@ -134,3 +134,15 @@ dmypy.json
 
 # ephemeris file
 de421.bsp
+
+# Ignore .env files
+**/.env
+
+# Ignore env.js files
+**/env.js
+
+# Ignore ZoneIdentifier files
+*:Zone.Identifier
+
+# Ignore Jupyter notebooks
+*.ipynb
