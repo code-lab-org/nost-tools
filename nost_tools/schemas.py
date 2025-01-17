@@ -190,3 +190,45 @@ class ReadyStatus(BaseModel):
     properties: ReadyStatusProperties = Field(
         ..., description="Properties for the ready status."
     )
+
+
+class RabbitMQConfig(BaseModel):
+    host: str = Field(
+        ..., description="RabbitMQ host."
+    )
+    port: int = Field(
+        ..., description="RabbitMQ port."
+    )
+    virtual_host: str = Field(
+        ..., description="RabbitMQ virtual host."
+    )
+    tls: bool = Field(
+        ..., description="RabbitMQ TLS."
+    )
+
+class KeycloakConfig(BaseModel):
+    host: str = Field(
+        ..., description="Keycloak host."
+    )
+    port: int = Field(
+        ..., description="Keycloak port."
+    )
+    realm: str = Field(
+        ..., description="Keycloak realm."
+    )
+    tls: bool = Field(
+        ..., description="Keycloak TLS."
+    )
+
+class ServersConfig(BaseModel):
+    rabbitmq: RabbitMQConfig = Field(
+        ..., description="RabbitMQ configuration."
+    )
+    keycloak: KeycloakConfig = Field(
+        ..., description="Keycloak configuration."
+    )
+
+class Config(BaseModel):
+    servers: ServersConfig = Field(
+        ..., description="Servers configuration."
+    )

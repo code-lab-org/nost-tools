@@ -59,18 +59,19 @@ class Application:
         self._time_status_publisher = None
         self._mode_status_observer = None
         self._shut_down_observer = None
+        # Connection status
         self._is_connected = threading.Event()
-        self._should_stop = threading.Event()
-        self.consuming = False
-        self.closing = False
         self._is_running = False
         self.io_thread = None
-        self.channel_configs = []  # Initialize channel_configs
-        self.unique_exchanges = {}  # Initialize unique_exchanges
-
-        self.declared_queues = set()  # Initialize list to store declared queues
-        self.declared_exchanges = set()  # Initialize list to store declared exchanges
-
+        self.consuming = False
+        self._should_stop = threading.Event()
+        self.closing = False
+        # Queues
+        self.channel_configs = []
+        self.unique_exchanges = {}
+        self.declared_queues = set()
+        self.declared_exchanges = set()
+        # Token
         self.refresh_token = None
         self.token_refresh_thread = None
         self.token_refresh_interval = 60  # seconds
@@ -98,7 +99,7 @@ class Application:
             config (:obj:`ConnectionConfig`): connection configuration
             refresh_token (str): refresh token (optional)
         """
-        keycloak_openid = KeycloakOpenID(server_url=f"{'http' if 'localhost' in config.host else 'https'}://{config.host}:{config.keycloak_port}",
+        keycloak_openid = KeycloakOpenID(server_url=f"{'http' if 'localhost' in config.host or '127.0.0.1' in config.host else 'https'}://{config.host}:{config.keycloak_port}",
                                         client_id=config.client_id,
                                         realm_name=config.keycloak_realm,
                                         client_secret_key=config.client_secret_key,
@@ -108,7 +109,6 @@ class Application:
             if refresh_token:
                 token = keycloak_openid.refresh_token(refresh_token)
             else:
-                # Attempt to get token without OTP
                 try:
                     token = keycloak_openid.token(grant_type='password', 
                                                 username=config.username, 
@@ -517,6 +517,15 @@ class Application:
             user_callback (Callable): user-provided callback function
         """
         def wrapper(ch, method, properties, body):
+            """
+            Wrapper function to combine the user-provided callback with the on_message method.
+
+            Args:
+                ch (:obj:`pika.channel.Channel`): The channel object used to communicate with the RabbitMQ server.
+                method (:obj:`pika.spec.Basic.Deliver`): Delivery-related information such as delivery tag, exchange, and routing key.
+                properties (:obj:`pika.BasicProperties`): Message properties including content type, headers, and more.
+                body (bytes): The actual message body sent, containing the message payload.
+            """
             # Call the on_message method
             self.on_message(ch, method, properties, body)
             # Call the user-provided callback
@@ -549,10 +558,11 @@ class Application:
         instance of BasicProperties with the message properties and the body
         is the message that was sent.
 
-        :param pika.channel.Channel _unused_channel: The channel object
-        :param pika.Spec.Basic.Deliver: basic_deliver method
-        :param pika.Spec.BasicProperties: properties
-        :param bytes body: The message body
+        Args: 
+            ch (:obj:`pika.channel.Channel`): The channel object used to communicate with the RabbitMQ server.
+            method (:obj:`pika.spec.Basic.Deliver`): Delivery-related information such as delivery tag, exchange, and routing key.
+            properties (:obj:`pika.BasicProperties`): Message properties including content type, headers, and more.
+            body (bytes): The actual message body sent, containing the message payload.
         """
         logger.debug(f"Received message # {method.delivery_tag}: {body.decode('utf8')}")
         self.acknowledge_message(method.delivery_tag)

@@ -195,10 +195,10 @@ class Manager(Application):
         Callback to handle a message containing an application ready status.
 
         Args:
-            ch (:obj:`pika.channel.Channel`): The channel object
-            method (:obj:`pika.spec.Basic.Deliver`): The method object
-            properties (:obj:`pika.spec.BasicProperties`): The properties object
-            body (bytes): The message body
+            ch (:obj:`pika.channel.Channel`): The channel object used to communicate with the RabbitMQ server.
+            method (:obj:`pika.spec.Basic.Deliver`): Delivery-related information such as delivery tag, exchange, and routing key.
+            properties (:obj:`pika.BasicProperties`): Message properties including content type, headers, and more.
+            body (bytes): The actual message body sent, containing the message payload.
         """
         try:
             # split the message topic into components (prefix/app_name/...)
@@ -229,10 +229,10 @@ class Manager(Application):
         Callback to handle a message containing an application time status.
 
         Args:
-            ch (:obj:`pika.channel.Channel`): The channel object
-            method (:obj:`pika.spec.Basic.Deliver`): The method object
-            properties (:obj:`pika.spec.BasicProperties`): The properties object
-            body (bytes): The message body
+            ch (:obj:`pika.channel.Channel`): The channel object used to communicate with the RabbitMQ server.
+            method (:obj:`pika.spec.Basic.Deliver`): Delivery-related information such as delivery tag, exchange, and routing key.
+            properties (:obj:`pika.BasicProperties`): Message properties including content type, headers, and more.
+            body (bytes): The actual message body sent, containing the message payload.
         """
         try:
             # split the message topic into components (prefix/app_name/...)

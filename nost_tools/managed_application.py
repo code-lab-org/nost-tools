@@ -103,15 +103,16 @@ class ManagedApplication(Application):
         # shut down base application
         super().shut_down()
 
-    def on_manager_init(self, ch, method, properties, body) -> None: #, client: Client, userdata: object, message: MQTTMessage) -> None:
+    def on_manager_init(self, ch, method, properties, body) -> None:
         """
         Callback function for the managed application to respond to an initilize command sent from the manager.
         Parses the scenario start/end times and signals ready.
 
         Args:
-            client (:obj:`paho.mqtt.client.Client`): client instance for this callback
-            userdata (object):  private user data as set in the client
-            message (:obj:`paho.mqtt.client.MQTTMessage`): MQTT message
+            ch (:obj:`pika.channel.Channel`): The channel object used to communicate with the RabbitMQ server.
+            method (:obj:`pika.spec.Basic.Deliver`): Delivery-related information such as delivery tag, exchange, and routing key.
+            properties (:obj:`pika.BasicProperties`): Message properties including content type, headers, and more.
+            body (bytes): The actual message body sent, containing the message payload.
         """
         try:
             # Parse message payload
@@ -129,16 +130,17 @@ class ManagedApplication(Application):
             )
             print(traceback.format_exc())
 
-    def on_manager_start(self, ch, method, properties, body) -> None: #, client: Client, userdata: object, message: MQTTMessage) -> None:
+    def on_manager_start(self, ch, method, properties, body) -> None:
         """
         Callback function for the managed application to respond to a start command sent from the manager. 
         Parses the scenario start/end time, wallclock epoch, and time scale factor and executes 
         the simulator in a background thread.
 
         Args:
-            client (:obj:`paho.mqtt.client.Client`): client instance for this callback
-            userdata (object): private user data as set in the client
-            message (:obj:`paho.mqtt.client.MQTTMessage`): MQTT message
+            ch (:obj:`pika.channel.Channel`): The channel object used to communicate with the RabbitMQ server.
+            method (:obj:`pika.spec.Basic.Deliver`): Delivery-related information such as delivery tag, exchange, and routing key.
+            properties (:obj:`pika.BasicProperties`): Message properties including content type, headers, and more.
+            body (bytes): The actual message body sent, containing the message payload.
         """
         # Parse message payload
         message = body.decode('utf-8')
@@ -172,15 +174,16 @@ class ManagedApplication(Application):
             )
             print(traceback.format_exc())
 
-    def on_manager_stop(self, ch, method, properties, body) -> None: #, client: Client, userdata: object, message: MQTTMessage) -> None:
+    def on_manager_stop(self, ch, method, properties, body) -> None:
         """
         Callback function for the managed application ('self') to respond to a stop command sent from the manager.
         Parses the end time and updates the simulator.
 
         Args:
-            client (:obj:`paho.mqtt.client.Client`): client instance for this callback
-            userdata (object): private user data as set in the client
-            message (:obj:`paho.mqtt.client.MQTTMessage`): MQTT message
+            ch (:obj:`pika.channel.Channel`): The channel object used to communicate with the RabbitMQ server.
+            method (:obj:`pika.spec.Basic.Deliver`): Delivery-related information such as delivery tag, exchange, and routing key.
+            properties (:obj:`pika.BasicProperties`): Message properties including content type, headers, and more.
+            body (bytes): The actual message body sent, containing the message payload.
         """
         try:
             # Parse message payload
@@ -195,15 +198,16 @@ class ManagedApplication(Application):
             )
             print(traceback.format_exc())
 
-    def on_manager_update(self, ch, method, properties, body) -> None: #, client: Client, userdata: object, message: MQTTMessage) -> None:
+    def on_manager_update(self, ch, method, properties, body) -> None:
         """
         Callback function for the managed application ('self') to respond to an update command sent from the manager.
         Parses the time scaling factor and scenario update time and updates the simulator.
 
         Args:
-            client (:obj:`paho.mqtt.client.Client`): client instance for this callback
-            userdata (object): private user data as set in the client
-            message (:obj:`paho.mqtt.client.MQTTMessage`): MQTT message
+            ch (:obj:`pika.channel.Channel`): The channel object used to communicate with the RabbitMQ server.
+            method (:obj:`pika.spec.Basic.Deliver`): Delivery-related information such as delivery tag, exchange, and routing key.
+            properties (:obj:`pika.BasicProperties`): Message properties including content type, headers, and more.
+            body (bytes): The actual message body sent, containing the message payload.
         """
         try:       
             # Parse message payload

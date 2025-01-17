@@ -9,10 +9,11 @@ import pika
 import threading
 from .observer import Observer
 from .publisher import ScenarioTimeIntervalPublisher
-from .schemas import ModeStatus, TimeStatus
+from .schemas import ModeStatus, TimeStatus, RabbitMQConfig, KeycloakConfig, ServersConfig, Config
 from .simulator import Mode, Simulator
 import yaml
 from dotenv import dotenv_values
+from pydantic import ValidationError
 
 if TYPE_CHECKING:
     from .application import Application
@@ -56,9 +57,12 @@ class ConnectionConfig(object):
             username (str): client username
             password (str): client password
             host (str): broker hostname
-            port (int): broker port number
+            rabbitmq_port (int): RabbitMQ broker port number
+            keycloak_port (int): Keycloak IAM port number
+            keycloak_realm (str): Keycloak realm name
             client_id (str): Keycloak client ID
             client_secret_key (str): Keycloak client secret key
+            virtual_host (str): RabbitMQ virtual host
             is_tls (bool): True, if the connection uses Transport Layer Security
             env_file (str): Path to the .env file
             yaml_file (str): Path to the YAML configuration file
@@ -68,7 +72,7 @@ class ConnectionConfig(object):
 
         if env_file and yaml_file:
             logger.info(f"Loading configuration from {env_file} and {yaml_file}.")
-            self.load_from_files(env_file, yaml_file)
+            self.load_config_from_files(env_file, yaml_file)
             self.yaml_mode = True
         else:
             logger.info("Loading configuration from arguments.")
@@ -83,7 +87,7 @@ class ConnectionConfig(object):
             self.virtual_host = virtual_host
             self.is_tls = is_tls
 
-    def load_from_files(self, env_file: str, yaml_file: str):
+    def load_config_from_files(self, env_file: str, yaml_file: str):
         """
         Loads configuration from .env and YAML files.
 
@@ -111,6 +115,40 @@ class ConnectionConfig(object):
 
         if not self.is_tls:
             raise ValueError("TLS must be enabled for both RabbitMQ and Keycloak.")
+
+    # def load_config_from_files(self, env_file: str, yaml_file: str):
+    #     """
+    #     Loads configuration from .env and YAML files.
+
+    #     Args:
+    #         env_file (str): Path to the .env file
+    #         yaml_file (str): Path to the YAML configuration file
+    #     """
+    #     # Load .env file
+    #     credentials = dotenv_values(env_file)
+    #     self.username = credentials["USERNAME"]
+    #     self.password = credentials["PASSWORD"]
+    #     self.client_id = credentials["CLIENT_ID"]
+    #     self.client_secret_key = credentials["CLIENT_SECRET_KEY"]
+
+    #     # Load YAML file
+    #     with open(yaml_file, 'r') as file:
+    #         yaml_data = yaml.safe_load(file)  # Store the parsed YAML data
+
+    #     try:
+    #         config = Config(**yaml_data)
+    #     except ValidationError as e:
+    #         raise ValueError(f"Invalid configuration: {e}")
+
+    #     self.host = config.servers.rabbitmq.host
+    #     self.rabbitmq_port = config.servers.rabbitmq.port
+    #     self.keycloak_port = config.servers.keycloak.port
+    #     self.keycloak_realm = config.servers.keycloak.realm
+    #     self.virtual_host = config.servers.rabbitmq.virtual_host
+    #     self.is_tls = config.servers.rabbitmq.tls and config.servers.keycloak.tls
+
+    #     if not self.is_tls:
+    #         raise ValueError("TLS must be enabled for both RabbitMQ and Keycloak.")
 
 
 class ShutDownObserver(Observer):
