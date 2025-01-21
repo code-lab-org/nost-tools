@@ -46,7 +46,13 @@ class LoggerApplication(Application):
         self.log_file = None
 
     def start_up(
-        self, prefix: str, config: ConnectionConfig, set_offset: bool = True, log_app: str = "+", log_topic: str = "#", log_dir: str = ".",
+        self,
+        prefix: str,
+        config: ConnectionConfig,
+        set_offset: bool = True,
+        log_app: str = "+",
+        log_topic: str = "#",
+        log_dir: str = ".",
     ) -> None:
         """
         Starts up the logger application by connecting to message broker,
@@ -70,15 +76,17 @@ class LoggerApplication(Application):
 
     def shut_down(self) -> None:
         """
-            Shuts down the application by stopping the background event loop
-            and disconnecting from the message broker.
+        Shuts down the application by stopping the background event loop
+        and disconnecting from the message broker.
         """
         # unregister callback functions
         self.remove_message_callback(self.log_app, self.log_topic)
         # shut down base application
         super().shut_down()
 
-    def on_log_connect(self, client: Client, userdata: object, flags: dict, rc: int) -> None:
+    def on_log_connect(
+        self, client: Client, userdata: object, flags: dict, rc: int
+    ) -> None:
         """
         Callback function that opens the log file when the MQTT client connects to the broker.
 

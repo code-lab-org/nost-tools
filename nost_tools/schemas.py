@@ -13,6 +13,7 @@ class InitTaskingParameters(BaseModel):
     """
     Tasking parameters to initialize an execution.
     """
+
     sim_start_time: datetime = Field(
         ..., description="Earliest possible scenario start time.", alias="simStartTime"
     )
@@ -28,6 +29,7 @@ class InitCommand(BaseModel):
     """
     Command message to initialize an execution.
     """
+
     tasking_parameters: InitTaskingParameters = Field(
         ...,
         description="Tasking parameters for the initialize command.",
@@ -39,6 +41,7 @@ class StartTaskingParameters(BaseModel):
     """
     Tasking parameters to start an execution.
     """
+
     start_time: Optional[datetime] = Field(
         None,
         description="Wallclock time at which to start execution.",
@@ -66,6 +69,7 @@ class StartCommand(BaseModel):
     """
     Command message to start an execution.
     """
+
     tasking_parameters: StartTaskingParameters = Field(
         ...,
         description="Tasking parameters for the start command.",
@@ -77,6 +81,7 @@ class StopTaskingParameters(BaseModel):
     """
     Tasking parameters to stop an execution.
     """
+
     sim_stop_time: datetime = Field(
         ...,
         description="Scenario time at which to stop execution.",
@@ -88,6 +93,7 @@ class StopCommand(BaseModel):
     """
     Command message to stop an execution.
     """
+
     tasking_parameters: StopTaskingParameters = Field(
         ...,
         description="Tasking parameters for the stop command.",
@@ -99,6 +105,7 @@ class UpdateTaskingParameters(BaseModel):
     """
     Tasking parameters to update an execution.
     """
+
     time_scaling_factor: float = Field(
         ...,
         gt=0,
@@ -116,6 +123,7 @@ class UpdateCommand(BaseModel):
     """
     Command message to update an execution.
     """
+
     tasking_parameters: UpdateTaskingParameters = Field(
         ...,
         description="Tasking parameters for the stop command.",
@@ -127,6 +135,7 @@ class TimeStatusProperties(BaseModel):
     """
     Properties to report time status.
     """
+
     sim_time: datetime = Field(
         ..., description="Current scenario time.", alias="simTime"
     )
@@ -137,6 +146,7 @@ class TimeStatus(BaseModel):
     """
     Message to report time status.
     """
+
     name: str = Field(
         ..., description="Name of the application providing a time status."
     )
@@ -152,6 +162,7 @@ class ModeStatusProperties(BaseModel):
     """
     Properties to report mode status.
     """
+
     mode: Mode = Field(..., description="Current execution mode.")
 
 
@@ -159,6 +170,7 @@ class ModeStatus(BaseModel):
     """
     Message to report mode status.
     """
+
     name: str = Field(
         ..., description="Name of the application providing a mode status."
     )
@@ -174,6 +186,7 @@ class ReadyStatusProperties(BaseModel):
     """
     Properties to report ready status.
     """
+
     ready: bool = Field(True, description="True, if this application is ready.")
 
 
@@ -181,6 +194,7 @@ class ReadyStatus(BaseModel):
     """
     Message to report ready status.
     """
+
     name: str = Field(
         ..., description="Name of the application providing a ready status."
     )
@@ -192,43 +206,25 @@ class ReadyStatus(BaseModel):
     )
 
 
+### Connection Configuration
 class RabbitMQConfig(BaseModel):
-    host: str = Field(
-        ..., description="RabbitMQ host."
-    )
-    port: int = Field(
-        ..., description="RabbitMQ port."
-    )
-    virtual_host: str = Field(
-        ..., description="RabbitMQ virtual host."
-    )
-    tls: bool = Field(
-        ..., description="RabbitMQ TLS."
-    )
+    host: str = Field(..., description="RabbitMQ host.")
+    port: int = Field(..., description="RabbitMQ port.")
+    virtual_host: str = Field(..., description="RabbitMQ virtual host.")
+    tls: bool = Field(..., description="RabbitMQ TLS.")
+
 
 class KeycloakConfig(BaseModel):
-    host: str = Field(
-        ..., description="Keycloak host."
-    )
-    port: int = Field(
-        ..., description="Keycloak port."
-    )
-    realm: str = Field(
-        ..., description="Keycloak realm."
-    )
-    tls: bool = Field(
-        ..., description="Keycloak TLS."
-    )
+    host: str = Field(..., description="Keycloak host.")
+    port: int = Field(..., description="Keycloak port.")
+    realm: str = Field(..., description="Keycloak realm.")
+    tls: bool = Field(..., description="Keycloak TLS.")
+
 
 class ServersConfig(BaseModel):
-    rabbitmq: RabbitMQConfig = Field(
-        ..., description="RabbitMQ configuration."
-    )
-    keycloak: KeycloakConfig = Field(
-        ..., description="Keycloak configuration."
-    )
+    rabbitmq: RabbitMQConfig = Field(..., description="RabbitMQ configuration.")
+    keycloak: KeycloakConfig = Field(..., description="Keycloak configuration.")
+
 
 class Config(BaseModel):
-    servers: ServersConfig = Field(
-        ..., description="Servers configuration."
-    )
+    servers: ServersConfig = Field(..., description="Servers configuration.")

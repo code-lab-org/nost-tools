@@ -9,7 +9,8 @@ build-backend = "setuptools.build_meta"
 name = "nost_tools"
 description = "Tools for Novel Observing Strategies Testbed (NOS-T) Applications"
 authors = [
-    {"name" = "Paul T. Grogan", "email" = "paul.grogan@asu.edu"}
+    {"name" = "Paul T. Grogan", "email" = "paul.grogan@asu.edu"},
+    {"name" = "Emmanuel M. Gonzalez", "email" = "emmanuelgonzalez@asu.edu"}
 ]
 readme = "README.md"
 requires-python = ">=3.11"
@@ -22,14 +23,13 @@ classifiers = [
 dependencies = [
     "ntplib",
     "numpy",
-    "paho-mqtt",
     "pandas",
-    "pydantic <= 2.8.2",
+    "pydantic >= 2, < 3",
     "python-dateutil",
-    "pika >= 1.3.2",
-    "python-dotenv >= 1.0.1",
-    "pyyaml >= 6.0.2",
-    "python-keycloak >= 4.2.1",
+    "pika", # >= 1.3.2",
+    "python-dotenv", #>= 1.0.1",
+    "pyyaml", #>= 6.0.2",
+    "python-keycloak" #>= 4.2.1",
 ]
 dynamic = ["version"]
 
@@ -57,7 +57,7 @@ examples = [
     "rioxarray >= 0.17.0",
     "geopandas >= 1.0.1",
     "numpy >= 2.0.0",
-    "netCDF4 >= 1.7.1.post2",
+    "netCDF4 >= 1.7", #1.7.1.post2",
     "aiobotocore >=2.5.4"
 ]
 docs = [

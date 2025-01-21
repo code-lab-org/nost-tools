@@ -188,9 +188,7 @@ class Manager(Application):
         # issue the stop command
         self.stop(sim_stop_time)
 
-    def on_app_ready_status(
-        self, ch, method, properties, body
-    ) -> None:
+    def on_app_ready_status(self, ch, method, properties, body) -> None:
         """
         Callback to handle a message containing an application ready status.
 
@@ -203,7 +201,7 @@ class Manager(Application):
         try:
             # split the message topic into components (prefix/app_name/...)
             topic_parts = method.routing_key.split(".")
-            message = body.decode('utf-8')
+            message = body.decode("utf-8")
             # check if app_name is monitored in the ready_status dict
             if len(topic_parts) > 1 and topic_parts[1] in self.required_apps_status:
                 # validate if message is a valid JSON
@@ -222,9 +220,7 @@ class Manager(Application):
             )
             print(traceback.format_exc())
 
-    def on_app_time_status(
-        self, ch, method, properties, body
-    ) -> None:
+    def on_app_time_status(self, ch, method, properties, body) -> None:
         """
         Callback to handle a message containing an application time status.
 
@@ -237,7 +233,7 @@ class Manager(Application):
         try:
             # split the message topic into components (prefix/app_name/...)
             topic_parts = method.routing_key.split(".")
-            message = body.decode('utf-8')
+            message = body.decode("utf-8")
             # validate if message is a valid JSON
             try:
                 # parse the message payload properties
@@ -283,7 +279,11 @@ class Manager(Application):
             }
         )
         logger.info(f"Sending initialize command {command.json(by_alias=True)}.")
-        self.send_message(app_name=self.app_name, app_topic='init', payload=command.json(by_alias=True))
+        self.send_message(
+            app_name=self.app_name,
+            app_topic="init",
+            payload=command.json(by_alias=True),
+        )
 
     def start(
         self,
@@ -294,7 +294,7 @@ class Manager(Application):
         time_scale_factor: float = 1.0,
         time_status_step: timedelta = None,
         time_status_init: datetime = None,
-    ) -> None: #required_apps: List[str] = [],
+    ) -> None:  # required_apps: List[str] = [],
         """
 
         Command to start a test run execution by starting the simulator execution with all necessary parameters and publishing
@@ -325,7 +325,11 @@ class Manager(Application):
             }
         )
         logger.info(f"Sending start command {command.json(by_alias=True)}.")
-        self.send_message(app_name=self.app_name, app_topic='start', payload=command.json(by_alias=True))
+        self.send_message(
+            app_name=self.app_name,
+            app_topic="start",
+            payload=command.json(by_alias=True),
+        )
         exec_thread = threading.Thread(
             target=self.simulator.execute,
             kwargs={
@@ -338,7 +342,7 @@ class Manager(Application):
         )
         exec_thread.start()
 
-    def stop(self, sim_stop_time: datetime) -> None: #, required_apps: List[str] = []
+    def stop(self, sim_stop_time: datetime) -> None:  # , required_apps: List[str] = []
         """
         Command to stop a test run execution by updating the execution end time and publishing a stop command.
 
@@ -350,11 +354,17 @@ class Manager(Application):
             {"taskingParameters": {"simStopTime": sim_stop_time}}
         )
         logger.info(f"Sending stop command {command.json(by_alias=True)}.")
-        self.send_message(app_name=self.app_name, app_topic='stop', payload=command.json(by_alias=True))
+        self.send_message(
+            app_name=self.app_name,
+            app_topic="stop",
+            payload=command.json(by_alias=True),
+        )
         # update the execution end time
         self.simulator.set_end_time(sim_stop_time)
 
-    def update(self, time_scale_factor: float, sim_update_time: datetime) -> None: #, required_apps: List[str] = []
+    def update(
+        self, time_scale_factor: float, sim_update_time: datetime
+    ) -> None:  # , required_apps: List[str] = []
         """
         Command to update the time scaling factor for a test run execution by updating the execution time scale factor,
         and publishing an update command.
@@ -373,6 +383,10 @@ class Manager(Application):
             }
         )
         logger.info(f"Sending update command {command.json(by_alias=True)}.")
-        self.send_message(app_name=self.app_name, app_topic='update', payload=command.json(by_alias=True))
+        self.send_message(
+            app_name=self.app_name,
+            app_topic="update",
+            payload=command.json(by_alias=True),
+        )
         # update the execution time scale factor
         self.simulator.set_time_scale_factor(time_scale_factor, sim_update_time)

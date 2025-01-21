@@ -32,7 +32,11 @@ class RecordingObserver(Observer):
     Observer that records all changes.
     """
 
-    def __init__(self, property_filters : Optional[Union[str,List[str]]] = None, timestamped : bool = False):
+    def __init__(
+        self,
+        property_filters: Optional[Union[str, List[str]]] = None,
+        timestamped: bool = False,
+    ):
         """
         Initializes a new recording obsever.
 
@@ -43,7 +47,7 @@ class RecordingObserver(Observer):
         if isinstance(property_filters, str):
             self.property_filters = [property_filters]
         else:
-            self.property_filters = property_filters 
+            self.property_filters = property_filters
         self.changes = []
         self.timestamped = timestamped
 
@@ -63,12 +67,12 @@ class RecordingObserver(Observer):
                 "source": source,
                 "property_name": property_name,
                 "old_value": old_value,
-                "new_value": new_value
+                "new_value": new_value,
             }
             if self.timestamped:
                 change["time"] = datetime.now(tz=timezone.utc)
             self.changes.append(change)
-        
+
 
 class Observable(object):
     """

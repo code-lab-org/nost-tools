@@ -35,7 +35,9 @@ class ManagedApplication(Application):
         time_step (:obj:`timedelta`): scenario time step used in execution
     """
 
-    def __init__(self, app_name: str, app_description: str = None): #config: ConnectionConfig, 
+    def __init__(
+        self, app_name: str, app_description: str = None
+    ):  # config: ConnectionConfig,
         """
         Initializes a new managed application.
 
@@ -43,7 +45,7 @@ class ManagedApplication(Application):
             app_name (str): application name
             app_description (str): application description
         """
-        super().__init__(app_name, app_description) #config, 
+        super().__init__(app_name, app_description)  # config,
         self.time_step = None
         self._sim_start_time = None
         self._sim_stop_time = None
@@ -85,20 +87,52 @@ class ManagedApplication(Application):
         self.time_step = time_step
         self.manager_app_name = manager_app_name
 
+        # Previous
+        # # subscribe to manager topics
+        # self.client.subscribe(f"{self.prefix}/{self.manager_app_name}/#")
+        # # register callback function for init command
+        # self.client.message_callback_add(
+        #     f"{self.prefix}/{self.manager_app_name}/init", self.on_manager_init
+        # )
+        # # register callback function for start command
+        # self.client.message_callback_add(
+        #     f"{self.prefix}/{self.manager_app_name}/start", self.on_manager_start
+        # )
+        # # register callback function for stop command
+        # self.client.message_callback_add(
+        #     f"{self.prefix}/{self.manager_app_name}/stop", self.on_manager_stop
+        # )
+        # # register callback function for update command
+        # self.client.message_callback_add(
+        #     f"{self.prefix}/{self.manager_app_name}/update", self.on_manager_update
+        # )
+
         # Register callback functions
-        # self.add_message_callback(app_name=manager_app_name, app_topic='init', app_specific_extender=self.app_name, user_callback=self.on_manager_init)
-        # self.add_message_callback(app_name=manager_app_name, app_topic='start', app_specific_extender=self.app_name, user_callback=self.on_manager_start)
-        # self.add_message_callback(app_name=manager_app_name, app_topic='stop', app_specific_extender=self.app_name, user_callback=self.on_manager_stop)
-        # self.add_message_callback(app_name=manager_app_name, app_topic='update', app_specific_extender=self.app_name, user_callback=self.on_manager_update)
-        self.add_message_callback(app_name=manager_app_name, app_topic='init', user_callback=self.on_manager_init)
-        self.add_message_callback(app_name=manager_app_name, app_topic='start', user_callback=self.on_manager_start)
-        self.add_message_callback(app_name=manager_app_name, app_topic='stop', user_callback=self.on_manager_stop)
-        self.add_message_callback(app_name=manager_app_name, app_topic='update', user_callback=self.on_manager_update)
+        self.add_message_callback(
+            app_name=manager_app_name,
+            app_topic="init",
+            user_callback=self.on_manager_init,
+        )
+        self.add_message_callback(
+            app_name=manager_app_name,
+            app_topic="start",
+            user_callback=self.on_manager_start,
+        )
+        self.add_message_callback(
+            app_name=manager_app_name,
+            app_topic="stop",
+            user_callback=self.on_manager_stop,
+        )
+        self.add_message_callback(
+            app_name=manager_app_name,
+            app_topic="update",
+            user_callback=self.on_manager_update,
+        )
 
     def shut_down(self) -> None:
         """
-            Shuts down the application by stopping the background event loop and disconnecting
-            the application from the broker.
+        Shuts down the application by stopping the background event loop and disconnecting
+        the application from the broker.
         """
         # shut down base application
         super().shut_down()
@@ -116,13 +150,13 @@ class ManagedApplication(Application):
         """
         try:
             # Parse message payload
-            message = body.decode('utf-8')
+            message = body.decode("utf-8")
             params = InitCommand.parse_raw(message).tasking_parameters
             # update default execution start/end time
             self._sim_start_time = params.sim_start_time
             self._sim_stop_time = params.sim_stop_time
             self.ready()
-            
+
         except Exception as e:
             logger.error(
                 # f"Exception (topic: {message.topic}, payload: {message.payload}): {e}"
@@ -132,8 +166,8 @@ class ManagedApplication(Application):
 
     def on_manager_start(self, ch, method, properties, body) -> None:
         """
-        Callback function for the managed application to respond to a start command sent from the manager. 
-        Parses the scenario start/end time, wallclock epoch, and time scale factor and executes 
+        Callback function for the managed application to respond to a start command sent from the manager.
+        Parses the scenario start/end time, wallclock epoch, and time scale factor and executes
         the simulator in a background thread.
 
         Args:
@@ -143,7 +177,7 @@ class ManagedApplication(Application):
             body (bytes): The actual message body sent, containing the message payload.
         """
         # Parse message payload
-        message = body.decode('utf-8')
+        message = body.decode("utf-8")
         params = StartCommand.parse_raw(message).tasking_parameters
         logger.info(f"Received start command {params}")
         try:
@@ -151,11 +185,11 @@ class ManagedApplication(Application):
             # check for optional start time
             if params.sim_start_time is not None:
                 self._sim_start_time = params.sim_start_time
-                logger.info(f'Sim start time: {params.sim_start_time}')
+                logger.info(f"Sim start time: {params.sim_start_time}")
             # check for optional end time
             if params.sim_stop_time is not None:
                 self._sim_stop_time = params.sim_stop_time
-                logger.info(f'Sim stop time: {params.sim_stop_time}')
+                logger.info(f"Sim stop time: {params.sim_stop_time}")
 
             threading.Thread(
                 target=self.simulator.execute,
@@ -165,8 +199,8 @@ class ManagedApplication(Application):
                     "time_step": self.time_step,
                     "wallclock_epoch": params.start_time,
                     "time_scale_factor": params.time_scaling_factor,
-                    },
-                ).start()
+                },
+            ).start()
 
         except Exception as e:
             logger.error(
@@ -187,7 +221,7 @@ class ManagedApplication(Application):
         """
         try:
             # Parse message payload
-            message = body.decode('utf-8')
+            message = body.decode("utf-8")
             params = StopCommand.parse_raw(message).tasking_parameters
             logger.info(f"Received stop command {message}")
             # update execution end time
@@ -209,9 +243,9 @@ class ManagedApplication(Application):
             properties (:obj:`pika.BasicProperties`): Message properties including content type, headers, and more.
             body (bytes): The actual message body sent, containing the message payload.
         """
-        try:       
+        try:
             # Parse message payload
-            message = body.decode('utf-8')
+            message = body.decode("utf-8")
             params = UpdateCommand.parse_raw(message).tasking_parameters
             logger.info(f"Received update command {message}")
             # update execution time scale factor

@@ -26,6 +26,7 @@ from .application_utils import (
 
 logger = logging.getLogger(__name__)
 
+
 class Application:
     """
     Base class for a member application.
@@ -89,40 +90,51 @@ class Application:
                 "properties": {"ready": True},
             }
         )
-        self.send_message(app_name=self.app_name, app_topic='status.ready', payload=status.json(by_alias=True, exclude_none=True))
+        self.send_message(
+            app_name=self.app_name,
+            app_topic="status.ready",
+            payload=status.json(by_alias=True, exclude_none=True),
+        )
 
     def new_access_token(self, config, refresh_token=None):
         """
         Obtains a new access token and refresh token from Keycloak. If a refresh token is provided, the access token is refreshed using the refresh token. Otherwise, the access token is obtained using the username and password provided in the configuration.
-        
+
         Args:
             config (:obj:`ConnectionConfig`): connection configuration
             refresh_token (str): refresh token (optional)
         """
-        keycloak_openid = KeycloakOpenID(server_url=f"{'http' if 'localhost' in config.host or '127.0.0.1' in config.host else 'https'}://{config.host}:{config.keycloak_port}",
-                                        client_id=config.client_id,
-                                        realm_name=config.keycloak_realm,
-                                        client_secret_key=config.client_secret_key,
-                                        verify=False
-                                        )
+        keycloak_openid = KeycloakOpenID(
+            server_url=f"{'http' if 'localhost' in config.host or '127.0.0.1' in config.host else 'https'}://{config.host}:{config.keycloak_port}",
+            client_id=config.client_id,
+            realm_name=config.keycloak_realm,
+            client_secret_key=config.client_secret_key,
+            verify=False,
+        )
         try:
             if refresh_token:
                 token = keycloak_openid.refresh_token(refresh_token)
             else:
                 try:
-                    token = keycloak_openid.token(grant_type='password', 
-                                                username=config.username, 
-                                                password=config.password)
+                    token = keycloak_openid.token(
+                        grant_type="password",
+                        username=config.username,
+                        password=config.password,
+                    )
                 except KeycloakAuthenticationError as e:
                     logger.error(f"Authentication error without OTP: {e}")
                     otp = input("Enter OTP: ")
-                    token = keycloak_openid.token(grant_type='password', 
-                                                username=config.username, 
-                                                password=config.password, 
-                                                totp=otp)
-            if 'access_token' in token:
-                logger.info(f"Access token successfully acquired with scopes: {token['scope']}")
-                return token['access_token'], token['refresh_token']
+                    token = keycloak_openid.token(
+                        grant_type="password",
+                        username=config.username,
+                        password=config.password,
+                        totp=otp,
+                    )
+            if "access_token" in token:
+                logger.info(
+                    f"Access token successfully acquired with scopes: {token['scope']}"
+                )
+                return token["access_token"], token["refresh_token"]
             else:
                 raise Exception("Error: The request was unsuccessful.")
         except Exception as e:
@@ -136,6 +148,7 @@ class Application:
         Args:
             config (:obj:`ConnectionConfig`): connection configuration
         """
+
         def refresh_token_periodically():
             while not self._should_stop.is_set():
                 sleep_interval = 1  # Check every second
@@ -148,7 +161,9 @@ class Application:
                     total_sleep_time += sleep_interval
 
                 try:
-                    access_token, refresh_token = self.new_access_token(config, self.refresh_token)
+                    access_token, refresh_token = self.new_access_token(
+                        config, self.refresh_token
+                    )
                     self.refresh_token = refresh_token
                     self.update_connection_credentials(access_token)
                     logger.info("Access token refreshed successfully.")
@@ -165,7 +180,7 @@ class Application:
         Args:
             access_token (str): new access token
         """
-        self.connection.update_secret(access_token, 'secret')
+        self.connection.update_secret(access_token, "secret")
 
     def parse_yaml(self, config):
         """
@@ -176,24 +191,26 @@ class Application:
         """
         # Pydantic, may be compatible with YAML, or extension > check that out
         # Living documentation, serialization > makes formating easier
-        channels = config.get('channels', {})
+        channels = config.get("channels", {})
         unique_exchanges = {}
 
         for app, app_channels in channels.items():
             for channel, details in app_channels.items():
-                bindings = details.get('bindings', {}).get('amqp', {})
-                exchange = bindings.get('exchange', {})
-                exchange_name = exchange.get('name')
+                bindings = details.get("bindings", {}).get("amqp", {})
+                exchange = bindings.get("exchange", {})
+                exchange_name = exchange.get("name")
                 if exchange_name:
                     exchange_config = {
-                        'type': exchange.get('type', 'topic'),
-                        'durable': exchange.get('durable', True),
-                        'auto_delete': exchange.get('autoDelete', False),
-                        'vhost': exchange.get('vhost', '/')
+                        "type": exchange.get("type", "topic"),
+                        "durable": exchange.get("durable", True),
+                        "auto_delete": exchange.get("autoDelete", False),
+                        "vhost": exchange.get("vhost", "/"),
                     }
                     if exchange_name in unique_exchanges:
                         if unique_exchanges[exchange_name] != exchange_config:
-                            raise ValueError(f"Conflicting configurations for exchange '{exchange_name}': {unique_exchanges[exchange_name]} vs {exchange_config}")
+                            raise ValueError(
+                                f"Conflicting configurations for exchange '{exchange_name}': {unique_exchanges[exchange_name]} vs {exchange_config}"
+                            )
                     else:
                         unique_exchanges[exchange_name] = exchange_config
 
@@ -202,17 +219,25 @@ class Application:
 
         for app, app_channels in channels.items():
             for channel, details in app_channels.items():
-                address = details.get('address')
-                bindings = details.get('bindings', {}).get('amqp', {})
+                address = details.get("address")
+                bindings = details.get("bindings", {}).get("amqp", {})
                 if address and bindings:
-                    channel_configs.append({
-                        'app': app,
-                        'address': address,
-                        'exchange': bindings.get('exchange', {}).get('name', 'default_exchange'),
-                        'durable': bindings.get('exchange', {}).get('durable', True),
-                        'auto_delete': bindings.get('exchange', {}).get('autoDelete', False),
-                        'vhost': bindings.get('exchange', {}).get('vhost', '/')
-                    })
+                    channel_configs.append(
+                        {
+                            "app": app,
+                            "address": address,
+                            "exchange": bindings.get("exchange", {}).get(
+                                "name", "default_exchange"
+                            ),
+                            "durable": bindings.get("exchange", {}).get(
+                                "durable", True
+                            ),
+                            "auto_delete": bindings.get("exchange", {}).get(
+                                "autoDelete", False
+                            ),
+                            "vhost": bindings.get("exchange", {}).get("vhost", "/"),
+                        }
+                    )
         logger.info("Parsed YAML configuration file.")
 
         return unique_exchanges, channel_configs
@@ -220,55 +245,59 @@ class Application:
     def declare_bind_queue(self, configs, app_name):
         """
         Declares and binds a queue to the exchange. The queue is bound to the exchange using the routing key. The routing key is created using the application name and topic.
-        
+
         Args:
             configs (list): list of channel configurations
             app_name (str): application name
         """
         for config in configs:
-            if config['app'] == app_name:
-                exchange_name = config['exchange']
-                queue_name = config['address']
-                self.channel.queue_declare(queue=queue_name, durable=config['durable'])
-                self.channel.queue_bind(exchange=exchange_name, queue=queue_name, routing_key=config['address'])
+            if config["app"] == app_name:
+                exchange_name = config["exchange"]
+                queue_name = config["address"]
+                self.channel.queue_declare(queue=queue_name, durable=config["durable"])
+                self.channel.queue_bind(
+                    exchange=exchange_name,
+                    queue=queue_name,
+                    routing_key=config["address"],
+                )
         logger.info(f"Successfully bound queues.")
 
     def declare_exchange(self, unique_exchanges):
         """
         Declares the exchanges in RabbitMQ.
-        
+
         Args:
             unique_exchanges (dict): dictionary of unique exchanges
         """
         for exchange_name, exchange_config in unique_exchanges.items():
             logger.info(f"Declaring exchange: {exchange_name}")
-            
+
             self.channel.exchange_declare(
                 exchange=exchange_name,
-                exchange_type=exchange_config['type'],
-                durable=exchange_config['durable'],
-                auto_delete=exchange_config['auto_delete']
+                exchange_type=exchange_config["type"],
+                durable=exchange_config["durable"],
+                auto_delete=exchange_config["auto_delete"],
             )
         logger.info("Successfully declared exchanges.")
 
     def delete_queue(self, configs, app_name):
         """
         Deletes the queues from RabbitMQ.
-        
+
         Args:
             configs (list): list of channel configurations
             app_name (str): application name
         """
         for config in configs:
-            if config['app'] == app_name:
+            if config["app"] == app_name:
                 logger.info(f"Deleting queue: {config['address']}")
-                self.channel.queue_delete(queue=config['address'])
+                self.channel.queue_delete(queue=config["address"])
         logger.info("Successfully deleted queues.")
 
     def delete_exchange(self, unique_exchanges):
         """
         Deletes the exchanges from RabbitMQ.
-        
+
         Args:
             unique_exchanges (dict): dictionary of unique exchanges
         """
@@ -329,19 +358,20 @@ class Application:
             host=config.host,
             virtual_host=config.virtual_host,
             port=config.rabbitmq_port,
-            credentials=pika.PlainCredentials('', access_token),
-            heartbeat=600
+            credentials=pika.PlainCredentials("", access_token),
+            heartbeat=600,
         )
 
         # Configure transport layer security (TLS) if needed
         if config.is_tls:
             logger.info("Using TLS/SSL.")
             parameters.ssl_options = pika.SSLOptions(ssl.SSLContext())
-            
+
         def on_connection_open(connection):
             self.connection = connection
             self.connection.channel(on_open_callback=self.on_channel_open)
             logger.info("Connection established successfully.")
+
         self.connection = pika.SelectConnection(
             parameters=parameters,
             on_open_callback=on_connection_open,
@@ -362,14 +392,18 @@ class Application:
             logger.info("Running NOS-T in YAML mode.")
 
             # Get the unique exchanges and channel configurations
-            self.unique_exchanges, self.channel_configs = self.parse_yaml(config.yaml_config)
-            
+            self.unique_exchanges, self.channel_configs = self.parse_yaml(
+                dict(config.yaml_config)
+            )
+
             # Declare exchanges
             self.declare_exchange(self.unique_exchanges)
+            logger.info(f"Declared exchanges: {self.unique_exchanges}")
 
             # Setup channels/queues for a specific app
             self.declare_bind_queue(self.channel_configs, self.app_name)
-        
+            logger.info(f"Declared queues: {self.channel_configs}")
+
         # Configure observers
         self._create_time_status_publisher(time_status_step, time_status_init)
         self._create_mode_status_observer()
@@ -390,7 +424,7 @@ class Application:
     def on_channel_open(self, channel):
         """
         Callback function for when the channel is opened.
-        
+
         Args:
             channel (:obj:`pika.channel.Channel`): channel object
         """
@@ -437,15 +471,16 @@ class Application:
             self.consuming = False
         logger.info(f"Application {self.app_name} successfully shut down.")
 
-    def send_message(self, app_name, app_topic: str, payload: str) -> None: #, app_specific_extender: str = None) -> None:
+    def send_message(
+        self, app_name, app_topic: str, payload: str
+    ) -> None:  # , app_specific_extender: str = None) -> None:
         """
         Sends a message to the broker. The message is sent to the exchange using the routing key. The routing key is created using the application name and topic. The message is published with an expiration of 60 seconds.
-        
+
         Args:
             app_name (str): application name
             app_topic (str): topic name
             payload (str): message payload
-            app_specific_extender (str): application specific extender, used to create a unique queue name for the application. If the app_specific_extender is not provided, the queue name is the same as the routing key.
         """
 
         # if app_specific_extender:
@@ -456,18 +491,22 @@ class Application:
         if self.yaml_mode:
             routing_key = self.create_routing_key(app_name=app_name, topic=app_topic)
         else:
-            routing_key, queue_name = self.yamless_declare_bind_queue(app_name=app_name, topic=app_topic)
+            routing_key, queue_name = self.yamless_declare_bind_queue(
+                app_name=app_name, topic=app_topic
+            )
 
         # Expiration of 60000 ms = 60 sec
         self.channel.basic_publish(
             exchange=self.prefix,
             routing_key=routing_key,
             body=payload,
-            properties=pika.BasicProperties(expiration='60000')
+            properties=pika.BasicProperties(expiration="60000"),
         )
         logger.debug(f"Successfully sent message '{payload}' to topic '{routing_key}'.")
 
-    def add_message_callback(self, app_name: str, app_topic: str, user_callback: Callable): #, app_specific_extender: str = None):
+    def add_message_callback(
+        self, app_name: str, app_topic: str, user_callback: Callable
+    ):  # , app_specific_extender: str = None):
         """
         This method sets up the consumer by first calling
         add_on_cancel_callback so that the object is notified if RabbitMQ
@@ -484,7 +523,7 @@ class Application:
         """
         self.was_consuming = True
         self.consuming = True
-        logger.info('Issuing consumer related RPC commands')
+        logger.info("Issuing consumer related RPC commands")
         self.add_on_cancel_callback()
         combined_cb = self.combined_callback(user_callback)
 
@@ -493,20 +532,19 @@ class Application:
         # else:
         #     routing_key, queue_name = self.declare_bind_queue(app_name=app_name, topic=app_topic)
 
-        
         if self.yaml_mode:
             routing_key = self.create_routing_key(app_name=app_name, topic=app_topic)
-            queue_name = '.'.join([routing_key, self.app_name])
+            queue_name = ".".join([routing_key, self.app_name])
         else:
-            routing_key, queue_name = self.yamless_declare_bind_queue(app_name=app_name, topic=app_topic, app_specific_extender=self.app_name)
-
+            routing_key, queue_name = self.yamless_declare_bind_queue(
+                app_name=app_name, topic=app_topic, app_specific_extender=self.app_name
+            )
 
         # Set QoS settings
         self.channel.basic_qos(prefetch_count=1)
         self._consumer_tag = self.channel.basic_consume(
-            queue=queue_name,
-            on_message_callback=combined_cb,
-            auto_ack=False)
+            queue=queue_name, on_message_callback=combined_cb, auto_ack=False
+        )
         logger.info(f"Subscribing and adding callback to topic: {routing_key}")
 
     def combined_callback(self, user_callback):
@@ -516,6 +554,7 @@ class Application:
         Args:
             user_callback (Callable): user-provided callback function
         """
+
         def wrapper(ch, method, properties, body):
             """
             Wrapper function to combine the user-provided callback with the on_message method.
@@ -530,6 +569,7 @@ class Application:
             self.on_message(ch, method, properties, body)
             # Call the user-provided callback
             user_callback(ch, method, properties, body)
+
         return wrapper
 
     def add_on_cancel_callback(self):
@@ -537,7 +577,7 @@ class Application:
         for some reason. If RabbitMQ does cancel the consumer,
         on_consumer_cancelled will be invoked by pika.
         """
-        logger.info('Adding consumer cancellation callback')
+        logger.info("Adding consumer cancellation callback")
         self.channel.add_on_cancel_callback(self.on_consumer_cancelled)
 
     def on_consumer_cancelled(self, method_frame):
@@ -546,8 +586,7 @@ class Application:
 
         :param pika.frame.Method method_frame: The Basic.Cancel frame
         """
-        logger.info('Consumer was cancelled remotely, shutting down: %r',
-                    method_frame)
+        logger.info("Consumer was cancelled remotely, shutting down: %r", method_frame)
         self.channel.close()
 
     def on_message(self, ch, method, properties, body):
@@ -558,7 +597,7 @@ class Application:
         instance of BasicProperties with the message properties and the body
         is the message that was sent.
 
-        Args: 
+        Args:
             ch (:obj:`pika.channel.Channel`): The channel object used to communicate with the RabbitMQ server.
             method (:obj:`pika.spec.Basic.Deliver`): Delivery-related information such as delivery tag, exchange, and routing key.
             properties (:obj:`pika.BasicProperties`): Message properties including content type, headers, and more.
@@ -594,9 +633,8 @@ class Application:
         """
         if self.channel:
             # Acknowledge cancel
-            logger.info('Sending a Basic.Cancel RPC command to RabbitMQ')
-            cb = functools.partial(
-                self.on_cancelok, userdata=self._consumer_tag)
+            logger.info("Sending a Basic.Cancel RPC command to RabbitMQ")
+            cb = functools.partial(self.on_cancelok, userdata=self._consumer_tag)
             self.channel.basic_cancel(self._consumer_tag, cb)
 
     def on_cancelok(self, _unused_frame, userdata):
@@ -609,8 +647,8 @@ class Application:
         """
         self.consuming = False
         logger.info(
-            'RabbitMQ acknowledged the cancellation of the consumer: %s',
-            userdata)
+            "RabbitMQ acknowledged the cancellation of the consumer: %s", userdata
+        )
         self.close_channel()
         self.stop_loop()
 
@@ -618,7 +656,7 @@ class Application:
         """Call to close the channel with RabbitMQ cleanly by issuing the
         Channel.Close RPC command.
         """
-        logger.info('Deleting queues and exchanges.')
+        logger.info("Deleting queues and exchanges.")
 
         if self.yaml_mode:
             self.delete_queue(self.channel_configs, self.app_name)
@@ -626,12 +664,11 @@ class Application:
         else:
             self.delete_all_queues_and_exchanges()
 
-        logger.info('Closing channel')
+        logger.info("Closing channel")
         self.channel.close()
 
     def stop_loop(self):
-        """Stop the IO loop
-        """
+        """Stop the IO loop"""
         self.connection.ioloop.stop()
 
     def stop_application(self):
@@ -649,11 +686,11 @@ class Application:
             if self.consuming:
                 self.stop_consuming()
                 # Signal the thread to stop
-                if hasattr(self, 'stop_event'):
+                if hasattr(self, "stop_event"):
                     self.stop_event.set()
-                if hasattr(self, '_should_stop'):
+                if hasattr(self, "_should_stop"):
                     self._should_stop.set()
-                if hasattr(self, 'io_thread'):
+                if hasattr(self, "io_thread"):
                     self.io_thread.join()
                 sys.exit()
             else:
@@ -666,14 +703,14 @@ class Application:
         consuming messages.
         """
         if self._consumer_tag:
-            logger.info('Cancelling the consumer')
+            logger.info("Cancelling the consumer")
             self.stop_application()
             self._consumer_tag = None
             self.was_consuming = False
             self.consuming = False
-            logger.debug('Consumer cancelled successfully')
+            logger.debug("Consumer cancelled successfully")
         else:
-            logger.warning('No consumer to cancel')
+            logger.warning("No consumer to cancel")
 
     def set_wallclock_offset(
         self, host="pool.ntp.org", retry_delay_s: int = 5, max_retry: int = 5
@@ -700,7 +737,9 @@ class Application:
                 )
                 time.sleep(retry_delay_s)
 
-    def _create_time_status_publisher(self, time_status_step: timedelta, time_status_init: datetime) -> None:
+    def _create_time_status_publisher(
+        self, time_status_step: timedelta, time_status_init: datetime
+    ) -> None:
         """
         Creates a new time status publisher to publish the time status when it changes.
 
@@ -711,7 +750,9 @@ class Application:
         if time_status_step is not None:
             if self._time_status_publisher is not None:
                 self.simulator.remove_observer(self._time_status_publisher)
-            self._time_status_publisher = TimeStatusPublisher(self, time_status_step, time_status_init)
+            self._time_status_publisher = TimeStatusPublisher(
+                self, time_status_step, time_status_init
+            )
             self.simulator.add_observer(self._time_status_publisher)
 
     def _create_mode_status_observer(self) -> None:
@@ -740,35 +781,46 @@ class Application:
             app_name (str): application name
             topic (str): topic name
         """
-        routing_key = '.'.join([self.prefix, app_name, topic])
+        routing_key = ".".join([self.prefix, app_name, topic])
         return routing_key
 
-    def yamless_declare_bind_queue(self, app_name: str, topic: str, app_specific_extender: str = None) -> None:
+    def yamless_declare_bind_queue(
+        self, app_name: str, topic: str, app_specific_extender: str = None
+    ) -> None:
         """
         Declares and binds a queue to the exchange. The queue is bound to the exchange using the routing key. The routing key is created using the application name and topic.
         Args:
             app_name (str): application name
-            topic (str): topic name 
+            topic (str): topic name
             app_specific_extender (str): application specific extender, used to create a unique queue name for the application. If the app_specific_extender is not provided, the queue name is the same as the routing key.
         """
         try:
 
-            self.channel.exchange_declare(exchange=self.prefix, exchange_type='topic', durable=False, auto_delete=True) #, durable=True)
+            self.channel.exchange_declare(
+                exchange=self.prefix,
+                exchange_type="topic",
+                durable=False,
+                auto_delete=True,
+            )  # , durable=True)
             routing_key = self.create_routing_key(app_name=app_name, topic=topic)
             if app_specific_extender:
-                queue_name = '.'.join([routing_key, app_specific_extender])
+                queue_name = ".".join([routing_key, app_specific_extender])
             else:
                 queue_name = routing_key
-            self.channel.queue_declare(queue=queue_name, durable=False, auto_delete=True) #, durable=True)
-            self.channel.queue_bind(exchange=self.prefix, queue=queue_name, routing_key=routing_key)
-            
+            self.channel.queue_declare(
+                queue=queue_name, durable=False, auto_delete=True
+            )  # , durable=True)
+            self.channel.queue_bind(
+                exchange=self.prefix, queue=queue_name, routing_key=routing_key
+            )
+
             # Create list of declared queues and exchanges
             self.declared_queues.add(queue_name.strip())
             self.declared_queues.add(routing_key.strip())
             self.declared_exchanges.add(self.prefix.strip())
 
             logger.debug(f"Bound queue '{queue_name}' to topic '{routing_key}'.")
-        
+
         except:
             routing_key = None
             queue_name = None
