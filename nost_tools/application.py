@@ -4,11 +4,9 @@ import logging
 from datetime import datetime, timedelta
 from typing import Callable
 from keycloak.keycloak_openid import KeycloakOpenID
-import getpass
 import ssl
 from keycloak.exceptions import KeycloakAuthenticationError
 import functools
-from pika.adapters.asyncio_connection import AsyncioConnection
 import time
 import ntplib
 import sys

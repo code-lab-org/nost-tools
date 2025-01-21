@@ -4,12 +4,12 @@ Provides a base manager that coordinates a distributed scenario execution.
 
 from datetime import datetime, timedelta
 import logging
-from paho.mqtt.client import Client, MQTTMessage
 import threading
 import time
 import traceback
 from typing import List
-import pika
+import json
+from pydantic import ValidationError
 
 from .application import Application
 from .schemas import (
@@ -21,9 +21,6 @@ from .schemas import (
     TimeStatus,
 )
 from .simulator import Mode
-import json
-from pydantic import ValidationError
-from .application_utils import ConnectionConfig
 
 logger = logging.getLogger(__name__)
 

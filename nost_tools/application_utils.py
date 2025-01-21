@@ -2,19 +2,13 @@
 Provides utility classes to help applications interact with the broker.
 """
 
-from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
-import pika
-import threading
 from .observer import Observer
 from .publisher import ScenarioTimeIntervalPublisher
 from .schemas import (
     ModeStatus,
     TimeStatus,
-    RabbitMQConfig,
-    KeycloakConfig,
-    ServersConfig,
     Config,
 )
 from .simulator import Mode, Simulator

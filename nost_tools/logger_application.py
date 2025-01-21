@@ -4,8 +4,6 @@ Provides a base logger application that subscribes and writes all messages to fi
 
 import logging
 import os
-from paho.mqtt.client import Client, MQTTMessage
-
 from .application import Application
 from .application_utils import ConnectionConfig
 

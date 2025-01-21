@@ -4,15 +4,12 @@ Provides a base application that manages communication between a simulator and b
 
 from datetime import datetime, timedelta
 import logging
-from paho.mqtt.client import Client, MQTTMessage
 import threading
 import traceback
 
 from .application import Application
 from .application_utils import ConnectionConfig
 from .schemas import InitCommand, StartCommand, StopCommand, UpdateCommand
-
-import json
 
 logger = logging.getLogger(__name__)
 

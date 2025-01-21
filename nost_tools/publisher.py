@@ -2,7 +2,6 @@
 Provides utility classes to help applications bind behavior to temporal events.
 """
 
-from __future__ import annotations
 from abc import ABC, abstractmethod
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
