@@ -2,9 +2,10 @@
 Provides object models for common data structures.
 """
 
-from pydantic import BaseModel, Field
 from datetime import datetime
-from typing import Optional, List
+from typing import List, Optional
+
+from pydantic import BaseModel, Field
 
 from .simulator import Mode
 

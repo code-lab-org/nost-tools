@@ -2,10 +2,10 @@
 Provides a base application that manages communication between a simulator and broker.
 """
 
-from datetime import datetime, timedelta
 import logging
 import threading
 import traceback
+from datetime import datetime, timedelta
 
 from .application import Application
 from .application_utils import ConnectionConfig

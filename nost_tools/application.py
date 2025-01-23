@@ -1,26 +1,30 @@
-import pika
-import threading
+"""
+Provides a base application that publishes messages from a simulator to a broker.
+"""
+
+import functools
 import logging
+import ssl
+import sys
+import threading
+import time
 from datetime import datetime, timedelta
 from typing import Callable
-from keycloak.keycloak_openid import KeycloakOpenID
-import ssl
-from keycloak.exceptions import KeycloakAuthenticationError
-import functools
-import time
+
 import ntplib
-import sys
-
+import pika
 import pika.connection
+from keycloak.exceptions import KeycloakAuthenticationError
+from keycloak.keycloak_openid import KeycloakOpenID
 
-from .schemas import ReadyStatus
-from .simulator import Simulator
 from .application_utils import (
     ConnectionConfig,
-    TimeStatusPublisher,
     ModeStatusObserver,
     ShutDownObserver,
+    TimeStatusPublisher,
 )
+from .schemas import ReadyStatus
+from .simulator import Simulator
 
 logger = logging.getLogger(__name__)
 

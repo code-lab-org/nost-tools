@@ -2,8 +2,8 @@
 Provides a base class to maintain state variables during scenario execution.
 """
 
-from datetime import datetime, timedelta
 import logging
+from datetime import datetime, timedelta
 
 from .observer import Observable
 

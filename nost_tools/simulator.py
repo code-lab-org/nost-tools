@@ -2,11 +2,11 @@
 Provides classes to execute a simulation.
 """
 
-from enum import Enum
-from datetime import datetime, timedelta, timezone
 import logging
-from typing import List, Type
 import time
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import List, Type
 
 from .entity import Entity
 from .observer import Observable

@@ -1,27 +1,28 @@
 __version__ = "1.1.5"
 
-from .application_utils import ConnectionConfig, TimeStatusPublisher, ModeStatusObserver
 from .application import Application
+from .application_utils import ConnectionConfig, ModeStatusObserver, TimeStatusPublisher
 from .entity import Entity
-from .logger_application import LoggerApplication
+
+# from .logger_application import LoggerApplication
 from .managed_application import ManagedApplication
-from .manager import TimeScaleUpdate, Manager
-from .observer import Observer, Observable
+from .manager import Manager, TimeScaleUpdate
+from .observer import Observable, Observer
 from .publisher import ScenarioTimeIntervalPublisher, WallclockTimeIntervalPublisher
 from .schemas import (
-    InitTaskingParameters,
     InitCommand,
-    StartTaskingParameters,
-    StartCommand,
-    StopTaskingParameters,
-    StopCommand,
-    UpdateTaskingParameters,
-    UpdateCommand,
-    TimeStatusProperties,
-    TimeStatus,
-    ModeStatusProperties,
+    InitTaskingParameters,
     ModeStatus,
-    ReadyStatusProperties,
+    ModeStatusProperties,
     ReadyStatus,
+    ReadyStatusProperties,
+    StartCommand,
+    StartTaskingParameters,
+    StopCommand,
+    StopTaskingParameters,
+    TimeStatus,
+    TimeStatusProperties,
+    UpdateCommand,
+    UpdateTaskingParameters,
 )
 from .simulator import Mode, Simulator

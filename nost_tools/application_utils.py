@@ -4,17 +4,15 @@ Provides utility classes to help applications interact with the broker.
 
 import logging
 from typing import TYPE_CHECKING
-from .observer import Observer
-from .publisher import ScenarioTimeIntervalPublisher
-from .schemas import (
-    ModeStatus,
-    TimeStatus,
-    Config,
-)
-from .simulator import Mode, Simulator
+
 import yaml
 from dotenv import dotenv_values
 from pydantic import ValidationError
+
+from .observer import Observer
+from .publisher import ScenarioTimeIntervalPublisher
+from .schemas import Config, ModeStatus, TimeStatus
+from .simulator import Mode, Simulator
 
 if TYPE_CHECKING:
     from .application import Application
@@ -172,7 +170,7 @@ class ShutDownObserver(Observer):
         app (:obj:`Application`): application to be shut down after termination
     """
 
-    def __init__(self, app: Application):
+    def __init__(self, app: "Application"):
         """
         Initializes a new shut down observer.
 
@@ -238,7 +236,7 @@ class ModeStatusObserver(Observer):
         app (:obj:`Application`): application to publish mode status messages
     """
 
-    def __init__(self, app: Application):
+    def __init__(self, app: "Application"):
         """
         Initializes a new mode status observer.
         """

@@ -4,6 +4,7 @@ Provides a base logger application that subscribes and writes all messages to fi
 
 import logging
 import os
+
 from .application import Application
 from .application_utils import ConnectionConfig
 

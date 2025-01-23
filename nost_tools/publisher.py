@@ -28,7 +28,7 @@ class ScenarioTimeIntervalPublisher(Observer, ABC):
 
     def __init__(
         self,
-        app: Application,
+        app: "Application",
         time_status_step: timedelta = None,
         time_status_init: datetime = None,
     ):
@@ -91,7 +91,7 @@ class WallclockTimeIntervalPublisher(Observer, ABC):
 
     def __init__(
         self,
-        app: Application,
+        app: "Application",
         time_status_step: timedelta = None,
         time_status_init: datetime = None,
     ):
