@@ -32,8 +32,15 @@ class ConnectionConfig(object):
         username (str): client username, provided by NOS-T operator
         password (str): client password, provided by NOS-T operator
         host (str): broker hostname
-        port (int): broker port number
-        is_tls (bool): True, if the connection uses TLS (Transport Layer Security)
+        rabbitmq_port (int): RabbitMQ broker port number
+        keycloak_port (int): Keycloak IAM port number
+        keycloak_realm (str): Keycloak realm name
+        client_id (str): Keycloak client ID
+        client_secret_key (str): Keycloak client secret key
+        virtual_host (str): RabbitMQ virtual host
+        is_tls (bool): True, if the connection uses Transport Layer Security (TLS)
+        env_file (str): Path to the .env file
+        yaml_file (str): Path to the YAML configuration file
     """
 
     def __init__(
@@ -55,8 +62,8 @@ class ConnectionConfig(object):
         Initializes a new connection configuration.
 
         Args:
-            username (str): client username
-            password (str): client password
+            username (str): client username, provided by NOS-T operator
+            password (str): client password, provided by NOS-T operator
             host (str): broker hostname
             rabbitmq_port (int): RabbitMQ broker port number
             keycloak_port (int): Keycloak IAM port number
@@ -64,7 +71,7 @@ class ConnectionConfig(object):
             client_id (str): Keycloak client ID
             client_secret_key (str): Keycloak client secret key
             virtual_host (str): RabbitMQ virtual host
-            is_tls (bool): True, if the connection uses Transport Layer Security
+            is_tls (bool): True, if the connection uses TLS
             env_file (str): Path to the .env file
             yaml_file (str): Path to the YAML configuration file
         """
