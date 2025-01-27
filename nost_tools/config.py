@@ -76,20 +76,34 @@ class Credentials(BaseModel):
     )
 
 
-class RuntimeConfig(BaseModel):
-    username: str = Field(..., description="Username for authentication.")
-    password: str = Field(..., description="Password for authentication.")
-    client_id: str = Field(..., description="Client ID for authentication.")
-    client_secret_key: str = Field(
-        ..., description="Client secret key for authentication."
-    )
-    host: str = Field(..., description="RabbitMQ host.")
-    rabbitmq_port: int = Field(..., description="RabbitMQ port.")
-    keycloak_port: int = Field(..., description="Keycloak port.")
-    keycloak_realm: str = Field(..., description="Keycloak realm.")
-    virtual_host: str = Field(..., description="RabbitMQ virtual host.")
-    is_tls: bool = Field(
-        ..., description="TLS must be enabled for both RabbitMQ and Keycloak."
+# class RuntimeConfig(BaseModel):
+#     username: str = Field(..., description="Username for authentication.")
+#     password: str = Field(..., description="Password for authentication.")
+#     client_id: str = Field(..., description="Client ID for authentication.")
+#     client_secret_key: str = Field(
+#         ..., description="Client secret key for authentication."
+#     )
+#     host: str = Field(..., description="RabbitMQ host.")
+#     rabbitmq_port: int = Field(..., description="RabbitMQ port.")
+#     keycloak_port: int = Field(..., description="Keycloak port.")
+#     keycloak_realm: str = Field(..., description="Keycloak realm.")
+#     virtual_host: str = Field(..., description="RabbitMQ virtual host.")
+#     is_tls: bool = Field(
+#         ..., description="TLS must be enabled for both RabbitMQ and Keycloak."
+#     )
+#     exchanges: Dict[str, Dict] = Field(
+#         default_factory=dict, description="Dictionary of exchanges."
+#     )
+#     channels: List[Dict] = Field(default_factory=list, description="List of channels.")
+#     predefined_exchanges_queues: bool = Field(
+#         False, description="Predefined exchanges and queues."
+#     )
+
+
+class RuntimeConfigUpdate(BaseModel):
+    credentials: Credentials = Field(..., description="Credentials for authentication.")
+    simulation_configuration: Config = (
+        Field(..., description="Simulation configuration."),
     )
     exchanges: Dict[str, Dict] = Field(
         default_factory=dict, description="Dictionary of exchanges."
@@ -345,18 +359,26 @@ class ConnectionConfig:
             self.predefined_exchanges_queues = True
             self.config = yaml_config
 
-        self.rc = RuntimeConfig(
-            username=credentials.username,
-            password=credentials.password,
-            client_id=credentials.client_id,
-            client_secret_key=credentials.client_secret_key,
-            host=yaml_config.servers.rabbitmq.host,
-            rabbitmq_port=yaml_config.servers.rabbitmq.port,
-            keycloak_port=yaml_config.servers.keycloak.port,
-            keycloak_realm=yaml_config.servers.keycloak.realm,
-            virtual_host=yaml_config.servers.rabbitmq.virtual_host,
-            is_tls=yaml_config.servers.rabbitmq.tls
-            and yaml_config.servers.keycloak.tls,
+        # self.rc = RuntimeConfig(
+        #     username=credentials.username,
+        #     password=credentials.password,
+        #     client_id=credentials.client_id,
+        #     client_secret_key=credentials.client_secret_key,
+        #     host=yaml_config.servers.rabbitmq.host,
+        #     rabbitmq_port=yaml_config.servers.rabbitmq.port,
+        #     keycloak_port=yaml_config.servers.keycloak.port,
+        #     keycloak_realm=yaml_config.servers.keycloak.realm,
+        #     virtual_host=yaml_config.servers.rabbitmq.virtual_host,
+        #     is_tls=yaml_config.servers.rabbitmq.tls
+        #     and yaml_config.servers.keycloak.tls,
+        #     exchanges=unique_exchanges,
+        #     channels=channel_configs,
+        #     predefined_exchanges_queues=self.predefined_exchanges_queues,
+        # )
+
+        self.rc = RuntimeConfigUpdate(
+            credentials=credentials,
+            simulation_configuration=yaml_config,
             exchanges=unique_exchanges,
             channels=channel_configs,
             predefined_exchanges_queues=self.predefined_exchanges_queues,
