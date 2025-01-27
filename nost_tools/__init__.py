@@ -2,8 +2,8 @@ __version__ = "1.1.5"
 
 from .application import Application
 from .application_utils import ConnectionConfig, ModeStatusObserver, TimeStatusPublisher
+from .config import ConnectionConfig
 from .entity import Entity
-
 # from .logger_application import LoggerApplication
 from .managed_application import ManagedApplication
 from .manager import Manager, TimeScaleUpdate
