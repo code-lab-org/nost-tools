@@ -3,7 +3,7 @@ Configuration Settings.
 """
 
 import os
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 import yaml
 from dotenv import load_dotenv
@@ -269,7 +269,7 @@ class ConnectionConfig:
             )
 
         try:
-            return Credentials(
+            self.credentials_config = Credentials(
                 username=env_data["USERNAME"],
                 password=env_data["PASSWORD"],
                 client_id=env_data["CLIENT_ID"],
@@ -300,7 +300,7 @@ class ConnectionConfig:
 
         if self.env_file:
             try:
-                self.credentials_config = self.load_env_file()
+                self.load_env_file()
             except EnvironmentVariableError as e:
                 raise ValueError(f"Environment variable error: {e}")
         else:
@@ -366,55 +366,3 @@ class ConnectionConfig:
             server_configuration=server_config,
             simulation_configuration=self.simulation_config,
         )
-
-
-def create_connection_config(
-    username: Optional[str] = None,
-    password: Optional[str] = None,
-    host: Optional[str] = None,
-    rabbitmq_port: Optional[int] = None,
-    keycloak_port: Optional[int] = None,
-    keycloak_realm: Optional[str] = None,
-    virtual_host: Optional[str] = None,
-    is_tls: bool = None,
-    client_id: Optional[str] = None,
-    client_secret_key: Optional[str] = None,
-    env_file: Optional[str] = None,
-    yaml_file: Optional[str] = None,
-) -> ConnectionConfig:
-    """
-    Create a ConnectionConfig with specified parameters or configuration files.
-
-    Args:
-        username (Optional[str]): Username for the connection.
-        password (Optional[str]): Password for the connection.
-        host (Optional[str]): Host for the connection.
-        rabbitmq_port (Optional[int]): RabbitMQ port.
-        keycloak_port (Optional[int]): Keycloak port.
-        keycloak_realm (Optional[str]): Keycloak realm.
-        virtual_host (Optional[str]): Virtual host.
-        is_tls (bool): Whether to use TLS. Defaults to True.
-        client_id (Optional[str]): Client ID.
-        client_secret_key (Optional[str]): Client secret key.
-        env_file (Optional[str]): Path to the environment file.
-        yaml_file (Optional[str]): Path to the YAML configuration file.
-
-    Returns:
-        ConnectionConfig: The created connection configuration.
-    """
-    if env_file and yaml_file:
-        return ConnectionConfig(env_file=env_file, yaml_file=yaml_file)
-    if env_file:
-        return ConnectionConfig(env_file=env_file)
-    return ConnectionConfig(
-        username=username,
-        password=password,
-        host=host,
-        rabbitmq_port=rabbitmq_port,
-        keycloak_port=keycloak_port,
-        keycloak_realm=keycloak_realm,
-        virtual_host=virtual_host,
-        is_tls=is_tls,
-        client_id=client_id,
-        client_secret_key=client_secret_key,
-    )
