@@ -149,3 +149,6 @@ de421.bsp
 
 # Ignore Jupyter notebooks
 *.ipynb
+
+# Ignore test
+testing/
