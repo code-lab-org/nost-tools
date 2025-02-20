@@ -61,6 +61,10 @@ examples = [
     "aiobotocore >= 2.17",
     "botocore >= 1.35",
     "boto3 >= 1.35",
+    "tatc <= 3.4.3",
+    "s3fs >= 2024.10.0",
+    "pulp >= 2.9.0",
+    "h5netcdf >= 1.5.0"
 ]
 docs = [
     "autodoc_pydantic >= 2",
