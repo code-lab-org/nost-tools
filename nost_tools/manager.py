@@ -74,10 +74,57 @@ class Manager(Application):
         super().__init__("manager")
         self.required_apps_status = {}
 
+        self.sim_start_time = None
+        self.sim_stop_time = None
+        start_time = None
+        time_step = None
+        time_scale_factor = None
+        time_scale_updates = None
+        time_status_step = None
+        time_status_init = None
+        command_lead = None
+        required_apps = None
+        init_retry_delay_s = None
+        init_max_retry = None
+
+    def declare_bind_queue(self):
+        """
+        Declares and binds a queue to the exchange. The queue is bound to the exchange using the routing key. The routing key is created using the application name and topic.
+        """
+        for config in self.channel_configs:
+            # if config["app"] == self.app_name:
+            exchange_name = config["exchange"]
+            queue_name = config["address"]
+            self.channel.queue_declare(queue=queue_name, durable=config["durable"])
+            self.channel.queue_bind(
+                exchange=exchange_name,
+                queue=queue_name,
+                routing_key=config["address"],
+            )
+        logger.info(f"Successfully declared and bound queues: {self.channel_configs}")
+
+    def declare_exchange(self):
+        """
+        Declares the exchanges in RabbitMQ.
+
+        Args:
+            unique_exchanges (dict): dictionary of unique exchanges
+        """
+        for exchange_name, exchange_config in self.unique_exchanges.items():
+            logger.info(f"Declaring exchange: {exchange_name}")
+
+            self.channel.exchange_declare(
+                exchange=exchange_name,
+                exchange_type=exchange_config["type"],
+                durable=exchange_config["durable"],
+                auto_delete=exchange_config["auto_delete"],
+            )
+        logger.info(f"Successfully declared exchanges: {self.unique_exchanges}")
+
     def execute_test_plan(
         self,
-        sim_start_time: datetime,
-        sim_stop_time: datetime,
+        sim_start_time: datetime = None,
+        sim_stop_time: datetime = None,
         start_time: datetime = None,
         time_step: timedelta = timedelta(seconds=1),
         time_scale_factor: float = 1.0,
@@ -109,53 +156,106 @@ class Manager(Application):
             init_retry_delay_s (float): number of seconds to wait between initialization commands while waiting for required applications
             init_max_retry (int): number of initialization commands while waiting for required applications before continuing to execution
         """
+        if sim_start_time is not None and sim_stop_time is not None:
+            logger.info("Simulation start and stop times provided.")
+            self.sim_start_time = sim_start_time
+            self.sim_stop_time = sim_stop_time
+            self.start_time = start_time
+            self.time_step = time_step
+            self.time_scale_factor = time_scale_factor
+            self.time_scale_updates = time_scale_updates
+            self.time_status_step = time_status_step
+            self.time_status_init = time_status_init
+            self.command_lead = command_lead
+            self.required_apps = required_apps
+            self.init_retry_delay_s = init_retry_delay_s
+            self.init_max_retry = init_max_retry
+        else:
+            if self.config.rc:
+                logger.info(
+                    "Checking for execute test plan parameters in the YAML file."
+                )
+                parameters = getattr(
+                    self.config.rc.simulation_configuration.execution_parameters,
+                    self.app_name,
+                    None,
+                )
+                self.sim_start_time = parameters.sim_start_time
+                self.sim_stop_time = parameters.sim_stop_time
+                self.start_time = parameters.start_time
+                self.time_step = parameters.time_step
+                self.time_scale_factor = parameters.time_scale_factor
+                self.time_scale_updates = parameters.time_scale_updates
+                self.time_status_step = parameters.time_status_step
+                self.time_status_init = parameters.time_status_init
+                self.command_lead = parameters.command_lead
+                # self.required_apps = (
+                #     self.config.rc.simulation_configuration.execution_parameters.required_apps
+                # )
+                self.required_apps = [
+                    app for app in parameters.required_apps if app != self.app_name
+                ]
+                self.init_retry_delay_s = parameters.init_retry_delay_s
+                self.init_max_retry = parameters.init_max_retry
+            else:
+                raise ValueError(
+                    "No configuration runtime. Please provide simulation start and stop times."
+                )
+        ####
+        if self.predefined_exchanges_queues:
+            self.declare_exchange()
+            self.declare_bind_queue()
+        ####
+
         self.required_apps_status = dict(
-            zip(required_apps, [False] * len(required_apps))
+            zip(self.required_apps, [False] * len(self.required_apps))
         )
         self.add_message_callback("*", "status.ready", self.on_app_ready_status)
         self.add_message_callback("*", "status.time", self.on_app_time_status)
 
-        self._create_time_status_publisher(time_status_step, time_status_init)
-        for i in range(init_max_retry):
+        self._create_time_status_publisher(self.time_status_step, self.time_status_init)
+        for i in range(self.init_max_retry):
             # issue the init command
-            self.init(sim_start_time, sim_stop_time, required_apps)
+            self.init(self.sim_start_time, self.sim_stop_time, self.required_apps)
             next_try = self.simulator.get_wallclock_time() + timedelta(
-                seconds=init_retry_delay_s
+                seconds=self.init_retry_delay_s
             )
             # wait until all required apps are ready
             while (
-                not all([self.required_apps_status[app] for app in required_apps])
+                not all([self.required_apps_status[app] for app in self.required_apps])
                 and self.simulator.get_wallclock_time() < next_try
             ):
                 time.sleep(0.001)
         # self.remove_message_callback("*", "status.ready")
         # self.remove_message_callback()
         # configure start time
-        if start_time is None:
-            start_time = self.simulator.get_wallclock_time() + command_lead
+        if self.start_time is None:
+            self.start_time = self.simulator.get_wallclock_time() + self.command_lead
         # sleep until the start command needs to be issued
         time.sleep(
             max(
                 0,
-                ((start_time - self.simulator.get_wallclock_time()) - command_lead)
+                (
+                    (self.start_time - self.simulator.get_wallclock_time())
+                    - self.command_lead
+                )
                 / timedelta(seconds=1),
             )
         )
         # issue the start command
         self.start(
-            sim_start_time,
-            sim_stop_time,
-            start_time,
-            time_step,
-            time_scale_factor,
-            time_status_step,
-            time_status_init,
-            # required_apps=required_apps
+            self.sim_start_time,
+            self.sim_stop_time,
+            self.start_time,
+            self.time_step,
+            self.time_scale_factor,
+            self.time_status_step,
+            self.time_status_init,
         )
         # wait for simulation to start executing
         while self.simulator.get_mode() != Mode.EXECUTING:
             time.sleep(0.001)
-        for update in time_scale_updates:
+        for update in self.time_scale_updates:
             update_time = self.simulator.get_wallclock_time_at_simulation_time(
                 update.sim_update_time
             )
@@ -163,15 +263,20 @@ class Manager(Application):
             time.sleep(
                 max(
                     0,
-                    ((update_time - self.simulator.get_wallclock_time()) - command_lead)
+                    (
+                        (update_time - self.simulator.get_wallclock_time())
+                        - self.command_lead
+                    )
                     / timedelta(seconds=1),
                 )
             )
             # issue the update command
-            self.update(update.time_scale_factor, update.sim_update_time, required_apps)
+            self.update(
+                update.time_scale_factor, update.sim_update_time, self.required_apps
+            )
             # wait until the update command takes effect
             while self.simulator.get_time_scale_factor() != update.time_scale_factor:
-                time.sleep(command_lead / timedelta(seconds=1) / 100)
+                time.sleep(self.command_lead / timedelta(seconds=1) / 100)
         end_time = self.simulator.get_wallclock_time_at_simulation_time(
             self.simulator.get_end_time()
         )
@@ -179,12 +284,12 @@ class Manager(Application):
         time.sleep(
             max(
                 0,
-                ((end_time - self.simulator.get_wallclock_time()) - command_lead)
+                ((end_time - self.simulator.get_wallclock_time()) - self.command_lead)
                 / timedelta(seconds=1),
             )
         )
         # issue the stop command
-        self.stop(sim_stop_time)
+        self.stop(self.sim_stop_time)
 
     def on_app_ready_status(self, ch, method, properties, body) -> None:
         """
@@ -282,6 +387,9 @@ class Manager(Application):
             app_topic="init",
             payload=command.json(by_alias=True),
         )
+        # self.declared_queues.add(f"{self.prefix}.{self.app_name}.init")
+        # logger.info(f"ADDED: {self.prefix}.{self.app_name}.*")
+        logger.info(f"Declared Queues: {self.declared_queues}")
 
     def start(
         self,

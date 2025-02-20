@@ -51,12 +51,12 @@ class ManagedApplication(Application):
         self,
         prefix: str,
         config: ConnectionConfig,
-        set_offset: bool = True,
+        set_offset: bool = None,  # True,
         time_status_step: timedelta = None,
         time_status_init: datetime = None,
-        shut_down_when_terminated: bool = False,
-        time_step: timedelta = timedelta(seconds=1),
-        manager_app_name: str = "manager",
+        shut_down_when_terminated: bool = None,  # False,
+        time_step: timedelta = None,  # timedelta(seconds=1),
+        manager_app_name: str = None,  # "manager",
     ) -> None:
         """
         Starts up the application by connecting to message broker, starting a background event loop,
@@ -72,56 +72,65 @@ class ManagedApplication(Application):
             time_step (:obj:`timedelta`): scenario time step used in execution (Default: 1 second)
             manager_app_name (str): manager application name (Default: manager)
         """
+        if (
+            set_offset is not None
+            and time_status_step is not None
+            and time_status_init is not None
+            and shut_down_when_terminated is not None
+            and time_step is not None
+            and manager_app_name is not None
+        ):
+            self.set_offset = set_offset
+            self.time_status_step = time_status_step
+            self.time_status_init = time_status_init
+            self.shut_down_when_terminated = shut_down_when_terminated
+            self.time_step = time_step
+            self.manager_app_name = manager_app_name
+        else:
+            self.config = config
+            parameters = getattr(
+                self.config.rc.simulation_configuration.execution_parameters,
+                "managed_application",
+                None,
+            )
+            logger.info(parameters)
+            self.set_offset = parameters.set_offset
+            self.time_status_step = parameters.time_status_step
+            self.time_status_init = parameters.time_status_init
+            self.shut_down_when_terminated = parameters.shut_down_when_terminated
+            self.time_step = parameters.time_step
+            self.manager_app_name = parameters.manager_app_name
+
         # start up base application
         super().start_up(
             prefix,
             config,
-            set_offset,
-            time_status_step,
-            time_status_init,
-            shut_down_when_terminated,
+            self.set_offset,
+            self.time_status_step,
+            self.time_status_init,
+            self.shut_down_when_terminated,
         )
-        self.time_step = time_step
-        self.manager_app_name = manager_app_name
-
-        # Previous
-        # # subscribe to manager topics
-        # self.client.subscribe(f"{self.prefix}/{self.manager_app_name}/#")
-        # # register callback function for init command
-        # self.client.message_callback_add(
-        #     f"{self.prefix}/{self.manager_app_name}/init", self.on_manager_init
-        # )
-        # # register callback function for start command
-        # self.client.message_callback_add(
-        #     f"{self.prefix}/{self.manager_app_name}/start", self.on_manager_start
-        # )
-        # # register callback function for stop command
-        # self.client.message_callback_add(
-        #     f"{self.prefix}/{self.manager_app_name}/stop", self.on_manager_stop
-        # )
-        # # register callback function for update command
-        # self.client.message_callback_add(
-        #     f"{self.prefix}/{self.manager_app_name}/update", self.on_manager_update
-        # )
+        self.time_step = self.time_step
+        self.manager_app_name = self.manager_app_name
 
         # Register callback functions
         self.add_message_callback(
-            app_name=manager_app_name,
+            app_name=self.manager_app_name,
             app_topic="init",
             user_callback=self.on_manager_init,
         )
         self.add_message_callback(
-            app_name=manager_app_name,
+            app_name=self.manager_app_name,
             app_topic="start",
             user_callback=self.on_manager_start,
         )
         self.add_message_callback(
-            app_name=manager_app_name,
+            app_name=self.manager_app_name,
             app_topic="stop",
             user_callback=self.on_manager_stop,
         )
         self.add_message_callback(
-            app_name=manager_app_name,
+            app_name=self.manager_app_name,
             app_topic="update",
             user_callback=self.on_manager_update,
         )
