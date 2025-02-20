@@ -2,12 +2,16 @@
 Configuration Settings.
 """
 
+import logging
 import os
-from typing import Dict, List
+from datetime import datetime, timedelta
+from typing import Dict, List, Optional
 
 import yaml
-from dotenv import load_dotenv
-from pydantic import BaseModel, Field, ValidationError
+from dotenv import find_dotenv, load_dotenv
+from pydantic import BaseModel, Field, ValidationError, root_validator
+
+logger = logging.getLogger(__name__)
 
 
 class RabbitMQConfig(BaseModel):
@@ -22,6 +26,9 @@ class KeycloakConfig(BaseModel):
     port: int = Field(8080, description="Keycloak port.")
     realm: str = Field("master", description="Keycloak realm.")
     tls: bool = Field(False, description="Keycloak TLS.")
+    token_refresh_interval: int = Field(
+        60, description="Keycloak token refresh interval."
+    )
 
 
 class ServersConfig(BaseModel):
@@ -29,19 +36,139 @@ class ServersConfig(BaseModel):
     keycloak: KeycloakConfig = Field(..., description="Keycloak configuration.")
 
 
+# class ExecConfig(BaseModel):
+#     prefix: str = Field(
+#         "nost",
+#         description="Execution prefix. This is used as the RabbitMQ exchange throughout the entire execution.",
+#     )
+#     sim_start_time: datetime = Field(None, description="Simulation start time.")
+#     sim_stop_time: datetime = Field(None, description="Simulation stop time.")
+#     start_time: datetime = Field(None, description="Execution start time.")
+#     time_step: timedelta = Field(
+#         timedelta(seconds=1), description="Time step for the simulation."
+#     )
+#     time_scale_factor: float = Field(1.0, description="Time scale factor.")
+#     time_scale_updates: List[str] = Field(
+#         default_factory=list, description="List of time scale updates."
+#     )
+#     time_status_step: timedelta = Field(None, description="Time status step.")
+#     time_status_init: datetime = Field(None, description="Time status init.")
+#     command_lead: timedelta = Field(
+#         timedelta(seconds=0), description="Command lead time."
+#     )
+#     required_apps: List[str] = Field(
+#         default_factory=list,
+#         description="List of required applications.",
+#     )
+#     init_retry_delay_s: int = Field(5, description="Initial retry delay in seconds.")
+#     init_max_retry: int = Field(5, description="Initial maximum retry attempts.")
+#     set_offset: bool = Field(True, description="Set offset.")
+#     shut_down_when_terminated: bool = Field(
+#         False, description="Shut down when terminated."
+#     )
+#     manager_app_name: str = Field("manager", description="Manager application name.")
+# @root_validator(pre=True)
+# def set_time_status_step(cls, values):
+#     """Ensure time_status_step is set based on time_scale_factor."""
+#     if values.get("time_status_step") is None:
+#         time_scale_factor = values.get("time_scale_factor", 1.0)  # Default to 1.0
+#         values["time_status_step"] = timedelta(seconds=1) * time_scale_factor
+#     return values
+class GeneralConfig(BaseModel):
+    prefix: str = Field("nost", description="Execution prefix.")
+
+
+class ManagerConfig(BaseModel):
+    sim_start_time: Optional[datetime] = Field(
+        None, description="Simulation start time."
+    )
+    sim_stop_time: Optional[datetime] = Field(None, description="Simulation stop time.")
+    start_time: Optional[datetime] = Field(None, description="Execution start time.")
+    time_step: timedelta = Field(
+        timedelta(seconds=1),
+        description="Time step for the simulation.",
+    )
+    time_scale_factor: float = Field(1.0, description="Time scale factor.")
+    time_scale_updates: List[str] = Field(
+        default_factory=list, description="List of time scale updates."
+    )
+    time_status_step: Optional[timedelta] = Field(None, description="Time status step.")
+    time_status_init: Optional[datetime] = Field(None, description="Time status init.")
+    command_lead: timedelta = Field(
+        timedelta(seconds=0), description="Command lead time."
+    )
+    required_apps: List[str] = Field(
+        default_factory=list, description="List of required applications."
+    )
+    init_retry_delay_s: int = Field(5, description="Initial retry delay in seconds.")
+    init_max_retry: int = Field(5, description="Initial maximum retry attempts.")
+    set_offset: bool = Field(True, description="Set offset.")
+    shut_down_when_terminated: bool = Field(
+        False, description="Shut down when terminated."
+    )
+
+    @root_validator(pre=True)
+    def scale_time(cls, values):
+        time_scale_factor = values.get("time_scale_factor", 1.0)
+
+        if "time_status_step" in values:
+            time_status_step = values["time_status_step"]
+            if isinstance(time_status_step, str):
+                time_status_step = timedelta(
+                    seconds=float(time_status_step.split(":")[-1])
+                )
+            if isinstance(time_status_step, timedelta):
+                values["time_status_step"] = timedelta(
+                    seconds=time_status_step.total_seconds() * time_scale_factor
+                )
+
+        return values
+
+
+class ManagedApplicationConfig(BaseModel):
+    time_scale_factor: float = Field(1.0, description="Time scale factor.")
+    time_step: timedelta = Field(
+        timedelta(seconds=1), description="Time step for swe_change."
+    )
+    set_offset: bool = Field(True, description="Set offset.")
+    time_status_step: timedelta = Field(None, description="Time status step.")
+    time_status_init: datetime = Field(None, description="Time status init.")
+    shut_down_when_terminated: bool = Field(
+        False, description="Shut down when terminated."
+    )
+    manager_app_name: str = Field("manager", description="Manager application name.")
+
+    @root_validator(pre=True)
+    def scale_time(cls, values):
+        time_scale_factor = values.get("time_scale_factor", 1.0)
+
+        if "time_step" in values:
+            time_step = values["time_step"]
+            if isinstance(time_step, str):
+                time_step = timedelta(seconds=float(time_step.split(":")[-1]))
+            if isinstance(time_step, timedelta):
+                values["time_step"] = timedelta(
+                    seconds=time_step.total_seconds() * time_scale_factor
+                )
+
+        if "time_status_step" in values:
+            time_status_step = values["time_status_step"]
+            if isinstance(time_status_step, str):
+                time_status_step = timedelta(
+                    seconds=float(time_status_step.split(":")[-1])
+                )
+            if isinstance(time_status_step, timedelta):
+                values["time_status_step"] = timedelta(
+                    seconds=time_status_step.total_seconds() * time_scale_factor
+                )
+
+        return values
+
+
 class ExecConfig(BaseModel):
-    timescale: int = Field(
-        60,
-        description="Execution timescale. For example, if the timescale is 60, 1 wallclock second is equivalent to 60 simulation seconds.",
-    )
-    prefix: str = Field(
-        "nost",
-        description="Execution prefix. This is used as the RabbitMQ exchange throughout the entire execution.",
-    )
-    application_names: List[str] = Field(
-        ["manager", "managed_application"],
-        description="List of all application names involved in execution.",
-    )
+    general: GeneralConfig
+    manager: ManagerConfig
+    managed_application: ManagedApplicationConfig
 
 
 class Config(BaseModel):
@@ -126,7 +253,6 @@ class ConnectionConfig:
         client_secret_key (str): Keycloak client secret key
         virtual_host (str): RabbitMQ virtual host
         is_tls (bool): True, if the connection uses Transport Layer Security (TLS)
-        env_file (str): Path to the .env file
         yaml_file (str): Path to the YAML configuration file
     """
 
@@ -134,15 +260,15 @@ class ConnectionConfig:
         self,
         username: str = None,
         password: str = None,
-        host: str = None,
+        rabbitmq_host: str = None,
         rabbitmq_port: int = None,
+        keycloak_host: str = None,
         keycloak_port: int = None,
         keycloak_realm: str = None,
         client_id: str = None,
         client_secret_key: str = None,
         virtual_host: str = None,
         is_tls: bool = True,
-        env_file: str = None,
         yaml_file: str = None,
     ):
         """
@@ -159,21 +285,12 @@ class ConnectionConfig:
             client_secret_key (str): Keycloak client secret key
             virtual_host (str): RabbitMQ virtual host
             is_tls (bool): True, if the connection uses TLS
-            env_file (str): Path to the .env file
             yaml_file (str): Path to the YAML configuration file
         """
-        self.yaml_config = None
-        self.yaml_mode = False
-
-        self.predefined_exchanges_queues = False
-        self.env_file = env_file
-        self.yaml_file = yaml_file
-        self.unique_exchanges = {}
-        self.channel_configs = []
-
         self.username = username
         self.password = password
-        self.host = host
+        self.rabbitmq_host = rabbitmq_host
+        self.keycloak_host = keycloak_host
         self.rabbitmq_port = rabbitmq_port
         self.keycloak_port = keycloak_port
         self.keycloak_realm = keycloak_realm
@@ -181,6 +298,12 @@ class ConnectionConfig:
         self.client_secret_key = client_secret_key
         self.virtual_host = virtual_host
         self.is_tls = is_tls
+
+        self.yaml_config = None
+        self.predefined_exchanges_queues = False
+        self.yaml_file = yaml_file
+        self.unique_exchanges = {}
+        self.channel_configs = []
 
         self.create_connection_config()
 
@@ -250,14 +373,18 @@ class ConnectionConfig:
             predefined_exchanges_queues=self.predefined_exchanges_queues,
         )
 
-    def load_env_file(self) -> Credentials:
+    def load_environment_variables(self):
         """
         Loads an environment (.env) file and returns the parsed data.
         """
-        if not os.path.exists(self.env_file):
-            raise EnvironmentVariableError("Couldn't load .env file (file not found)")
-
-        load_dotenv(dotenv_path=self.env_file)
+        dotenv_path = find_dotenv(usecwd=True)
+        if dotenv_path:
+            logger.info(f"Checking for credentials in the .env file: {dotenv_path}.")
+            load_dotenv(dotenv_path)
+        else:
+            logger.warning(
+                "Checking for credentials in the system environment variables."
+            )
 
         required_fields = ["USERNAME", "PASSWORD", "CLIENT_ID", "CLIENT_SECRET_KEY"]
         env_data = {field: os.getenv(field) for field in required_fields}
@@ -278,7 +405,7 @@ class ConnectionConfig:
         except ValidationError as err:
             raise EnvironmentVariableError(f"Invalid environment variables: {err}")
 
-    def load_yaml_config_file(self) -> Config:
+    def load_yaml_config_file(self):
         """
         Loads a YAML configuration file and returns the parsed data.
         """
@@ -297,19 +424,24 @@ class ConnectionConfig:
             raise ConfigurationError(f"Invalid configuration: {err}")
 
     def create_connection_config(self):
-
-        if self.env_file:
-            try:
-                self.load_env_file()
-            except EnvironmentVariableError as e:
-                raise ValueError(f"Environment variable error: {e}")
-        else:
+        """
+        Creates a connection configuration.
+        """
+        if (
+            self.username is not None
+            and self.password is not None
+            and self.client_id is not None
+            and self.client_secret_key is not None
+        ):
+            logger.info("Using provided credentials.")
             self.credentials_config = Credentials(
                 username=self.username,
                 password=self.password,
                 client_id=self.client_id,
                 client_secret_key=self.client_secret_key,
             )
+        else:
+            self.load_environment_variables()
 
         if self.yaml_file:
             try:
@@ -319,7 +451,7 @@ class ConnectionConfig:
 
             try:
                 assert all(
-                    item in self.yaml_config.execution.application_names
+                    item in self.yaml_config.execution.required_apps
                     for item in self.yaml_config.channels.keys()
                 ), "Application names do not match the channels defined in the configuration file."
             except AssertionError as e:
@@ -329,13 +461,13 @@ class ConnectionConfig:
                 self.yaml_config = Config(
                     servers=ServersConfig(
                         rabbitmq=RabbitMQConfig(
-                            host=self.host,
+                            host=self.rabbitmq_host,
                             port=self.rabbitmq_port,
                             virtual_host=self.virtual_host,
                             tls=self.is_tls,
                         ),
                         keycloak=KeycloakConfig(
-                            host=self.host,
+                            host=self.keycloak_host,
                             port=self.keycloak_port,
                             realm=self.keycloak_realm,
                             tls=self.is_tls,
