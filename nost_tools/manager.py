@@ -310,9 +310,9 @@ class Manager(Application):
                 # validate if message is a valid JSON
                 try:
                     # update the ready status based on the payload value
-                    self.required_apps_status[topic_parts[1]] = ReadyStatus.parse_raw(
-                        message
-                    ).properties.ready
+                    self.required_apps_status[topic_parts[1]] = (
+                        ReadyStatus.model_validate_json(message).properties.ready
+                    )
                 except json.JSONDecodeError:
                     logger.error(f"Invalid JSON format: {message}")
         except ValidationError as e:
@@ -340,7 +340,7 @@ class Manager(Application):
             # validate if message is a valid JSON
             try:
                 # parse the message payload properties
-                props = TimeStatus.parse_raw(message).properties
+                props = TimeStatus.model_validate_json(message).properties
                 wallclock_delta = self.simulator.get_wallclock_time() - props.time
                 scenario_delta = self.simulator.get_time() - props.sim_time
                 if len(topic_parts) > 1:
@@ -372,7 +372,7 @@ class Manager(Application):
             required_apps (list(str)): List of required apps
         """
         # publish init command message
-        command = InitCommand.parse_obj(
+        command = InitCommand.model_validate(
             {
                 "taskingParameters": {
                     "simStartTime": sim_start_time,
@@ -384,7 +384,7 @@ class Manager(Application):
         logger.info(f"Sending initialize command {command.json(by_alias=True)}.")
         self.send_message(
             app_name=self.app_name,
-            app_topic="init",
+            app_topics="init",
             payload=command.json(by_alias=True),
         )
         # self.declared_queues.add(f"{self.prefix}.{self.app_name}.init")
@@ -420,7 +420,7 @@ class Manager(Application):
         self.time_status_step = time_status_step
         self.time_status_init = time_status_init
         # publish a start command message
-        command = StartCommand.parse_obj(
+        command = StartCommand.model_validate(
             {
                 "taskingParameters": {
                     "startTime": start_time,
@@ -433,7 +433,7 @@ class Manager(Application):
         logger.info(f"Sending start command {command.json(by_alias=True)}.")
         self.send_message(
             app_name=self.app_name,
-            app_topic="start",
+            app_topics="start",
             payload=command.json(by_alias=True),
         )
         exec_thread = threading.Thread(
@@ -456,13 +456,13 @@ class Manager(Application):
             sim_stop_time (:obj:`datetime`): Scenario time at which to stop execution.
         """
         # publish a stop command message
-        command = StopCommand.parse_obj(
+        command = StopCommand.model_validate(
             {"taskingParameters": {"simStopTime": sim_stop_time}}
         )
         logger.info(f"Sending stop command {command.json(by_alias=True)}.")
         self.send_message(
             app_name=self.app_name,
-            app_topic="stop",
+            app_topics="stop",
             payload=command.json(by_alias=True),
         )
         # update the execution end time
@@ -480,7 +480,7 @@ class Manager(Application):
             sim_update_time (:obj:`datetime`): scenario time at which to update
         """
         # publish an update command message
-        command = UpdateCommand.parse_obj(
+        command = UpdateCommand.model_validate(
             {
                 "taskingParameters": {
                     "simUpdateTime": sim_update_time,
@@ -491,7 +491,7 @@ class Manager(Application):
         logger.info(f"Sending update command {command.json(by_alias=True)}.")
         self.send_message(
             app_name=self.app_name,
-            app_topic="update",
+            app_topics="update",
             payload=command.json(by_alias=True),
         )
         # update the execution time scale factor

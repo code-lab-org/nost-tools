@@ -207,7 +207,7 @@ class TimeStatusPublisher(ScenarioTimeIntervalPublisher):
         """
         Publishes a time status message.
         """
-        status = TimeStatus.parse_obj(
+        status = TimeStatus.model_validate(
             {
                 "name": self.app.app_name,
                 "description": self.app.app_description,
@@ -223,7 +223,7 @@ class TimeStatusPublisher(ScenarioTimeIntervalPublisher):
 
         self.app.send_message(
             app_name=self.app.app_name,
-            app_topic="status.time",
+            app_topics="status.time",
             payload=status.json(by_alias=True, exclude_none=True),
         )
 
@@ -269,7 +269,7 @@ class ModeStatusObserver(Observer):
             new_value (obj): new value of the named property
         """
         if property_name == Simulator.PROPERTY_MODE:
-            status = ModeStatus.parse_obj(
+            status = ModeStatus.model_validate(
                 {
                     "name": self.app.app_name,
                     "description": self.app.app_description,
@@ -288,6 +288,6 @@ class ModeStatusObserver(Observer):
             if self.app.channel.is_open and self.app.connection.is_open:
                 self.app.send_message(
                     app_name=self.app.app_name,
-                    app_topic="status.mode",
+                    app_topics="status.mode",
                     payload=status.json(by_alias=True, exclude_none=True),
                 )

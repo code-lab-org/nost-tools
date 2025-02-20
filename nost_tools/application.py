@@ -89,7 +89,7 @@ class Application:
         Signals the application is ready to initialize scenario execution.
         Publishes a :obj:`ReadyStatus` message to the topic `prefix.app_name.status.ready`.
         """
-        status = ReadyStatus.parse_obj(
+        status = ReadyStatus.model_validate(
             {
                 "name": self.app_name,
                 "description": self.app_description,
@@ -98,7 +98,7 @@ class Application:
         )
         self.send_message(
             app_name=self.app_name,
-            app_topic="status.ready",
+            app_topics="status.ready",
             payload=status.json(by_alias=True, exclude_none=True),
         )
 
@@ -399,31 +399,61 @@ class Application:
             self.consuming = False
         logger.info(f"Application {self.app_name} successfully shut down.")
 
-    def send_message(
-        self, app_name, app_topic: str, payload: str
-    ) -> None:  # , app_specific_extender: str = None) -> None:
+    # def send_message(
+    #     self, app_name, app_topic: str, payload: str
+    # ) -> None:  # , app_specific_extender: str = None) -> None:
+    #     """
+    #     Sends a message to the broker. The message is sent to the exchange using the routing key. The routing key is created using the application name and topic. The message is published with an expiration of 60 seconds.
+
+    #     Args:
+    #         app_name (str): application name
+    #         app_topic (str): topic name
+    #         payload (str): message payload
+    #     """
+    #     routing_key = self.create_routing_key(app_name=app_name, topic=app_topic)
+    #     if not self.predefined_exchanges_queues:
+    #         routing_key, queue_name = self.yamless_declare_bind_queue(
+    #             routing_key=routing_key
+    #         )
+
+    #     # Expiration of 60000 ms = 60 sec
+    #     self.channel.basic_publish(
+    #         exchange=self.prefix,
+    #         routing_key=routing_key,
+    #         body=payload,
+    #         properties=pika.BasicProperties(expiration="60000"),
+    #     )
+    #     logger.debug(f"Successfully sent message '{payload}' to topic '{routing_key}'.")
+
+    def send_message(self, app_name, app_topics, payload: str) -> None:
         """
         Sends a message to the broker. The message is sent to the exchange using the routing key. The routing key is created using the application name and topic. The message is published with an expiration of 60 seconds.
 
         Args:
             app_name (str): application name
-            app_topic (str): topic name
+            app_topics (str or list): topic name or list of topic names
             payload (str): message payload
         """
-        routing_key = self.create_routing_key(app_name=app_name, topic=app_topic)
-        if not self.predefined_exchanges_queues:
-            routing_key, queue_name = self.yamless_declare_bind_queue(
-                routing_key=routing_key
-            )
+        if isinstance(app_topics, str):
+            app_topics = [app_topics]
 
-        # Expiration of 60000 ms = 60 sec
-        self.channel.basic_publish(
-            exchange=self.prefix,
-            routing_key=routing_key,
-            body=payload,
-            properties=pika.BasicProperties(expiration="60000"),
-        )
-        logger.debug(f"Successfully sent message '{payload}' to topic '{routing_key}'.")
+        for app_topic in app_topics:
+            routing_key = self.create_routing_key(app_name=app_name, topic=app_topic)
+            if not self.predefined_exchanges_queues:
+                routing_key, queue_name = self.yamless_declare_bind_queue(
+                    routing_key=routing_key
+                )
+
+            # Expiration of 60000 ms = 60 sec
+            self.channel.basic_publish(
+                exchange=self.prefix,
+                routing_key=routing_key,
+                body=payload,
+                properties=pika.BasicProperties(expiration="60000"),
+            )
+            logger.debug(
+                f"Successfully sent message '{payload}' to topic '{routing_key}'."
+            )
 
     def add_message_callback(
         self, app_name: str, app_topic: str, user_callback: Callable

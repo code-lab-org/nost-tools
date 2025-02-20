@@ -228,7 +228,7 @@ class ManagedApplication(Application):
         try:
             # Parse message payload
             message = body.decode("utf-8")
-            params = StopCommand.parse_raw(message).tasking_parameters
+            params = StopCommand.model_validate_json(message).tasking_parameters
             logger.info(f"Received stop command {message}")
             # update execution end time
             self.simulator.set_end_time(params.sim_stop_time)
@@ -252,7 +252,7 @@ class ManagedApplication(Application):
         try:
             # Parse message payload
             message = body.decode("utf-8")
-            params = UpdateCommand.parse_raw(message).tasking_parameters
+            params = UpdateCommand.model_validate_json(message).tasking_parameters
             logger.info(f"Received update command {message}")
             # update execution time scale factor
             self.simulator.set_time_scale_factor(
