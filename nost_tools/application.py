@@ -14,6 +14,7 @@ from typing import Callable
 import ntplib
 import pika
 import pika.connection
+import urllib3
 from keycloak.exceptions import KeycloakAuthenticationError
 from keycloak.keycloak_openid import KeycloakOpenID
 
@@ -23,11 +24,21 @@ from .application_utils import (  # ConnectionConfig,
     TimeStatusPublisher,
 )
 from .config import ConnectionConfig
+from .observer import MessageObservable
 from .schemas import ReadyStatus
 from .simulator import Simulator
 
 logging.captureWarnings(True)
 logger = logging.getLogger(__name__)
+urllib3.disable_warnings()
+
+# class MessageObservable(Observable):
+#     """Observable class specific to message handling"""
+
+#     def notify_observers_with_message(self, ch, method, properties, body):
+#         """Notify all observers with the message details"""
+#         for observer in self._observers:
+#             observer.on_message(ch, method, properties, body)
 
 
 class Application:
@@ -83,6 +94,8 @@ class Application:
         self.token_refresh_interval = None  # seconds
         # self.yaml_mode = False
         self.predefined_exchanges_queues = False
+        self._message_observable = MessageObservable()
+        self._callbacks_per_topic = {}
 
     def ready(self) -> None:
         """
@@ -457,64 +470,123 @@ class Application:
 
     def add_message_callback(
         self, app_name: str, app_topic: str, user_callback: Callable
-    ):  # , app_specific_extender: str = None):
-        """
-        This method sets up the consumer by first calling
-        add_on_cancel_callback so that the object is notified if RabbitMQ
-        cancels the consumer. It then issues the Basic.Consume RPC command
-        which returns the consumer tag that is used to uniquely identify the
-        consumer with RabbitMQ. We keep the value to use it when we want to
-        cancel consuming. The on_message method is passed in as a callback pika
-        will invoke when a message is fully received.
-
-        Args:
-            app_name (str): application name
-            app_topic (str): topic name
-            user_callback (Callable): user-provided callback function
-        """
+    ):
+        """Modified to support multiple callbacks per topic"""
         self.was_consuming = True
         self.consuming = True
-        logger.info("Issuing consumer related RPC commands")
-        self.add_on_cancel_callback()
-        combined_cb = self.combined_callback(user_callback)
 
         routing_key = self.create_routing_key(app_name=app_name, topic=app_topic)
-        if not self.predefined_exchanges_queues:
-            routing_key, queue_name = self.yamless_declare_bind_queue(
-                routing_key=routing_key, app_specific_extender=self.app_name
+
+        # Store callback for this topic
+        if routing_key not in self._callbacks_per_topic:
+            self._callbacks_per_topic[routing_key] = []
+            # Only set up the consumer once per topic
+            if not self.predefined_exchanges_queues:
+                routing_key, queue_name = self.yamless_declare_bind_queue(
+                    routing_key=routing_key, app_specific_extender=self.app_name
+                )
+
+            self.channel.basic_qos(prefetch_count=1)
+            self._consumer_tag = self.channel.basic_consume(
+                queue=queue_name,
+                on_message_callback=self._handle_message,
+                auto_ack=False,
             )
 
-        # Set QoS settings
-        self.channel.basic_qos(prefetch_count=1)
-        self._consumer_tag = self.channel.basic_consume(
-            queue=queue_name, on_message_callback=combined_cb, auto_ack=False
-        )
-        logger.info(f"Subscribing and adding callback to topic: {routing_key}")
+        self._callbacks_per_topic[routing_key].append(user_callback)
+        logger.info(f"Added callback for topic: {routing_key}")
 
-    def combined_callback(self, user_callback):
+    def _handle_message(self, ch, method, properties, body):
         """
-        Combines the user-provided callback with the on_message method.
+        Callback for handling messages received from RabbitMQ.
 
         Args:
-            user_callback (Callable): user-provided callback function
+            ch (:obj:`pika.channel.Channel`): The channel object used to communicate with the RabbitMQ server.
+            method (:obj:`pika.spec.Basic.Deliver`): Delivery-related information such as delivery tag, exchange, and routing key.
+            properties (:obj:`pika.BasicProperties`): Message properties including content type, headers, and more.
+            body (bytes): The actual message body sent, containing the message payload
         """
+        routing_key = method.routing_key
+        callbacks = self._callbacks_per_topic.get(routing_key, [])
 
-        def wrapper(ch, method, properties, body):
-            """
-            Wrapper function to combine the user-provided callback with the on_message method.
+        try:
+            # Execute all callbacks for this topic
+            for callback in callbacks:
+                logger.info("Executing callback")
+                callback(ch, method, properties, body)
 
-            Args:
-                ch (:obj:`pika.channel.Channel`): The channel object used to communicate with the RabbitMQ server.
-                method (:obj:`pika.spec.Basic.Deliver`): Delivery-related information such as delivery tag, exchange, and routing key.
-                properties (:obj:`pika.BasicProperties`): Message properties including content type, headers, and more.
-                body (bytes): The actual message body sent, containing the message payload.
-            """
-            # Call the on_message method
-            self.on_message(ch, method, properties, body)
-            # Call the user-provided callback
-            user_callback(ch, method, properties, body)
+            # Only acknowledge after all callbacks complete successfully
+            self.acknowledge_message(method.delivery_tag)
+            logger.info(f"Message {method.delivery_tag} processed by all callbacks")
 
-        return wrapper
+        except Exception as e:
+            logger.error(f"Error processing message: {e}")
+            # Reject the message if any callback fails
+            if self.channel:
+                self.channel.basic_reject(
+                    delivery_tag=method.delivery_tag, requeue=True
+                )
+
+    # def add_message_callback(
+    #     self, app_name: str, app_topic: str, user_callback: Callable
+    # ):  # , app_specific_extender: str = None):
+    #     """
+    #     This method sets up the consumer by first calling
+    #     add_on_cancel_callback so that the object is notified if RabbitMQ
+    #     cancels the consumer. It then issues the Basic.Consume RPC command
+    #     which returns the consumer tag that is used to uniquely identify the
+    #     consumer with RabbitMQ. We keep the value to use it when we want to
+    #     cancel consuming. The on_message method is passed in as a callback pika
+    #     will invoke when a message is fully received.
+
+    #     Args:
+    #         app_name (str): application name
+    #         app_topic (str): topic name
+    #         user_callback (Callable): user-provided callback function
+    #     """
+    #     self.was_consuming = True
+    #     self.consuming = True
+    #     logger.info("Issuing consumer related RPC commands")
+    #     self.add_on_cancel_callback()
+    #     combined_cb = self.combined_callback(user_callback)
+
+    #     routing_key = self.create_routing_key(app_name=app_name, topic=app_topic)
+    #     if not self.predefined_exchanges_queues:
+    #         routing_key, queue_name = self.yamless_declare_bind_queue(
+    #             routing_key=routing_key, app_specific_extender=self.app_name
+    #         )
+
+    #     # Set QoS settings
+    #     self.channel.basic_qos(prefetch_count=1)
+    #     self._consumer_tag = self.channel.basic_consume(
+    #         queue=queue_name, on_message_callback=combined_cb, auto_ack=False
+    #     )
+    #     logger.info(f"Subscribing and adding callback to topic: {routing_key}")
+
+    # def combined_callback(self, user_callback):
+    #     """
+    #     Combines the user-provided callback with the on_message method.
+
+    #     Args:
+    #         user_callback (Callable): user-provided callback function
+    #     """
+
+    #     def wrapper(ch, method, properties, body):
+    #         """
+    #         Wrapper function to combine the user-provided callback with the on_message method.
+
+    #         Args:
+    #             ch (:obj:`pika.channel.Channel`): The channel object used to communicate with the RabbitMQ server.
+    #             method (:obj:`pika.spec.Basic.Deliver`): Delivery-related information such as delivery tag, exchange, and routing key.
+    #             properties (:obj:`pika.BasicProperties`): Message properties including content type, headers, and more.
+    #             body (bytes): The actual message body sent, containing the message payload.
+    #         """
+    #         # Call the on_message method
+    #         self.on_message(ch, method, properties, body)
+    #         # Call the user-provided callback
+    #         user_callback(ch, method, properties, body)
+
+    #     return wrapper
 
     def add_on_cancel_callback(self):
         """Add a callback that will be invoked if RabbitMQ cancels the consumer

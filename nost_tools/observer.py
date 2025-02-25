@@ -121,3 +121,61 @@ class Observable(object):
         if old_value != new_value:
             for observer in self._observers:
                 observer.on_change(self, property_name, old_value, new_value)
+
+
+# Add after the existing Observer class
+class MessageObserver(ABC):
+    """
+    Abstract base class for message observers that can receive RabbitMQ messages.
+    """
+
+    @abstractmethod
+    def on_message(self, ch, method, properties, body) -> None:
+        """Callback for when a message is received.
+
+        Args:
+            ch: Channel object
+            method: Method frame
+            properties: Message properties
+            body: Message body
+        """
+        pass
+
+
+class MessageObservable(Observable):
+    """
+    Observable that can notify observers of received messages.
+    """
+
+    def __init__(self):
+        """Initialize message observable"""
+        super().__init__()
+        self._message_observers = []
+
+    def add_message_observer(self, observer: MessageObserver) -> None:
+        """Add a message observer.
+
+        Args:
+            observer (MessageObserver): The observer to add
+        """
+        self._message_observers.append(observer)
+
+    def remove_message_observer(self, observer: MessageObserver) -> None:
+        """Remove a message observer.
+
+        Args:
+            observer (MessageObserver): The observer to remove
+        """
+        self._message_observers.remove(observer)
+
+    def notify_message_observers(self, ch, method, properties, body) -> None:
+        """Notify all message observers about a received message.
+
+        Args:
+            ch: Channel object
+            method: Method frame
+            properties: Message properties
+            body: Message body
+        """
+        for observer in self._message_observers:
+            observer.on_message(ch, method, properties, body)
