@@ -23,7 +23,7 @@ classifiers = [
 dependencies = [
     "ntplib",
     "numpy",
-    "pandas",
+    "pandas <= 2.2.2",
     "pydantic >= 2, < 3",
     "python-dateutil",
     "pika",
