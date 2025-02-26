@@ -89,6 +89,9 @@ class Application:
         self._message_observable = MessageObservable()
         self._callbacks_per_topic = {}
 
+    ############################################################################################################################################################################
+    # BROKER CONNECTION
+    ############################################################################################################################################################################
     def ready(self) -> None:
         """
         Signals the application is ready to initialize scenario execution.
@@ -237,13 +240,16 @@ class Application:
             self.shut_down_when_terminated = parameters.shut_down_when_terminated
 
         if self.set_offset:
+            # Set the system clock offset
             self.set_wallclock_offset()
+
+        # Set the prefix and configuration parameters
         self.prefix = prefix
         self.config = config
         self._is_running = True
 
         if self.config.rc.server_configuration.servers.rabbitmq.keycloak_authentication:
-            # Obtain access token and refresh token
+            # Get the access token and refresh token
             self.token_refresh_interval = (
                 self.config.rc.server_configuration.servers.keycloak.token_refresh_interval
             )
@@ -254,6 +260,7 @@ class Application:
             self.start_token_refresh_thread()
             credentials = pika.PlainCredentials("", access_token)
         else:
+            # Set up credentials
             credentials = pika.PlainCredentials(
                 self.config.rc.credentials.username,
                 self.config.rc.credentials.password,
@@ -276,28 +283,31 @@ class Application:
             logger.info("Using TLS/SSL.")
             parameters.ssl_options = pika.SSLOptions(ssl.SSLContext())
 
+        # Callback functions for connection
         def on_connection_open(connection):
             self.connection = connection
             self.connection.channel(on_open_callback=self.on_channel_open)
             logger.info("Connection established successfully.")
 
+        # Establish non-blocking connection to RabbitMQ
         self.connection = pika.SelectConnection(
             parameters=parameters,
             on_open_callback=on_connection_open,
             on_open_error_callback=self.on_connection_error,
             on_close_callback=self.on_connection_closed,
         )
+
         # Start the I/O loop in a separate thread
         self.io_thread = threading.Thread(target=self._start_io_loop)
         self.io_thread.start()
         self._is_connected.wait()
 
         if self.config.rc.simulation_configuration.predefined_exchanges_queues:
+            # Get the unique exchanges and channel configurations
             self.predefined_exchanges_queues = True
             logger.debug(
                 "Exchanges and queues are predefined in the YAML configuration file."
             )
-            # Get the unique exchanges and channel configurations
             self.unique_exchanges, self.channel_configs = (
                 self.config.rc.simulation_configuration.exchanges,
                 self.config.rc.simulation_configuration.queues,
@@ -375,6 +385,9 @@ class Application:
             self.consuming = False
         logger.info(f"Application {self.app_name} successfully shut down.")
 
+    ############################################################################################################################################################################
+    # MESSAGING
+    ############################################################################################################################################################################
     def send_message(self, app_name, app_topics, payload: str) -> None:
         """
         Sends a message to the broker. The message is sent to the exchange using the routing key. The routing key is created using the application name and topic. The message is published with an expiration of 60 seconds.
@@ -393,8 +406,6 @@ class Application:
                 routing_key, queue_name = self.yamless_declare_bind_queue(
                     routing_key=routing_key
                 )
-
-            # Expiration of 60000 ms = 60 sec
             self.channel.basic_publish(
                 exchange=self.prefix,
                 routing_key=routing_key,
@@ -562,40 +573,6 @@ class Application:
                     delivery_tag=method.delivery_tag, requeue=True
                 )
 
-    # def add_on_cancel_callback(self):
-    #     """Add a callback that will be invoked if RabbitMQ cancels the consumer
-    #     for some reason. If RabbitMQ does cancel the consumer,
-    #     on_consumer_cancelled will be invoked by pika.
-    #     """
-    #     logger.info("Adding consumer cancellation callback")
-    #     self.channel.add_on_cancel_callback(self.on_consumer_cancelled)
-
-    # def on_consumer_cancelled(self, method_frame):
-    #     """Invoked by pika when RabbitMQ sends a Basic.Cancel for a consumer
-    #     receiving messages.
-
-    #     :param pika.frame.Method method_frame: The Basic.Cancel frame
-    #     """
-    #     logger.info("Consumer was cancelled remotely, shutting down: %r", method_frame)
-    #     self.channel.close()
-
-    # def on_message(self, ch, method, properties, body):
-    #     """Invoked by pika when a message is delivered from RabbitMQ. The
-    #     channel is passed for your convenience. The basic_deliver object that
-    #     is passed in carries the exchange, routing key, delivery tag and
-    #     a redelivered flag for the message. The properties passed in is an
-    #     instance of BasicProperties with the message properties and the body
-    #     is the message that was sent.
-
-    #     Args:
-    #         ch (:obj:`pika.channel.Channel`): The channel object used to communicate with the RabbitMQ server.
-    #         method (:obj:`pika.spec.Basic.Deliver`): Delivery-related information such as delivery tag, exchange, and routing key.
-    #         properties (:obj:`pika.BasicProperties`): Message properties including content type, headers, and more.
-    #         body (bytes): The actual message body sent, containing the message payload.
-    #     """
-    #     logger.debug(f"Received message # {method.delivery_tag}: {body.decode('utf8')}")
-    #     self.acknowledge_message(method.delivery_tag)
-
     def acknowledge_message(self, delivery_tag):
         """Acknowledge the message delivery from RabbitMQ by sending a
         Basic.Ack RPC method for the delivery tag.
@@ -608,152 +585,6 @@ class Application:
             self.channel.basic_ack(delivery_tag, True)
         except:
             pass
-
-    def stop_consuming(self):
-        """Tell RabbitMQ that you would like to stop consuming by sending the
-        Basic.Cancel RPC command.
-        """
-        if self.channel:
-            # Acknowledge cancel
-            logger.info("Sending a Basic.Cancel RPC command to RabbitMQ")
-            cb = functools.partial(self.on_cancelok, userdata=self._consumer_tag)
-            self.channel.basic_cancel(self._consumer_tag, cb)
-
-    def on_cancelok(self, _unused_frame, userdata):
-        """This method is invoked by pika when RabbitMQ acknowledges the
-        cancellation of a consumer. At this point we will close the channel.
-        This will invoke the on_channel_closed method once the channel has been
-        closed, which will in-turn close the connection.
-        :param pika.frame.Method _unused_frame: The Basic.CancelOk frame
-        :param str|unicode userdata: Extra user data (consumer tag)
-        """
-        self.consuming = False
-        logger.info(
-            "RabbitMQ acknowledged the cancellation of the consumer: %s", userdata
-        )
-        self.close_channel()
-        self.stop_loop()
-
-    def close_channel(self):
-        """Call to close the channel with RabbitMQ cleanly by issuing the
-        Channel.Close RPC command.
-        """
-        logger.info("Deleting queues and exchanges.")
-
-        if self.predefined_exchanges_queues:
-            self.delete_queue(self.channel_configs, self.app_name)
-            self.delete_exchange(self.unique_exchanges)
-        else:
-            self.delete_all_queues_and_exchanges()
-
-        logger.info("Closing channel")
-        self.channel.close()
-
-    def stop_loop(self):
-        """Stop the IO loop"""
-        self.connection.ioloop.stop()
-
-    def stop_application(self):
-        """Cleanly shutdown the connection to RabbitMQ by stopping the consumer
-        with RabbitMQ. When RabbitMQ confirms the cancellation, on_cancelok
-        will be invoked by pika, which will then closing the channel and
-        connection. The IOLoop is started again because this method is invoked
-        when CTRL-C is pressed raising a KeyboardInterrupt exception. This
-        exception stops the IOLoop which needs to be running for pika to
-        communicate with RabbitMQ. All of the commands issued prior to starting
-        the IOLoop will be buffered but not processed.
-        """
-        if not self.closing:
-            self.closing = True
-            if self.consuming:
-                self.stop_consuming()
-                # Signal the thread to stop
-                if hasattr(self, "stop_event"):
-                    self.stop_event.set()
-                if hasattr(self, "_should_stop"):
-                    self._should_stop.set()
-                if hasattr(self, "io_thread"):
-                    self.io_thread.join()
-                sys.exit()
-            else:
-                self.connection.ioloop.stop()
-
-    # def remove_message_callback(self):
-    #     """This method cancels the consumer by issuing the Basic.Cancel RPC command
-    #     which returns the consumer tag that is used to uniquely identify the
-    #     consumer with RabbitMQ. It also ensures that the consumer is no longer
-    #     consuming messages.
-    #     """
-    #     if self._consumer_tag:
-    #         logger.info("Cancelling the consumer")
-    #         self.stop_application()
-    #         self._consumer_tag = None
-    #         self.was_consuming = False
-    #         self.consuming = False
-    #         logger.debug("Consumer cancelled successfully")
-    #     else:
-    #         logger.warning("No consumer to cancel")
-
-    def set_wallclock_offset(
-        self, host="pool.ntp.org", retry_delay_s: int = 5, max_retry: int = 5
-    ) -> None:
-        """
-        Issues a Network Time Protocol (NTP) request to determine the system clock offset.
-
-        Args:
-            host (str): NTP host (default: 'pool.ntp.org')
-            retry_delay_s (int): number of seconds to wait before retrying
-            max_retry (int): maximum number of retries allowed
-        """
-        for i in range(max_retry):
-            try:
-                logger.info(f"Contacting {host} to retrieve wallclock offset.")
-                response = ntplib.NTPClient().request(host, version=3, timeout=2)
-                offset = timedelta(seconds=response.offset)
-                self.simulator.set_wallclock_offset(offset)
-                logger.info(f"Wallclock offset updated to {offset}.")
-                return
-            except ntplib.NTPException:
-                logger.warn(
-                    f"Could not connect to {host}, attempt #{i+1}/{max_retry} in {retry_delay_s} s."
-                )
-                time.sleep(retry_delay_s)
-
-    def _create_time_status_publisher(
-        self, time_status_step: timedelta, time_status_init: datetime
-    ) -> None:
-        """
-        Creates a new time status publisher to publish the time status when it changes.
-
-        Args:
-            time_status_step (:obj:`timedelta`): scenario duration between time status messages
-            time_status_init (:obj:`datetime`): scenario time for first time status message
-        """
-        if time_status_step is not None:
-            if self._time_status_publisher is not None:
-                self.simulator.remove_observer(self._time_status_publisher)
-            self._time_status_publisher = TimeStatusPublisher(
-                self, time_status_step, time_status_init
-            )
-            self.simulator.add_observer(self._time_status_publisher)
-
-    def _create_mode_status_observer(self) -> None:
-        """
-        Creates a mode status observer to publish the mode status when it changes.
-        """
-        if self._mode_status_observer is not None:
-            self.simulator.remove_observer(self._mode_status_observer)
-        self._mode_status_observer = ModeStatusObserver(self)
-        self.simulator.add_observer(self._mode_status_observer)
-
-    def _create_shut_down_observer(self) -> None:
-        """
-        Creates an observer to shut down the application when the simulation is terminated.
-        """
-        if self._shut_down_observer is not None:
-            self.simulator.remove_observer(self._shut_down_observer)
-        self._shut_down_observer = ShutDownObserver(self)
-        self.simulator.add_observer(self._shut_down_observer)
 
     def create_routing_key(self, app_name: str, topic: str):
         """
@@ -852,3 +683,138 @@ class Application:
                 logger.info(f"Deleted exchange: {exchange_name}")
             except Exception as e:
                 logger.error(f"Failed to delete exchange {exchange_name}: {e}")
+
+    ############################################################################################################################################################################
+    # STOP APPLICATION
+    ############################################################################################################################################################################
+    def stop_consuming(self):
+        """Tell RabbitMQ that you would like to stop consuming by sending the
+        Basic.Cancel RPC command.
+        """
+        if self.channel:
+            logger.info("Sending a Basic.Cancel RPC command to RabbitMQ")
+            cb = functools.partial(self.on_cancelok, userdata=self._consumer_tag)
+            self.channel.basic_cancel(self._consumer_tag, cb)
+
+    def on_cancelok(self, _unused_frame, userdata):
+        """This method is invoked by pika when RabbitMQ acknowledges the
+        cancellation of a consumer. At this point we will close the channel.
+        This will invoke the on_channel_closed method once the channel has been
+        closed, which will in-turn close the connection.
+        :param pika.frame.Method _unused_frame: The Basic.CancelOk frame
+        :param str|unicode userdata: Extra user data (consumer tag)
+        """
+        self.consuming = False
+        logger.info(
+            "RabbitMQ acknowledged the cancellation of the consumer: %s", userdata
+        )
+        self.close_channel()
+        self.stop_loop()
+
+    def close_channel(self):
+        """Call to close the channel with RabbitMQ cleanly by issuing the
+        Channel.Close RPC command.
+        """
+        logger.info("Deleting queues and exchanges.")
+
+        if self.predefined_exchanges_queues:
+            self.delete_queue(self.channel_configs, self.app_name)
+            self.delete_exchange(self.unique_exchanges)
+        else:
+            self.delete_all_queues_and_exchanges()
+
+        logger.info("Closing channel")
+        self.channel.close()
+
+    def stop_loop(self):
+        """Stop the IO loop"""
+        self.connection.ioloop.stop()
+
+    def stop_application(self):
+        """Cleanly shutdown the connection to RabbitMQ by stopping the consumer
+        with RabbitMQ. When RabbitMQ confirms the cancellation, on_cancelok
+        will be invoked by pika, which will then closing the channel and
+        connection. The IOLoop is started again because this method is invoked
+        when CTRL-C is pressed raising a KeyboardInterrupt exception. This
+        exception stops the IOLoop which needs to be running for pika to
+        communicate with RabbitMQ. All of the commands issued prior to starting
+        the IOLoop will be buffered but not processed.
+        """
+        if not self.closing:
+            self.closing = True
+            if self.consuming:
+                self.stop_consuming()
+                # Signal the thread to stop
+                if hasattr(self, "stop_event"):
+                    self.stop_event.set()
+                if hasattr(self, "_should_stop"):
+                    self._should_stop.set()
+                if hasattr(self, "io_thread"):
+                    self.io_thread.join()
+                sys.exit()
+            else:
+                self.connection.ioloop.stop()
+
+    ############################################################################################################################################################################
+    # TIMING
+    ############################################################################################################################################################################
+    def set_wallclock_offset(
+        self, host="pool.ntp.org", retry_delay_s: int = 5, max_retry: int = 5
+    ) -> None:
+        """
+        Issues a Network Time Protocol (NTP) request to determine the system clock offset.
+
+        Args:
+            host (str): NTP host (default: 'pool.ntp.org')
+            retry_delay_s (int): number of seconds to wait before retrying
+            max_retry (int): maximum number of retries allowed
+        """
+        for i in range(max_retry):
+            try:
+                logger.info(f"Contacting {host} to retrieve wallclock offset.")
+                response = ntplib.NTPClient().request(host, version=3, timeout=2)
+                offset = timedelta(seconds=response.offset)
+                self.simulator.set_wallclock_offset(offset)
+                logger.info(f"Wallclock offset updated to {offset}.")
+                return
+            except ntplib.NTPException:
+                logger.warn(
+                    f"Could not connect to {host}, attempt #{i+1}/{max_retry} in {retry_delay_s} s."
+                )
+                time.sleep(retry_delay_s)
+
+    def _create_time_status_publisher(
+        self, time_status_step: timedelta, time_status_init: datetime
+    ) -> None:
+        """
+        Creates a new time status publisher to publish the time status when it changes.
+
+        Args:
+            time_status_step (:obj:`timedelta`): scenario duration between time status messages
+            time_status_init (:obj:`datetime`): scenario time for first time status message
+        """
+        if time_status_step is not None:
+            if self._time_status_publisher is not None:
+                self.simulator.remove_observer(self._time_status_publisher)
+            self._time_status_publisher = TimeStatusPublisher(
+                self, time_status_step, time_status_init
+            )
+            self.simulator.add_observer(self._time_status_publisher)
+
+    def _create_mode_status_observer(self) -> None:
+        """
+        Creates a mode status observer to publish the mode status when it changes.
+        """
+        if self._mode_status_observer is not None:
+            self.simulator.remove_observer(self._mode_status_observer)
+        self._mode_status_observer = ModeStatusObserver(self)
+        self.simulator.add_observer(self._mode_status_observer)
+
+    def _create_shut_down_observer(self) -> None:
+        """
+        Creates an observer to shut down the application when the simulation is terminated.
+        """
+        if self._shut_down_observer is not None:
+            self.simulator.remove_observer(self._shut_down_observer)
+        self._shut_down_observer = ShutDownObserver(self)
+        self.simulator.add_observer(self._shut_down_observer)
