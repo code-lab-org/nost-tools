@@ -15,11 +15,14 @@ logger = logging.getLogger(__name__)
 
 
 class RabbitMQConfig(BaseModel):
+    keycloak_authentication: bool = Field(
+        False, description="Keycloak authentication for RabbitMQ."
+    )
     host: str = Field("localhost", description="RabbitMQ host.")
     port: int = Field(5672, description="RabbitMQ port.")
     tls: bool = Field(False, description="RabbitMQ TLS.")
     virtual_host: str = Field("/", description="RabbitMQ virtual host.")
-    expiration: str = Field(
+    message_expiration: str = Field(
         "60000", description="RabbitMQ expiration, in milliseconds."
     )
     delivery_mode: int = Field(
@@ -29,6 +32,11 @@ class RabbitMQConfig(BaseModel):
         "text/plain",
         description="RabbitMQ content type (application/json, text/plain).",
     )
+    heartbeat: int = Field(30, description="RabbitMQ heartbeat interval.")
+    connection_attempts: int = Field(
+        3, description="RabbitMQ connection attempts before giving up."
+    )
+    retry_delay: int = Field(5, description="RabbitMQ retry delay.")
 
 
 class KeycloakConfig(BaseModel):
@@ -390,7 +398,7 @@ class ConnectionConfig:
         dotenv_path = find_dotenv(usecwd=True)
         if dotenv_path:
             logger.info(f"Checking for credentials in the .env file: {dotenv_path}.")
-            load_dotenv(dotenv_path)
+            load_dotenv(dotenv_path, override=True)
         else:
             logger.warning(
                 "Checking for credentials in the system environment variables."
@@ -398,6 +406,7 @@ class ConnectionConfig:
 
         required_fields = ["USERNAME", "PASSWORD", "CLIENT_ID", "CLIENT_SECRET_KEY"]
         env_data = {field: os.getenv(field) for field in required_fields}
+        # env_data = {field: os.environ.get(field) for field in required_fields}
 
         missing_fields = [field for field, value in env_data.items() if value is None]
         if missing_fields:

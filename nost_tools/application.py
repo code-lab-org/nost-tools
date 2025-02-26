@@ -191,50 +191,6 @@ class Application:
         """
         self.connection.update_secret(access_token, "secret")
 
-    def delete_queue(self, configs, app_name):
-        """
-        Deletes the queues from RabbitMQ.
-
-        Args:
-            configs (list): list of channel configurations
-            app_name (str): application name
-        """
-        for config in configs:
-            if config["app"] == app_name:
-                logger.info(f"Deleting queue: {config['address']}")
-                self.channel.queue_delete(queue=config["address"])
-        logger.info("Successfully deleted queues.")
-
-    def delete_exchange(self, unique_exchanges):
-        """
-        Deletes the exchanges from RabbitMQ.
-
-        Args:
-            unique_exchanges (dict): dictionary of unique exchanges
-        """
-        for exchange_name, exchange_config in unique_exchanges.items():
-            self.channel.exchange_delete(exchange=exchange_name)
-        logger.info("Successfully deleted exchanges.")
-
-    def delete_all_queues_and_exchanges(self):
-        """
-        Deletes all declared queues and exchanges from RabbitMQ.
-        """
-        for queue_name in list(self.declared_queues):
-            try:
-                # self.channel.queue_purge(queue=queue_name)
-                self.channel.queue_delete(queue=queue_name)
-                logger.info(f"Deleted queue: {queue_name}")
-            except Exception as e:
-                logger.error(f"Failed to delete queue {queue_name}: {e}")
-
-        for exchange_name in list(self.declared_exchanges):
-            try:
-                self.channel.exchange_delete(exchange=exchange_name)
-                logger.info(f"Deleted exchange: {exchange_name}")
-            except Exception as e:
-                logger.error(f"Failed to delete exchange {exchange_name}: {e}")
-
     def start_up(
         self,
         prefix: str,
@@ -285,27 +241,38 @@ class Application:
         self.prefix = prefix
         self.config = config
         self._is_running = True
-        # Obtain access token and refresh token
-        self.token_refresh_interval = (
-            self.config.rc.server_configuration.servers.keycloak.token_refresh_interval
-        )
-        logger.info(
-            f"Keycloak access token will be refreshed every {self.token_refresh_interval} seconds."
-        )
-        access_token, _ = self.new_access_token()
-        self.start_token_refresh_thread()
+
+        if self.config.rc.server_configuration.servers.rabbitmq.keycloak_authentication:
+            # Obtain access token and refresh token
+            self.token_refresh_interval = (
+                self.config.rc.server_configuration.servers.keycloak.token_refresh_interval
+            )
+            logger.info(
+                f"Keycloak authentication is enabled. Access token will be refreshed every {self.token_refresh_interval} seconds"
+            )
+            access_token, _ = self.new_access_token()
+            self.start_token_refresh_thread()
+            credentials = pika.PlainCredentials("", access_token)
+        else:
+            credentials = pika.PlainCredentials(
+                self.config.rc.credentials.username,
+                self.config.rc.credentials.password,
+            )
 
         # Set up connection parameters
         parameters = pika.ConnectionParameters(
             host=self.config.rc.server_configuration.servers.rabbitmq.host,
             virtual_host=self.config.rc.server_configuration.servers.rabbitmq.virtual_host,
             port=self.config.rc.server_configuration.servers.rabbitmq.port,
-            credentials=pika.PlainCredentials("", access_token),
-            heartbeat=600,
+            credentials=credentials,
+            heartbeat=config.rc.server_configuration.servers.rabbitmq.heartbeat,
+            connection_attempts=config.rc.server_configuration.servers.rabbitmq.connection_attempts,
+            retry_delay=config.rc.server_configuration.servers.rabbitmq.retry_delay,
         )
 
         # Configure transport layer security (TLS) if needed
-        if self.config.is_tls:
+        if self.config.rc.server_configuration.servers.rabbitmq.tls:
+            logger.info(self.config)
             logger.info("Using TLS/SSL.")
             parameters.ssl_options = pika.SSLOptions(ssl.SSLContext())
 
@@ -433,7 +400,7 @@ class Application:
                 routing_key=routing_key,
                 body=payload,
                 properties=pika.BasicProperties(
-                    expiration=self.config.rc.server_configuration.servers.rabbitmq.expiration,
+                    expiration=self.config.rc.server_configuration.servers.rabbitmq.message_expiration,
                     delivery_mode=self.config.rc.server_configuration.servers.rabbitmq.delivery_mode,
                     content_type=self.config.rc.server_configuration.servers.rabbitmq.content_type,
                     app_id=self.app_name,
@@ -443,58 +410,150 @@ class Application:
                 f"Successfully sent message '{payload}' to topic '{routing_key}'."
             )
 
+    def routing_key_matches_pattern(self, routing_key, pattern):
+        """
+        Check if a routing key matches a wildcard pattern.
+
+        Args:
+            routing_key (str): The actual routing key of the message
+            pattern (str): The pattern which may contain * or # wildcards
+
+        Returns:
+            bool: True if the routing key matches the pattern
+        """
+        # Split both keys into segments
+        route_parts = routing_key.split(".")
+        pattern_parts = pattern.split(".")
+
+        # If # isn't in pattern, both must have same number of parts
+        if "#" not in pattern_parts and len(route_parts) != len(pattern_parts):
+            return False
+
+        i = 0
+        while i < len(pattern_parts):
+            # Handle # wildcard (matches 0 or more segments)
+            if pattern_parts[i] == "#":
+                return True  # # at the end matches everything remaining
+
+            # Handle * wildcard (matches exactly one segment)
+            elif pattern_parts[i] == "*":
+                # Ensure there's a segment to match
+                if i >= len(route_parts):
+                    return False
+                # * matches any single segment, continue to next segment
+                i += 1
+                continue
+
+            # Handle exact match segment
+            else:
+                # If we've run out of route parts or segments don't match
+                if i >= len(route_parts) or pattern_parts[i] != route_parts[i]:
+                    return False
+
+            i += 1
+
+        # If we've gone through all pattern parts, make sure we've used all route parts
+        return len(route_parts) <= i
+
     def add_message_callback(
         self, app_name: str, app_topic: str, user_callback: Callable
     ):
-        """Modified to support multiple callbacks per topic"""
+        """
+        Add callback for a topic, supporting wildcards (* and #) in routing keys.
+
+        * matches exactly one word
+        # matches zero or more words
+        """
         self.was_consuming = True
         self.consuming = True
 
         routing_key = self.create_routing_key(app_name=app_name, topic=app_topic)
-        logger.info(routing_key)
+        # logger.info(f"Adding callback for routing key: {routing_key}")
 
-        # Store callback for this topic
+        # Check if this is the first callback for this routing key pattern
         if routing_key not in self._callbacks_per_topic:
             self._callbacks_per_topic[routing_key] = []
+
             # Only set up the consumer once per topic
             if not self.predefined_exchanges_queues:
-                routing_key, queue_name = self.yamless_declare_bind_queue(
-                    routing_key=routing_key, app_specific_extender=self.app_name
+                # For wildcard subscriptions, use the app_name as queue suffix to ensure uniqueness
+                queue_suffix = self.app_name
+
+                # If using wildcards, bind to the wildcard pattern
+                if "*" in routing_key or "#" in routing_key:
+                    # Create a unique queue name for this wildcard subscription
+                    queue_name = f"{routing_key.replace('*', 'star').replace('#', 'hash')}.{queue_suffix}"
+
+                    # Declare a new queue
+                    self.channel.queue_declare(
+                        queue=queue_name, durable=False, auto_delete=True
+                    )
+
+                    # Bind queue to the exchange with the wildcard pattern
+                    self.channel.queue_bind(
+                        exchange=self.prefix, queue=queue_name, routing_key=routing_key
+                    )
+
+                    # Track the declared queue
+                    self.declared_queues.add(queue_name)
+                else:
+                    # For non-wildcard keys, use the standard approach
+                    routing_key, queue_name = self.yamless_declare_bind_queue(
+                        routing_key=routing_key, app_specific_extender=queue_suffix
+                    )
+
+                self.channel.basic_qos(prefetch_count=1)
+                self._consumer_tag = self.channel.basic_consume(
+                    queue=queue_name,
+                    on_message_callback=self._handle_message,
+                    auto_ack=False,
                 )
 
-            self.channel.basic_qos(prefetch_count=1)
-            self._consumer_tag = self.channel.basic_consume(
-                queue=queue_name,
-                on_message_callback=self._handle_message,
-                auto_ack=False,
-            )
-
+        # Add the callback to the list for this routing key
         self._callbacks_per_topic[routing_key].append(user_callback)
-        # logger.info(f"Added callback for topic: {routing_key}")
 
     def _handle_message(self, ch, method, properties, body):
         """
         Callback for handling messages received from RabbitMQ.
-
-        Args:
-            ch (:obj:`pika.channel.Channel`): The channel object used to communicate with the RabbitMQ server.
-            method (:obj:`pika.spec.Basic.Deliver`): Delivery-related information such as delivery tag, exchange, and routing key.
-            properties (:obj:`pika.BasicProperties`): Message properties including content type, headers, and more.
-            body (bytes): The actual message body sent, containing the message payload
+        Supports both direct routing key matches and wildcard patterns.
         """
         routing_key = method.routing_key
-        logger.info(f"Routing key: {routing_key}")
-        callbacks = self._callbacks_per_topic.get(routing_key, [])
-        logger.info(f"Callbacks: {callbacks}")
+        logger.debug(f"Received message with routing key: {routing_key}")
+
+        # First check for exact routing key match
+        direct_callbacks = self._callbacks_per_topic.get(routing_key, [])
+
+        # Then find any wildcard patterns that match this routing key
+        wildcard_callbacks = []
+        for pattern, callbacks in self._callbacks_per_topic.items():
+            # Skip exact matches (already handled) and patterns that don't match
+            if pattern == routing_key:
+                continue
+
+            if "*" in pattern or "#" in pattern:
+                if self.routing_key_matches_pattern(routing_key, pattern):
+                    wildcard_callbacks.extend(callbacks)
+
+        # Combine all matching callbacks
+        all_callbacks = direct_callbacks + wildcard_callbacks
+
+        if all_callbacks:
+            logger.debug(
+                f"Found {len(all_callbacks)} callbacks for routing key: {routing_key}"
+            )
+        else:
+            logger.debug(f"No callbacks found for routing key: {routing_key}")
+            # Still acknowledge the message even if no callbacks matched
+            self.acknowledge_message(method.delivery_tag)
+            return
 
         try:
-            # Execute all callbacks for this topic
-            for callback in callbacks:
+            # Execute all callbacks for this message
+            for callback in all_callbacks:
                 callback(ch, method, properties, body)
 
             # Only acknowledge after all callbacks complete successfully
             self.acknowledge_message(method.delivery_tag)
-
         except Exception as e:
             logger.error(f"Error processing message: {e}")
             # Reject the message if any callback fails
@@ -749,3 +808,47 @@ class Application:
             pass
 
         return routing_key, queue_name
+
+    def delete_queue(self, configs, app_name):
+        """
+        Deletes the queues from RabbitMQ.
+
+        Args:
+            configs (list): list of channel configurations
+            app_name (str): application name
+        """
+        for config in configs:
+            if config["app"] == app_name:
+                logger.info(f"Deleting queue: {config['address']}")
+                self.channel.queue_delete(queue=config["address"])
+        logger.info("Successfully deleted queues.")
+
+    def delete_exchange(self, unique_exchanges):
+        """
+        Deletes the exchanges from RabbitMQ.
+
+        Args:
+            unique_exchanges (dict): dictionary of unique exchanges
+        """
+        for exchange_name, exchange_config in unique_exchanges.items():
+            self.channel.exchange_delete(exchange=exchange_name)
+        logger.info("Successfully deleted exchanges.")
+
+    def delete_all_queues_and_exchanges(self):
+        """
+        Deletes all declared queues and exchanges from RabbitMQ.
+        """
+        for queue_name in list(self.declared_queues):
+            try:
+                # self.channel.queue_purge(queue=queue_name)
+                self.channel.queue_delete(queue=queue_name)
+                logger.info(f"Deleted queue: {queue_name}")
+            except Exception as e:
+                logger.error(f"Failed to delete queue {queue_name}: {e}")
+
+        for exchange_name in list(self.declared_exchanges):
+            try:
+                self.channel.exchange_delete(exchange=exchange_name)
+                logger.info(f"Deleted exchange: {exchange_name}")
+            except Exception as e:
+                logger.error(f"Failed to delete exchange {exchange_name}: {e}")
