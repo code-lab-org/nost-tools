@@ -32,14 +32,6 @@ logging.captureWarnings(True)
 logger = logging.getLogger(__name__)
 urllib3.disable_warnings()
 
-# class MessageObservable(Observable):
-#     """Observable class specific to message handling"""
-
-#     def notify_observers_with_message(self, ch, method, properties, body):
-#         """Notify all observers with the message details"""
-#         for observer in self._observers:
-#             observer.on_message(ch, method, properties, body)
-
 
 class Application:
     """
@@ -122,6 +114,11 @@ class Application:
         Args:
             refresh_token (str): refresh token (optional)
         """
+        logger.debug(
+            "Acquiring access token."
+            if not refresh_token
+            else "Refreshing access token."
+        )
         keycloak_openid = KeycloakOpenID(
             server_url=f"{'http' if 'localhost' in self.config.rc.server_configuration.servers.keycloak.host or '127.0.0.1' in self.config.rc.server_configuration.servers.keycloak.host else 'https'}://{self.config.rc.server_configuration.servers.keycloak.host}:{self.config.rc.server_configuration.servers.keycloak.port}",
             client_id=self.config.rc.credentials.client_id,
@@ -149,8 +146,10 @@ class Application:
                         totp=otp,
                     )
             if "access_token" in token:
-                logger.info(
-                    f"Access token successfully acquired with scopes: {token['scope']}"
+                logger.debug(
+                    "Acquiring access token successfully completed."
+                    if not refresh_token
+                    else "Refreshing access token successfully completed."
                 )
                 return token["access_token"], token["refresh_token"]
             else:
@@ -166,30 +165,22 @@ class Application:
         Args:
             config (:obj:`ConnectionConfig`): connection configuration
         """
+        logger.debug("Starting refresh token thread.")
 
         def refresh_token_periodically():
-            while not self._should_stop.is_set():
-                sleep_interval = 1  # Check every second
-                total_sleep_time = 0
-
-                while total_sleep_time < self.token_refresh_interval:
-                    if self._should_stop.is_set():
-                        return
-                    time.sleep(sleep_interval)
-                    total_sleep_time += sleep_interval
-
+            while not self._should_stop.wait(timeout=self.token_refresh_interval):
                 try:
                     access_token, refresh_token = self.new_access_token(
                         self.refresh_token
                     )
                     self.refresh_token = refresh_token
                     self.update_connection_credentials(access_token)
-                    logger.info("Access token refreshed successfully.")
                 except Exception as e:
                     logger.error(f"Failed to refresh access token: {e}")
 
         self.token_refresh_thread = threading.Thread(target=refresh_token_periodically)
         self.token_refresh_thread.start()
+        logger.debug("Starting refresh token thread successfully completed.")
 
     def update_connection_credentials(self, access_token):
         """
@@ -298,7 +289,10 @@ class Application:
         self.token_refresh_interval = (
             self.config.rc.server_configuration.servers.keycloak.token_refresh_interval
         )
-        access_token, refresh_token = self.new_access_token()
+        logger.info(
+            f"Keycloak access token will be refreshed every {self.token_refresh_interval} seconds."
+        )
+        access_token, _ = self.new_access_token()
         self.start_token_refresh_thread()
 
         # Set up connection parameters
@@ -333,7 +327,9 @@ class Application:
 
         if self.config.rc.simulation_configuration.predefined_exchanges_queues:
             self.predefined_exchanges_queues = True
-            logger.info("Running NOS-T in YAML mode.")
+            logger.debug(
+                "Exchanges and queues are predefined in the YAML configuration file."
+            )
             # Get the unique exchanges and channel configurations
             self.unique_exchanges, self.channel_configs = (
                 self.config.rc.simulation_configuration.exchanges,
@@ -341,16 +337,16 @@ class Application:
             )
 
         else:
-            logger.info("Running NOS-T in non-YAML mode.")
+            logger.debug(
+                "Exchanges and queues are NOT predefined in the YAML configuration file."
+            )
 
         # Configure observers
         self._create_time_status_publisher(self.time_status_step, self.time_status_init)
         self._create_mode_status_observer()
         if self.shut_down_when_terminated:
             self._create_shut_down_observer()
-        logger.info(
-            f"Application {self.app_name} successfully started up. Keycloak access token will be refreshed every {self.token_refresh_interval} seconds."
-        )
+        logger.info(f"Application {self.app_name} successfully started up.")
 
     def _start_io_loop(self):
         """
@@ -412,32 +408,6 @@ class Application:
             self.consuming = False
         logger.info(f"Application {self.app_name} successfully shut down.")
 
-    # def send_message(
-    #     self, app_name, app_topic: str, payload: str
-    # ) -> None:  # , app_specific_extender: str = None) -> None:
-    #     """
-    #     Sends a message to the broker. The message is sent to the exchange using the routing key. The routing key is created using the application name and topic. The message is published with an expiration of 60 seconds.
-
-    #     Args:
-    #         app_name (str): application name
-    #         app_topic (str): topic name
-    #         payload (str): message payload
-    #     """
-    #     routing_key = self.create_routing_key(app_name=app_name, topic=app_topic)
-    #     if not self.predefined_exchanges_queues:
-    #         routing_key, queue_name = self.yamless_declare_bind_queue(
-    #             routing_key=routing_key
-    #         )
-
-    #     # Expiration of 60000 ms = 60 sec
-    #     self.channel.basic_publish(
-    #         exchange=self.prefix,
-    #         routing_key=routing_key,
-    #         body=payload,
-    #         properties=pika.BasicProperties(expiration="60000"),
-    #     )
-    #     logger.debug(f"Successfully sent message '{payload}' to topic '{routing_key}'.")
-
     def send_message(self, app_name, app_topics, payload: str) -> None:
         """
         Sends a message to the broker. The message is sent to the exchange using the routing key. The routing key is created using the application name and topic. The message is published with an expiration of 60 seconds.
@@ -462,7 +432,12 @@ class Application:
                 exchange=self.prefix,
                 routing_key=routing_key,
                 body=payload,
-                properties=pika.BasicProperties(expiration="60000"),
+                properties=pika.BasicProperties(
+                    expiration=self.config.rc.server_configuration.servers.rabbitmq.expiration,
+                    delivery_mode=self.config.rc.server_configuration.servers.rabbitmq.delivery_mode,
+                    content_type=self.config.rc.server_configuration.servers.rabbitmq.content_type,
+                    app_id=self.app_name,
+                ),
             )
             logger.debug(
                 f"Successfully sent message '{payload}' to topic '{routing_key}'."
@@ -476,6 +451,7 @@ class Application:
         self.consuming = True
 
         routing_key = self.create_routing_key(app_name=app_name, topic=app_topic)
+        logger.info(routing_key)
 
         # Store callback for this topic
         if routing_key not in self._callbacks_per_topic:
@@ -494,7 +470,7 @@ class Application:
             )
 
         self._callbacks_per_topic[routing_key].append(user_callback)
-        logger.info(f"Added callback for topic: {routing_key}")
+        # logger.info(f"Added callback for topic: {routing_key}")
 
     def _handle_message(self, ch, method, properties, body):
         """
@@ -507,17 +483,17 @@ class Application:
             body (bytes): The actual message body sent, containing the message payload
         """
         routing_key = method.routing_key
+        logger.info(f"Routing key: {routing_key}")
         callbacks = self._callbacks_per_topic.get(routing_key, [])
+        logger.info(f"Callbacks: {callbacks}")
 
         try:
             # Execute all callbacks for this topic
             for callback in callbacks:
-                logger.info("Executing callback")
                 callback(ch, method, properties, body)
 
             # Only acknowledge after all callbacks complete successfully
             self.acknowledge_message(method.delivery_tag)
-            logger.info(f"Message {method.delivery_tag} processed by all callbacks")
 
         except Exception as e:
             logger.error(f"Error processing message: {e}")
@@ -527,100 +503,39 @@ class Application:
                     delivery_tag=method.delivery_tag, requeue=True
                 )
 
-    # def add_message_callback(
-    #     self, app_name: str, app_topic: str, user_callback: Callable
-    # ):  # , app_specific_extender: str = None):
+    # def add_on_cancel_callback(self):
+    #     """Add a callback that will be invoked if RabbitMQ cancels the consumer
+    #     for some reason. If RabbitMQ does cancel the consumer,
+    #     on_consumer_cancelled will be invoked by pika.
     #     """
-    #     This method sets up the consumer by first calling
-    #     add_on_cancel_callback so that the object is notified if RabbitMQ
-    #     cancels the consumer. It then issues the Basic.Consume RPC command
-    #     which returns the consumer tag that is used to uniquely identify the
-    #     consumer with RabbitMQ. We keep the value to use it when we want to
-    #     cancel consuming. The on_message method is passed in as a callback pika
-    #     will invoke when a message is fully received.
+    #     logger.info("Adding consumer cancellation callback")
+    #     self.channel.add_on_cancel_callback(self.on_consumer_cancelled)
+
+    # def on_consumer_cancelled(self, method_frame):
+    #     """Invoked by pika when RabbitMQ sends a Basic.Cancel for a consumer
+    #     receiving messages.
+
+    #     :param pika.frame.Method method_frame: The Basic.Cancel frame
+    #     """
+    #     logger.info("Consumer was cancelled remotely, shutting down: %r", method_frame)
+    #     self.channel.close()
+
+    # def on_message(self, ch, method, properties, body):
+    #     """Invoked by pika when a message is delivered from RabbitMQ. The
+    #     channel is passed for your convenience. The basic_deliver object that
+    #     is passed in carries the exchange, routing key, delivery tag and
+    #     a redelivered flag for the message. The properties passed in is an
+    #     instance of BasicProperties with the message properties and the body
+    #     is the message that was sent.
 
     #     Args:
-    #         app_name (str): application name
-    #         app_topic (str): topic name
-    #         user_callback (Callable): user-provided callback function
+    #         ch (:obj:`pika.channel.Channel`): The channel object used to communicate with the RabbitMQ server.
+    #         method (:obj:`pika.spec.Basic.Deliver`): Delivery-related information such as delivery tag, exchange, and routing key.
+    #         properties (:obj:`pika.BasicProperties`): Message properties including content type, headers, and more.
+    #         body (bytes): The actual message body sent, containing the message payload.
     #     """
-    #     self.was_consuming = True
-    #     self.consuming = True
-    #     logger.info("Issuing consumer related RPC commands")
-    #     self.add_on_cancel_callback()
-    #     combined_cb = self.combined_callback(user_callback)
-
-    #     routing_key = self.create_routing_key(app_name=app_name, topic=app_topic)
-    #     if not self.predefined_exchanges_queues:
-    #         routing_key, queue_name = self.yamless_declare_bind_queue(
-    #             routing_key=routing_key, app_specific_extender=self.app_name
-    #         )
-
-    #     # Set QoS settings
-    #     self.channel.basic_qos(prefetch_count=1)
-    #     self._consumer_tag = self.channel.basic_consume(
-    #         queue=queue_name, on_message_callback=combined_cb, auto_ack=False
-    #     )
-    #     logger.info(f"Subscribing and adding callback to topic: {routing_key}")
-
-    # def combined_callback(self, user_callback):
-    #     """
-    #     Combines the user-provided callback with the on_message method.
-
-    #     Args:
-    #         user_callback (Callable): user-provided callback function
-    #     """
-
-    #     def wrapper(ch, method, properties, body):
-    #         """
-    #         Wrapper function to combine the user-provided callback with the on_message method.
-
-    #         Args:
-    #             ch (:obj:`pika.channel.Channel`): The channel object used to communicate with the RabbitMQ server.
-    #             method (:obj:`pika.spec.Basic.Deliver`): Delivery-related information such as delivery tag, exchange, and routing key.
-    #             properties (:obj:`pika.BasicProperties`): Message properties including content type, headers, and more.
-    #             body (bytes): The actual message body sent, containing the message payload.
-    #         """
-    #         # Call the on_message method
-    #         self.on_message(ch, method, properties, body)
-    #         # Call the user-provided callback
-    #         user_callback(ch, method, properties, body)
-
-    #     return wrapper
-
-    def add_on_cancel_callback(self):
-        """Add a callback that will be invoked if RabbitMQ cancels the consumer
-        for some reason. If RabbitMQ does cancel the consumer,
-        on_consumer_cancelled will be invoked by pika.
-        """
-        logger.info("Adding consumer cancellation callback")
-        self.channel.add_on_cancel_callback(self.on_consumer_cancelled)
-
-    def on_consumer_cancelled(self, method_frame):
-        """Invoked by pika when RabbitMQ sends a Basic.Cancel for a consumer
-        receiving messages.
-
-        :param pika.frame.Method method_frame: The Basic.Cancel frame
-        """
-        logger.info("Consumer was cancelled remotely, shutting down: %r", method_frame)
-        self.channel.close()
-
-    def on_message(self, ch, method, properties, body):
-        """Invoked by pika when a message is delivered from RabbitMQ. The
-        channel is passed for your convenience. The basic_deliver object that
-        is passed in carries the exchange, routing key, delivery tag and
-        a redelivered flag for the message. The properties passed in is an
-        instance of BasicProperties with the message properties and the body
-        is the message that was sent.
-
-        Args:
-            ch (:obj:`pika.channel.Channel`): The channel object used to communicate with the RabbitMQ server.
-            method (:obj:`pika.spec.Basic.Deliver`): Delivery-related information such as delivery tag, exchange, and routing key.
-            properties (:obj:`pika.BasicProperties`): Message properties including content type, headers, and more.
-            body (bytes): The actual message body sent, containing the message payload.
-        """
-        logger.debug(f"Received message # {method.delivery_tag}: {body.decode('utf8')}")
-        self.acknowledge_message(method.delivery_tag)
+    #     logger.debug(f"Received message # {method.delivery_tag}: {body.decode('utf8')}")
+    #     self.acknowledge_message(method.delivery_tag)
 
     def acknowledge_message(self, delivery_tag):
         """Acknowledge the message delivery from RabbitMQ by sending a
@@ -704,21 +619,21 @@ class Application:
             else:
                 self.connection.ioloop.stop()
 
-    def remove_message_callback(self):
-        """This method cancels the consumer by issuing the Basic.Cancel RPC command
-        which returns the consumer tag that is used to uniquely identify the
-        consumer with RabbitMQ. It also ensures that the consumer is no longer
-        consuming messages.
-        """
-        if self._consumer_tag:
-            logger.info("Cancelling the consumer")
-            self.stop_application()
-            self._consumer_tag = None
-            self.was_consuming = False
-            self.consuming = False
-            logger.debug("Consumer cancelled successfully")
-        else:
-            logger.warning("No consumer to cancel")
+    # def remove_message_callback(self):
+    #     """This method cancels the consumer by issuing the Basic.Cancel RPC command
+    #     which returns the consumer tag that is used to uniquely identify the
+    #     consumer with RabbitMQ. It also ensures that the consumer is no longer
+    #     consuming messages.
+    #     """
+    #     if self._consumer_tag:
+    #         logger.info("Cancelling the consumer")
+    #         self.stop_application()
+    #         self._consumer_tag = None
+    #         self.was_consuming = False
+    #         self.consuming = False
+    #         logger.debug("Consumer cancelled successfully")
+    #     else:
+    #         logger.warning("No consumer to cancel")
 
     def set_wallclock_offset(
         self, host="pool.ntp.org", retry_delay_s: int = 5, max_retry: int = 5

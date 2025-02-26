@@ -17,8 +17,18 @@ logger = logging.getLogger(__name__)
 class RabbitMQConfig(BaseModel):
     host: str = Field("localhost", description="RabbitMQ host.")
     port: int = Field(5672, description="RabbitMQ port.")
-    virtual_host: str = Field("/", description="RabbitMQ virtual host.")
     tls: bool = Field(False, description="RabbitMQ TLS.")
+    virtual_host: str = Field("/", description="RabbitMQ virtual host.")
+    expiration: str = Field(
+        "60000", description="RabbitMQ expiration, in milliseconds."
+    )
+    delivery_mode: int = Field(
+        2, description="RabbitMQ delivery mode. (1: non-persistent, 2: durable)"
+    )
+    content_type: str = Field(
+        "text/plain",
+        description="RabbitMQ content type (application/json, text/plain).",
+    )
 
 
 class KeycloakConfig(BaseModel):

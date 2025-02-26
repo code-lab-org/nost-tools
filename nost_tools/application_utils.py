@@ -218,13 +218,13 @@ class TimeStatusPublisher(ScenarioTimeIntervalPublisher):
             }
         )
         logger.info(
-            f"Sending time status {status.json(by_alias=True,exclude_none=True)}."
+            f"Sending time status {status.model_dump_json(by_alias=True,exclude_none=True)}."
         )
 
         self.app.send_message(
             app_name=self.app.app_name,
             app_topics="status.time",
-            payload=status.json(by_alias=True, exclude_none=True),
+            payload=status.model_dump_json(by_alias=True, exclude_none=True),
         )
 
 
@@ -277,7 +277,7 @@ class ModeStatusObserver(Observer):
                 }
             )
             logger.info(
-                f"Sending mode status {status.json(by_alias=True, exclude_none=True)}."
+                f"Sending mode status {status.model_dump_json(by_alias=True, exclude_none=True)}."
             )
 
             # Ensure self.prefix is a string
@@ -289,5 +289,5 @@ class ModeStatusObserver(Observer):
                 self.app.send_message(
                     app_name=self.app.app_name,
                     app_topics="status.mode",
-                    payload=status.json(by_alias=True, exclude_none=True),
+                    payload=status.model_dump_json(by_alias=True, exclude_none=True),
                 )
