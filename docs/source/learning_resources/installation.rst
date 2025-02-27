@@ -24,7 +24,7 @@ Cloning the Repository
 NOS-T Tools Installation
 ------------------------
 
-pip 
+Pip 
 ^^^
 
 To install NOS-T tools using pip:
