@@ -15,6 +15,13 @@ AMQP (Advanced Message Queuing Protocol) is an open standard application layer p
   * `Pika Python client library <https://pypi.org/project/pika/>`_ - (NOTE: This is one of many popular AMQP libraries)
 |
 
+.. figure:: amqp_architecture.png
+   :width: 800px
+   :alt: AMQP Architecture
+   :align: center
+   
+   AMQP Architecture showing the relationship between publishers, exchanges, queues, and consumers.
+
 Useful Terminology/Nomenclature
 ------------------------------
 
@@ -148,7 +155,7 @@ While this document focuses on AMQP, it's important to understand how it compare
      - OASIS standard with more flexibility
    * - **Typical Broker**
      - RabbitMQ, ActiveMQ, Qpid
-     - Mosquitto, HiveMQ, EMQ X
+     - Solace PubSub+, Mosquitto, HiveMQ, EMQ X
    * - **Connection Model**
      - Connection-oriented with heartbeats
      - Connection-oriented with keep-alive mechanism
