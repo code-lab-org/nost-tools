@@ -131,7 +131,7 @@ You can verify the container is running with:
 Logging into the RabbitMQ Management Interface
 ---------------------------------------------
 
-The `rabbitmq-docker-compose.yml` file contains a list of port mappings for different protocols, including the 15672 port for the RabbitMQ Management Interface. This web-based interface allows you to manage and monitor your RabbitMQ server. Once the docker container has been started up, open a browser and navigate to `http://localhost:15672/` to login to this new broker as an admin (Username: admin, Password: admin).
+The `rabbitmq-docker-compose.yml` file contains a list of port mappings for different protocols, including the 15672 port for the RabbitMQ Management Interface. This web-based interface allows you to manage and monitor your RabbitMQ server. Once the docker container has been started up, open a browser and navigate to http://localhost:15672/ to login to this new broker as an admin (Username: admin, Password: admin).
 
 .. image:: RabbitMQ_Management_Login.png
     :width: 800
