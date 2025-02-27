@@ -1,16 +1,16 @@
 .. _nost_publisher_consumer_example:
 
-Creating a NOST Tools Publisher-Consumer Example
+Creating a NOS-T Publisher-Consumer Example
 ===============================================
 
-This example demonstrates how to create a simple publisher-consumer system using the NOST Tools library. The example showcases how messages flow through the broker from publishers to consumers using the NOST Tools' abstractions.
+This example demonstrates how to create a simple publisher-consumer system using the NOS-T library. The example showcases how messages flow through the broker from publishers to consumers using NOS-T.
 
 Prerequisites
 ------------
 
-* NOS-T tools installed (as described in :ref:`installation`).
+* NOS-T installed (as described in :ref:`installation`).
 * RabbitMQ broker running (as described in :ref:`localBroker`).
-* Basic understanding of NOST messaging concepts.
+* Basic understanding of NOS-T messaging concepts.
 
 Configuration File
 -----------------
@@ -206,10 +206,10 @@ Running the Example
 
 5. Observe the messages being received in the consumer terminal.
 
-Understanding the NOST Tools Implementation
+Understanding the NOS-T Implementation
 -----------------------------------------
 
-This example demonstrates several key NOST Tools concepts:
+This example demonstrates several key NOS-T concepts:
 
 1. **Connection Configuration**: The ``ConnectionConfig`` class loads broker settings from a YAML file.
 2. **Managed Application**: The ``ManagedApplication`` class handles connection management and message routing.
@@ -217,7 +217,7 @@ This example demonstrates several key NOST Tools concepts:
 4. **Topics**: Messages are published with specific topics that consumers can subscribe to.
 5. **Payload Handling**: Messages can carry arbitrary string payloads.
 
-Unlike the direct pika implementation, NOST Tools abstracts away many messaging details, making the code more concise and focused on the application logic.
+Unlike the direct pika implementation, NOS-T abstracts away many messaging details, making the code more concise and focused on the application logic.
 
 Troubleshooting
 --------------
@@ -237,4 +237,4 @@ Next Steps
 - Try adding multiple consumers with different callbacks
 - Experiment with different message payloads (JSON, XML, etc.)
 - Implement more complex routing patterns using different topics
-- Explore other NOST Tools features like time synchronization and simulation control
+- Explore other NOS-T features like time synchronization and simulation control

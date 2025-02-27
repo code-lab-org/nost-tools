@@ -8,7 +8,7 @@ After setting up your RabbitMQ broker, you can test its functionality by creatin
 Prerequisites
 ------------
 
-* NOS-T tools installed (as described in :ref:`installation`.)
+* NOS-T installed (as described in :ref:`installation`.)
 * RabbitMQ broker running (as described in :ref:`localBroker`.)
 * Basic understanding of messaging concepts
 
