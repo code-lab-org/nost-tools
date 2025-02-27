@@ -31,21 +31,24 @@ To begin setting up a RabbitMQ broker, create a file named `rabbitmq-docker-comp
 .. code-block:: yaml
 
     services:
-      rabbitmq:
-        image: rabbitmq:4.0-management
+    rabbitmq:
+        image: rabbitmq:3.13-management
         hostname: rabbitmq
         container_name: rabbitmq
         ports:
-          - "5672:5672"   # AMQP port
-          - "15672:15672" # Management UI port
-          - "1883:1883"   # MQTT port
+        - "5672:5672"   # AMQP port
+        - "15672:15672" # Management UI port
+        - "1883:1883"   # MQTT port
         volumes:
-          - rabbitmq_data:/var/lib/rabbitmq
+        - rabbitmq_data:/var/lib/rabbitmq
         environment:
-          - RABBITMQ_DEFAULT_USER=admin
-          - RABBITMQ_DEFAULT_PASS=admin
+        - RABBITMQ_DEFAULT_USER=admin
+        - RABBITMQ_DEFAULT_PASS=admin
+        command: >
+        bash -c "rabbitmq-plugins enable --offline rabbitmq_mqtt rabbitmq_web_mqtt &&
+                docker-entrypoint.sh rabbitmq-server"
     volumes:
-      rabbitmq_data:
+    rabbitmq_data:
         name: rabbitmq_data
 
 Open an elevated command prompt and change directories to the location of this `.yml` file and enter the following:
