@@ -73,7 +73,7 @@ To install additional libraries required to run the examples:
   
   pip install .[examples]
 
-Installing the Python Packages
+Project Specifications
 ------------------------------
 
 Following the instructions above will automatically install the python packages that NOS-T depends on to run. These package dependencies can
