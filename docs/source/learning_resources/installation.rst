@@ -82,4 +82,9 @@ otherwise be found in the `project specification <https://github.com/emmanuelgon
 Next Step
 ---------
 
-The publisher-subscriber example in the :ref:`publisher_subscriber_example` is a good next step to test the installation.
+**Important:** NOS-T requires an event broker to function. To get started:
+
+1. Set up a local RabbitMQ broker: :ref:`localBroker` guide. Alternatively, you can use a cloud-based broker by checking in with the NOS-T operator.
+3. Verify your installation by testing the publisher-subscriber example: :ref:`publisher_subscriber_example`
+
+These steps will ensure your environment is correctly configured and ready for developing with NOS-T.
