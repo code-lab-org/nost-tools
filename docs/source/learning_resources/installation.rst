@@ -7,40 +7,66 @@ The best way to get the NOS-T tools library and example codes is to clone the NO
 and install the tools. There are several ways to clone a git repository. `Here <https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository?tool=webui>`__
 is a good description of some of these methods.
 
-Cloning the Repository
-----------------------
+Pip Installation
+-----------------------
 
-First, you need to clone the repository from the following link:
+For development purposes or to access the latest code and examples, clone the repository and install in development mode:
 
-https://github.com/code-lab-org/nost-tools
+1. Clone the repository:
 
-Installing NOS-T tools requires pip version 23 or greater. Install via
+::
+
+  git clone git@github.com:emmanuelgonz/nost-tools.git
+
+2. Upgrade pip to the latest version:
 
 ::
   
   python -m pip install --upgrade pip
 
-Then, from a command prompt,  navigate to the root directory (the location where you cloned the library) and install by running the following command:
+3. Install NOS-T tools:
 
 :: 
   
-  pip install -e .
+  pip install .
 
-If you want to install additional libraries required to run the examples, run:
+To install additional libraries required to run the examples:
 
 :: 
   
-  pip install -e .[examples]
+  pip install .[examples]
 
+Conda Installation
+----------------
+
+To install NOS-T tools using conda:
+
+1. Clone the repository:
+
+::
+
+  git clone git@github.com:emmanuelgonz/nost-tools.git
+
+2. Create a new conda environment (recommended):
+
+   ::
+   
+     conda create -n nost python=3.11
+     conda activate nost
+
+3. Install NOS-T tools using pip within the conda environment:
+
+   ::
+   
+     pip install .[examples]
 
 Installing the Python Packages
 ------------------------------
 
 Following the instructions above will automatically install the python packages that NOS-T depends on to run. These package dependencies can
-otherwise be found in the `project specification <https://github.com/code-lab-org/nost-tools/blob/main/pyproject.toml>`__.
+otherwise be found in the `project specification <https://github.com/emmanuelgonz/nost-tools/blob/main/pyproject.toml>`__.
 
 Next Step
 ---------
 
-The hands-on tutorial will walk you through the FireSat+ test suite and is a good next step. It 
-starts with the installation process given here and continues with a :ref:`tutorialSystemDescription`.
+The publisher-subscriber example in the :ref:`publisher_subscriber_example` is a good next step to test the installation.
