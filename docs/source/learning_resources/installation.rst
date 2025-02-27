@@ -21,8 +21,11 @@ Cloning the Repository
   
   cd nost-tools
 
-Pip Installation
-----------------
+NOS-T Tools Installation
+------------------------
+
+pip 
+^^^
 
 To install NOS-T tools using pip:
 
@@ -44,42 +47,10 @@ To install additional libraries required to run the examples:
   
   pip install .[examples]
 
-Conda Installation
-------------------
+Conda
+^^^^^
 
-Installing Conda
-^^^^^^^^^^^^^^^^
-
-If you prefer using Conda for package and environment management but don't have it installed yet:
-
-1. Download the Miniconda installer (recommended) from the `official site <https://docs.conda.io/en/latest/miniconda.html>`__:
-
-   * **Linux**:
-     ::
-     
-       wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-       bash Miniconda3-latest-Linux-x86_64.sh
-     
-   * **macOS**:
-     ::
-     
-       wget https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh
-       bash Miniconda3-latest-MacOSX-x86_64.sh
-     
-   * **Windows**: Download the installer from the website and follow the graphical installation instructions
-
-2. After installation, close and reopen your terminal or run:
-   ::
-   
-     source ~/.bashrc  # Linux/macOS
-   
-3. Verify Conda is installed:
-   ::
-   
-     conda --version
-
-Installing NOS-T Tools
-^^^^^^^^^^^^^^^^^^^^^^
+*For instructions on how to install Conda, see the `Conda documentation <https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html>`__.*
 
 To install NOS-T tools using conda:
 
