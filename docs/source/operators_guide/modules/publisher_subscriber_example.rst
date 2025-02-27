@@ -10,17 +10,7 @@ Prerequisites
 
 * NOS-T tools installed (as described in :ref:`installation`.)
 * RabbitMQ broker running (as described in :ref:`localBroker`.)
-* Python 3.6+ installed
 * Basic understanding of messaging concepts
-
-Installing Required Libraries
-----------------------------
-
-First, install the Python client library for RabbitMQ:
-
-.. code-block:: console
-
-    >>> pip install pika
 
 Creating a Publisher
 -------------------
