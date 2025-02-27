@@ -73,11 +73,18 @@ To install additional libraries required to run the examples:
     
     pip install .[examples]
 
-Project Specifications
+Dependencies and Requirements
 ------------------------------
 
-Following the instructions above will automatically install the python packages that NOS-T depends on to run. These package dependencies can
-otherwise be found in the `project specification <https://github.com/emmanuelgonz/nost-tools/blob/main/pyproject.toml>`__.
+The installation process automatically handles all required dependencies for NOS-T tools. These include:
+
+- Core libraries for messaging and event processing
+- Utilities for simulation integration
+- Network communication components
+
+For a complete list of dependencies and version requirements, refer to the `project specification file (pyproject.toml) <https://github.com/emmanuelgonz/nost-tools/blob/main/pyproject.toml>`__ in the repository.
+
+If you encounter any compatibility issues, ensure you're using Python 3.9 or newer, as this is the recommended version range for NOS-T tools.
 
 Next Step
 ---------
