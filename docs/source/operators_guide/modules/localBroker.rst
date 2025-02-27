@@ -30,7 +30,6 @@ To begin setting up a RabbitMQ broker, create a file named `rabbitmq-docker-comp
 
 .. code-block:: yaml
 
-    version: '3'
     services:
       rabbitmq:
         image: rabbitmq:3-management
@@ -45,9 +44,6 @@ To begin setting up a RabbitMQ broker, create a file named `rabbitmq-docker-comp
         environment:
           - RABBITMQ_DEFAULT_USER=admin
           - RABBITMQ_DEFAULT_PASS=admin
-        command: >
-          bash -c "rabbitmq-plugins enable --offline rabbitmq_mqtt rabbitmq_web_mqtt && 
-                  docker-entrypoint.sh rabbitmq-server"
     volumes:
       rabbitmq_data:
         name: rabbitmq_data
