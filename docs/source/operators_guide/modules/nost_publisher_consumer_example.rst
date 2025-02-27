@@ -73,6 +73,13 @@ First, create a file named ``sos.yaml`` with the following content:
         shut_down_when_terminated: False
         manager_app_name: "manager"
 
+Then, create a ``.env`` file with the following content:
+
+.. code-block:: bash
+    
+    USERNAME="admin"
+    PASSWORD="admin"
+
 Creating a Publisher
 -------------------
 
