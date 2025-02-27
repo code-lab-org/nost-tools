@@ -74,6 +74,7 @@ Topic exchanges support pattern matching using wildcards:
 * **'#'**: Matches zero or more words in the routing key
 
 For example, if using the convention {SERVICE}.{CATEGORY}.{ACTION}, a consumer could bind to:
+
 * "service1.*.update" to receive all update actions for any category in service1
 * "service1.#" to receive all messages for service1
 * "*.critical.*" to receive all critical messages across all services
