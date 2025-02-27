@@ -111,3 +111,190 @@ For example, if using the convention {SERVICE}.{CATEGORY}.{ACTION}, a consumer c
 * "\*.critical.\*" to receive all critical messages across all services
 
 These routing capabilities allow for flexible and powerful message distribution patterns while maintaining control over message flow.
+|
+
+AMQP vs MQTT: Protocol Comparison
+---------------------------------
+
+While this document focuses on AMQP, it's important to understand how it compares to MQTT (Message Queuing Telemetry Transport), another popular messaging protocol. Each has distinct characteristics that make it suitable for particular use cases:
+
+.. list-table:: AMQP vs MQTT Comparison
+   :widths: 20 40 40
+   :header-rows: 1
+
+   * - Feature
+     - AMQP
+     - MQTT
+   * - **Primary Use Case**
+     - Enterprise messaging systems with complex routing requirements
+     - IoT devices, mobile applications with constrained resources
+   * - **Overhead**
+     - Higher overhead with more complex protocol
+     - Lightweight with minimal header overhead
+   * - **Message Routing**
+     - Sophisticated routing through exchanges (direct, topic, fanout, headers)
+     - Simple topic-based publish/subscribe
+   * - **QoS Levels**
+     - 0 (at-most-once), 1 (at-least-once), 2 (exactly-once)
+     - 0 (at-most-once), 1 (at-least-once), 2 (exactly-once)
+   * - **Message Queuing**
+     - Built-in with durable queues, temporary queues, etc.
+     - Limited; requires separate implementation
+   * - **Security**
+     - TLS/SSL with SASL authentication, fine-grained permissions
+     - TLS/SSL with username/password or certificate authentication
+   * - **Standards**
+     - OASIS standard with rigid specification
+     - OASIS standard with more flexibility
+   * - **Typical Broker**
+     - RabbitMQ, ActiveMQ, Qpid
+     - Mosquitto, HiveMQ, EMQ X
+   * - **Connection Model**
+     - Connection-oriented with heartbeats
+     - Connection-oriented with keep-alive mechanism
+   * - **Protocol Maturity**
+     - Mature, comprehensive
+     - Simple, widespread adoption in IoT
+
+**When to Choose AMQP over MQTT:**
+  * When you need complex message routing patterns
+  * For enterprise applications requiring robust message handling
+  * When message queuing and acknowledgment are critical
+  * For systems requiring high reliability and transaction support
+
+**When to Choose MQTT over AMQP:**
+  * For IoT devices with limited resources and bandwidth
+  * When simplicity of implementation is paramount
+  * For mobile applications where battery consumption matters
+  * For wide fan-out publish/subscribe scenarios with simple routing needs
+
+|
+
+AMQP Implementation Examples
+---------------------------
+
+Below are practical examples of working with AMQP using Python's Pika library, demonstrating common patterns used in NOS-T.
+
+Basic Connection and Channel Setup
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+    import pika
+    
+    # Establish connection parameters with credentials
+    credentials = pika.PlainCredentials('username', 'password')
+    connection_params = pika.ConnectionParameters(
+        host='broker-hostname',
+        port=5672,
+        virtual_host='/',
+        credentials=credentials
+    )
+    
+    # Create connection and channel
+    connection = pika.BlockingConnection(connection_params)
+    channel = connection.channel()
+    
+    # Always close connections when done
+    # connection.close()
+
+Publishing Messages to Different Exchange Types
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+    # Direct Exchange Example
+    channel.exchange_declare(exchange='direct_logs', exchange_type='direct')
+    routing_key = 'error'  # or 'info', 'warning', etc.
+    message = 'This is an error message'
+    
+    channel.basic_publish(
+        exchange='direct_logs',
+        routing_key=routing_key,
+        body=message,
+        properties=pika.BasicProperties(
+            delivery_mode=2,  # Make message persistent
+        )
+    )
+    
+    # Topic Exchange Example
+    channel.exchange_declare(exchange='topic_logs', exchange_type='topic')
+    routing_key = 'service1.critical.update'
+    message = 'Critical update required'
+    
+    channel.basic_publish(
+        exchange='topic_logs',
+        routing_key=routing_key,
+        body=message
+    )
+    
+    # Fanout Exchange Example
+    channel.exchange_declare(exchange='alerts', exchange_type='fanout')
+    message = 'System-wide notification'
+    
+    channel.basic_publish(
+        exchange='alerts',
+        routing_key='',  # Ignored for fanout exchanges
+        body=message
+    )
+
+Consuming Messages with Acknowledgments
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+    # Declare queue and bind to an exchange
+    channel.queue_declare(queue='task_queue', durable=True)
+    channel.queue_bind(
+        exchange='topic_logs',
+        queue='task_queue',
+        routing_key='service1.*.update'
+    )
+    
+    # Define callback function for message processing
+    def callback(ch, method, properties, body):
+        print(f"Received: {body.decode()}")
+        
+        # Process the message (implement your logic here)
+        
+        # Acknowledge message - tells broker we've processed it successfully
+        ch.basic_ack(delivery_tag=method.delivery_tag)
+    
+    # Set QoS prefetch count (limit messages in flight)
+    channel.basic_qos(prefetch_count=1)
+    
+    # Start consuming messages
+    channel.basic_consume(
+        queue='task_queue',
+        on_message_callback=callback
+    )
+    
+    print('Waiting for messages. To exit press CTRL+C')
+    channel.start_consuming()
+
+Dead Letter Exchange Setup
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+    # Set up the dead letter exchange
+    channel.exchange_declare(exchange='dead_letter', exchange_type='direct')
+    
+    # Create a queue with dead letter configuration
+    arguments = {
+        'x-dead-letter-exchange': 'dead_letter',
+        'x-dead-letter-routing-key': 'failed',
+        'x-message-ttl': 30000  # 30 seconds TTL
+    }
+    
+    channel.queue_declare(queue='main_queue', arguments=arguments)
+    
+    # Create the actual dead letter queue
+    channel.queue_declare(queue='dead_letter_queue')
+    channel.queue_bind(
+        exchange='dead_letter',
+        queue='dead_letter_queue',
+        routing_key='failed'
+    )
+
+These examples demonstrate the core AMQP concepts covered in the terminology section and show how the exchange types work in practice. For production use, consider implementing additional error handling, connection recovery, and proper resource cleanup.
