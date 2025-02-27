@@ -87,6 +87,42 @@ Note that the names of both the container and the volume can be customized by ed
 
 |
 
+Initializing a RabbitMQ Broker with Docker Run
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you prefer not to use Docker Compose or it's unavailable in your environment, you can use the `docker run` command directly to create a RabbitMQ container:
+
+.. code-block:: console
+
+    >>> docker run -d --name rabbitmq \
+        -p 5672:5672 -p 15672:15672 -p 1883:1883 \
+        -e RABBITMQ_DEFAULT_USER=admin \
+        -e RABBITMQ_DEFAULT_PASS=admin \
+        -v rabbitmq_data:/var/lib/rabbitmq \
+        --hostname rabbitmq \
+        --restart always \
+        rabbitmq:3.13-management \
+        bash -c "rabbitmq-plugins enable --offline rabbitmq_mqtt rabbitmq_web_mqtt && docker-entrypoint.sh rabbitmq-server"
+
+This command:
+
+* Creates a detached container named "rabbitmq"
+* Maps the necessary ports (AMQP, Management UI, and MQTT)
+* Sets default admin credentials
+* Creates a persistent volume for data storage
+* Enables the MQTT plugins
+* Configures automatic restart
+
+You can verify the container is running with:
+
+.. code-block:: console
+
+    >>> docker ps
+    CONTAINER ID   IMAGE                      COMMAND                  CREATED         STATUS         PORTS                                                                                        NAMES
+    abc123def456   rabbitmq:3.13-management   "bash -c 'rabbitmq-p…"   2 minutes ago   Up 2 minutes   0.0.0.0:1883->1883/tcp, 0.0.0.0:5672->5672/tcp, 4369/tcp, 5671/tcp, 0.0.0.0:15672->15672/tcp   rabbitmq
+
+|
+
 .. _RabbitMQManagement:
 
 Logging into the RabbitMQ Management Interface
