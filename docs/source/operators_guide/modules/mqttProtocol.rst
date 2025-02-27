@@ -13,7 +13,6 @@ AMQP (Advanced Message Queuing Protocol) is an open standard application layer p
   * `AMQP.org <https://www.amqp.org>`_  
   
   * `Pika Python client library <https://pypi.org/project/pika/>`_ - (NOTE: This is one of many popular AMQP libraries)
-
 |
 
 Useful Terminology/Nomenclature
@@ -83,7 +82,6 @@ A deep understanding of the protocol is not necessary to start working with AMQP
 
   * TTL (Time-To-Live):
                 A message or queue property that specifies how long messages should live before being automatically removed or sent to a dead letter exchange.
-
 |
 
 Message Routing with Exchange Types
