@@ -3,7 +3,7 @@
 Creating a Simple Publisher-Consumer Example
 =============================================
 
-After setting up your RabbitMQ broker, you can test its functionality by creating a simple publisher-consumer system. This example demonstrates how messages flow through the broker from publishers to subscribers.
+After setting up your RabbitMQ broker, you can test its functionality by creating a simple publisher-consumer system. This example demonstrates how messages flow through the broker from publishers to consumers.
 
 Prerequisites
 ------------
