@@ -20,7 +20,7 @@ AMQP (Advanced Message Queuing Protocol) is an open standard application layer p
    :alt: AMQP Architecture
    :align: center
    
-   AMQP Architecture showing the relationship between publishers, exchanges, queues, and consumers.
+   AMQP architecture showing the relationship between publishers, exchanges, queues, and consumers.
 
 Useful Terminology/Nomenclature
 ------------------------------
