@@ -140,7 +140,7 @@ Running the Example
 
    .. code-block:: console
 
-       >>> python consumer.py
+       >>> python3 consumer.py
        Subscribed to nost_example with binding key nost.example.*
        Waiting for messages. To exit press CTRL+C
 
@@ -148,7 +148,7 @@ Running the Example
 
    .. code-block:: console
 
-       >>> python publisher.py
+       >>> python3 publisher.py
        Starting to publish messages. Press CTRL+C to stop.
        Published message 1: {"sequence": 1, "timestamp": "2023-06-02T12:34:56.789012", "data": "Test message 1"}
        Published message 2: {"sequence": 2, "timestamp": "2023-06-02T12:34:58.789012", "data": "Test message 2"}
