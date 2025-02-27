@@ -52,6 +52,8 @@ To begin setting up a RabbitMQ broker, create a file named `rabbitmq-docker-comp
     rabbitmq_data:
       name: rabbitmq_data
 
+You can download the file `here <https://raw.githubusercontent.com/emmanuelgonz/nost_rabbitmq_keycloak/refs/heads/main/rabbitmq-docker-compose.yml>`_.
+
 Open an elevated command prompt and change directories to the location of this `.yml` file and enter the following:
 
 .. code-block:: console
@@ -173,3 +175,5 @@ Users and Permissions
 The Admin tab allows you to manage users and their permissions. You can create new users, assign them different permission levels, and restrict their access to specific virtual hosts. RabbitMQ's permission system is based on three operations: configure, write, and read, which can be assigned with regular expression patterns to control access to resources.
 
 |
+
+For more information on RabbitMQ management, refer to the `NOS-T RabbitMQ Keycloak GitHub repository <https://github.com/emmanuelgonz/nost_rabbitmq_keycloak>`_.
