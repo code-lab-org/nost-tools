@@ -32,7 +32,7 @@ To begin setting up a RabbitMQ broker, create a file named `rabbitmq-docker-comp
 
     services:
       rabbitmq:
-        image: rabbitmq:3-management
+        image: rabbitmq:4.0-management
         hostname: rabbitmq
         container_name: rabbitmq
         ports:
