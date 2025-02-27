@@ -110,9 +110,6 @@ For example, if using the convention {SERVICE}.{CATEGORY}.{ACTION}, a consumer c
 
 * "service1.*.update" to receive all update actions for any category in service1
 * "service1.#" to receive all messages for service1
-* "*.critical.*" to receive all critical messages across all services
+* "\*.critical.\*" to receive all critical messages across all services
 
 These routing capabilities allow for flexible and powerful message distribution patterns while maintaining control over message flow.
-
-..
-    other possible definitions to include: message durability, queue durability, acknowledgments, prefetch count
