@@ -31,47 +31,47 @@ To install NOS-T tools using pip:
 
 1. Upgrade pip to the latest version:
 
-::
-  
-  python -m pip install --upgrade pip
+  ::
+    
+    python -m pip install --upgrade pip
 
 2. Install NOS-T tools:
 
-:: 
-  
-  pip install .
+  :: 
+    
+    pip install .
 
 To install additional libraries required to run the examples:
 
-:: 
-  
-  pip install .[examples]
+  :: 
+    
+    pip install .[examples]
 
 Conda
 ^^^^^
 
-*For instructions on how to install Conda, see the `Conda documentation <https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html>`__.*
+*For instructions on how to install Conda, see the:* `Conda documentation <https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html>`__.
 
 To install NOS-T tools using conda:
 
 1. Create a new conda environment (recommended):
 
-   ::
-   
-     conda create -n nost python=3.11
-     conda activate nost
+  ::
+
+    conda create -n nost python=3.11
+    conda activate nost
 
 2. Install NOS-T tools:
 
-:: 
-  
-  pip install .
+  :: 
+    
+    pip install .
 
 To install additional libraries required to run the examples:
 
-:: 
-  
-  pip install .[examples]
+  :: 
+    
+    pip install .[examples]
 
 Project Specifications
 ------------------------------
