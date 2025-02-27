@@ -169,16 +169,3 @@ Users and Permissions
 The Admin tab allows you to manage users and their permissions. You can create new users, assign them different permission levels, and restrict their access to specific virtual hosts. RabbitMQ's permission system is based on three operations: configure, write, and read, which can be assigned with regular expression patterns to control access to resources.
 
 |
-
-MQTT Plugin Configuration
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. image:: RabbitMQ_MQTT_Plugin.png
-    :width: 800
-    :align: center
-
-
-|
-
-
-The MQTT plugin, which we enabled during setup, allows MQTT clients to connect to RabbitMQ. The plugin translates between MQTT and AMQP, the native protocol of RabbitMQ. You can adjust MQTT-specific settings through configuration files or using the management interface under the "Admin" tab. The plugin supports MQTT features like QoS levels, retained messages, and persistent sessions, making it compatible with NOS-T's messaging requirements.
