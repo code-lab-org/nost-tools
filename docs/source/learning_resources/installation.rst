@@ -19,7 +19,7 @@ Cloning the Repository
 2. Change to the directory where the repository was cloned:
 
   ::
-    
+
     cd nost-tools
 
 NOS-T Tools Installation
@@ -93,6 +93,6 @@ Next Steps
 **Important:** NOS-T requires an event broker to function. To get started:
 
 1. Set up a local RabbitMQ broker: :ref:`localBroker` guide. Alternatively, you can use a cloud-based broker by checking in with the NOS-T operator.
-2. Verify your installation by testing the publisher-subscriber example: :ref:`publisher_subscriber_example`
+2. Verify your installation by testing the publisher-subscriber example: :ref:`publisher_consumer_example`
 
 These steps will ensure your environment is correctly configured and ready for developing with NOS-T.

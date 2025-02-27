@@ -1,9 +1,9 @@
-.. _publisher_subscriber_example:
+.. _publisher_consumer_example:
 
-Creating a Simple Publisher-Subscriber Example
+Creating a Simple Publisher-Consumer Example
 =============================================
 
-After setting up your RabbitMQ broker, you can test its functionality by creating a simple publisher-subscriber system. This example demonstrates how messages flow through the broker from publishers to subscribers.
+After setting up your RabbitMQ broker, you can test its functionality by creating a simple publisher-consumer system. This example demonstrates how messages flow through the broker from publishers to subscribers.
 
 Prerequisites
 ------------
@@ -73,10 +73,10 @@ Create a file named ``publisher.py`` with the following content:
         connection.close()
         print("Connection closed")
 
-Creating a Subscriber
+Creating a Consumer
 --------------------
 
-Create a file named ``subscriber.py`` with the following content:
+Create a file named ``consumer.py`` with the following content:
 
 .. code-block:: python
 
@@ -136,11 +136,11 @@ Running the Example
 ------------------
 
 1. Open two terminal windows.
-2. In the first terminal, start the subscriber:
+2. In the first terminal, start the consumer:
 
    .. code-block:: console
 
-       >>> python subscriber.py
+       >>> python consumer.py
        Subscribed to nost_example with binding key nost.example.*
        Waiting for messages. To exit press CTRL+C
 
@@ -154,7 +154,7 @@ Running the Example
        Published message 2: {"sequence": 2, "timestamp": "2023-06-02T12:34:58.789012", "data": "Test message 2"}
        ...
 
-4. Observe the messages being received in the subscriber terminal:
+4. Observe the messages being received in the consumer terminal:
 
    .. code-block:: console
 
@@ -170,11 +170,11 @@ This example demonstrates the core concepts of messaging with RabbitMQ:
 1. **Publishers** send messages to an exchange with a specific routing key.
 2. **Exchanges** route messages to queues based on the routing key and exchange type.
 3. **Queues** hold messages until they are consumed.
-4. **Subscribers** consume messages from queues.
+4. **Consumers** consume messages from queues.
 
 The publisher creates messages with a sequence number and timestamp, then publishes them to the "nost_example" exchange with the routing key "nost.example.data".
 
-The subscriber creates a queue, binds it to the exchange with the binding pattern "nost.example.*", and then consumes messages that match this pattern.
+The consumer creates a queue, binds it to the exchange with the binding pattern "nost.example.*", and then consumes messages that match this pattern.
 
 Troubleshooting
 --------------
@@ -183,7 +183,7 @@ If you encounter issues:
 
 1. **Connection refused**: Ensure your RabbitMQ broker is running. Check with ``docker ps``.
 2. **Authentication failed**: Verify the username and password in the code match your RabbitMQ configuration.
-3. **No messages received**: Check that the exchange name and routing/binding keys match between publisher and subscriber.
+3. **No messages received**: Check that the exchange name and routing/binding keys match between publisher and consumer.
 4. **Broker not responding**: Restart the RabbitMQ container using ``docker restart rabbitmq``.
 
 You can also check the RabbitMQ management interface at http://localhost:15672/ to view exchanges, queues, and message flows.
@@ -193,5 +193,5 @@ Next Steps
 
 - Try modifying the routing keys to see how message routing changes.
 - Experiment with different exchange types (direct, fanout, headers).
-- Create multiple subscribers with different binding patterns.
+- Create multiple consumers with different binding patterns.
 - Add message persistence for reliability.
