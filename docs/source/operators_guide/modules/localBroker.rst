@@ -9,8 +9,11 @@ This page shows how to configure a new standalone RabbitMQ broker on a local hos
 
 |
 
-Initializing a RabbitMQ Broker with Docker Compose
---------------------------------------------------
+Initializing a RabbitMQ Broker
+------------------------------
+
+Docker Compose
+^^^^^^^^^^^^^^
 
 This tutorial specifically makes use of a Docker container for setting up the broker. A Docker container image is a lightweight, standalone, executable package of software that includes everything needed to run an application: code, runtime, system tools, system libraries and settings. In order to use the Docker Compose commands described, one of the following can be installed:
 
@@ -87,8 +90,8 @@ Note that the names of both the container and the volume can be customized by ed
 
 |
 
-Initializing a RabbitMQ Broker with Docker Run
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Docker Run
+^^^^^^^^^^
 
 If you prefer not to use Docker Compose or it's unavailable in your environment, you can use the `docker run` command directly to create a RabbitMQ container:
 
