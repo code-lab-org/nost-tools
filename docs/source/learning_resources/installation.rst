@@ -12,14 +12,15 @@ Cloning the Repository
 
 1. Clone the repository:
 
-::
+  ::
 
-  git clone git@github.com:emmanuelgonz/nost-tools.git
+    git clone git@github.com:emmanuelgonz/nost-tools.git
 
 2. Change to the directory where the repository was cloned:
-::
-  
-  cd nost-tools
+
+  ::
+    
+    cd nost-tools
 
 NOS-T Tools Installation
 ------------------------
@@ -86,8 +87,8 @@ For a complete list of dependencies and version requirements, refer to the `proj
 
 If you encounter any compatibility issues, ensure you're using Python 3.9 or newer, as this is the recommended version range for NOS-T tools.
 
-Next Step
----------
+Next Steps
+----------
 
 **Important:** NOS-T requires an event broker to function. To get started:
 
