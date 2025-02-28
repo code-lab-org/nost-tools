@@ -1,7 +1,7 @@
 .. _learningResources:
 
-NOS-T Learning Resources
-========================
+Learning Resources
+==================
 
 This section contains resources for helping users with NOS-T applications and test suites.
 
