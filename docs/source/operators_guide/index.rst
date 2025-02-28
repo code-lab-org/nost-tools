@@ -6,7 +6,7 @@ Operator's Guide
 A basic requirement for NOS-T is having access to a message broker. This guide is meant to aid someone who needs to set up a message broker and coordinate communication between multiple clients.
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    modules/amqp
    modules/yml_file
