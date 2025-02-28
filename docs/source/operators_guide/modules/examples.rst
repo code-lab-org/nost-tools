@@ -1,5 +1,5 @@
-AMQP Code Examples
-==================
+Code Examples
+=============
 
 This section contains examples showing how to use AMQP within and outside of NOS-T.
 

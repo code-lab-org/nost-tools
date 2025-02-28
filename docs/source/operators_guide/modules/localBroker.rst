@@ -1,7 +1,7 @@
 .. _localBroker:
 
-Setting up RabbitMQ Broker on Local Host
-========================================
+RabbitMQ Broker on Local Host
+=============================
 
 While there are many alternative broker implementation options available, NOS-T adopts RabbitMQ as the message broker, an open-source message broker software that implements the Advanced Message Queuing Protocol (AMQP). RabbitMQ supports various messaging protocols including MQTT through plugins, making it a versatile choice for message routing. The broker is lightweight yet powerful, supporting clustering for high availability and various messaging patterns.
 
