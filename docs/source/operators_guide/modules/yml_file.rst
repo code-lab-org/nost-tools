@@ -17,7 +17,7 @@ Configuration Details
 
 Info Section
 ^^^^^^^^^^^
-Contains metadata about the configuration file.
+Contains metadata about the configuration file. This does not influence the operation of the NOS-T Tools library, it is merely for documentation and informational purposes.
 
 Example:
 
@@ -26,7 +26,7 @@ Example:
    info:
      title: Novel Observing Strategies Testbed (NOS-T) YAML Configuration
      version: '1.0.0'
-     description: Version-controlled AsyncAPI document for RabbitMQ event broker with Keycloak authentication within NOS-T
+     description: Version-controlled configuration file for Snow Observing Systems (SOS) project
 
 Parameters:
 
@@ -130,7 +130,7 @@ Configuration for applications controlled by the manager:
 
 Channels Section
 ^^^^^^^^^^^^^^
-Defines the messaging channels used for communication between components.
+Defines the messaging channels used for communication between components. This entire section is optional. If a user wants to define each channel and queue for organizational purposes, they can do so here. Otherwise, the NOS-T Tools library will create default channels and queues.
 
 Channels follow this structure:
 
@@ -151,7 +151,7 @@ Channels follow this structure:
                vhost: /
              bindingVersion: 0.3.0
 
-The configuration includes predefined channels for:
+In this example YAML file, the configuration includes predefined channels for:
 
 1. Satellite components (location, status.mode, status.ready, status.time)
 2. Manager components (init, start, stop, status.mode, status.time)
@@ -214,8 +214,6 @@ Below is a complete example of a YAML configuration file that can be used with N
      
      manager:
        sim_start_time: "2019-03-01T23:59:59+00:00"
-       # sim_start_time: "2019-03-01T00:00:00+00:00"
-       # sim_start_time: "2019-03-09T00:00:00+00:00"
        sim_stop_time: "2019-03-10T23:59:59+00:00"
        start_time:
        time_step: "0:00:01"
@@ -223,8 +221,6 @@ Below is a complete example of a YAML configuration file that can be used with N
        time_scale_updates: []
        time_status_step: "0:00:01"     # 1 second * time scale factor
        time_status_init: "2019-03-01T23:59:59+00:00"
-       # time_status_init: "2019-03-01T00:00:00+00:00"
-       # time_status_init: "2019-03-09T00:00:00+00:00"
        command_lead: "0:00:05"
        required_apps:
          - manager
