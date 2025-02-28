@@ -5,7 +5,7 @@ Operator's Guide
 
 Introduction
 -----------
-This guide serves as a comprehensive resource for system operators deploying and managing the NASA Operational Simulator for Testbeds (NOS-T). In the NOS-T ecosystem, an "operator" is responsible for establishing and maintaining the underlying infrastructure that enables effective simulation and testing across distributed systems.
+This guide serves as a comprehensive resource for system operators deploying and managing the New Observing Strategies Testbed (NOS-T). In the NOS-T ecosystem, an "operator" is responsible for establishing and maintaining the underlying infrastructure that enables effective simulation and testing across distributed systems.
 
 Purpose
 -------
