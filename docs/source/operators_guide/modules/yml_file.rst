@@ -164,7 +164,7 @@ Each channel specifies:
 Using the Configuration File
 ---------------------------
 
-Applications using the NOS-T Tools library specify the path to the YAML configuration file when initializing. The library reads this file to establish connections to the RabbitMQ broker and Keycloak authentication server and to configure the execution parameters.
+Applications using the NOS-T Tools library specify the path to the YAML configuration file when initializing. The library reads this file to establish connections to the RabbitMQ broker and Keycloak authentication server and to configure the execution parameters. Refer to :ref:`nost_publisher_consumer_example` for an example of how the configuration file is used within the NOS-T Tools library.
 
 Complete Configuration Example
 -----------------------------
