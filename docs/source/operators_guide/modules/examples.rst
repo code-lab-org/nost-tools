@@ -1,7 +1,7 @@
-Examples
-========
+AMQP Code Examples
+==================
 
-This section contains examples showing how to use NOS-T components.
+This section contains examples showing how to use AMQP within and outside of NOS-T.
 
 .. toctree::
    :maxdepth: 1

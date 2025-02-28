@@ -1,5 +1,5 @@
-AMQP Protocol
-============
+AMQP Protocol Overview
+======================
 
 *A brief summary of the AMQP protocol with links to detailed resources and a list of useful terminology used throughout this documentation.*
 
