@@ -3,12 +3,8 @@
 Operator's Guide
 ================
 
-Introduction
------------
 This guide serves as a comprehensive resource for system operators deploying and managing the New Observing Strategies Testbed (NOS-T). In the NOS-T ecosystem, an "operator" is responsible for establishing and maintaining the underlying infrastructure that enables effective simulation and testing across distributed systems.
 
-Purpose
--------
 The primary objective of this guide is to provide detailed instructions for:
 
 * Setting up and configuring the message broker infrastructure
@@ -17,8 +13,6 @@ The primary objective of this guide is to provide detailed instructions for:
 * Monitoring system performance and troubleshooting common issues
 * Scaling resources according to simulation complexity and participant requirements
 
-Core Requirements
-----------------
 A fundamental requirement for NOS-T is a properly configured message broker that facilitates the exchange of information between simulation components. This guide walks through the entire process from initial setup to advanced configuration, ensuring your testbed meets the necessary performance and reliability standards for mission-critical simulations.
 
 Contents
@@ -30,8 +24,6 @@ Contents
    modules/amqp
    modules/yml_file
 
-Implementation Notes
--------------------
 *NOTE:* This guide presents a specific reference architecture for a functional testbed environment, but many components can be substituted with alternatives offering similar capabilities. For example:
 
 * NOS-T adopts RabbitMQ as its event broker, but other AMQP-compliant brokers may be suitable alternatives.
