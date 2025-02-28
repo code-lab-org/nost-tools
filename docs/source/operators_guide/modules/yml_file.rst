@@ -3,17 +3,17 @@ YAML
 
 The NOS-T Tools library requires a Yet Another Markup Language (YAML) configuration file. This file adopts a format similar to `AsyncAPI <https://www.asyncapi.com/>`__ to define the connection configuration for the RabbitMQ broker and Keycloak authentication servers.
 
+Configuration Overview
+--------------------
 
-Overview of Configuration Sections
-----------------------------------
+The YAML files is composed of the following sections:
 
 1. Info: Contains metadata about the YAML configuration file.
 2. Servers: Contains the connection configuration for the RabbitMQ broker and Keycloak authentication servers.
 3. Execution: Contains the execution configuration for the NOS-T Tools library.
 4. Channels: Contains the channel configuration for the NOS-T Tools library.
 
-Configuration Details
---------------------
+Each section is explained in detail below.
 
 Info Section
 ^^^^^^^^^^^
