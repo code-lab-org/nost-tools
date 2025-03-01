@@ -1,7 +1,7 @@
 .. _nostTools:
 
-NOS-T Tools API
----------------
+API Reference
+-------------
 
 This page contains descriptions of the NOS-T tools library features, and provides a detailed description of their functions. Within this library, there are templates to support both time-managed and time-agnostic applications. The first step for using the tools library is to follow the :ref:`installation instructions <installation>`. 
 
