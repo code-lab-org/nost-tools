@@ -86,6 +86,7 @@ While the NOS-T tools and most example applications are coded in Python, the sys
 * Any language with RabbitMQ interface libraries can be used
 * Supported protocols include AMQP and MQTT
 * Examples of compatible platforms:
+
   - JavaScript (used in the "scoreboard" geospatial visualization)
   - MATLAB (via available RabbitMQ libraries)
 
