@@ -14,6 +14,7 @@ release documents, and publications that have been based on or used the testbed.
    :caption: Contents:
 
    overview/index
+   installation/index
    learning_resources/index
    operators_guide/index
    nost_tools_api/index
