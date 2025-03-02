@@ -13,11 +13,13 @@ space science disciplines.
 Key Capabilities
 ---------------
 
-* **Simulation Environment**: Test new observing strategies in realistic scenarios
-* **Digital Twin Integration**: Connect with high-fidelity models of spacecraft and instruments
-* **Collaborative Platform**: Share and build upon concepts across NASA centers and partners
-* **Rapid Prototyping**: Quickly develop and evaluate new observation techniques
-* **Performance Analysis**: Quantitatively assess strategy effectiveness and efficiency
+* **Distributed Simulation Framework**: Connect multiple simulation components through standardized Advanced Message Queuing Protocol (AMQP) messaging protocols
+* **Managed Application Architecture**: Synchronize and control simulation components with built-in time management and state control
+* **Schema-Based Communication**: Leverage standardized message schemas for consistent data exchange between applications
+* **Flexible Deployment Options**: Run simulations locally or deploy to cloud environments like AWS
+* **Example Test Suites**: Build on existing scenarios like FireSat+, Science Event Dashboard, and Snow Observing Systems
+* **Scalability Testing**: Validate performance under varying message loads and simulation complexities
+* **Visualization & Analysis Tools**: Visualize simulation results through integrated dashboards and analysis tools
 
 Who Should Use NOS-T?
 --------------------
@@ -69,10 +71,11 @@ New to NOS-T? We recommend:
 Support and Community
 -------------------
 
-* Join our user community at [Community Forum URL]
-* Report issues on our GitHub repository
-* Attend regular virtual workshops and training sessions
-* Contact the NOS-T team at [contact email]
+* Report issues on our `GitHub repository <https://github.com/code-lab-org/nost-tools/issues>`_
+* Attend virtual workshops and training sessions
+* Contact the NOS-T team:
+   * PI: Paul T. Grogan, `paul.grogan@asu.edu <mailto:paul.grogan@asu.edu>`_
+   * Research Scientist: Emmanuel M. Gonzalez, `emmanuelgonzalez@asu.edu <mailto:emmanuelgonzalez@asu.edu>`_
 
 Indices and References
 --------------------
