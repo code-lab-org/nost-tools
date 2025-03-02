@@ -1,51 +1,98 @@
-Code of Conduct
-==============
+Development Workflow
+===================
 
-Our Pledge
----------
+This document outlines the recommended workflow for developing features and fixes for the NOS-T project.
 
-In the interest of fostering an open and welcoming environment, we as contributors and maintainers pledge to make participation in the NOS-T project and community a harassment-free experience for everyone, regardless of age, body size, disability, ethnicity, gender identity and expression, level of experience, nationality, personal appearance, race, religion, or sexual identity and orientation.
+Version Control Workflow
+----------------------
 
-Our Standards
------------
+We follow a standard GitHub flow for development:
 
-Examples of behavior that contributes to creating a positive environment include:
+1. **Fork the Repository**: Begin by forking the main NOS-T repository to your GitHub account.
 
-* Using welcoming and inclusive language
-* Being respectful of differing viewpoints and experiences
-* Gracefully accepting constructive criticism
-* Focusing on what is best for the community
-* Showing empathy towards other community members
+2. **Create a Branch**: Create a branch in your fork for your contribution:
+   
+   .. code-block:: bash
+   
+      git checkout -b feature/your-feature-name
+      # or 
+      git checkout -b fix/issue-you-are-fixing
 
-Examples of unacceptable behavior include:
+   Use a descriptive name that reflects the purpose of your changes.
 
-* The use of sexualized language or imagery and unwelcome sexual attention or advances
-* Trolling, insulting/derogatory comments, and personal or political attacks
-* Public or private harassment
-* Publishing others' private information, such as a physical or electronic address, without explicit permission
-* Other conduct which could reasonably be considered inappropriate in a professional setting
+3. **Make Your Changes**: Develop your contribution following our coding standards.
 
-Our Responsibilities
------------------
+4. **Commit Your Changes**: Make commits that are logical, atomic units of change:
+   
+   .. code-block:: bash
+   
+      git commit -m "Descriptive message about your changes"
 
-Project maintainers are responsible for clarifying the standards of acceptable behavior and are expected to take appropriate and fair corrective action in response to any instances of unacceptable behavior.
+   Follow these commit message guidelines:
+   
+   * Use the present tense ("Add feature" not "Added feature")
+   * Use the imperative mood ("Move cursor to..." not "Moves cursor to...")
+   * Limit the first line to 72 characters or less
+   * Reference issues and pull requests liberally after the first line
 
-Project maintainers have the right and responsibility to remove, edit, or reject comments, commits, code, wiki edits, issues, and other contributions that are not aligned with this Code of Conduct, or to ban temporarily or permanently any contributor for other behaviors that they deem inappropriate, threatening, offensive, or harmful.
+5. **Push to Your Fork**:
+   
+   .. code-block:: bash
+   
+      git push origin feature/your-feature-name
 
-Scope
-----
+6. **Submit a Pull Request**: Create a pull request from your branch to the main NOS-T repository.
 
-This Code of Conduct applies both within project spaces and in public spaces when an individual is representing the project or its community. Examples of representing a project or community include using an official project e-mail address, posting via an official social media account, or acting as an appointed representative at an online or offline event.
+Development Cycle
+--------------
 
-Enforcement
----------
+1. **Issue Tracking**: All features and bugs should be tracked in our GitHub issue tracker.
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting the project team at [contact email]. All complaints will be reviewed and investigated and will result in a response that is deemed necessary and appropriate to the circumstances. The project team is obligated to maintain confidentiality with regard to the reporter of an incident.
+2. **Design**: For significant features, create a design document or proposal first and seek feedback.
 
-Project maintainers who do not follow or enforce the Code of Conduct in good faith may face temporary or permanent repercussions as determined by other members of the project's leadership.
+3. **Implementation**: Develop your changes with attention to maintainability and performance.
 
-Attribution
----------
+4. **Testing**:
+   * Write unit tests for all new functionality
+   * Update existing tests as needed
+   * Ensure all tests pass locally before submitting
+   * aim for 80%+ code coverage for new code
 
-This Code of Conduct is adapted from the `Contributor Covenant <https://www.contributor-covenant.org>`_, version 1.4,
-available at https://www.contributor-covenant.org/version/1/4/code-of-conduct.html
+5. **Documentation**:
+   * Update API documentation for any changed interfaces
+   * Add or update user guides as appropriate
+   * Include examples for new features
+
+6. **Code Review**: All code changes undergo peer review through pull requests.
+
+7. **Continuous Integration**: Changes must pass all automated CI checks.
+
+8. **Merge**: After approval and passing tests, a maintainer will merge your contribution.
+
+Branching Strategy
+----------------
+
+* `main` - Contains the latest stable release
+* `develop` - Integration branch for features and fixes
+* `feature/*` - For new features and enhancements
+* `fix/*` - For bug fixes
+* `release/*` - For preparing new releases
+
+Release Process
+------------
+
+1. **Version Bump**: Update version numbers in appropriate files
+2. **Changelog**: Update the changelog with notable changes
+3. **Testing**: Perform final verification of all features and fixes
+4. **Documentation**: Ensure all documentation is updated
+5. **Release**: Tag the release and publish artifacts
+6. **Announce**: Communicate the release to stakeholders
+
+Tips for Efficient Development
+---------------------------
+
+* Regularly sync your fork with the upstream repository
+* Use virtual environments for isolated dependency management
+* Run tests frequently during development
+* Consider using pre-commit hooks for code quality checks
+* Keep pull requests focused on a single concern for easier review
