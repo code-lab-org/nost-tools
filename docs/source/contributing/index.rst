@@ -1,5 +1,5 @@
-Contributing to NOS-T
-====================
+Contributing
+============
 
 Thank you for your interest in contributing to the NOS Testbed (NOS-T). This guide will help you understand how to contribute effectively to this project.
 
