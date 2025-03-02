@@ -29,7 +29,7 @@ Coding Standards
 --------------
 
 * Follow PEP 8 style guidelines
-* Write docstrings in NumPy format
+* Write docstrings in Google Docstring format
 * Include unit tests for new functionality
 * Maintain compatibility with Python 3.8+
 
