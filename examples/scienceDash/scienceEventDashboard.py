@@ -19,7 +19,7 @@ from dotenv import dotenv_values
 
 
 # Define a callback function to be called when a message is received
-def callback(ch, method, properties, body):
+def on_message(ch, method, properties, body):
     """Callback to process an incoming message and then run the update_fig function."""
     eventMessage = json.loads(body.decode("utf-8"))
     eventMessage["location"] = eventMessage["latitude"], eventMessage["longitude"]
@@ -96,7 +96,9 @@ if __name__ == "__main__":
     print(f"Subscribed to {exchange_name} with binding key {binding_key}")
 
     # Set up the consumer
-    channel.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack=True)
+    channel.basic_consume(
+        queue=queue_name, on_message_callback=on_message, auto_ack=True
+    )
 
     # initialize df
     df0 = pd.DataFrame()
