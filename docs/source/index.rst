@@ -44,6 +44,10 @@ The following sections provide comprehensive information about NOS-T:
    learning_resources/index
    operators_guide/index
    nost_tools_api/index
+   examples/index
+   resources_library/index
+   release_docs/index
+   publications
    contributing/index
    faq/index
 
