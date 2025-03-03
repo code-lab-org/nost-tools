@@ -1,9 +1,6 @@
 NOS Testbed (NOS-T) Documentation
 =================================
 
-Welcome to the documentation for the New Observing Strategies Testbed (NOS-T)
-===========================================================================
-
 The New Observing Strategies Testbed (NOS-T) is a comprehensive digital engineering environment
 designed to develop, test, mature, and socialize new operating concepts and technology for
 NASA's New Observing Strategies initiative. NOS-T provides a framework for scientists, engineers,
