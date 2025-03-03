@@ -3,6 +3,8 @@
 API Reference
 ============
 
+:tocdepth: 1
+
 This page contains comprehensive descriptions of the NOS-T tools library features and provides detailed documentation of their functions. The library offers robust support for both time-managed and time-agnostic applications within the Novel Observing Strategies Testbed (NOS-T) ecosystem. Before exploring the API, please complete the :ref:`installation instructions <installation>`.
 
 The tools library implements the event-driven architecture described in the system documentation, organizing ten Python modules into three logical categories:
@@ -32,6 +34,7 @@ The tools library implements the event-driven architecture described in the syst
 
 .. toctree::
    :maxdepth: 1
+   :hidden:
 
    schemas
    simulator
