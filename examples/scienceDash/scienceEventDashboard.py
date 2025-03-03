@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-    This application demonstrates how to create a simple dashboard for
-    visualizing NOS-T data in real time. It subscribes to the
-    scienceEventPublisher.py application and displays the science utility
-    separated by location.
+This application demonstrates how to create a simple dashboard for
+visualizing NOS-T data in real time. It subscribes to the
+scienceEventPublisher.py application and displays the science utility
+separated by location.
 """
 
 import json
