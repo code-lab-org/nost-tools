@@ -1,9 +1,7 @@
 .. _nostTools:
 
 API Reference
-============
-
-:tocdepth: 1
+=============
 
 This page contains comprehensive descriptions of the NOS-T tools library features and provides detailed documentation of their functions. The library offers robust support for both time-managed and time-agnostic applications within the Novel Observing Strategies Testbed (NOS-T) ecosystem. Before exploring the API, please complete the :ref:`installation instructions <installation>`.
 
@@ -40,8 +38,7 @@ The tools library implements the event-driven architecture described in the syst
    simulator
    application
 
-Time Management
---------------
+.. rubric:: Time Management
 
 A key feature of the NOS-T tools library is its flexible time management system. Applications can operate in:
 
@@ -49,8 +46,7 @@ A key feature of the NOS-T tools library is its flexible time management system.
 * **Scaled time mode**: Simulation time runs faster or slower than wall clock time
 * **Event-driven mode**: Simulation advances based on events rather than continuous time flow
 
-Integration with Test Suites
---------------------------
+.. rubric:: Integration with Test Suites
 
 The :ref:`NOS-T Example Test Suites <examples>` feature many different implementations of the tools:
 
@@ -61,8 +57,7 @@ The :ref:`NOS-T Example Test Suites <examples>` feature many different implement
 
 Furthermore, the :ref:`example application templates <appTemplates>` include a collection of bare-bones templates, similar to *FireSat+*, with the tools functionality integrated.
 
-Getting Started
--------------
+.. rubric:: Getting Started
 
 For new users, we recommend:
 
