@@ -20,7 +20,15 @@ from dotenv import dotenv_values
 
 # Define a callback function to be called when a message is received
 def on_message(ch, method, properties, body):
-    """Callback to process an incoming message and then run the update_fig function."""
+    """
+    Callback to process an incoming message and then run the update_fig function.
+
+    Args:
+        ch: The channel object.
+        method: The method object.
+        properties: The properties object.
+        body: The message body.
+    """
     eventMessage = json.loads(body.decode("utf-8"))
     eventMessage["location"] = eventMessage["latitude"], eventMessage["longitude"]
     eventLOD.append(eventMessage)
@@ -28,7 +36,12 @@ def on_message(ch, method, properties, body):
 
 
 def update_fig(n):
-    """Updates the dashboard when new data is received."""
+    """
+    Updates the dashboard when new data is received.
+
+    Args:
+        n: The number of intervals that have passed.
+    """
     if not eventLOD:  # Check if eventLOD is empty
         # Return the initial figure with empty data but defined columns
         return px.line(
@@ -54,7 +67,9 @@ def update_fig(n):
 
 
 def start_consumer():
-    """Start consuming messages in a separate thread"""
+    """
+    Start consuming messages in a separate thread
+    """
     channel.start_consuming()
 
 
