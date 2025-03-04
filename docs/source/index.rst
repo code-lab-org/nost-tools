@@ -20,9 +20,15 @@ Key Capabilities
 
 .. graphviz::
    :align: center
-   
+
    digraph {
-      "From" -> "To";
+      "NOS Test Case" -> "NOS PI";
+      "NOS PI" -> "User Application";
+      "User Application" -> "User System";
+      "User System" -> "NOS-T Infrastructure";
+      "NOS-T Infrastructure" -> "Event Broker";
+      "Event Broker" -> "Manager Application";
+      "Manager Application" -> "NOS-T Operator";
    }
 
 Who Should Use NOS-T?
