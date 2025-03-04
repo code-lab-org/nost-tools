@@ -32,7 +32,7 @@ Example:
      version: '1.0.0'
      description: Version-controlled configuration file for Snow Observing Systems (SOS) project
 
-.. literalinclude:: example.yml
+.. literalinclude:: /example.yml
 	:lines: 1-4
 
 Servers Section
