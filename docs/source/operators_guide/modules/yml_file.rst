@@ -220,192 +220,194 @@ Complete Configuration Example
 
 Below is a complete example of a YAML configuration file that can be used with NOS-T Tools:
 
-.. code-block:: yaml
+.. .. code-block:: yaml
 
-   info:
-     title: Novel Observing Strategies Testbed (NOS-T) YAML Configuration
-     version: '1.0.0'
-     description: Version-controlled AsyncAPI document for RabbitMQ event broker with Keycloak authentication within NOS-T
-   servers:
-     rabbitmq:
-       # Production configuration
-       # keycloak_authentication: True
-       # host: "nost.smce.nasa.gov"
-       # port: 5671
-       # tls: True
-       # virtual_host: "/"
+..    info:
+..      title: Novel Observing Strategies Testbed (NOS-T) YAML Configuration
+..      version: '1.0.0'
+..      description: Version-controlled AsyncAPI document for RabbitMQ event broker with Keycloak authentication within NOS-T
+..    servers:
+..      rabbitmq:
+..        # Production configuration
+..        # keycloak_authentication: True
+..        # host: "nost.smce.nasa.gov"
+..        # port: 5671
+..        # tls: True
+..        # virtual_host: "/"
 
-       # Local development configuration
-       keycloak_authentication: False
-       host: "localhost"
-       port: 5672
-       tls: False
-       virtual_host: "/"
+..        # Local development configuration
+..        keycloak_authentication: False
+..        host: "localhost"
+..        port: 5672
+..        tls: False
+..        virtual_host: "/"
 
-       # Common settings
-       message_expiration: "60000"     # in milliseconds, message expiration time
-       delivery_mode: 2                # 1=transient, 2=durable
-       content_type: "text/plain"
-       heartbeat: 30                   # in seconds
-       connection_attempts: 3
-       retry_delay: 5                  # in seconds
+..        # Common settings
+..        message_expiration: "60000"     # in milliseconds, message expiration time
+..        delivery_mode: 2                # 1=transient, 2=durable
+..        content_type: "text/plain"
+..        heartbeat: 30                   # in seconds
+..        connection_attempts: 3
+..        retry_delay: 5                  # in seconds
      
-     keycloak:
-       host: "nost.smce.nasa.gov"
-       port: 8443
-       tls: True
-       token_refresh_interval: 10      # in seconds
-       realm: "NOS-T"
+..      keycloak:
+..        host: "nost.smce.nasa.gov"
+..        port: 8443
+..        tls: True
+..        token_refresh_interval: 10      # in seconds
+..        realm: "NOS-T"
    
-   execution:
-     general:
-       prefix: sos                     # Prefix for channel addresses
+..    execution:
+..      general:
+..        prefix: sos                     # Prefix for channel addresses
      
-     manager:
-       sim_start_time: "2019-03-01T23:59:59+00:00"
-       sim_stop_time: "2019-03-10T23:59:59+00:00"
-       start_time:
-       time_step: "0:00:01"
-       time_scale_factor: 288
-       time_scale_updates: []
-       time_status_step: "0:00:01"     # 1 second * time scale factor
-       time_status_init: "2019-03-01T23:59:59+00:00"
-       command_lead: "0:00:05"
-       required_apps:
-         - manager
-         - planner
-         - appender
-         - simulator
-       init_retry_delay_s: 5
-       init_max_retry: 5
-       set_offset: True
-       shut_down_when_terminated: False
+..      manager:
+..        sim_start_time: "2019-03-01T23:59:59+00:00"
+..        sim_stop_time: "2019-03-10T23:59:59+00:00"
+..        start_time:
+..        time_step: "0:00:01"
+..        time_scale_factor: 288
+..        time_scale_updates: []
+..        time_status_step: "0:00:01"     # 1 second * time scale factor
+..        time_status_init: "2019-03-01T23:59:59+00:00"
+..        command_lead: "0:00:05"
+..        required_apps:
+..          - manager
+..          - planner
+..          - appender
+..          - simulator
+..        init_retry_delay_s: 5
+..        init_max_retry: 5
+..        set_offset: True
+..        shut_down_when_terminated: False
      
-     managed_application:
-       time_scale_factor: 288
-       time_step: "0:00:01"            # 1 second * time scale factor 
-       set_offset: True
-       time_status_step: "0:00:10"     # 10 seconds * time scale factor
-       time_status_init: "2019-03-01T00:00:00+00:00"
-       shut_down_when_terminated: False
-       manager_app_name: "manager"
+..      managed_application:
+..        time_scale_factor: 288
+..        time_step: "0:00:01"            # 1 second * time scale factor 
+..        set_offset: True
+..        time_status_step: "0:00:10"     # 10 seconds * time scale factor
+..        time_status_init: "2019-03-01T00:00:00+00:00"
+..        shut_down_when_terminated: False
+..        manager_app_name: "manager"
    
-   channels:
-     satellite: 
-       location:
-         address: 'sos.constellation.location'
-         bindings:
-           amqp:
-             is: routingKey
-             exchange:
-               name: sos
-               type: topic
-               durable: false
-               autoDelete: true
-               vhost: /
-             bindingVersion: 0.3.0
+..    channels:
+..      satellite: 
+..        location:
+..          address: 'sos.constellation.location'
+..          bindings:
+..            amqp:
+..              is: routingKey
+..              exchange:
+..                name: sos
+..                type: topic
+..                durable: false
+..                autoDelete: true
+..                vhost: /
+..              bindingVersion: 0.3.0
        
-       status.mode:
-         address: 'sos.constellation.status.mode'
-         bindings:
-           amqp:
-             is: routingKey
-             exchange:
-               name: sos
-               type: topic
-               durable: false
-               autoDelete: true
-               vhost: /
-             bindingVersion: 0.3.0
+..        status.mode:
+..          address: 'sos.constellation.status.mode'
+..          bindings:
+..            amqp:
+..              is: routingKey
+..              exchange:
+..                name: sos
+..                type: topic
+..                durable: false
+..                autoDelete: true
+..                vhost: /
+..              bindingVersion: 0.3.0
        
-       status.ready:
-         address: 'sos.constellation.status.ready'
-         bindings:
-           amqp:
-             is: routingKey
-             exchange:
-               name: sos
-               type: topic
-               durable: false
-               autoDelete: true
-               vhost: /
-             bindingVersion: 0.3.0
+..        status.ready:
+..          address: 'sos.constellation.status.ready'
+..          bindings:
+..            amqp:
+..              is: routingKey
+..              exchange:
+..                name: sos
+..                type: topic
+..                durable: false
+..                autoDelete: true
+..                vhost: /
+..              bindingVersion: 0.3.0
        
-       status.time:
-         address: 'sos.constellation.status.time'
-         bindings:
-           amqp:
-             is: routingKey
-             exchange:
-               name: sos
-               type: topic
-               durable: false
-               autoDelete: true
-               vhost: /
-             bindingVersion: 0.3.0
+..        status.time:
+..          address: 'sos.constellation.status.time'
+..          bindings:
+..            amqp:
+..              is: routingKey
+..              exchange:
+..                name: sos
+..                type: topic
+..                durable: false
+..                autoDelete: true
+..                vhost: /
+..              bindingVersion: 0.3.0
      
-     manager:
-       init:
-         address: 'sos.manager.init'
-         bindings:
-           amqp:
-             is: routingKey
-             exchange:
-               name: sos
-               type: topic
-               durable: false
-               autoDelete: true
-               vhost: /
-             bindingVersion: 0.3.0
+..      manager:
+..        init:
+..          address: 'sos.manager.init'
+..          bindings:
+..            amqp:
+..              is: routingKey
+..              exchange:
+..                name: sos
+..                type: topic
+..                durable: false
+..                autoDelete: true
+..                vhost: /
+..              bindingVersion: 0.3.0
        
-       start:
-         address: 'sos.manager.start'
-         bindings:
-           amqp:
-             is: routingKey
-             exchange:
-               name: sos
-               type: topic
-               durable: false
-               autoDelete: true
-               vhost: /
-             bindingVersion: 0.3.0
+..        start:
+..          address: 'sos.manager.start'
+..          bindings:
+..            amqp:
+..              is: routingKey
+..              exchange:
+..                name: sos
+..                type: topic
+..                durable: false
+..                autoDelete: true
+..                vhost: /
+..              bindingVersion: 0.3.0
        
-       stop:
-         address: 'sos.manager.stop'
-         bindings:
-           amqp:
-             is: routingKey
-             exchange:
-               name: sos
-               type: topic
-               durable: false
-               autoDelete: true
-               vhost: /
-             bindingVersion: 0.3.0
+..        stop:
+..          address: 'sos.manager.stop'
+..          bindings:
+..            amqp:
+..              is: routingKey
+..              exchange:
+..                name: sos
+..                type: topic
+..                durable: false
+..                autoDelete: true
+..                vhost: /
+..              bindingVersion: 0.3.0
        
-       status.mode:
-         address: 'sos.manager.status.mode'
-         bindings:
-           amqp:
-             is: routingKey
-             exchange:
-               name: sos
-               type: topic
-               durable: false
-               autoDelete: true
-               vhost: /
-             bindingVersion: 0.3.0
+..        status.mode:
+..          address: 'sos.manager.status.mode'
+..          bindings:
+..            amqp:
+..              is: routingKey
+..              exchange:
+..                name: sos
+..                type: topic
+..                durable: false
+..                autoDelete: true
+..                vhost: /
+..              bindingVersion: 0.3.0
        
-       status.time:
-         address: 'sos.manager.status.time'
-         bindings:
-           amqp:
-             is: routingKey
-             exchange:
-               name: sos
-               type: topic
-               durable: false
-               autoDelete: true
-               vhost: /
-             bindingVersion: 0.3.0
+..        status.time:
+..          address: 'sos.manager.status.time'
+..          bindings:
+..            amqp:
+..              is: routingKey
+..              exchange:
+..                name: sos
+..                type: topic
+..                durable: false
+..                autoDelete: true
+..                vhost: /
+..              bindingVersion: 0.3.0
+
+.. literalinclude:: example.yml
