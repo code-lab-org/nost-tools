@@ -33,7 +33,7 @@ Example:
      description: Version-controlled configuration file for Snow Observing Systems (SOS) project
 
 .. literalinclude:: example.yml
-  :language: yaml
+  :language: yml
 	:lines: 1-4
 
 Servers Section
