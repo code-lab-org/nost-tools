@@ -91,6 +91,7 @@ extensions = [
     "sphinxcontrib.autodoc_pydantic",
     "sphinx_design",
     "myst_parser",
+    "sphinx.ext.graphviz",
 ]
 
 napoleon_google_docstring = True
