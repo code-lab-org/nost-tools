@@ -22,7 +22,6 @@ Key Capabilities
    :align: center
 
    digraph G {
-   rankdir=LR;
    
    "NOS Test Case" -> "NOS PI 1";
    "NOS Test Case" -> "NOS PI 2";
@@ -51,8 +50,7 @@ Key Capabilities
       
       "NOS-T Infrastructure" -> "Event Broker";
       "NOS-T Infrastructure" -> "Manager Application";
-      
-      "Event Broker" -> "NOS-T Operator"
+      "Event Broker" -> "NOS-T Operator";
       "Manager Application" -> "NOS-T Operator";
    }
    
@@ -60,7 +58,7 @@ Key Capabilities
    "User Application 2" -> "NOS-T Infrastructure";
    "User Application 3" -> "NOS-T Infrastructure";
    }
-   
+
 Who Should Use NOS-T?
 --------------------
 
