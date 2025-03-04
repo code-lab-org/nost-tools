@@ -80,8 +80,8 @@ Dependencies and Requirements
 The installation process automatically handles all required dependencies for NOS-T tools. These include:
 
 - Core libraries for messaging and event processing
-- Utilities for simulation integration
-- Network communication components
+- Utilities for data processing of NetCDF and HDF5 files
+- Libraries for plotting and data analysis
 
 For a complete list of dependencies and version requirements, refer to the `project specification file (pyproject.toml) <https://github.com/emmanuelgonz/nost-tools/blob/main/pyproject.toml>`__ in the repository.
 
