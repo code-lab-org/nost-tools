@@ -1,5 +1,5 @@
 AMQP & Keycloak
 ===============
 
-.. include:: amqp_keycloak.md
+.. include:: keycloak.md
    :parser: myst_parser.sphinx_
