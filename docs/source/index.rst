@@ -40,9 +40,9 @@ Key Capabilities
          fontsize=18;
          fontname="Helvetica-Bold";
          
-         "NOS PI 1" [label="NOS PI", fillcolor="#E74C3C", style=filled] -> "User Application 1";
-         "NOS PI 2" [label="NOS PI", fillcolor="#3498DB", style=filled] -> "User Application 2";
-         "NOS PI 3" [label="NOS PI", fillcolor="#2ECC71", style=filled] -> "User Application 3";
+         "NOS PI 1" -> "User Application 1";
+         "NOS PI 2" -> "User Application 2";
+         "NOS PI 3" -> "User Application 3";
          
       }
       
