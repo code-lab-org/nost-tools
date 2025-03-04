@@ -28,32 +28,32 @@ class RabbitMQConfig(BaseModel):
     )
     host: str = Field("localhost", description="RabbitMQ host.")
     port: int = Field(5672, description="RabbitMQ port.")
-    tls: bool = Field(False, description="RabbitMQ TLS.")
+    tls: bool = Field(False, description="RabbitMQ TLS/SSL.")
     virtual_host: str = Field("/", description="RabbitMQ virtual host.")
     message_expiration: str = Field(
         "60000", description="RabbitMQ expiration, in milliseconds."
     )
     delivery_mode: int = Field(
-        2, description="RabbitMQ delivery mode. (1: non-persistent, 2: durable)"
+        2, description="RabbitMQ delivery mode (1: non-persistent, 2: durable)."
     )
     content_type: str = Field(
         "text/plain",
-        description="RabbitMQ content type (application/json, text/plain).",
+        description="RabbitMQ MIME content type (application/json, text/plain, etc.).",
     )
-    heartbeat: int = Field(30, description="RabbitMQ heartbeat interval.")
+    heartbeat: int = Field(30, description="RabbitMQ heartbeat interval, in seconds.")
     connection_attempts: int = Field(
         3, description="RabbitMQ connection attempts before giving up."
     )
-    retry_delay: int = Field(5, description="RabbitMQ retry delay.")
+    retry_delay: int = Field(5, description="RabbitMQ retry delay, in seconds.")
 
 
 class KeycloakConfig(BaseModel):
     host: str = Field("localhost", description="Keycloak host.")
     port: int = Field(8080, description="Keycloak port.")
     realm: str = Field("master", description="Keycloak realm.")
-    tls: bool = Field(False, description="Keycloak TLS.")
+    tls: bool = Field(False, description="Keycloak TLS/SSL.")
     token_refresh_interval: int = Field(
-        60, description="Keycloak token refresh interval."
+        60, description="Keycloak token refresh interval, in seconds."
     )
 
 

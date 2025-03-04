@@ -83,10 +83,17 @@ Example:
 
 Execution Section
 ^^^^^^^^^^^^^^^
+
 Defines parameters controlling simulation execution and time management.
 
 General Configuration
-"""""""""""""""""""
+"""""""""""""""""""""
+
+.. autopydantic_model:: nost_tools.config.GeneralConfig
+  :members:
+  :inherited-members: BaseModel
+
+Example:
 
 .. code-block:: yaml
 
@@ -95,9 +102,13 @@ General Configuration
        prefix: sos                     # Prefix for channel addresses
 
 Manager Configuration
-""""""""""""""""""
+"""""""""""""""""""""
 
-Parameters for the simulation manager component:
+.. autopydantic_model:: nost_tools.config.ManagerConfig
+  :members:
+  :inherited-members: BaseModel
+
+Example:
 
 .. code-block:: yaml
 
@@ -125,7 +136,11 @@ Parameters for the simulation manager component:
 Managed Application Configuration
 """""""""""""""""""""""""""""
 
-Configuration for applications controlled by the manager:
+.. autopydantic_model:: nost_tools.config.ManagedApplicationConfig
+  :members:
+  :inherited-members: BaseModel
+
+Example:
 
 .. code-block:: yaml
 
