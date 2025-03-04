@@ -19,6 +19,10 @@ Info Section
 ^^^^^^^^^^^
 Contains metadata about the configuration file. This does not influence the operation of the NOS-T Tools library, it is merely for documentation and informational purposes.
 
+.. autopydantic_model:: nost_tools.config.InfoConfig
+  :members:
+  :inherited-members: BaseModel
+
 Example:
 
 .. code-block:: yaml
@@ -28,22 +32,19 @@ Example:
      version: '1.0.0'
      description: Version-controlled configuration file for Snow Observing Systems (SOS) project
 
-Parameters:
-
-* **title**: The name of the configuration
-* **version**: Version number of the configuration file
-* **description**: Brief description of the configuration file's purpose
-
 Servers Section
 ^^^^^^^^^^^^^
+
 Defines connection parameters for the RabbitMQ message broker and Keycloak authentication server.
 
 RabbitMQ Configuration
-"""""""""""""""""""""
+""""""""""""""""""""""
 
 .. autopydantic_model:: nost_tools.config.RabbitMQConfig
   :members:
   :inherited-members: BaseModel
+
+Example:
 
 .. code-block:: yaml
 
@@ -62,7 +63,13 @@ RabbitMQ Configuration
        retry_delay: 5                  # Delay between retry attempts in seconds
 
 Keycloak Configuration
-""""""""""""""""""""
+""""""""""""""""""""""
+
+.. autopydantic_model:: nost_tools.config.KeycloakConfig
+  :members:
+  :inherited-members: BaseModel
+
+Example:
 
 .. code-block:: yaml
 

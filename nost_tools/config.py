@@ -14,6 +14,14 @@ from pydantic import BaseModel, Field, ValidationError, root_validator
 logger = logging.getLogger(__name__)
 
 
+class InfoConfig(BaseModel):
+    title: Optional[str] = Field(None, description="Title of the simulation.")
+    version: Optional[str] = Field(None, description="Version of the simulation.")
+    description: Optional[str] = Field(
+        None, description="Description of the simulation."
+    )
+
+
 class RabbitMQConfig(BaseModel):
     keycloak_authentication: bool = Field(
         False, description="Keycloak authentication for RabbitMQ."
