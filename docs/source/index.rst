@@ -21,16 +21,46 @@ Key Capabilities
 .. graphviz::
    :align: center
 
-   digraph {
-      "NOS Test Case" -> "NOS PI";
-      "NOS PI" -> "User Application";
-      "User Application" -> "User System";
-      "User System" -> "NOS-T Infrastructure";
+   digraph G {
+   rankdir=LR;
+   
+   "NOS Test Case" -> "NOS PI 1";
+   "NOS Test Case" -> "NOS PI 2";
+   "NOS Test Case" -> "NOS PI 3";
+   
+   subgraph cluster0 {
+      style=filled;
+      color=lightgrey;
+      label="User System";
+      labeljust="l";
+      fontsize=18;
+      fontname="Helvetica-Bold";
+      
+      "NOS PI 1" -> "User Application 1";
+      "NOS PI 2" -> "User Application 2";
+      "NOS PI 3" -> "User Application 3";
+   }
+   
+   subgraph cluster1 {
+      style=filled;
+      color=lightgrey;
+      label="NOS-T System";
+      labeljust="l";
+      fontsize=18;
+      fontname="Helvetica-Bold";
+      
       "NOS-T Infrastructure" -> "Event Broker";
-      "Event Broker" -> "Manager Application";
+      "NOS-T Infrastructure" -> "Manager Application";
+      
+      "Event Broker" -> "NOS-T Operator"
       "Manager Application" -> "NOS-T Operator";
    }
-
+   
+   "User Application 1" -> "NOS-T Infrastructure";
+   "User Application 2" -> "NOS-T Infrastructure";
+   "User Application 3" -> "NOS-T Infrastructure";
+   }
+   
 Who Should Use NOS-T?
 --------------------
 
