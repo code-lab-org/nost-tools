@@ -80,4 +80,5 @@ docs = [
     "sphinx_rtd_theme",
     "sphinx-copybutton",
     "sphinx_design",
+    "myst-parser",
 ]

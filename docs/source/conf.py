@@ -6,13 +6,14 @@
 
 # -- Path setup --------------------------------------------------------------
 
+import os
+import sys
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import nost_tools
-import os
-import sys
 
 sys.path.insert(0, os.path.abspath("../.."))
 sys.path.insert(0, os.path.abspath("../../examples"))
@@ -53,10 +54,16 @@ sys.path.insert(
     ),
 )
 sys.path.insert(
-    0, os.path.abspath("../../examples/application_templates/random_global_event_template")
+    0,
+    os.path.abspath(
+        "../../examples/application_templates/random_global_event_template"
+    ),
 )
 sys.path.insert(
-    0, os.path.abspath("../../examples/application_templates/random_global_event_template/randEvents_config_files")
+    0,
+    os.path.abspath(
+        "../../examples/application_templates/random_global_event_template/randEvents_config_files"
+    ),
 )
 
 # -- Project information -----------------------------------------------------
@@ -83,6 +90,7 @@ extensions = [
     "sphinx_search.extension",
     "sphinxcontrib.autodoc_pydantic",
     "sphinx_design",
+    "myst_parser",
 ]
 
 napoleon_google_docstring = True
