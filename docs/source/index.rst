@@ -21,42 +21,55 @@ Key Capabilities
 .. graphviz::
    :align: center
 
-   digraph G {
-   
-   "NOS Test Case" -> "NOS PI 1";
-   "NOS Test Case" -> "NOS PI 2";
-   "NOS Test Case" -> "NOS PI 3";
-   
-   subgraph cluster0 {
-      style=filled;
-      color=lightgrey;
-      label="User System";
-      labeljust="l";
-      fontsize=18;
-      fontname="Helvetica-Bold";
+   digraph {
+      splines=curved;
+      overlap=false;
+      "NOS Test Case" -> "NOS PI 1";
+      "NOS Test Case" -> "NOS PI 2";
+      "NOS Test Case" -> "NOS PI 3";
       
-      "NOS PI 1" -> "User Application 1";
-      "NOS PI 2" -> "User Application 2";
-      "NOS PI 3" -> "User Application 3";
-   }
-   
-   subgraph cluster1 {
-      style=filled;
-      color=lightgrey;
-      label="NOS-T System";
-      labeljust="l";
-      fontsize=18;
-      fontname="Helvetica-Bold";
+      subgraph cluster0 {
+         style=filled;
+         color=lightgrey;
+         label="User System";
+         labeljust="l";
+         fontsize=18;
+         fontname="Helvetica-Bold";
+         
+         "NOS PI 1" -> "User Application 1";
+         "NOS PI 2" -> "User Application 2";
+         "NOS PI 3" -> "User Application 3";
+         
+      }
       
-      "NOS-T Infrastructure" -> "Event Broker";
-      "NOS-T Infrastructure" -> "Manager Application";
-      "Event Broker" -> "NOS-T Operator";
-      "Manager Application" -> "NOS-T Operator";
-   }
-   
-   "User Application 1" -> "NOS-T Infrastructure";
-   "User Application 2" -> "NOS-T Infrastructure";
-   "User Application 3" -> "NOS-T Infrastructure";
+      subgraph cluster1 {
+         style=filled;
+         color=lightgrey;
+         label="NOS-T System";
+         labeljust="l";
+         fontsize=18;
+         fontname="Helvetica-Bold";
+         
+         "NOS-T Infrastructure" -> "Event Broker";
+         "NOS-T Infrastructure" -> "Manager Application";
+         
+         subgraph cluster2 {
+               style=filled;
+               color=white;
+               labelloc="t";
+               fontsize=12;
+               label="NOS-T Operator";
+               
+               "Event Broker";
+               "Manager Application";
+               
+         }
+         
+      }
+      "User Application 1" -> "NOS-T Infrastructure";
+      "User Application 2" -> "NOS-T Infrastructure";
+      "User Application 3" -> "NOS-T Infrastructure";
+      
    }
 
 Who Should Use NOS-T?
