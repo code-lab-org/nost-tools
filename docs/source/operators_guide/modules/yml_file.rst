@@ -25,15 +25,14 @@ Contains metadata about the configuration file. This does not influence the oper
 
 Example:
 
-.. code-block:: yaml
+.. .. code-block:: yaml
 
-   info:
-     title: Novel Observing Strategies Testbed (NOS-T) YAML Configuration
-     version: '1.0.0'
-     description: Version-controlled configuration file for Snow Observing Systems (SOS) project
+..    info:
+..      title: Novel Observing Strategies Testbed (NOS-T) YAML Configuration
+..      version: '1.0.0'
+..      description: Version-controlled configuration file for Snow Observing Systems (SOS) project
 
 .. literalinclude:: example.yml
-  :language: yaml
 	:lines: 1-4
 
 Servers Section
@@ -50,21 +49,24 @@ RabbitMQ Configuration
 
 Example:
 
-.. code-block:: yaml
+.. .. code-block:: yaml
 
-   servers:
-     rabbitmq:
-       keycloak_authentication: False  # Enable/disable Keycloak authentication
-       host: "localhost"               # RabbitMQ server hostname
-       port: 5672                      # RabbitMQ server port (5672 for non-TLS, 5671 for TLS)
-       tls: False                      # Enable/disable TLS encryption
-       virtual_host: "/"               # RabbitMQ virtual host
-       message_expiration: "60000"     # Message expiration time in milliseconds
-       delivery_mode: 2                # Message delivery mode (1=transient, 2=durable)
-       content_type: "text/plain"      # Default content type for messages
-       heartbeat: 30                   # Connection heartbeat interval in seconds
-       connection_attempts: 3          # Number of connection retry attempts
-       retry_delay: 5                  # Delay between retry attempts in seconds
+..    servers:
+..      rabbitmq:
+..        keycloak_authentication: False  # Enable/disable Keycloak authentication
+..        host: "localhost"               # RabbitMQ server hostname
+..        port: 5672                      # RabbitMQ server port (5672 for non-TLS, 5671 for TLS)
+..        tls: False                      # Enable/disable TLS encryption
+..        virtual_host: "/"               # RabbitMQ virtual host
+..        message_expiration: "60000"     # Message expiration time in milliseconds
+..        delivery_mode: 2                # Message delivery mode (1=transient, 2=durable)
+..        content_type: "text/plain"      # Default content type for messages
+..        heartbeat: 30                   # Connection heartbeat interval in seconds
+..        connection_attempts: 3          # Number of connection retry attempts
+..        retry_delay: 5                  # Delay between retry attempts in seconds
+
+.. literalinclude:: example.yml
+	:lines: 5-17
 
 Keycloak Configuration
 """"""""""""""""""""""
@@ -75,15 +77,18 @@ Keycloak Configuration
 
 Example:
 
-.. code-block:: yaml
+.. .. code-block:: yaml
 
-   servers:
-     keycloak:
-       host: "nost.smce.nasa.gov"      # Keycloak server hostname
-       port: 8443                      # Keycloak server port
-       tls: True                       # Enable/disable TLS encryption
-       token_refresh_interval: 10      # Token refresh interval in seconds
-       realm: "NOS-T"                  # Keycloak realm name
+..    servers:
+..      keycloak:
+..        host: "nost.smce.nasa.gov"      # Keycloak server hostname
+..        port: 8443                      # Keycloak server port
+..        tls: True                       # Enable/disable TLS encryption
+..        token_refresh_interval: 10      # Token refresh interval in seconds
+..        realm: "NOS-T"                  # Keycloak realm name
+
+.. literalinclude:: example.yml
+	:lines: 18-23
 
 Execution Section
 ^^^^^^^^^^^^^^^
@@ -99,11 +104,14 @@ General Configuration
 
 Example:
 
-.. code-block:: yaml
+.. .. code-block:: yaml
 
-   execution:
-     general:
-       prefix: sos                     # Prefix for channel addresses
+..    execution:
+..      general:
+..        prefix: sos                     # Prefix for channel addresses
+
+.. literalinclude:: example.yml
+	:lines: 24-26
 
 Manager Configuration
 """""""""""""""""""""
@@ -114,28 +122,31 @@ Manager Configuration
 
 Example:
 
-.. code-block:: yaml
+.. .. code-block:: yaml
 
-   execution:
-     manager:
-       sim_start_time: "2019-03-01T23:59:59+00:00"  # Simulation start time (ISO 8601)
-       sim_stop_time: "2019-03-10T23:59:59+00:00"   # Simulation end time (ISO 8601)
-       start_time:                                  # Optional real-world start time (ISO 8601)
-       time_step: "0:00:01"                         # Simulation time increment per step
-       time_scale_factor: 288                       # Acceleration factor for simulation time
-       time_scale_updates: []                       # List of time scale changes during simulation
-       time_status_step: "0:00:01"                  # Interval for publishing time status messages
-       time_status_init: "2019-03-01T23:59:59+00:00" # Initial time for status messages (ISO 8601)
-       command_lead: "0:00:05"                      # Lead time for commands
-       required_apps:                               # List of required applications
-         - manager
-         - planner
-         - appender
-         - simulator
-       init_retry_delay_s: 5                        # Initialization retry delay in seconds
-       init_max_retry: 5                            # Maximum initialization retry attempts
-       set_offset: True                             # Enable/disable time offset calculation
-       shut_down_when_terminated: False             # Automatically shut down when simulation ends
+..    execution:
+..      manager:
+..        sim_start_time: "2019-03-01T23:59:59+00:00"  # Simulation start time (ISO 8601)
+..        sim_stop_time: "2019-03-10T23:59:59+00:00"   # Simulation end time (ISO 8601)
+..        start_time:                                  # Optional real-world start time (ISO 8601)
+..        time_step: "0:00:01"                         # Simulation time increment per step
+..        time_scale_factor: 288                       # Acceleration factor for simulation time
+..        time_scale_updates: []                       # List of time scale changes during simulation
+..        time_status_step: "0:00:01"                  # Interval for publishing time status messages
+..        time_status_init: "2019-03-01T23:59:59+00:00" # Initial time for status messages (ISO 8601)
+..        command_lead: "0:00:05"                      # Lead time for commands
+..        required_apps:                               # List of required applications
+..          - manager
+..          - planner
+..          - appender
+..          - simulator
+..        init_retry_delay_s: 5                        # Initialization retry delay in seconds
+..        init_max_retry: 5                            # Maximum initialization retry attempts
+..        set_offset: True                             # Enable/disable time offset calculation
+..        shut_down_when_terminated: False             # Automatically shut down when simulation ends
+
+.. literalinclude:: example.yml
+	:lines: 27-45
 
 Managed Application Configuration
 """""""""""""""""""""""""""""
@@ -146,17 +157,20 @@ Managed Application Configuration
 
 Example:
 
-.. code-block:: yaml
+.. .. code-block:: yaml
 
-   execution:
-     managed_application:
-       time_scale_factor: 288                       # Application time scale factor
-       time_step: "0:00:01"                         # Application time step
-       set_offset: True                             # Enable/disable time offset calculation 
-       time_status_step: "0:00:10"                  # Interval for publishing time status
-       time_status_init: "2019-03-01T00:00:00+00:00" # Initial time for status messages
-       shut_down_when_terminated: False             # Auto shutdown when complete
-       manager_app_name: "manager"                  # Name of the manager application
+..    execution:
+..      managed_application:
+..        time_scale_factor: 288                       # Application time scale factor
+..        time_step: "0:00:01"                         # Application time step
+..        set_offset: True                             # Enable/disable time offset calculation 
+..        time_status_step: "0:00:10"                  # Interval for publishing time status
+..        time_status_init: "2019-03-01T00:00:00+00:00" # Initial time for status messages
+..        shut_down_when_terminated: False             # Auto shutdown when complete
+..        manager_app_name: "manager"                  # Name of the manager application
+
+.. literalinclude:: example.yml
+	:lines: 46-53
 
 Channels Section
 ^^^^^^^^^^^^^^
@@ -180,6 +194,11 @@ Channels follow this structure:
                autoDelete: true
                vhost: /
              bindingVersion: 0.3.0
+
+Example:
+
+.. literalinclude:: example.yml
+	:lines: 54-
 
 In this example YAML file, the configuration includes predefined channels for:
 
