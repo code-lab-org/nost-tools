@@ -37,7 +37,7 @@ The following sections provide comprehensive information about NOS-T:
    :caption: Contents:
 
    overview/index
-   installation/index
+   installation/installation
    learning_resources/index
    operators_guide/index
    nost_tools_api/index
