@@ -18,6 +18,25 @@ Key Capabilities
 * **Scalability Testing**: Validate performance under varying message loads and simulation complexities
 * **Visualization & Analysis Tools**: Visualize simulation results through integrated dashboards and analysis tools
 
+Who Should Use NOS-T?
+--------------------
+
+* Scientists developing new observation strategies for space missions
+* Engineers designing spacecraft systems and instruments
+* Mission planners optimizing science return and resource utilization
+* Researchers evaluating observation trade-offs and capabilities
+* Program managers assessing technology readiness and performance metrics
+
+Getting Started
+-------------
+
+New to NOS-T? We recommend:
+
+1. Read the :doc:`overview/index` to understand NOS-T fundamentals
+2. Follow the :doc:`installation/index` guide to set up your environment
+3. Work through tutorials in :doc:`learning_resources/index`
+4. Explore :doc:`examples/index` to see NOS-T in action
+
 .. graphviz::
    :name: nos_t_concept
    :caption: NOS-T Graphical Concept: Visual representation of the testbed architecture and operational flow
@@ -74,25 +93,6 @@ Key Capabilities
       "User Application 3" -> "NOS-T Infrastructure";
       
    }
-
-Who Should Use NOS-T?
---------------------
-
-* Scientists developing new observation strategies for space missions
-* Engineers designing spacecraft systems and instruments
-* Mission planners optimizing science return and resource utilization
-* Researchers evaluating observation trade-offs and capabilities
-* Program managers assessing technology readiness and performance metrics
-
-Getting Started
--------------
-
-New to NOS-T? We recommend:
-
-1. Read the :doc:`overview/index` to understand NOS-T fundamentals
-2. Follow the :doc:`installation/index` guide to set up your environment
-3. Work through tutorials in :doc:`learning_resources/index`
-4. Explore :doc:`examples/index` to see NOS-T in action
 
 Support and Community
 -------------------
