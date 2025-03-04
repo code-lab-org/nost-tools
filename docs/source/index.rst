@@ -24,6 +24,8 @@ Key Capabilities
    :align: center
 
    digraph {
+      size="6,4";
+      rankdir="LR";
       splines=curved;
       overlap=false;
 
