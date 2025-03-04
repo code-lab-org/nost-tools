@@ -21,7 +21,6 @@ Key Capabilities
 .. graphviz::
    :name: nos_t_concept
    :caption: NOS-T Graphical Concept: Visual representation of the testbed architecture and operational flow
-   :alt: NOS-T conceptual diagram showing key components and workflows
    :align: center
 
    digraph {
