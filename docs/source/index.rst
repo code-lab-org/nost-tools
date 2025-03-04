@@ -19,7 +19,8 @@ Key Capabilities
 * **Visualization & Analysis Tools**: Visualize simulation results through integrated dashboards and analysis tools
 
 .. graphviz::
-
+   :align: center
+   
    digraph {
       "From" -> "To";
    }
