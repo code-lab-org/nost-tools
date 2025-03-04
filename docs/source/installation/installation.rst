@@ -1,7 +1,7 @@
 .. _installation:
 
-NOS-T Tools Installation
-========================
+Installation
+============
 
 The best way to get the NOS-T tools library and example codes is to clone the NOS-T git repository
 and install the tools. There are several ways to clone a git repository. `Here <https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository?tool=webui>`__
