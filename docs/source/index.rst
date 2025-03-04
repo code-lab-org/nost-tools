@@ -90,8 +90,7 @@ Documentation Contents
 The following sections provide comprehensive information about NOS-T:
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :hidden:
 
    overview/index
    installation/installation
