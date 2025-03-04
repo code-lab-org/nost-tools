@@ -16,7 +16,7 @@ The primary objective of this guide is to provide detailed instructions for:
 A fundamental requirement for NOS-T is a properly configured message broker that facilitates the exchange of information between simulation components. This guide walks through the entire process from initial setup to advanced configuration, ensuring your testbed meets the necessary performance and reliability standards for mission-critical simulations.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    modules/amqp
    modules/amqp_keycloak
