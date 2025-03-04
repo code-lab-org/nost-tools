@@ -19,14 +19,14 @@ Key Capabilities
 * **Visualization & Analysis Tools**: Visualize simulation results through integrated dashboards and analysis tools
 
 .. graphviz::
+   :name: nos_t_concept
+   :caption: NOS-T Graphical Concept: Visual representation of the testbed architecture and operational flow
+   :alt: NOS-T conceptual diagram showing key components and workflows
    :align: center
 
    digraph {
       splines=curved;
       overlap=false;
-
-      // Set uniform node sizes
-      node [shape=box, fixedsize=true, width=2, height=0.8];
 
       "NOS Test Case" -> "NOS PI 1";
       "NOS Test Case" -> "NOS PI 2";
@@ -39,8 +39,6 @@ Key Capabilities
          labeljust="l";
          fontsize=18;
          fontname="Helvetica-Bold";
-         margin=20; // Add margin
-         minsize="5,5"; // Specify minimum size
          
          "NOS PI 1" -> "User Application 1";
          "NOS PI 2" -> "User Application 2";
@@ -55,8 +53,6 @@ Key Capabilities
          labeljust="l";
          fontsize=18;
          fontname="Helvetica-Bold";
-         margin=20; // Add margin
-         minsize="5,5"; // Specify minimum size
          
          "NOS-T Infrastructure" -> "Event Broker";
          "NOS-T Infrastructure" -> "Manager Application";
