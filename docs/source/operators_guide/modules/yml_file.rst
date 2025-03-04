@@ -41,6 +41,10 @@ Defines connection parameters for the RabbitMQ message broker and Keycloak authe
 RabbitMQ Configuration
 """""""""""""""""""""
 
+.. autopydantic_model:: nost_tools.config.RabbitMQConfig
+  :members:
+  :inherited-members: BaseModel
+
 .. code-block:: yaml
 
    servers:
