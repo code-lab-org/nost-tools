@@ -72,6 +72,8 @@ Key Capabilities
       
    }
 
+   NOS-T Graphical Concept: Visual representation of the testbed architecture and operational flow.
+
 Who Should Use NOS-T?
 --------------------
 
