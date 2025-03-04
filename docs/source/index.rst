@@ -18,6 +18,12 @@ Key Capabilities
 * **Scalability Testing**: Validate performance under varying message loads and simulation complexities
 * **Visualization & Analysis Tools**: Visualize simulation results through integrated dashboards and analysis tools
 
+.. graphviz::
+
+   digraph {
+      "From" -> "To";
+   }
+
 Who Should Use NOS-T?
 --------------------
 
