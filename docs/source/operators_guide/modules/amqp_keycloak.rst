@@ -1,4 +1,9 @@
+AMQP with Keycloak
+==================
+
 .. include:: keycloak.md
+   :parser: myst_parser.sphinx_
+
 
 .. AMQP with Keycloak
 .. ==================
