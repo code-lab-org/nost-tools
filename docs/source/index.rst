@@ -84,13 +84,6 @@ Who Should Use NOS-T?
 * Researchers evaluating observation trade-offs and capabilities
 * Program managers assessing technology readiness and performance metrics
 
-.. figure:: media/graphicalConcept.png
-   :align: center
-   :alt: NOS-T conceptual diagram showing key components and workflows
-   :width: 80%
-
-   NOS-T Graphical Concept: Visual representation of the testbed architecture and operational flow
-
 Getting Started
 -------------
 
