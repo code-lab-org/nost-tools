@@ -84,26 +84,6 @@ Who Should Use NOS-T?
 * Researchers evaluating observation trade-offs and capabilities
 * Program managers assessing technology readiness and performance metrics
 
-Documentation Contents
---------------------
-
-The following sections provide comprehensive information about NOS-T:
-
-.. toctree::
-   :hidden:
-
-   overview/index
-   installation/installation
-   learning_resources/index
-   operators_guide/index
-   nost_tools_api/index
-   examples/index
-   resources_library/index
-   release_docs/index
-   publications
-   contributing/index
-   faq/index
-
 .. figure:: media/graphicalConcept.png
    :align: center
    :alt: NOS-T conceptual diagram showing key components and workflows
@@ -136,3 +116,18 @@ Indices and References
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+.. toctree::
+   :hidden:
+
+   overview/index
+   installation/installation
+   learning_resources/index
+   operators_guide/index
+   nost_tools_api/index
+   examples/index
+   resources_library/index
+   release_docs/index
+   publications
+   contributing/index
+   faq/index
