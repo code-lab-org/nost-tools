@@ -103,7 +103,7 @@ NOS-T consists of two top-level system components:
    :name: nos_t_concept
    :caption: NOS-T Graphical Concept: Visual representation of the testbed architecture and operational flow
    :align: center
-
+   
    digraph NOST_concept {
       rankdir=LR;
       
@@ -151,7 +151,7 @@ NOS-T consists of two top-level system components:
                label="NOS-T Operator";
                
                EventBroker [label="Event Broker\n(AMQP Protocol)"];
-               Fill [style=invis];
+               // Fill [style=invis];
                ManagerApplication [label="Manager Application"];
          }
       }
@@ -161,7 +161,7 @@ NOS-T consists of two top-level system components:
       UserApp3 -> NOSTInfrastructure;
       
       NOSTInfrastructure -> EventBroker;
-      NOSTInfrastructure -> Fill [style=invis];
+      // NOSTInfrastructure -> Fill [style=invis];
       NOSTInfrastructure -> ManagerApplication;
    }
 
