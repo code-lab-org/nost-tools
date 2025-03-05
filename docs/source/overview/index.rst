@@ -105,8 +105,7 @@ NOS-T consists of two top-level system components:
    :align: center
 
    digraph NOST_concept {
-      // splines=curved;
-      // overlap=false;
+      rankdir=LR;
       
       subgraph cluster0 {
          style=dashed;
@@ -118,12 +117,13 @@ NOS-T consists of two top-level system components:
          PI1 [label="NOS PI", shape=rect, style=filled, fillcolor=red];
          PI2 [label="NOS PI", shape=rect, style=filled, fillcolor=blue];
          PI3 [label="NOS PI", shape=rect, style=filled, fillcolor=green];
+         
          UserApp1 [label="User App", shape=rect, style=filled, fillcolor=red];
          UserApp2 [label="User App", shape=rect, style=filled, fillcolor=blue];
          UserApp3 [label="User App", shape=rect, style=filled, fillcolor=green];
       }
       
-      TestCase [label="NOS Test Case", shape=oval]
+      TestCase [label="NOS Test Case", shape=oval];
       TestCase -> PI1;
       TestCase -> PI2;
       TestCase -> PI3;
@@ -135,11 +135,12 @@ NOS-T consists of two top-level system components:
       subgraph cluster1 {
          style=dashed;
          label="NOS-T System";
-         labeljust="l";
+         // labeljust="l";
          fontsize=18;
          fontname="Helvetica-Bold";
          
-         NOSTInfrastructure [label="NOST Infrastructure", style=filled, fillcolor=orange];
+         Fill [style=invis]
+         NOSTInfrastructure [label="NOS-T Infrastructure", shape=oval, style=filled, fillcolor=orange];
          
          subgraph cluster2 {
                style=dashed;
@@ -148,20 +149,19 @@ NOS-T consists of two top-level system components:
                fontsize=10;
                label="NOS-T Operator";
                
-               EventBroker [label="Event Broker\n(AMQP Protocol)"]
-               Fill [style=invis]
-               ManagerApplication [label="Manager Application"]
+               EventBroker [label="Event Broker\n(AMQP Protocol)"];
+               // Fill [style=invis];
+               ManagerApplication [label="Manager Application"];
          }
       }
       
-      UserApp1 -> NOSTInfrastructure
-      UserApp2 -> NOSTInfrastructure
-      UserApp3 -> NOSTInfrastructure
+      UserApp1 -> NOSTInfrastructure;
+      UserApp2 -> NOSTInfrastructure;
+      UserApp3 -> NOSTInfrastructure;
       
-      NOSTInfrastructure -> EventBroker
-      NOSTInfrastructure -> Fill [style=invis]
-      NOSTInfrastructure -> ManagerApplication
-   
+      NOSTInfrastructure -> EventBroker;
+      // NOSTInfrastructure -> Fill [style=invis];
+      NOSTInfrastructure -> ManagerApplication;
    }
 
 .. figure:: media/graphicalConcept.png
