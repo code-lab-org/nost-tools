@@ -139,8 +139,9 @@ NOS-T consists of two top-level system components:
          fontsize=18;
          fontname="Helvetica-Bold";
          
-         // Fill [style=invis]
+         Fill1 [style=invis]
          NOSTInfrastructure [label="NOS-T Infrastructure", shape=oval, style=filled, fillcolor=orange];
+         Fill2 [style=invis]
          
          subgraph cluster2 {
                style=dashed;
@@ -150,7 +151,7 @@ NOS-T consists of two top-level system components:
                label="NOS-T Operator";
                
                EventBroker [label="Event Broker\n(AMQP Protocol)"];
-               // Fill [style=invis];
+               Fill [style=invis];
                ManagerApplication [label="Manager Application"];
          }
       }
@@ -160,7 +161,7 @@ NOS-T consists of two top-level system components:
       UserApp3 -> NOSTInfrastructure;
       
       NOSTInfrastructure -> EventBroker;
-      // NOSTInfrastructure -> Fill [style=invis];
+      NOSTInfrastructure -> Fill [style=invis];
       NOSTInfrastructure -> ManagerApplication;
    }
 
