@@ -52,7 +52,7 @@ New to NOS-T? We recommend:
       
       subgraph cluster0 {
          style=filled;
-         color=lightgrey;
+         color=darkorange1;
          label="User System";
          labeljust="l";
          fontsize=18;
@@ -66,7 +66,7 @@ New to NOS-T? We recommend:
       
       subgraph cluster1 {
          style=filled;
-         color=lightgrey;
+         color=blue2;
          label="NOS-T System";
          labeljust="l";
          fontsize=18;
