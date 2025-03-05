@@ -43,56 +43,65 @@ New to NOS-T? We recommend:
    :align: center
 
    digraph {
-      splines=curved;
-      overlap=false;
-
-      "NOS Test Case" -> "NOS PI 1";
-      "NOS Test Case" -> "NOS PI 2";
-      "NOS Test Case" -> "NOS PI 3";
+      // splines=curved;
+      // overlap=false;
       
       subgraph cluster0 {
-         style=filled;
-         color=lightgrey;
+         style=dashed;
          label="User System";
          labeljust="l";
          fontsize=18;
          fontname="Helvetica-Bold";
          
-         "NOS PI 1" -> "User Application 1";
-         "NOS PI 2" -> "User Application 2";
-         "NOS PI 3" -> "User Application 3";
-         
+         PI1 [label="NOS PI", shape=rect, style=filled, fillcolor=red];
+         PI2 [label="NOS PI", shape=rect, style=filled, fillcolor=blue];
+         PI3 [label="NOS PI", shape=rect, style=filled, fillcolor=green];
+         UserApp1 [label="User App", shape=rect, style=filled, fillcolor=red];
+         UserApp2 [label="User App", shape=rect, style=filled, fillcolor=blue];
+         UserApp3 [label="User App", shape=rect, style=filled, fillcolor=green];
       }
       
+      TestCase [label="NOS Test Case", shape=oval]
+      TestCase -> PI1;
+      TestCase -> PI2;
+      TestCase -> PI3;
+      
+      PI1 -> UserApp1;
+      PI2 -> UserApp2;
+      PI3 -> UserApp3;
+      
       subgraph cluster1 {
-         style=filled;
-         color=lightgrey;
+         style=dashed;
          label="NOS-T System";
          labeljust="l";
          fontsize=18;
          fontname="Helvetica-Bold";
          
-         "NOS-T Infrastructure" -> "Event Broker";
-         "NOS-T Infrastructure" -> "Manager Application";
+         NOSTInfrastructure [label="NOST Infrastructure", style=filled, fillcolor=orange];
          
          subgraph cluster2 {
-               style=filled;
-               color=white;
-               labelloc="t";
-               fontsize=12;
+               style=dashed;
+               color=grey;
+               labeljust="l";
+               fontsize=10;
                label="NOS-T Operator";
                
-               "Event Broker";
-               "Manager Application";
-               
+               EventBroker [label="Event Broker\n(AMQP Protocol)"]
+               Fill [style=invis]
+               ManagerApplication [label="Manager Application"]
          }
-         
       }
-      "User Application 1" -> "NOS-T Infrastructure";
-      "User Application 2" -> "NOS-T Infrastructure";
-      "User Application 3" -> "NOS-T Infrastructure";
       
+      UserApp1 -> NOSTInfrastructure
+      UserApp2 -> NOSTInfrastructure
+      UserApp3 -> NOSTInfrastructure
+      
+      NOSTInfrastructure -> EventBroker
+      NOSTInfrastructure -> Fill [style=invis]
+      NOSTInfrastructure -> ManagerApplication
+   
    }
+
 
 Support and Community
 -------------------
