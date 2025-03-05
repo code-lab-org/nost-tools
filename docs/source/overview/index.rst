@@ -76,8 +76,6 @@ NOS-T adopts **RabbitMQ**, an open-source message broker implementing the Advanc
 
    }
 
-
-
 .. figure:: media/EDA_PubSub_Concept.png
    :width: 600
    :align: center
@@ -100,6 +98,71 @@ NOS-T consists of two top-level system components:
    * Applications run on separate hosts controlled by each participant
    * Can model entire observing systems or individual components (sensors, communication links, algorithms, etc.)
    * Must meet basic NOS-T interface requirements for orchestration
+
+.. graphviz::
+   :name: nos_t_concept
+   :caption: NOS-T Graphical Concept: Visual representation of the testbed architecture and operational flow
+   :align: center
+
+   digraph NOST_concept {
+      // splines=curved;
+      // overlap=false;
+      
+      subgraph cluster0 {
+         style=dashed;
+         label="User System";
+         labeljust="l";
+         fontsize=18;
+         fontname="Helvetica-Bold";
+         
+         PI1 [label="NOS PI", shape=rect, style=filled, fillcolor=red];
+         PI2 [label="NOS PI", shape=rect, style=filled, fillcolor=blue];
+         PI3 [label="NOS PI", shape=rect, style=filled, fillcolor=green];
+         UserApp1 [label="User App", shape=rect, style=filled, fillcolor=red];
+         UserApp2 [label="User App", shape=rect, style=filled, fillcolor=blue];
+         UserApp3 [label="User App", shape=rect, style=filled, fillcolor=green];
+      }
+      
+      TestCase [label="NOS Test Case", shape=oval]
+      TestCase -> PI1;
+      TestCase -> PI2;
+      TestCase -> PI3;
+      
+      PI1 -> UserApp1;
+      PI2 -> UserApp2;
+      PI3 -> UserApp3;
+      
+      subgraph cluster1 {
+         style=dashed;
+         label="NOS-T System";
+         labeljust="l";
+         fontsize=18;
+         fontname="Helvetica-Bold";
+         
+         NOSTInfrastructure [label="NOST Infrastructure", style=filled, fillcolor=orange];
+         
+         subgraph cluster2 {
+               style=dashed;
+               color=grey;
+               labeljust="l";
+               fontsize=10;
+               label="NOS-T Operator";
+               
+               EventBroker [label="Event Broker\n(AMQP Protocol)"]
+               Fill [style=invis]
+               ManagerApplication [label="Manager Application"]
+         }
+      }
+      
+      UserApp1 -> NOSTInfrastructure
+      UserApp2 -> NOSTInfrastructure
+      UserApp3 -> NOSTInfrastructure
+      
+      NOSTInfrastructure -> EventBroker
+      NOSTInfrastructure -> Fill [style=invis]
+      NOSTInfrastructure -> ManagerApplication
+   
+   }
 
 .. figure:: media/graphicalConcept.png
    :width: 600
