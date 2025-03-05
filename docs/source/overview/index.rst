@@ -39,33 +39,43 @@ NOS-T adopts **RabbitMQ**, an open-source message broker implementing the Advanc
    digraph MQTT_PubSub {
       rankdir=LR;
       
-      // User Apps
-      subgraph cluster_0 {
-         label="User Apps";
+      subgraph cluster0 {
          style=dashed;
+         label="User Apps";
+         fontsize=16
+         fontname="Helvetica-Bold";
          
-         UserApp1 [label="User App", shape=rect, style=filled, fillcolor=red];
-         UserApp2 [label="User App", shape=rect, style=filled, fillcolor=blue];
-         UserApp3 [label="User App", shape=rect, style=filled, fillcolor=green];
+         UserApp1 [label="User App", shape=rect, style=filled, fillcolor=red, fontsize=16];
+         UserApp2 [label="User App", shape=rect, style=filled, fillcolor=blue, fontsize=16];
+         UserApp3 [label="User App", shape=rect, style=filled, fillcolor=green, fontsize=16];
       }
       
-      // Network and Broker
-      Network [label="Network", shape=diamond, style=filled, fillcolor=gray];
-      EventBroker [label="Event Broker\n(AMQP Protocol)", shape=cloud, style=filled, fillcolor=darkorange1];
+      subgraph cluster1{
+         style=invis
+         Network [label="Network", shape=diamond, style=filled, fillcolor=gray, fontsize=16];
+      }
+      
+      UserApp1 -> Network [label="Publish", fontsize=12, fontcolor=red, color=red];
+      UserApp2 -> Network [style=invis]
+      UserApp3 -> Network [style=invis]
+      
 
-      // Publish Line (Red)
-      UserApp1 -> Network [label="Publish", fontsize=10, fontcolor=red, color=red];
-      UserApp1 -> Network [label="Publish", color=red, style=invis];
-
-      // Network to Event Broker (Black for Neutral)
-      Network -> EventBroker [label="Publish", fontsize=10, fontcolor=red, color=red];
+      Network -> UserApp1 [style=invis]
+      Network -> UserApp2 [label="Subscribe", fontsize=12, fontcolor=blue, color=blue, style=dashed];
+      Network -> UserApp3 [label="Subscribe", fontsize=12, fontcolor=blue, color=blue, style=dashed];
+      
+      subgraph cluster2 {
+         style=invis
+         EventBroker [label="Event Broker\n(AMQP Protocol)", shape=cloud, style=filled, fillcolor=darkorange1, fontsize=16];
+      }
+      
+      Network -> EventBroker [label="Publish", fontsize=12, fontcolor=red, color=red];
       Network -> EventBroker [label="", color=red, style=invis];
-      EventBroker -> Network [label="Subscribe", fontsize=10, fontcolor=blue, color=blue, style=dashed];
+      EventBroker -> Network [label="Subscribe", fontsize=12, fontcolor=blue, color=blue, style=dashed];
 
-      // Reverse Path (Subscription Messages, Blue)
-      Network -> UserApp2 [color=blue, style=dashed];
-      Network -> UserApp3 [label="Subscribe", fontsize=10, fontcolor=blue, color=blue, style=dashed];
+
    }
+
 
 
 .. figure:: media/EDA_PubSub_Concept.png

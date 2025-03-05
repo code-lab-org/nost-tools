@@ -42,7 +42,7 @@ New to NOS-T? We recommend:
    :caption: NOS-T Graphical Concept: Visual representation of the testbed architecture and operational flow
    :align: center
 
-   digraph {
+   digraph NOST_concept {
       // splines=curved;
       // overlap=false;
       
