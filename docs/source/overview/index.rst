@@ -76,11 +76,11 @@ NOS-T adopts **RabbitMQ**, an open-source message broker implementing the Advanc
 
    }
 
-.. figure:: media/EDA_PubSub_Concept.png
-   :width: 600
-   :align: center
+.. .. figure:: media/EDA_PubSub_Concept.png
+..    :width: 600
+..    :align: center
    
-   Event-Driven Architecture with Centralized Broker
+..    Event-Driven Architecture with Centralized Broker
 
 System Components
 ----------------
@@ -103,7 +103,7 @@ NOS-T consists of two top-level system components:
    :name: nos_t_concept
    :caption: NOS-T Graphical Concept: Visual representation of the testbed architecture and operational flow
    :align: center
-   
+
    digraph NOST_concept {
       rankdir=LR;
       
@@ -165,11 +165,11 @@ NOS-T consists of two top-level system components:
       NOSTInfrastructure -> ManagerApplication;
    }
 
-.. figure:: media/graphicalConcept.png
-   :width: 600
-   :align: center
+.. .. figure:: media/graphicalConcept.png
+..    :width: 600
+..    :align: center
    
-   NOS-T Graphical Concept
+..    NOS-T Graphical Concept
 
 Development Tools
 ---------------
