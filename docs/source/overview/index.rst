@@ -81,17 +81,17 @@ System Components
 
 NOS-T consists of two top-level system components:
 
-1. **NOS-T System** (fixed for all test cases)
+1. **NOS-T System** (fixed for all test cases):
 
    * Managed by an NOS-T operator
    * Includes the event broker infrastructure
    * Contains a manager application that orchestrates test runs
    * Ensures proper application synchronization, topic configuration, and consistent message structure
 
-2. **User System** (tailored to each test case)
+2. **User System** (tailored to each test case):
    
-   * Consists of user applications developed by test participants
-   * Applications run on separate hosts controlled by each participant
+   * Consists of user applications developed by users
+   * Applications run on separate hosts controlled by each user
    * Can model entire observing systems or individual components (sensors, communication links, algorithms, etc.)
    * Must meet basic NOS-T interface requirements for orchestration
 
