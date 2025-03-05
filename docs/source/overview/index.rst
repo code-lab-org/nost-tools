@@ -139,7 +139,7 @@ NOS-T consists of two top-level system components:
          fontsize=18;
          fontname="Helvetica-Bold";
          
-         Fill [style=invis]
+         // Fill [style=invis]
          NOSTInfrastructure [label="NOS-T Infrastructure", shape=oval, style=filled, fillcolor=orange];
          
          subgraph cluster2 {
