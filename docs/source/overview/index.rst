@@ -76,24 +76,20 @@ NOS-T adopts **RabbitMQ**, an open-source message broker implementing the Advanc
 
    }
 
-.. .. figure:: media/EDA_PubSub_Concept.png
-..    :width: 600
-..    :align: center
-   
-..    Event-Driven Architecture with Centralized Broker
-
 System Components
 ----------------
 
 NOS-T consists of two top-level system components:
 
 1. **NOS-T System** (fixed for all test cases)
+
    * Managed by an NOS-T operator
    * Includes the event broker infrastructure
    * Contains a manager application that orchestrates test runs
    * Ensures proper application synchronization, topic configuration, and consistent message structure
 
 2. **User System** (tailored to each test case)
+   
    * Consists of user applications developed by test participants
    * Applications run on separate hosts controlled by each participant
    * Can model entire observing systems or individual components (sensors, communication links, algorithms, etc.)
@@ -164,12 +160,6 @@ NOS-T consists of two top-level system components:
       // NOSTInfrastructure -> Fill [style=invis];
       NOSTInfrastructure -> ManagerApplication;
    }
-
-.. .. figure:: media/graphicalConcept.png
-..    :width: 600
-..    :align: center
-   
-..    NOS-T Graphical Concept
 
 Development Tools
 ---------------
