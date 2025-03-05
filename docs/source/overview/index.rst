@@ -31,6 +31,43 @@ NOS-T adopts **RabbitMQ**, an open-source message broker implementing the Advanc
 * **Subscribers**: Applications that consume events
 * **Topics**: Categories for event types that applications can publish to or subscribe to
 
+.. graphviz::
+   :name: EDA_PubSub_Concept
+   :caption: Event-Driven Architecture with Centralized Broker
+   :align: center
+
+   digraph MQTT_PubSub {
+      rankdir=LR;
+      
+      // User Apps
+      subgraph cluster_0 {
+         label="User Apps";
+         style=dashed;
+         
+         UserApp1 [label="User App", shape=rect, style=filled, fillcolor=red];
+         UserApp2 [label="User App", shape=rect, style=filled, fillcolor=blue];
+         UserApp3 [label="User App", shape=rect, style=filled, fillcolor=green];
+      }
+      
+      // Network and Broker
+      Network [label="Network", shape=diamond, style=filled, fillcolor=gray];
+      EventBroker [label="Event Broker\n(AMQP Protocol)", shape=cloud, style=filled, fillcolor=darkorange1];
+
+      // Publish Line (Red)
+      UserApp1 -> Network [label="Publish", fontsize=10, fontcolor=red, color=red];
+      UserApp1 -> Network [label="Publish", color=red, style=invis];
+
+      // Network to Event Broker (Black for Neutral)
+      Network -> EventBroker [label="Publish", fontsize=10, fontcolor=red, color=red];
+      Network -> EventBroker [label="", color=red, style=invis];
+      EventBroker -> Network [label="Subscribe", fontsize=10, fontcolor=blue, color=blue, style=dashed];
+
+      // Reverse Path (Subscription Messages, Blue)
+      Network -> UserApp2 [color=blue, style=dashed];
+      Network -> UserApp3 [label="Subscribe", fontsize=10, fontcolor=blue, color=blue, style=dashed];
+   }
+
+
 .. figure:: media/EDA_PubSub_Concept.png
    :width: 600
    :align: center
