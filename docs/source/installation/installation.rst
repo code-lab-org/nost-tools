@@ -74,6 +74,57 @@ To install additional libraries required to run the examples:
     
     pip install .[examples]
 
+Credentials
+-----------
+
+Credentials required by NOS-T can be defined in your bashrc file or using a .env file.
+
+Bashrc
+^^^^^^
+
+Open your bashrc file:
+
+.. code-block:: bash
+
+    vim ~/.bashrc
+
+Add the following lines:
+
+.. code-block:: bash
+
+    export USERNAME=<NOS-T Keycloak Username>
+    export PASSWORD=<NOS-T Keycloak Password>
+    export CLIENT_ID=<Ask NOS-T Operator>
+    export CLIENT_SECRET_KEY=<Ask NOS-T Operator>
+
+Source the changes:
+
+.. code-block:: bash
+
+    source ~/.bashrc
+
+.env
+^^^^
+
+You can create a .env file using the same values as listed above:
+
+.. code-block:: bash
+
+    vim .env
+
+Add the following lines:
+
+.. code-block:: bash
+
+    USERNAME=<NOS-T Keycloak Username>
+    PASSWORD=<NOS-T Keycloak Password>
+    CLIENT_ID=<Ask NOS-T Operator>
+    CLIENT_SECRET_KEY=<Ask NOS-T Operator>
+
+.. note::
+
+    Restart your computer after defining environmental variables in your ~/.bashrc file.
+
 Dependencies and Requirements
 ------------------------------
 
