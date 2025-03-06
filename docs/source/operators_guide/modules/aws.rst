@@ -4,7 +4,7 @@ AWS CLI
 As NOS-T operator, it may be necessary to use Amazon Web Services (AWS) resources. To facilitate that this documentation will walk you through the process of setting up the AWS command line interface (CLI).
 
 .. note::
-    
+
     Once you have installed and configured the AWS CLI, you can use it to interact with AWS services directly from the command line. Additionally, you can use the Python SDK, boto3, to programmatically interact with AWS services. Note that boto3 requires the AWS CLI to be installed and properly configured to function correctly.
 
 Installation
@@ -30,7 +30,7 @@ Windows
 
     msiexec.exe /i https://awscli.amazonaws.com/AWSCLIV2.msi
 
-1. Confirm successful installation
+2. Confirm successful installation
 
 .. code-block:: powershell
 
@@ -45,13 +45,13 @@ Mac
 
     curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"
 
-1. Run the installer: 
+2. Run the installer: 
 
 .. code-block:: bash
 
     sudo installer -pkg ./AWSCLIV2.pkg -target /
 
-1. Confirm successful installation:
+3. Confirm successful installation:
 
 .. code-block:: bash
 
