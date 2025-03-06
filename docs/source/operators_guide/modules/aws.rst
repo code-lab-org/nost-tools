@@ -1,7 +1,11 @@
-AWS
-===
+AWS CLI
+=======
 
 As NOS-T operator, it may be necessary to use Amazon Web Services (AWS) resources. To facilitate that this documentation will walk you through the process of setting up the AWS command line interface (CLI).
+
+.. note::
+    
+    Once you have installed and configured the AWS CLI, you can use it to interact with AWS services directly from the command line. Additionally, you can use the Python SDK, boto3, to programmatically interact with AWS services. Note that boto3 requires the AWS CLI to be installed and properly configured to function correctly.
 
 Installation
 ------------
@@ -59,7 +63,7 @@ Configuration
 Once installed, the AWS CLI must be configured:
 
 .. code-block:: bash
-    
+
     aws configure
 
 You will be prompted for the following information:
