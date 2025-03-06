@@ -142,21 +142,28 @@ NOS-T tools requires Python 3.8 or newer. The installation process automatically
 
 **Core Dependencies:**
 
-- Core libraries for messaging, event processing, and authentication
-- Data validation and manipulation libraries
-- Configuration and environment management utilities
+- Core libraries for messaging, event processing, and authentication (pika, python-keycloak)
+- Time synchronization utilities (ntplib)
+- Data serialization and validation tools (pydantic)
+- Data manipulation libraries (numpy, pandas)
+- Configuration and environment management utilities (python-dotenv, pyyaml)
 
 **Optional Dependencies:**
 
 - **examples:** Additional libraries for running example applications including:
+  
   - Visualization tools (matplotlib, dash, seaborn)
   - Geospatial libraries (geopandas, rioxarray)
   - Data formats (netCDF4, h5netcdf)
   - Optimization tools (pulp)
   - Cloud storage (s3fs, boto3)
+  
 - **dev:** Additional libraries for development and testing including:
+
   - Development tools (black, pytest, pylint, coverage)
+  
 - **docs:** Additional libraries for building documentation including:
+
   - Documentation tools (sphinx, autodoc_pydantic, sphinx_rtd_theme)
 
 To install optional dependencies:
