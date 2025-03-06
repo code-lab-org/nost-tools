@@ -141,6 +141,7 @@ Dependencies and Requirements
 NOS-T tools requires Python 3.8 or newer. The installation process automatically handles all required dependencies.
 
 **Core Dependencies:**
+
 - Core libraries for messaging, event processing, and authentication
 - Data validation and manipulation libraries
 - Configuration and environment management utilities
@@ -153,8 +154,10 @@ NOS-T tools requires Python 3.8 or newer. The installation process automatically
   - Data formats (netCDF4, h5netcdf)
   - Optimization tools (pulp)
   - Cloud storage (s3fs, boto3)
-- **dev:** Development tools (black, pytest, pylint, coverage)
-- **docs:** Documentation tools (sphinx, autodoc_pydantic, sphinx_rtd_theme)
+- **dev:** Additional libraries for development and testing including:
+  - Development tools (black, pytest, pylint, coverage)
+- **docs:** Additional libraries for building documentation including:
+  - Documentation tools (sphinx, autodoc_pydantic, sphinx_rtd_theme)
 
 To install optional dependencies:
 
