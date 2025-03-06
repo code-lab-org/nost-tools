@@ -146,6 +146,7 @@ NOS-T tools requires Python 3.8 or newer. The installation process automatically
 - Configuration and environment management utilities
 
 **Optional Dependencies:**
+
 - **examples:** Additional libraries for running example applications including:
   - Visualization tools (matplotlib, dash, seaborn)
   - Geospatial libraries (geopandas, rioxarray)
