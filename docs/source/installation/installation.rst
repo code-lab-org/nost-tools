@@ -3,9 +3,14 @@
 Installation
 ============
 
-The best way to get the NOS-T tools library and example codes is to clone the NOS-T git repository
-and install the tools. There are several ways to clone a git repository. `Here <https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository?tool=webui>`__
-is a good description of some of these methods.
+The installation phase involves (*i*) cloning the NOS-T tools repository, (*ii*) installing the NOS-T Tools library, and (*iii*) setting up the necessary credentials to interact with the NOS-T infrastructure. Each of these steps is detailed below.
+
+.. note::
+
+    The best way to get the NOS-T Tools library and example codes is to clone the NOS-T git repository 
+    and install the tools. There are several ways to clone a git repository. 
+    `Here <https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository?tool=webui>`__
+    is a good description of some of these methods.
 
 Cloning the Repository
 ----------------------
@@ -15,6 +20,12 @@ Cloning the Repository
   ::
 
     git clone git@github.com:emmanuelgonz/nost-tools.git
+
+  If the above command fails, try using the HTTPS URL instead:
+
+  ::
+
+    git clone https://github.com/emmanuelgonz/nost-tools.git
 
 2. Change to the directory where the repository was cloned:
 
