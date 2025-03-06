@@ -12,6 +12,7 @@ Linux
 ^^^^^
 
 .. code-block:: bash
+
     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
     unzip awscliv2.zip
     sudo ./aws/install
@@ -22,11 +23,13 @@ Windows
 1. Download and run the AWSL CLI installer: 
 
 .. code-block:: powershell
+
     msiexec.exe /i https://awscli.amazonaws.com/AWSCLIV2.msi
 
 1. Confirm successful installation
 
 .. code-block:: powershell
+
     aws --version
 
 Mac
@@ -35,16 +38,19 @@ Mac
 1. Download AWS CLI installer:
 
 .. code-block:: bash
+
     curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"
 
 1. Run the installer: 
 
 .. code-block:: bash
+
     sudo installer -pkg ./AWSCLIV2.pkg -target /
 
 1. Confirm successful installation:
 
 .. code-block:: bash
+
     aws --version
 
 Configuration
@@ -53,6 +59,7 @@ Configuration
 Once installed, the AWS CLI must be configured:
 
 .. code-block:: bash
+    
     aws configure
 
 You will be prompted for the following information:
