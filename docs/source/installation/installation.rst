@@ -87,7 +87,7 @@ To install additional libraries required to run the examples:
 Credentials
 -----------
 
-Credentials required by NOS-T can be defined in your bashrc file or using a .env file.
+Credentials required by the NOS-T infrastructure can be defined in your bashrc file or using a .env file.
 
 Bashrc
 ^^^^^^
