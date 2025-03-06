@@ -138,15 +138,34 @@ Add the following lines:
 Dependencies and Requirements
 ------------------------------
 
-The installation process automatically handles all required dependencies for NOS-T tools. These include:
+NOS-T tools requires Python 3.8 or newer. The installation process automatically handles all required dependencies.
 
-- Core libraries for messaging and event processing
-- Utilities for data processing of NetCDF and HDF5 files
-- Libraries for plotting and data analysis
+**Core Dependencies:**
+- Core libraries for messaging, event processing, and authentication
+- Data validation and manipulation libraries
+- Configuration and environment management utilities
+
+**Optional Dependencies:**
+- **examples:** Additional libraries for running example applications including:
+  - Visualization tools (matplotlib, dash, seaborn)
+  - Geospatial libraries (geopandas, rioxarray)
+  - Data formats (netCDF4, h5netcdf)
+  - Optimization tools (pulp)
+  - Cloud storage (s3fs, boto3)
+- **dev:** Development tools (black, pytest, pylint, coverage)
+- **docs:** Documentation tools (sphinx, autodoc_pydantic, sphinx_rtd_theme)
+
+To install optional dependencies:
+
+.. code-block:: bash
+
+    pip install .[examples]  # For example applications
+    pip install .[dev]       # For development tools
+    pip install .[docs]      # For documentation building
 
 For a complete list of dependencies and version requirements, refer to the `project specification file (pyproject.toml) <https://github.com/emmanuelgonz/nost-tools/blob/main/pyproject.toml>`__ in the repository.
 
-If you encounter any compatibility issues, ensure you're using Python 3.9 or newer, as this is the recommended version range for NOS-T tools.
+If you encounter compatibility issues, check your Python version (3.8+) and ensure your environment meets all requirements.
 
 Next Steps
 ----------
