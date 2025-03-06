@@ -72,8 +72,6 @@ NOS-T adopts **RabbitMQ**, an open-source message broker implementing the Advanc
       Network -> EventBroker [label="Publish", fontsize=12, fontcolor=red, color=red];
       Network -> EventBroker [label="", color=red, style=invis];
       EventBroker -> Network [label="Subscribe", fontsize=12, fontcolor=blue, color=blue, style=dashed];
-
-
    }
 
 System Components
