@@ -23,7 +23,7 @@ Cloning the Repository
 
     git clone git@github.com:emmanuelgonz/nost-tools.git
 
-  If the above command fails, try using the HTTPS URL instead:
+If the above command fails, try using the HTTPS URL instead:
 
 .. code-block:: bash
 
