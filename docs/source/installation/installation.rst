@@ -19,19 +19,19 @@ Cloning the Repository
 
 1. Clone the repository:
 
-  ::
+.. code-block:: bash
 
     git clone git@github.com:emmanuelgonz/nost-tools.git
 
   If the above command fails, try using the HTTPS URL instead:
 
-  ::
+.. code-block:: bash
 
     git clone https://github.com/emmanuelgonz/nost-tools.git
 
 2. Change to the directory where the repository was cloned:
 
-  ::
+.. code-block:: bash
 
     cd nost-tools
 
@@ -45,19 +45,19 @@ To install NOS-T tools using pip:
 
 1. Upgrade pip to the latest version:
 
-  ::
+.. code-block:: bash
     
     python -m pip install --upgrade pip
 
 2. Install NOS-T tools:
 
-  :: 
+.. code-block:: bash
     
     pip install .
 
 To install additional libraries required to run the examples:
 
-  :: 
+.. code-block:: bash
     
     pip install .[examples]
 
@@ -70,21 +70,21 @@ To install NOS-T tools using conda:
 
 1. Create a new conda environment (recommended):
 
-  ::
+.. code-block:: bash
 
     conda create -n nost python=3.11
     conda activate nost
 
 2. Install NOS-T tools:
 
-  :: 
+.. code-block:: bash
     
     pip install .
 
 To install additional libraries required to run the examples:
 
-  :: 
-    
+.. code-block:: bash
+
     pip install .[examples]
 
 Credentials

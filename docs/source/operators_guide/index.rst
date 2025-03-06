@@ -21,6 +21,7 @@ A fundamental requirement for NOS-T is a properly configured message broker that
    modules/amqp
    modules/amqp_keycloak
    modules/yml_file
+   modules/aws
 
 *NOTE:* This guide presents a specific reference architecture for a functional testbed environment, but many components can be substituted with alternatives offering similar capabilities. For example:
 
