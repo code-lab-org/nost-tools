@@ -6,61 +6,54 @@ As NOS-T operator, it may be necessary to use Amazon Web Services (AWS) resource
 Installation
 ------------
 
-Installation instructions are provided below. For further information on AWS CLI installation, [click here](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html).
+Installation instructions are provided below. For further information on AWS CLI installation, `click here <https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html>`__.
 
 Linux
 ^^^^^
 
-```bash
-curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-unzip awscliv2.zip
-sudo ./aws/install
-```
+.. code-block:: bash
+    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+    unzip awscliv2.zip
+    sudo ./aws/install
 
 Windows
 ^^^^^^^
 
 1. Download and run the AWSL CLI installer: 
 
-```powershell
-msiexec.exe /i https://awscli.amazonaws.com/AWSCLIV2.msi
-```
+.. code-block:: powershell
+    msiexec.exe /i https://awscli.amazonaws.com/AWSCLIV2.msi
 
-2. Confirm successful installation
+1. Confirm successful installation
 
-```powershell
-aws --version
-```
+.. code-block:: powershell
+    aws --version
 
 Mac
 ^^^
 
 1. Download AWS CLI installer:
 
-```bash
-curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"
-```
+.. code-block:: bash
+    curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"
 
-2. Run the installer: 
+1. Run the installer: 
 
-```bash
-sudo installer -pkg ./AWSCLIV2.pkg -target /
-```
+.. code-block:: bash
+    sudo installer -pkg ./AWSCLIV2.pkg -target /
 
-3. Confirm successful installation:
+1. Confirm successful installation:
 
-```bash
-aws --version
-```
+.. code-block:: bash
+    aws --version
 
 Configuration
 -------------
 
 Once installed, the AWS CLI must be configured:
 
-```bash
-aws configure
-```
+.. code-block:: bash
+    aws configure
 
 You will be prompted for the following information:
 
