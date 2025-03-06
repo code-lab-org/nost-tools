@@ -3,7 +3,8 @@
 Installation
 ============
 
-The installation phase involves: 
+The installation phase involves:
+
 1. Cloning the NOS-T tools repository
 2. Installing the NOS-T Tools library
 3. Configuring the necessary credentials to interact with the NOS-T infrastructure.
