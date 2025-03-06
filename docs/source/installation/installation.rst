@@ -14,8 +14,8 @@ The installation phase involves:
     The best way to get the NOS-T Tools library and example codes is to clone the NOS-T git repository 
     and install the tools. The library will soon be available on PyPI for easy installation.
 
-Cloning the Repository
-----------------------
+NOS-T Tools Installation
+------------------------
 
 1. Clone the repository:
 
@@ -34,9 +34,6 @@ If the above command fails, try using the HTTPS URL instead:
 .. code-block:: bash
 
     cd nost-tools
-
-NOS-T Tools Installation
-------------------------
 
 Pip 
 ^^^
