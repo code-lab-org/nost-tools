@@ -3,14 +3,15 @@
 Installation
 ============
 
-The installation phase involves (*i*) cloning the NOS-T tools repository, (*ii*) installing the NOS-T Tools library, and (*iii*) setting up the necessary credentials to interact with the NOS-T infrastructure. Each of these steps is detailed below.
+The installation phase involves: 
+1. Cloning the NOS-T tools repository
+2. Installing the NOS-T Tools library
+3. Configuring the necessary credentials to interact with the NOS-T infrastructure.
 
 .. note::
 
     The best way to get the NOS-T Tools library and example codes is to clone the NOS-T git repository 
-    and install the tools. There are several ways to clone a git repository. 
-    `Here <https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository?tool=webui>`__
-    is a good description of some of these methods.
+    and install the tools. The library will soon be available on PyPI for easy installation.
 
 Cloning the Repository
 ----------------------
