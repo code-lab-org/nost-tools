@@ -46,7 +46,7 @@ Open an elevated command prompt and change directories to the location of this `
     - Volume "rabbitmq_data"         Created                         ##.#s
     - Container rabbitmq             Started                         ##.#s
    
-If actively running the Docker Desktop client, the Containers tab should include a single container. Expanding the **rabbitmq** container shows a single active node:
+If actively running the Docker Desktop client, the Containers tab should include a two containers. Expanding the **rabbitmq** container shows two active nodes, rabbitmq and rabbitmq_tcp_relay:
 
 .. image:: Docker_Desktop_Containers_RabbitMQ.png
     :width: 800
