@@ -31,31 +31,9 @@ If a list of options or commands is not displayed, then `installing Docker Compo
 
 To begin setting up a RabbitMQ broker, create a file named `rabbitmq-docker-compose.yml` with the following content:
 
-.. code-block:: yaml
+.. literalinclude:: rabbitmq-docker-compose.yml
 
-  services:
-    rabbitmq:
-      image: rabbitmq:3.13-management
-      hostname: rabbitmq
-      container_name: rabbitmq
-      ports:
-        - "5672:5672"   # AMQP port
-        - "15672:15672" # Management UI port
-        - "1883:1883"   # MQTT port
-      volumes:
-        - rabbitmq_data:/var/lib/rabbitmq
-      environment:
-        - RABBITMQ_DEFAULT_USER=admin
-        - RABBITMQ_DEFAULT_PASS=admin
-      restart: always
-      command: >
-        bash -c "rabbitmq-plugins enable --offline rabbitmq_mqtt rabbitmq_web_mqtt &&
-                docker-entrypoint.sh rabbitmq-server"
-  volumes:
-    rabbitmq_data:
-      name: rabbitmq_data
-
-You can download the file `here <https://raw.githubusercontent.com/emmanuelgonz/nost_rabbitmq_keycloak/refs/heads/main/rabbitmq-docker-compose.yml>`_.
+You can download the file :download:`here <rabbitmq-docker-compose.yml>`.
 
 Open an elevated command prompt and change directories to the location of this `.yml` file and enter the following:
 
