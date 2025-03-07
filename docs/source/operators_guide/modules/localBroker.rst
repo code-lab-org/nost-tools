@@ -32,10 +32,8 @@ If a list of options or commands is not displayed, then `installing Docker Compo
 To begin setting up a RabbitMQ broker, create a file named `rabbitmq-docker-compose.yml` with the following content:
 
 .. literalinclude:: rabbitmq-docker-compose.yml
-
-```{literalinclude} rabbitmq-docker-compose.yml
-:start-at: services
-```
+    :start-at: services
+    :lineno-match:
 
 You can download the file :download:`here <rabbitmq-docker-compose.yml>`.
 
