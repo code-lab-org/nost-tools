@@ -223,9 +223,9 @@ class ChannelConfig(BaseModel):
 class Credentials(BaseModel):
     username: str = Field(..., description="Username for authentication.")
     password: str = Field(..., description="Password for authentication.")
-    client_id: str = Field(..., description="Client ID for authentication.")
-    client_secret_key: str = Field(
-        ..., description="Client secret key for authentication."
+    client_id: Optional[str] = Field("", description="Client ID for authentication.")
+    client_secret_key: Optional[str] = Field(
+        "", description="Client secret key for authentication."
     )
 
 
@@ -411,10 +411,18 @@ class ConnectionConfig:
             logger.warning(
                 "Checking for credentials in the system environment variables."
             )
+        if self.server_config.servers.rabbitmq.keycloak_authentication:
+            required_fields = [
+                "USERNAME",
+                "PASSWORD",
+                "CLIENT_ID",
+                "CLIENT_SECRET_KEY",
+            ]
+        else:
+            required_fields = ["USERNAME", "PASSWORD"]
 
-        required_fields = ["USERNAME", "PASSWORD", "CLIENT_ID", "CLIENT_SECRET_KEY"]
+        # required_fields = ["USERNAME", "PASSWORD", "CLIENT_ID", "CLIENT_SECRET_KEY"]
         env_data = {field: os.getenv(field) for field in required_fields}
-        # env_data = {field: os.environ.get(field) for field in required_fields}
 
         missing_fields = [field for field, value in env_data.items() if value is None]
         if missing_fields:
@@ -423,12 +431,20 @@ class ConnectionConfig:
             )
 
         try:
-            self.credentials_config = Credentials(
-                username=env_data["USERNAME"],
-                password=env_data["PASSWORD"],
-                client_id=env_data["CLIENT_ID"],
-                client_secret_key=env_data["CLIENT_SECRET_KEY"],
-            )
+            if self.server_config.servers.rabbitmq.keycloak_authentication:
+                self.credentials_config = Credentials(
+                    username=env_data["USERNAME"],
+                    password=env_data["PASSWORD"],
+                    client_id=env_data["CLIENT_ID"],
+                    client_secret_key=env_data["CLIENT_SECRET_KEY"],
+                )
+            else:
+                self.credentials_config = Credentials(
+                    username=env_data["USERNAME"],
+                    password=env_data["PASSWORD"],
+                    # client_id="", # Provide empty default values
+                    # client_secret_key="", # when not using Keycloak
+                )
         except ValidationError as err:
             raise EnvironmentVariableError(f"Invalid environment variables: {err}")
 
@@ -454,21 +470,21 @@ class ConnectionConfig:
         """
         Creates a connection configuration.
         """
-        if (
-            self.username is not None
-            and self.password is not None
-            and self.client_id is not None
-            and self.client_secret_key is not None
-        ):
-            logger.info("Using provided credentials.")
-            self.credentials_config = Credentials(
-                username=self.username,
-                password=self.password,
-                client_id=self.client_id,
-                client_secret_key=self.client_secret_key,
-            )
-        else:
-            self.load_environment_variables()
+        # if (
+        #     self.username is not None
+        #     and self.password is not None
+        #     and self.client_id is not None
+        #     and self.client_secret_key is not None
+        # ):
+        #     logger.info("Using provided credentials.")
+        #     self.credentials_config = Credentials(
+        #         username=self.username,
+        #         password=self.password,
+        #         client_id=self.client_id,
+        #         client_secret_key=self.client_secret_key,
+        #     )
+        # else:
+        #     self.load_environment_variables()
 
         if self.yaml_file:
             try:
@@ -519,6 +535,23 @@ class ConnectionConfig:
             del server_config.channels
         if hasattr(server_config, "execution"):
             del server_config.execution
+        self.server_config = server_config
+
+        if (
+            self.username is not None
+            and self.password is not None
+            and self.client_id is not None
+            and self.client_secret_key is not None
+        ):
+            logger.info("Using provided credentials.")
+            self.credentials_config = Credentials(
+                username=self.username,
+                password=self.password,
+                client_id=self.client_id,
+                client_secret_key=self.client_secret_key,
+            )
+        else:
+            self.load_environment_variables()
 
         self.rc = RuntimeConfig(
             credentials=self.credentials_config,

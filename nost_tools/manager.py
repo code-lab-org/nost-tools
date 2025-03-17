@@ -87,39 +87,50 @@ class Manager(Application):
         init_retry_delay_s = None
         init_max_retry = None
 
-    def declare_bind_queue(self):
-        """
-        Declares and binds a queue to the exchange. The queue is bound to the exchange using the routing key. The routing key is created using the application name and topic.
-        """
-        for config in self.channel_configs:
-            # if config["app"] == self.app_name:
-            exchange_name = config["exchange"]
-            queue_name = config["address"]
-            self.channel.queue_declare(queue=queue_name, durable=config["durable"])
-            self.channel.queue_bind(
-                exchange=exchange_name,
-                queue=queue_name,
-                routing_key=config["address"],
-            )
-        logger.info(f"Successfully declared and bound queues: {self.channel_configs}")
+    # def declare_bind_queue(self):
+    #     """
+    #     Declares and binds a queue to the exchange. The queue is bound to the exchange using the routing key. The routing key is created using the application name and topic.
+    #     """
+    #     for config in self.channel_configs:
+    #         # if config["app"] == self.app_name:
+    #         exchange_name = config["exchange"]
+    #         queue_name = config["address"]
+    #         self.channel.queue_declare(queue=queue_name, durable=config["durable"])
+    #         self.channel.queue_bind(
+    #             exchange=exchange_name,
+    #             queue=queue_name,
+    #             routing_key=config["address"],
+    #         )
+    #     logger.info(f"Successfully declared and bound queues: {self.channel_configs}")
 
-    def declare_exchange(self):
-        """
-        Declares the exchanges in RabbitMQ.
+    # def declare_exchange(self):
+    #     """
+    #     Declares the exchanges in RabbitMQ.
 
-        Args:
-            unique_exchanges (dict): dictionary of unique exchanges
-        """
-        for exchange_name, exchange_config in self.unique_exchanges.items():
-            logger.info(f"Declaring exchange: {exchange_name}")
+    #     Args:
+    #         unique_exchanges (dict): dictionary of unique exchanges
+    #     """
+    #     for exchange_name, exchange_config in self.unique_exchanges.items():
+    #         logger.info(f"Declaring exchange: {exchange_name}")
 
-            self.channel.exchange_declare(
-                exchange=exchange_name,
-                exchange_type=exchange_config["type"],
-                durable=exchange_config["durable"],
-                auto_delete=exchange_config["auto_delete"],
-            )
-        logger.info(f"Successfully declared exchanges: {self.unique_exchanges}")
+    #         self.channel.exchange_declare(
+    #             exchange=exchange_name,
+    #             exchange_type=exchange_config["type"],
+    #             durable=exchange_config["durable"],
+    #             auto_delete=exchange_config["auto_delete"],
+    #         )
+    #     logger.info(f"Successfully declared exchanges: {self.unique_exchanges}")
+
+    def establish_exchange(self):
+        """
+        Establishes the exchange for the manager application.
+        """
+        self.channel.exchange_declare(
+            exchange=self.prefix,
+            exchange_type="topic",
+            durable=False,
+            auto_delete=True,
+        )
 
     def execute_test_plan(
         self,
@@ -202,9 +213,10 @@ class Manager(Application):
                     "No configuration runtime. Please provide simulation start and stop times."
                 )
         ####
-        if self.predefined_exchanges_queues:
-            self.declare_exchange()
-            self.declare_bind_queue()
+        self.establish_exchange()
+        # if self.predefined_exchanges_queues:
+        #     self.declare_exchange()
+        #     self.declare_bind_queue()
         ####
 
         self.required_apps_status = dict(
@@ -390,6 +402,7 @@ class Manager(Application):
         # self.declared_queues.add(f"{self.prefix}.{self.app_name}.init")
         # logger.info(f"ADDED: {self.prefix}.{self.app_name}.*")
         logger.info(f"Declared Queues: {self.declared_queues}")
+        logger.info(f"Declared Exchanges: {self.declared_exchanges}")
 
     def start(
         self,

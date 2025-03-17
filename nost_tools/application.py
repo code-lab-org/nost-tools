@@ -609,12 +609,12 @@ class Application:
         """
         try:
 
-            self.channel.exchange_declare(
-                exchange=self.prefix,
-                exchange_type="topic",
-                durable=False,
-                auto_delete=True,
-            )
+            # self.channel.exchange_declare(
+            #     exchange=self.prefix,
+            #     exchange_type="topic",
+            #     durable=False,
+            #     auto_delete=True,
+            # )
             # routing_key = self.create_routing_key(app_name=app_name, topic=topic)
             if app_specific_extender:
                 queue_name = ".".join([routing_key, app_specific_extender])
