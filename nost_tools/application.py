@@ -112,7 +112,9 @@ class Application:
 
     def new_access_token(self, refresh_token=None):
         """
-        Obtains a new access token and refresh token from Keycloak. If a refresh token is provided, the access token is refreshed using the refresh token. Otherwise, the access token is obtained using the username and password provided in the configuration.
+        Obtains a new access token and refresh token from Keycloak. If a refresh token is provided, 
+        the access token is refreshed using the refresh token. Otherwise, the access token is obtained 
+        using the username and password provided in the configuration.
 
         Args:
             refresh_token (str): refresh token (optional)
@@ -608,14 +610,6 @@ class Application:
             app_specific_extender (str): application specific extender, used to create a unique queue name for the application. If the app_specific_extender is not provided, the queue name is the same as the routing key.
         """
         try:
-
-            # self.channel.exchange_declare(
-            #     exchange=self.prefix,
-            #     exchange_type="topic",
-            #     durable=False,
-            #     auto_delete=True,
-            # )
-            # routing_key = self.create_routing_key(app_name=app_name, topic=topic)
             if app_specific_extender:
                 queue_name = ".".join([routing_key, app_specific_extender])
             else:
