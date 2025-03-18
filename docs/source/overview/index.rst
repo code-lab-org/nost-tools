@@ -32,14 +32,18 @@ NOS-T adopts **RabbitMQ**, an open-source message broker implementing the Advanc
 * **Topics**: Categories for event types that applications can publish to or subscribe to
 
 .. mermaid::
-   graph TD
-    A[Enter Chart Definition] --> B(Preview)
-    B --> C{decide}
-    C --> D[Keep]
-    C --> E[Edit Definition]
-    E --> B
-    D --> F[Save Image and Code]
-    F --> B
+
+   sequenceDiagram
+      participant Alice
+      participant Bob
+      Alice->John: Hello John, how are you?
+      loop Healthcheck
+          John->John: Fight against hypochondria
+      end
+      Note right of John: Rational thoughts <br/>prevail...
+      John-->Alice: Great!
+      John->Bob: How about you?
+      Bob-->John: Jolly good!
 
 .. graphviz::
    :name: EDA_PubSub_Concept
