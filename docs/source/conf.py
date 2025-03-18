@@ -92,6 +92,7 @@ extensions = [
     "sphinx_design",
     "myst_parser",
     "sphinx.ext.graphviz",
+    "sphinxcontrib.mermaid",
 ]
 
 napoleon_google_docstring = True

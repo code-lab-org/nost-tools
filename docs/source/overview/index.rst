@@ -31,6 +31,16 @@ NOS-T adopts **RabbitMQ**, an open-source message broker implementing the Advanc
 * **Subscribers**: Applications that consume events
 * **Topics**: Categories for event types that applications can publish to or subscribe to
 
+.. mermaid::
+   graph TD
+    A[Enter Chart Definition] --> B(Preview)
+    B --> C{decide}
+    C --> D[Keep]
+    C --> E[Edit Definition]
+    E --> B
+    D --> F[Save Image and Code]
+    F --> B
+
 .. graphviz::
    :name: EDA_PubSub_Concept
    :caption: Event-Driven Architecture with Centralized Broker
