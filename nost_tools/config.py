@@ -133,22 +133,22 @@ class ManagerConfig(BaseModel):
         False, description="Shut down when terminated."
     )
 
-    @root_validator(pre=True)
-    def scale_time(cls, values):
-        time_scale_factor = values.get("time_scale_factor", 1.0)
+    # @root_validator(pre=True)
+    # def scale_time(cls, values):
+    #     time_scale_factor = values.get("time_scale_factor", 1.0)
 
-        if "time_status_step" in values:
-            time_status_step = values["time_status_step"]
-            if isinstance(time_status_step, str):
-                time_status_step = timedelta(
-                    seconds=float(time_status_step.split(":")[-1])
-                )
-            if isinstance(time_status_step, timedelta):
-                values["time_status_step"] = timedelta(
-                    seconds=time_status_step.total_seconds() * time_scale_factor
-                )
+    #     if "time_status_step" in values:
+    #         time_status_step = values["time_status_step"]
+    #         if isinstance(time_status_step, str):
+    #             time_status_step = timedelta(
+    #                 seconds=float(time_status_step.split(":")[-1])
+    #             )
+    #         if isinstance(time_status_step, timedelta):
+    #             values["time_status_step"] = timedelta(
+    #                 seconds=time_status_step.total_seconds() * time_scale_factor
+    #             )
 
-        return values
+    #     return values
 
 
 class ManagedApplicationConfig(BaseModel):
@@ -164,31 +164,31 @@ class ManagedApplicationConfig(BaseModel):
     )
     manager_app_name: str = Field("manager", description="Manager application name.")
 
-    @root_validator(pre=True)
-    def scale_time(cls, values):
-        time_scale_factor = values.get("time_scale_factor", 1.0)
+    # @root_validator(pre=True)
+    # def scale_time(cls, values):
+    #     time_scale_factor = values.get("time_scale_factor", 1.0)
 
-        if "time_step" in values:
-            time_step = values["time_step"]
-            if isinstance(time_step, str):
-                time_step = timedelta(seconds=float(time_step.split(":")[-1]))
-            if isinstance(time_step, timedelta):
-                values["time_step"] = timedelta(
-                    seconds=time_step.total_seconds() * time_scale_factor
-                )
+    #     if "time_step" in values:
+    #         time_step = values["time_step"]
+    #         if isinstance(time_step, str):
+    #             time_step = timedelta(seconds=float(time_step.split(":")[-1]))
+    #         if isinstance(time_step, timedelta):
+    #             values["time_step"] = timedelta(
+    #                 seconds=time_step.total_seconds() * time_scale_factor
+    #             )
 
-        if "time_status_step" in values:
-            time_status_step = values["time_status_step"]
-            if isinstance(time_status_step, str):
-                time_status_step = timedelta(
-                    seconds=float(time_status_step.split(":")[-1])
-                )
-            if isinstance(time_status_step, timedelta):
-                values["time_status_step"] = timedelta(
-                    seconds=time_status_step.total_seconds() * time_scale_factor
-                )
+    #     if "time_status_step" in values:
+    #         time_status_step = values["time_status_step"]
+    #         if isinstance(time_status_step, str):
+    #             time_status_step = timedelta(
+    #                 seconds=float(time_status_step.split(":")[-1])
+    #             )
+    #         if isinstance(time_status_step, timedelta):
+    #             values["time_status_step"] = timedelta(
+    #                 seconds=time_status_step.total_seconds() * time_scale_factor
+    #             )
 
-        return values
+    #     return values
 
 
 class ExecConfig(BaseModel):
