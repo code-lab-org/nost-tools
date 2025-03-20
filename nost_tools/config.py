@@ -62,44 +62,6 @@ class ServersConfig(BaseModel):
     keycloak: KeycloakConfig = Field(..., description="Keycloak configuration.")
 
 
-# class ExecConfig(BaseModel):
-#     prefix: str = Field(
-#         "nost",
-#         description="Execution prefix. This is used as the RabbitMQ exchange throughout the entire execution.",
-#     )
-#     sim_start_time: datetime = Field(None, description="Simulation start time.")
-#     sim_stop_time: datetime = Field(None, description="Simulation stop time.")
-#     start_time: datetime = Field(None, description="Execution start time.")
-#     time_step: timedelta = Field(
-#         timedelta(seconds=1), description="Time step for the simulation."
-#     )
-#     time_scale_factor: float = Field(1.0, description="Time scale factor.")
-#     time_scale_updates: List[str] = Field(
-#         default_factory=list, description="List of time scale updates."
-#     )
-#     time_status_step: timedelta = Field(None, description="Time status step.")
-#     time_status_init: datetime = Field(None, description="Time status init.")
-#     command_lead: timedelta = Field(
-#         timedelta(seconds=0), description="Command lead time."
-#     )
-#     required_apps: List[str] = Field(
-#         default_factory=list,
-#         description="List of required applications.",
-#     )
-#     init_retry_delay_s: int = Field(5, description="Initial retry delay in seconds.")
-#     init_max_retry: int = Field(5, description="Initial maximum retry attempts.")
-#     set_offset: bool = Field(True, description="Set offset.")
-#     shut_down_when_terminated: bool = Field(
-#         False, description="Shut down when terminated."
-#     )
-#     manager_app_name: str = Field("manager", description="Manager application name.")
-# @root_validator(pre=True)
-# def set_time_status_step(cls, values):
-#     """Ensure time_status_step is set based on time_scale_factor."""
-#     if values.get("time_status_step") is None:
-#         time_scale_factor = values.get("time_scale_factor", 1.0)  # Default to 1.0
-#         values["time_status_step"] = timedelta(seconds=1) * time_scale_factor
-#     return values
 class GeneralConfig(BaseModel):
     prefix: str = Field("nost", description="Execution prefix.")
 
@@ -133,22 +95,22 @@ class ManagerConfig(BaseModel):
         False, description="Shut down when terminated."
     )
 
-    # @root_validator(pre=True)
-    # def scale_time(cls, values):
-    #     time_scale_factor = values.get("time_scale_factor", 1.0)
+    @root_validator(pre=True)
+    def scale_time(cls, values):
+        time_scale_factor = values.get("time_scale_factor", 1.0)
 
-    #     if "time_status_step" in values:
-    #         time_status_step = values["time_status_step"]
-    #         if isinstance(time_status_step, str):
-    #             time_status_step = timedelta(
-    #                 seconds=float(time_status_step.split(":")[-1])
-    #             )
-    #         if isinstance(time_status_step, timedelta):
-    #             values["time_status_step"] = timedelta(
-    #                 seconds=time_status_step.total_seconds() * time_scale_factor
-    #             )
+        if "time_status_step" in values:
+            time_status_step = values["time_status_step"]
+            if isinstance(time_status_step, str):
+                time_status_step = timedelta(
+                    seconds=float(time_status_step.split(":")[-1])
+                )
+            if isinstance(time_status_step, timedelta):
+                values["time_status_step"] = timedelta(
+                    seconds=time_status_step.total_seconds() * time_scale_factor
+                )
 
-    #     return values
+        return values
 
 
 class ManagedApplicationConfig(BaseModel):
@@ -164,31 +126,31 @@ class ManagedApplicationConfig(BaseModel):
     )
     manager_app_name: str = Field("manager", description="Manager application name.")
 
-    # @root_validator(pre=True)
-    # def scale_time(cls, values):
-    #     time_scale_factor = values.get("time_scale_factor", 1.0)
+    @root_validator(pre=True)
+    def scale_time(cls, values):
+        time_scale_factor = values.get("time_scale_factor", 1.0)
 
-    #     if "time_step" in values:
-    #         time_step = values["time_step"]
-    #         if isinstance(time_step, str):
-    #             time_step = timedelta(seconds=float(time_step.split(":")[-1]))
-    #         if isinstance(time_step, timedelta):
-    #             values["time_step"] = timedelta(
-    #                 seconds=time_step.total_seconds() * time_scale_factor
-    #             )
+        if "time_step" in values:
+            time_step = values["time_step"]
+            if isinstance(time_step, str):
+                time_step = timedelta(seconds=float(time_step.split(":")[-1]))
+            if isinstance(time_step, timedelta):
+                values["time_step"] = timedelta(
+                    seconds=time_step.total_seconds() * time_scale_factor
+                )
 
-    #     if "time_status_step" in values:
-    #         time_status_step = values["time_status_step"]
-    #         if isinstance(time_status_step, str):
-    #             time_status_step = timedelta(
-    #                 seconds=float(time_status_step.split(":")[-1])
-    #             )
-    #         if isinstance(time_status_step, timedelta):
-    #             values["time_status_step"] = timedelta(
-    #                 seconds=time_status_step.total_seconds() * time_scale_factor
-    #             )
+        if "time_status_step" in values:
+            time_status_step = values["time_status_step"]
+            if isinstance(time_status_step, str):
+                time_status_step = timedelta(
+                    seconds=float(time_status_step.split(":")[-1])
+                )
+            if isinstance(time_status_step, timedelta):
+                values["time_status_step"] = timedelta(
+                    seconds=time_status_step.total_seconds() * time_scale_factor
+                )
 
-    #     return values
+        return values
 
 
 class ExecConfig(BaseModel):
@@ -470,22 +432,6 @@ class ConnectionConfig:
         """
         Creates a connection configuration.
         """
-        # if (
-        #     self.username is not None
-        #     and self.password is not None
-        #     and self.client_id is not None
-        #     and self.client_secret_key is not None
-        # ):
-        #     logger.info("Using provided credentials.")
-        #     self.credentials_config = Credentials(
-        #         username=self.username,
-        #         password=self.password,
-        #         client_id=self.client_id,
-        #         client_secret_key=self.client_secret_key,
-        #     )
-        # else:
-        #     self.load_environment_variables()
-
         if self.yaml_file:
             try:
                 self.load_yaml_config_file()
