@@ -91,7 +91,6 @@ class ManagedApplication(Application):
                 "managed_application",
                 None,
             )
-            logger.info(parameters)
             self.set_offset = parameters.set_offset
             self.time_status_step = parameters.time_status_step
             self.time_status_init = parameters.time_status_init
@@ -155,7 +154,7 @@ class ManagedApplication(Application):
         try:
             # Parse message payload
             message = body.decode("utf-8")
-            params = InitCommand.parse_raw(message).tasking_parameters
+            params = InitCommand.model_validate_json(message).tasking_parameters
             # update default execution start/end time
             self._sim_start_time = params.sim_start_time
             self._sim_stop_time = params.sim_stop_time
@@ -181,7 +180,7 @@ class ManagedApplication(Application):
         """
         # Parse message payload
         message = body.decode("utf-8")
-        params = StartCommand.parse_raw(message).tasking_parameters
+        params = StartCommand.model_validate_json(message).tasking_parameters
         logger.info(f"Received start command {params}")
         try:
 

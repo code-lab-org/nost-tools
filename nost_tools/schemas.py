@@ -2,10 +2,10 @@
 Provides object models for common data structures.
 """
 
-from datetime import datetime
-from typing import List, Optional
+from datetime import datetime, timedelta
+from typing import Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from .simulator import Mode
 
@@ -207,19 +207,71 @@ class ReadyStatus(BaseModel):
     )
 
 
-### Connection Configuration
+# ### Connection Configuration
+# class RabbitMQConfig(BaseModel):
+#     host: str = Field(..., description="RabbitMQ host.")
+#     port: int = Field(..., description="RabbitMQ port.")
+#     virtual_host: str = Field(..., description="RabbitMQ virtual host.")
+#     tls: bool = Field(..., description="RabbitMQ TLS.")
+
+
+# class KeycloakConfig(BaseModel):
+#     host: str = Field(..., description="Keycloak host.")
+#     port: int = Field(..., description="Keycloak port.")
+#     realm: str = Field(..., description="Keycloak realm.")
+#     tls: bool = Field(..., description="Keycloak TLS.")
+
+
+# class ServersConfig(BaseModel):
+#     rabbitmq: RabbitMQConfig = Field(..., description="RabbitMQ configuration.")
+#     keycloak: KeycloakConfig = Field(..., description="Keycloak configuration.")
+
+
+# class Config(BaseModel):
+#     servers: ServersConfig = Field(..., description="Servers configuration.")
+
+
+class InfoConfig(BaseModel):
+    title: Optional[str] = Field(None, description="Title of the simulation.")
+    version: Optional[str] = Field(None, description="Version of the simulation.")
+    description: Optional[str] = Field(
+        None, description="Description of the simulation."
+    )
+
+
 class RabbitMQConfig(BaseModel):
-    host: str = Field(..., description="RabbitMQ host.")
-    port: int = Field(..., description="RabbitMQ port.")
-    virtual_host: str = Field(..., description="RabbitMQ virtual host.")
-    tls: bool = Field(..., description="RabbitMQ TLS.")
+    keycloak_authentication: bool = Field(
+        False, description="Keycloak authentication for RabbitMQ."
+    )
+    host: str = Field("localhost", description="RabbitMQ host.")
+    port: int = Field(5672, description="RabbitMQ port.")
+    tls: bool = Field(False, description="RabbitMQ TLS/SSL.")
+    virtual_host: str = Field("/", description="RabbitMQ virtual host.")
+    message_expiration: str = Field(
+        "60000", description="RabbitMQ expiration, in milliseconds."
+    )
+    delivery_mode: int = Field(
+        2, description="RabbitMQ delivery mode (1: non-persistent, 2: durable)."
+    )
+    content_type: str = Field(
+        "text/plain",
+        description="RabbitMQ MIME content type (application/json, text/plain, etc.).",
+    )
+    heartbeat: int = Field(30, description="RabbitMQ heartbeat interval, in seconds.")
+    connection_attempts: int = Field(
+        3, description="RabbitMQ connection attempts before giving up."
+    )
+    retry_delay: int = Field(5, description="RabbitMQ retry delay, in seconds.")
 
 
 class KeycloakConfig(BaseModel):
-    host: str = Field(..., description="Keycloak host.")
-    port: int = Field(..., description="Keycloak port.")
-    realm: str = Field(..., description="Keycloak realm.")
-    tls: bool = Field(..., description="Keycloak TLS.")
+    host: str = Field("localhost", description="Keycloak host.")
+    port: int = Field(8080, description="Keycloak port.")
+    realm: str = Field("master", description="Keycloak realm.")
+    tls: bool = Field(False, description="Keycloak TLS/SSL.")
+    token_refresh_interval: int = Field(
+        60, description="Keycloak token refresh interval, in seconds."
+    )
 
 
 class ServersConfig(BaseModel):
@@ -227,5 +279,151 @@ class ServersConfig(BaseModel):
     keycloak: KeycloakConfig = Field(..., description="Keycloak configuration.")
 
 
+class GeneralConfig(BaseModel):
+    prefix: str = Field("nost", description="Execution prefix.")
+
+
+class ManagerConfig(BaseModel):
+    sim_start_time: Optional[datetime] = Field(
+        None, description="Simulation start time."
+    )
+    sim_stop_time: Optional[datetime] = Field(None, description="Simulation stop time.")
+    start_time: Optional[datetime] = Field(None, description="Execution start time.")
+    time_step: timedelta = Field(
+        timedelta(seconds=1),
+        description="Time step for the simulation.",
+    )
+    time_scale_factor: float = Field(1.0, description="Time scale factor.")
+    time_scale_updates: List[str] = Field(
+        default_factory=list, description="List of time scale updates."
+    )
+    time_status_step: Optional[timedelta] = Field(None, description="Time status step.")
+    time_status_init: Optional[datetime] = Field(None, description="Time status init.")
+    command_lead: timedelta = Field(
+        timedelta(seconds=0), description="Command lead time."
+    )
+    required_apps: List[str] = Field(
+        default_factory=list, description="List of required applications."
+    )
+    init_retry_delay_s: int = Field(5, description="Initial retry delay in seconds.")
+    init_max_retry: int = Field(5, description="Initial maximum retry attempts.")
+    set_offset: bool = Field(True, description="Set offset.")
+    shut_down_when_terminated: bool = Field(
+        False, description="Shut down when terminated."
+    )
+
+    @model_validator(mode="before")
+    def scale_time(cls, values):
+        time_scale_factor = values.get("time_scale_factor", 1.0)
+
+        if "time_status_step" in values:
+            time_status_step = values["time_status_step"]
+            if isinstance(time_status_step, str):
+                time_status_step = timedelta(
+                    seconds=float(time_status_step.split(":")[-1])
+                )
+            if isinstance(time_status_step, timedelta):
+                values["time_status_step"] = timedelta(
+                    seconds=time_status_step.total_seconds() * time_scale_factor
+                )
+
+        return values
+
+
+class ManagedApplicationConfig(BaseModel):
+    time_scale_factor: float = Field(1.0, description="Time scale factor.")
+    time_step: timedelta = Field(
+        timedelta(seconds=1), description="Time step for swe_change."
+    )
+    set_offset: bool = Field(True, description="Set offset.")
+    time_status_step: timedelta = Field(None, description="Time status step.")
+    time_status_init: datetime = Field(None, description="Time status init.")
+    shut_down_when_terminated: bool = Field(
+        False, description="Shut down when terminated."
+    )
+    manager_app_name: str = Field("manager", description="Manager application name.")
+
+    @model_validator(mode="before")
+    def scale_time(cls, values):
+        time_scale_factor = values.get("time_scale_factor", 1.0)
+
+        if "time_step" in values:
+            time_step = values["time_step"]
+            if isinstance(time_step, str):
+                time_step = timedelta(seconds=float(time_step.split(":")[-1]))
+            if isinstance(time_step, timedelta):
+                values["time_step"] = timedelta(
+                    seconds=time_step.total_seconds() * time_scale_factor
+                )
+
+        if "time_status_step" in values:
+            time_status_step = values["time_status_step"]
+            if isinstance(time_status_step, str):
+                time_status_step = timedelta(
+                    seconds=float(time_status_step.split(":")[-1])
+                )
+            if isinstance(time_status_step, timedelta):
+                values["time_status_step"] = timedelta(
+                    seconds=time_status_step.total_seconds() * time_scale_factor
+                )
+
+        return values
+
+
+class ExecConfig(BaseModel):
+    general: GeneralConfig
+    manager: ManagerConfig
+    managed_application: ManagedApplicationConfig
+
+
 class Config(BaseModel):
     servers: ServersConfig = Field(..., description="Servers configuration.")
+    channels: Dict[str, Dict] = Field({}, description="Channels configuration.")
+    execution: ExecConfig = Field(..., description="Applications configuration.")
+
+
+class ExchangeConfig(BaseModel):
+    name: str
+    type: str = "topic"
+    durable: bool = True
+    auto_delete: bool = False
+    vhost: str = "/"
+
+
+class ChannelConfig(BaseModel):
+    app: str
+    address: str
+    exchange: str
+    durable: bool
+    auto_delete: bool
+    vhost: str
+
+
+class Credentials(BaseModel):
+    username: str = Field(..., description="Username for authentication.")
+    password: str = Field(..., description="Password for authentication.")
+    client_id: Optional[str] = Field("", description="Client ID for authentication.")
+    client_secret_key: Optional[str] = Field(
+        "", description="Client secret key for authentication."
+    )
+
+
+class SimulationConfig(BaseModel):
+    exchanges: Dict[str, Dict] = Field(
+        default_factory=dict, description="Dictionary of exchanges."
+    )
+    queues: List[Dict] = Field(default_factory=list, description="List of channels.")
+    execution_parameters: ExecConfig = Field(..., description="Execution parameters.")
+    predefined_exchanges_queues: bool = Field(
+        False, description="Predefined exchanges and queues."
+    )
+
+
+class RuntimeConfig(BaseModel):
+    credentials: Credentials = Field(..., description="Credentials for authentication.")
+    server_configuration: Config = (
+        Field(..., description="Simulation configuration."),
+    )
+    simulation_configuration: SimulationConfig = Field(
+        ..., description="Simulation configuration."
+    )

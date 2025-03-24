@@ -112,7 +112,7 @@ class ConnectionConfig(object):
 
         # Load YAML file
         with open(yaml_file, "r") as file:
-            yaml_data = yaml.safe_load(file)  # Store the parsed YAML data
+            yaml_data = yaml.safe_load(file)
 
         try:
             config = Config(**yaml_data)

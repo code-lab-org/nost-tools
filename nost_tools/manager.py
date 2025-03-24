@@ -134,7 +134,6 @@ class Manager(Application):
             init_max_retry (int): number of initialization commands while waiting for required applications before continuing to execution
         """
         if sim_start_time is not None and sim_stop_time is not None:
-            logger.info("Simulation start and stop times provided.")
             self.sim_start_time = sim_start_time
             self.sim_stop_time = sim_stop_time
             self.start_time = start_time
@@ -149,9 +148,7 @@ class Manager(Application):
             self.init_max_retry = init_max_retry
         else:
             if self.config.rc:
-                logger.info(
-                    "Checking for execute test plan parameters in the YAML file."
-                )
+                logger.info("Retrieving execution parameters from YAML file.")
                 parameters = getattr(
                     self.config.rc.simulation_configuration.execution_parameters,
                     self.app_name,
@@ -367,8 +364,8 @@ class Manager(Application):
             app_topics="init",
             payload=command.model_dump_json(by_alias=True),
         )
-        logger.info(f"Declared Queues: {self.declared_queues}")
-        logger.info(f"Declared Exchanges: {self.declared_exchanges}")
+        # logger.info(f"Declared Queues: {self.declared_queues}")
+        # logger.info(f"Declared Exchanges: {self.declared_exchanges}")
 
     def start(
         self,

@@ -23,7 +23,7 @@ from .application_utils import (  # ConnectionConfig,
     ShutDownObserver,
     TimeStatusPublisher,
 )
-from .config import ConnectionConfig
+from .configuration import ConnectionConfig
 from .schemas import ReadyStatus
 from .simulator import Simulator
 
@@ -228,7 +228,6 @@ class Application:
                 self.app_name,
                 None,
             )
-            logger.info(parameters)
             self.set_offset = parameters.set_offset
             self.time_status_step = parameters.time_status_step
             self.time_status_init = parameters.time_status_init
@@ -274,7 +273,6 @@ class Application:
 
         # Configure transport layer security (TLS) if needed
         if self.config.rc.server_configuration.servers.rabbitmq.tls:
-            logger.info(self.config)
             logger.info("Using TLS/SSL.")
             parameters.ssl_options = pika.SSLOptions(ssl.SSLContext())
 
