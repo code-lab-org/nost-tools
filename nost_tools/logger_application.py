@@ -1,4 +1,4 @@
-""""
+""" "
 Provides a base logger application that subscribes and writes all messages to file.
 """
 

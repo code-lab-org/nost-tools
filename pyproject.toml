@@ -13,7 +13,7 @@ authors = [
     {"name" = "Emmanuel M. Gonzalez", "email" = "emmanuelgonzalez@asu.edu"}
 ]
 readme = "README.md"
-requires-python =">=3.8" #">=3.11" # 
+requires-python =">=3.9" #">=3.11" # 
 license = {text = "BSD 3-Clause License"}
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -23,7 +23,8 @@ classifiers = [
 dependencies = [
     "ntplib",
     "numpy",
-    "pandas <= 2.2.2",
+    # "pandas <= 2.2.2",
+    "pandas >= 2",
     "pydantic >= 2, < 3",
     "python-dateutil",
     "pika",
@@ -52,16 +53,15 @@ examples = [
     "scipy",
     "seaborn",
     "skyfield",
-    "matplotlib >= 3.9",
-    # "matplotlib <= 3.7",
-    "numpy >= 1.26",
-    # "numpy",
-    "xarray >= 2023.6",
-    # "xarray<=2023.1",
-    "rioxarray >= 0.17",
-    # "rioxarray <= 0.13",
-    "geopandas >= 1.0",
-    # "geopandas <= 0.13.2",
+    # "matplotlib >= 3.9",
+    "matplotlib >= 3",
+    # "numpy >= 1.26",
+    # "xarray >= 2023.6",
+    "xarray >= 2023",
+    # "rioxarray >= 0.17",
+    "rioxarray >= 0.13",
+    # "geopandas >= 1.0",
+    "geopandas >= 0.12",
     "netCDF4 >= 1.6",
     "aiobotocore >= 2.17",
     "botocore >= 1.35",
@@ -69,8 +69,8 @@ examples = [
     "tatc <= 3.4.3",
     "s3fs >= 2024.10.0",
     "pulp >= 2.9.0",
-    "h5netcdf >= 1.5.0"
-    # "h5netcdf <= 1.1"
+    # "h5netcdf >= 1.5.0"
+    "h5netcdf >= 1.0"
 ]
 docs = [
     "autodoc_pydantic >= 2",

@@ -24,7 +24,6 @@ from .application_utils import (  # ConnectionConfig,
     TimeStatusPublisher,
 )
 from .config import ConnectionConfig
-from .observer import MessageObservable
 from .schemas import ReadyStatus
 from .simulator import Simulator
 
@@ -70,28 +69,22 @@ class Application:
         # Connection status
         self._is_connected = threading.Event()
         self._is_running = False
-        self.io_thread = None
-        self.consuming = False
+        self._io_thread = None
+        self._consuming = False
         self._should_stop = threading.Event()
-        self.closing = False
+        self._closing = False
         # Queues
         self.channel_configs = []
         self.unique_exchanges = {}
         self.declared_queues = set()
         self.declared_exchanges = set()
+        self.predefined_exchanges_queues = False
+        self._callbacks_per_topic = {}
         # Token
         self.refresh_token = None
-        # self.access_token = None
-        self.token_refresh_thread = None
-        self.token_refresh_interval = None  # seconds
-        # self.yaml_mode = False
-        self.predefined_exchanges_queues = False
-        self._message_observable = MessageObservable()
-        self._callbacks_per_topic = {}
+        self._token_refresh_thread = None
+        self.token_refresh_interval = None
 
-    ############################################################################################################################################################################
-    # BROKER CONNECTION
-    ############################################################################################################################################################################
     def ready(self) -> None:
         """
         Signals the application is ready to initialize scenario execution.
@@ -107,13 +100,13 @@ class Application:
         self.send_message(
             app_name=self.app_name,
             app_topics="status.ready",
-            payload=status.json(by_alias=True, exclude_none=True),
+            payload=status.model_dump_json(by_alias=True, exclude_none=True),
         )
 
     def new_access_token(self, refresh_token=None):
         """
-        Obtains a new access token and refresh token from Keycloak. If a refresh token is provided, 
-        the access token is refreshed using the refresh token. Otherwise, the access token is obtained 
+        Obtains a new access token and refresh token from Keycloak. If a refresh token is provided,
+        the access token is refreshed using the refresh token. Otherwise, the access token is obtained
         using the username and password provided in the configuration.
 
         Args:
@@ -183,8 +176,8 @@ class Application:
                 except Exception as e:
                     logger.error(f"Failed to refresh access token: {e}")
 
-        self.token_refresh_thread = threading.Thread(target=refresh_token_periodically)
-        self.token_refresh_thread.start()
+        self._token_refresh_thread = threading.Thread(target=refresh_token_periodically)
+        self._token_refresh_thread.start()
         logger.debug("Starting refresh token thread successfully completed.")
 
     def update_connection_credentials(self, access_token):
@@ -203,7 +196,7 @@ class Application:
         set_offset: bool = None,  # True,
         time_status_step: timedelta = None,
         time_status_init: datetime = None,
-        shut_down_when_terminated: bool = None,  # False,
+        shut_down_when_terminated: bool = None,
     ) -> None:
         """
         Starts up the application to prepare for scenario execution.
@@ -300,8 +293,8 @@ class Application:
         )
 
         # Start the I/O loop in a separate thread
-        self.io_thread = threading.Thread(target=self._start_io_loop)
-        self.io_thread.start()
+        self._io_thread = threading.Thread(target=self._start_io_loop)
+        self._io_thread.start()
         self._is_connected.wait()
 
         if self.config.rc.simulation_configuration.predefined_exchanges_queues:
@@ -332,8 +325,6 @@ class Application:
         Starts the I/O loop for the connection.
         """
         self.stop_event = threading.Event()
-
-        # while self._is_running:
         while not self.stop_event.is_set():
             self.connection.ioloop.start()
 
@@ -370,7 +361,7 @@ class Application:
             reason (Exception): exception representing reason for loss of connection
         """
         self.channel = None
-        if self.closing:
+        if self._closing:
             self.connection.ioloop.stop()
 
     def shut_down(self) -> None:
@@ -384,12 +375,9 @@ class Application:
 
         if self.connection:
             self.stop_application()
-            self.consuming = False
+            self._consuming = False
         logger.info(f"Application {self.app_name} successfully shut down.")
 
-    ############################################################################################################################################################################
-    # MESSAGING
-    ############################################################################################################################################################################
     def send_message(self, app_name, app_topics, payload: str) -> None:
         """
         Sends a message to the broker. The message is sent to the exchange using the routing key. The routing key is created using the application name and topic. The message is published with an expiration of 60 seconds.
@@ -478,10 +466,9 @@ class Application:
         # matches zero or more words
         """
         self.was_consuming = True
-        self.consuming = True
+        self._consuming = True
 
         routing_key = self.create_routing_key(app_name=app_name, topic=app_topic)
-        # logger.info(f"Adding callback for routing key: {routing_key}")
 
         # Check if this is the first callback for this routing key pattern
         if routing_key not in self._callbacks_per_topic:
@@ -678,9 +665,6 @@ class Application:
             except Exception as e:
                 logger.error(f"Failed to delete exchange {exchange_name}: {e}")
 
-    ############################################################################################################################################################################
-    # STOP APPLICATION
-    ############################################################################################################################################################################
     def stop_consuming(self):
         """Tell RabbitMQ that you would like to stop consuming by sending the
         Basic.Cancel RPC command.
@@ -698,7 +682,7 @@ class Application:
         :param pika.frame.Method _unused_frame: The Basic.CancelOk frame
         :param str|unicode userdata: Extra user data (consumer tag)
         """
-        self.consuming = False
+        self._consuming = False
         logger.info(
             "RabbitMQ acknowledged the cancellation of the consumer: %s", userdata
         )
@@ -734,9 +718,9 @@ class Application:
         communicate with RabbitMQ. All of the commands issued prior to starting
         the IOLoop will be buffered but not processed.
         """
-        if not self.closing:
-            self.closing = True
-            if self.consuming:
+        if not self._closing:
+            self._closing = True
+            if self._consuming:
                 self.stop_consuming()
                 # Signal the thread to stop
                 if hasattr(self, "stop_event"):
@@ -744,14 +728,11 @@ class Application:
                 if hasattr(self, "_should_stop"):
                     self._should_stop.set()
                 if hasattr(self, "io_thread"):
-                    self.io_thread.join()
+                    self._io_thread.join()
                 sys.exit()
             else:
                 self.connection.ioloop.stop()
 
-    ############################################################################################################################################################################
-    # TIMING
-    ############################################################################################################################################################################
     def set_wallclock_offset(
         self, host="pool.ntp.org", retry_delay_s: int = 5, max_retry: int = 5
     ) -> None:

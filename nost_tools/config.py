@@ -9,7 +9,7 @@ from typing import Dict, List, Optional
 
 import yaml
 from dotenv import find_dotenv, load_dotenv
-from pydantic import BaseModel, Field, ValidationError, root_validator
+from pydantic import BaseModel, Field, ValidationError, model_validator
 
 logger = logging.getLogger(__name__)
 
@@ -95,7 +95,7 @@ class ManagerConfig(BaseModel):
         False, description="Shut down when terminated."
     )
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
     def scale_time(cls, values):
         time_scale_factor = values.get("time_scale_factor", 1.0)
 
@@ -126,7 +126,7 @@ class ManagedApplicationConfig(BaseModel):
     )
     manager_app_name: str = Field("manager", description="Manager application name.")
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
     def scale_time(cls, values):
         time_scale_factor = values.get("time_scale_factor", 1.0)
 
@@ -383,7 +383,6 @@ class ConnectionConfig:
         else:
             required_fields = ["USERNAME", "PASSWORD"]
 
-        # required_fields = ["USERNAME", "PASSWORD", "CLIENT_ID", "CLIENT_SECRET_KEY"]
         env_data = {field: os.getenv(field) for field in required_fields}
 
         missing_fields = [field for field, value in env_data.items() if value is None]
@@ -404,8 +403,6 @@ class ConnectionConfig:
                 self.credentials_config = Credentials(
                     username=env_data["USERNAME"],
                     password=env_data["PASSWORD"],
-                    # client_id="", # Provide empty default values
-                    # client_secret_key="", # when not using Keycloak
                 )
         except ValidationError as err:
             raise EnvironmentVariableError(f"Invalid environment variables: {err}")

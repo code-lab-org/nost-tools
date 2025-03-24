@@ -87,40 +87,6 @@ class Manager(Application):
         init_retry_delay_s = None
         init_max_retry = None
 
-    # def declare_bind_queue(self):
-    #     """
-    #     Declares and binds a queue to the exchange. The queue is bound to the exchange using the routing key. The routing key is created using the application name and topic.
-    #     """
-    #     for config in self.channel_configs:
-    #         # if config["app"] == self.app_name:
-    #         exchange_name = config["exchange"]
-    #         queue_name = config["address"]
-    #         self.channel.queue_declare(queue=queue_name, durable=config["durable"])
-    #         self.channel.queue_bind(
-    #             exchange=exchange_name,
-    #             queue=queue_name,
-    #             routing_key=config["address"],
-    #         )
-    #     logger.info(f"Successfully declared and bound queues: {self.channel_configs}")
-
-    # def declare_exchange(self):
-    #     """
-    #     Declares the exchanges in RabbitMQ.
-
-    #     Args:
-    #         unique_exchanges (dict): dictionary of unique exchanges
-    #     """
-    #     for exchange_name, exchange_config in self.unique_exchanges.items():
-    #         logger.info(f"Declaring exchange: {exchange_name}")
-
-    #         self.channel.exchange_declare(
-    #             exchange=exchange_name,
-    #             exchange_type=exchange_config["type"],
-    #             durable=exchange_config["durable"],
-    #             auto_delete=exchange_config["auto_delete"],
-    #         )
-    #     logger.info(f"Successfully declared exchanges: {self.unique_exchanges}")
-
     def establish_exchange(self):
         """
         Establishes the exchange for the manager application.
@@ -393,14 +359,14 @@ class Manager(Application):
                 }
             }
         )
-        logger.info(f"Sending initialize command {command.json(by_alias=True)}.")
+        logger.info(
+            f"Sending initialize command {command.model_dump_json(by_alias=True)}."
+        )
         self.send_message(
             app_name=self.app_name,
             app_topics="init",
-            payload=command.json(by_alias=True),
+            payload=command.model_dump_json(by_alias=True),
         )
-        # self.declared_queues.add(f"{self.prefix}.{self.app_name}.init")
-        # logger.info(f"ADDED: {self.prefix}.{self.app_name}.*")
         logger.info(f"Declared Queues: {self.declared_queues}")
         logger.info(f"Declared Exchanges: {self.declared_exchanges}")
 
@@ -413,7 +379,7 @@ class Manager(Application):
         time_scale_factor: float = 1.0,
         time_status_step: timedelta = None,
         time_status_init: datetime = None,
-    ) -> None:  # required_apps: List[str] = [],
+    ) -> None:
         """
 
         Command to start a test run execution by starting the simulator execution with all necessary parameters and publishing
@@ -443,11 +409,11 @@ class Manager(Application):
                 }
             }
         )
-        logger.info(f"Sending start command {command.json(by_alias=True)}.")
+        logger.info(f"Sending start command {command.model_dump_json(by_alias=True)}.")
         self.send_message(
             app_name=self.app_name,
             app_topics="start",
-            payload=command.json(by_alias=True),
+            payload=command.model_dump_json(by_alias=True),
         )
         exec_thread = threading.Thread(
             target=self.simulator.execute,
@@ -461,7 +427,7 @@ class Manager(Application):
         )
         exec_thread.start()
 
-    def stop(self, sim_stop_time: datetime) -> None:  # , required_apps: List[str] = []
+    def stop(self, sim_stop_time: datetime) -> None:
         """
         Command to stop a test run execution by updating the execution end time and publishing a stop command.
 
@@ -472,18 +438,16 @@ class Manager(Application):
         command = StopCommand.model_validate(
             {"taskingParameters": {"simStopTime": sim_stop_time}}
         )
-        logger.info(f"Sending stop command {command.json(by_alias=True)}.")
+        logger.info(f"Sending stop command {command.model_dump_json(by_alias=True)}.")
         self.send_message(
             app_name=self.app_name,
             app_topics="stop",
-            payload=command.json(by_alias=True),
+            payload=command.model_dump_json(by_alias=True),
         )
         # update the execution end time
         self.simulator.set_end_time(sim_stop_time)
 
-    def update(
-        self, time_scale_factor: float, sim_update_time: datetime
-    ) -> None:  # , required_apps: List[str] = []
+    def update(self, time_scale_factor: float, sim_update_time: datetime) -> None:
         """
         Command to update the time scaling factor for a test run execution by updating the execution time scale factor,
         and publishing an update command.
@@ -501,11 +465,11 @@ class Manager(Application):
                 }
             }
         )
-        logger.info(f"Sending update command {command.json(by_alias=True)}.")
+        logger.info(f"Sending update command {command.model_dump_json(by_alias=True)}.")
         self.send_message(
             app_name=self.app_name,
             app_topics="update",
-            payload=command.json(by_alias=True),
+            payload=command.model_dump_json(by_alias=True),
         )
         # update the execution time scale factor
         self.simulator.set_time_scale_factor(time_scale_factor, sim_update_time)

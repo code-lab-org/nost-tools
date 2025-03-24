@@ -95,35 +95,6 @@ class ConnectionConfig(object):
             self.virtual_host = virtual_host
             self.is_tls = is_tls
 
-    # def load_config_from_files(self, env_file: str, yaml_file: str):
-    #     """
-    #     Loads configuration from .env and YAML files.
-
-    #     Args:
-    #         env_file (str): Path to the .env file
-    #         yaml_file (str): Path to the YAML configuration file
-    #     """
-    #     # Load .env file
-    #     credentials = dotenv_values(env_file)
-    #     self.username = credentials["USERNAME"]
-    #     self.password = credentials["PASSWORD"]
-    #     self.client_id = credentials["CLIENT_ID"]
-    #     self.client_secret_key = credentials["CLIENT_SECRET_KEY"]
-
-    #     # Load YAML file
-    #     with open(yaml_file, 'r') as file:
-    #         self.yaml_config = yaml.safe_load(file)  # Store the parsed YAML data
-
-    #     self.host = self.yaml_config['servers']['rabbitmq']['host']
-    #     self.rabbitmq_port = self.yaml_config['servers']['rabbitmq']['port']
-    #     self.keycloak_port = self.yaml_config['servers']['keycloak']['port']
-    #     self.keycloak_realm = self.yaml_config['servers']['keycloak']['realm']
-    #     self.virtual_host = self.yaml_config['servers']['rabbitmq']['virtual_host']
-    #     self.is_tls = self.yaml_config['servers']['rabbitmq']['tls'] and self.yaml_config['servers']['keycloak']['tls']
-
-    #     if not self.is_tls:
-    #         raise ValueError("TLS must be enabled for both RabbitMQ and Keycloak.")
-
     def load_config_from_files(self, env_file: str, yaml_file: str):
         """
         Loads configuration from .env and YAML files.
@@ -145,8 +116,6 @@ class ConnectionConfig(object):
 
         try:
             config = Config(**yaml_data)
-            # logger.info(f'Config: {config}')
-            # self.yaml_config = config
             self.yaml_config = yaml_data
         except ValidationError as e:
             raise ValueError(f"Invalid configuration: {e}")

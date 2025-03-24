@@ -32,9 +32,7 @@ class ManagedApplication(Application):
         time_step (:obj:`timedelta`): scenario time step used in execution
     """
 
-    def __init__(
-        self, app_name: str, app_description: str = None
-    ):  # config: ConnectionConfig,
+    def __init__(self, app_name: str, app_description: str = None):
         """
         Initializes a new managed application.
 
@@ -42,7 +40,7 @@ class ManagedApplication(Application):
             app_name (str): application name
             app_description (str): application description
         """
-        super().__init__(app_name, app_description)  # config,
+        super().__init__(app_name, app_description)
         self.time_step = None
         self._sim_start_time = None
         self._sim_stop_time = None
@@ -51,12 +49,12 @@ class ManagedApplication(Application):
         self,
         prefix: str,
         config: ConnectionConfig,
-        set_offset: bool = None,  # True,
+        set_offset: bool = None,
         time_status_step: timedelta = None,
         time_status_init: datetime = None,
-        shut_down_when_terminated: bool = None,  # False,
-        time_step: timedelta = None,  # timedelta(seconds=1),
-        manager_app_name: str = None,  # "manager",
+        shut_down_when_terminated: bool = None,
+        time_step: timedelta = None,
+        manager_app_name: str = None,
     ) -> None:
         """
         Starts up the application by connecting to message broker, starting a background event loop,
@@ -165,7 +163,6 @@ class ManagedApplication(Application):
 
         except Exception as e:
             logger.error(
-                # f"Exception (topic: {message.topic}, payload: {message.payload}): {e}"
                 f"Exception (topic: {method.routing_key}, payload: {message}): {e}"
             )
             print(traceback.format_exc())
