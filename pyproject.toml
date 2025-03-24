@@ -13,7 +13,7 @@ authors = [
     {"name" = "Emmanuel M. Gonzalez", "email" = "emmanuelgonzalez@asu.edu"}
 ]
 readme = "README.md"
-requires-python =">=3.9" #">=3.11" # 
+requires-python =">=3.9"
 license = {text = "BSD 3-Clause License"}
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -22,15 +22,14 @@ classifiers = [
 ]
 dependencies = [
     "ntplib",
-    "numpy",
-    # "pandas <= 2.2.2",
+    "numpy >= 2",
     "pandas >= 2",
     "pydantic >= 2, < 3",
     "python-dateutil",
-    "pika",
+    "pika >= 1",
     "python-dotenv",
     "pyyaml",
-    "python-keycloak"
+    "python-keycloak >= 5"
 ]
 dynamic = ["version"]
 
@@ -53,14 +52,9 @@ examples = [
     "scipy",
     "seaborn",
     "skyfield",
-    # "matplotlib >= 3.9",
     "matplotlib >= 3",
-    # "numpy >= 1.26",
-    # "xarray >= 2023.6",
     "xarray >= 2023",
-    # "rioxarray >= 0.17",
     "rioxarray >= 0.13",
-    # "geopandas >= 1.0",
     "geopandas >= 0.12",
     "netCDF4 >= 1.6",
     "aiobotocore >= 2.17",
@@ -69,7 +63,6 @@ examples = [
     "tatc <= 3.4.3",
     "s3fs >= 2024.10.0",
     "pulp >= 2.9.0",
-    # "h5netcdf >= 1.5.0"
     "h5netcdf >= 1.0"
 ]
 docs = [
