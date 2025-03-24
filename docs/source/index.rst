@@ -54,6 +54,7 @@ Indices and References
 * :ref:`search`
 
 .. toctree::
+   :caption: Contents:
    :hidden:
 
    overview/index
