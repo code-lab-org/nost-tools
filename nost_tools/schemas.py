@@ -207,30 +207,6 @@ class ReadyStatus(BaseModel):
     )
 
 
-# ### Connection Configuration
-# class RabbitMQConfig(BaseModel):
-#     host: str = Field(..., description="RabbitMQ host.")
-#     port: int = Field(..., description="RabbitMQ port.")
-#     virtual_host: str = Field(..., description="RabbitMQ virtual host.")
-#     tls: bool = Field(..., description="RabbitMQ TLS.")
-
-
-# class KeycloakConfig(BaseModel):
-#     host: str = Field(..., description="Keycloak host.")
-#     port: int = Field(..., description="Keycloak port.")
-#     realm: str = Field(..., description="Keycloak realm.")
-#     tls: bool = Field(..., description="Keycloak TLS.")
-
-
-# class ServersConfig(BaseModel):
-#     rabbitmq: RabbitMQConfig = Field(..., description="RabbitMQ configuration.")
-#     keycloak: KeycloakConfig = Field(..., description="Keycloak configuration.")
-
-
-# class Config(BaseModel):
-#     servers: ServersConfig = Field(..., description="Servers configuration.")
-
-
 class InfoConfig(BaseModel):
     title: Optional[str] = Field(None, description="Title of the simulation.")
     version: Optional[str] = Field(None, description="Version of the simulation.")
@@ -370,10 +346,31 @@ class ManagedApplicationConfig(BaseModel):
         return values
 
 
+class LoggerApplicationConfig(BaseModel):
+    set_offset: Optional[bool] = Field(True, description="Set offset.")
+    time_scale_factor: Optional[float] = Field(1.0, description="Time scale factor.")
+    time_step: Optional[timedelta] = Field(
+        timedelta(seconds=1), description="Time step for swe_change."
+    )
+    time_status_step: Optional[timedelta] = Field(
+        timedelta(seconds=10), description="Time status step."
+    )
+    time_status_init: Optional[datetime] = Field(
+        datetime(2019, 3, 1, 0, 0, 0), description="Time status init."
+    )
+    shut_down_when_terminated: Optional[bool] = Field(
+        False, description="Shut down when terminated."
+    )
+    manager_app_name: Optional[str] = Field(
+        "manager", description="Manager application name."
+    )
+
+
 class ExecConfig(BaseModel):
     general: GeneralConfig
     manager: ManagerConfig
     managed_application: ManagedApplicationConfig
+    logger_application: LoggerApplicationConfig
 
 
 class Config(BaseModel):
