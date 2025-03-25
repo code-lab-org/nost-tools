@@ -46,6 +46,7 @@ Technology Office at the NASA Goddard Space Flight Center.
 Current project team:
 
 - PI: Paul T. Grogan <paul.grogan@asu.edu>
+- Research Scientist: Emmanuel M. Gonzalez <emmanuelgonzalez@asu.edu>
 
 Project alumni:
 

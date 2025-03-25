@@ -1,0 +1,32 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    hostname: rabbitmq
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"   # AMQP port
+      - "15672:15672" # Management UI port
+      - "1883:1883"   # MQTT port
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin
+    restart: always
+    command: >
+      bash -c "rabbitmq-plugins enable --offline rabbitmq_mqtt rabbitmq_web_mqtt &&
+              docker-entrypoint.sh rabbitmq-server"
+              
+  rabbitmq_tcp_relay:
+    image: cloudamqp/websocket-tcp-relay
+    container_name: rabbitmq_tcp_relay
+    ports:
+      - "15670:15670"
+    restart: always
+    command: --upstream=tcp://rabbitmq:5672 --bind=0.0.0.0
+    depends_on:
+      - rabbitmq
+
+volumes:
+  rabbitmq_data:
+    name: rabbitmq_data

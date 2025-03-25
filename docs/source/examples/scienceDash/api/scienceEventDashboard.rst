@@ -11,6 +11,8 @@ This example largely follows the instructions from the `Plotly Dash documentatio
 
 .. automethod:: scienceDash.scienceEventDashboard.update_fig
 
+.. automethod:: scienceDash.scienceEventDashboard.start_consumer
+
 Below is what the dashboard will display in a browser.
 
 .. image:: media/scienceDash.png

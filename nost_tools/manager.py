@@ -2,22 +2,24 @@
 Provides a base manager that coordinates a distributed scenario execution.
 """
 
-from datetime import datetime, timedelta
+import json
 import logging
-from paho.mqtt.client import Client, MQTTMessage
 import threading
 import time
 import traceback
+from datetime import datetime, timedelta
 from typing import List
+
+from pydantic import ValidationError
 
 from .application import Application
 from .schemas import (
     InitCommand,
+    ReadyStatus,
     StartCommand,
     StopCommand,
-    UpdateCommand,
-    ReadyStatus,
     TimeStatus,
+    UpdateCommand,
 )
 from .simulator import Mode
 
@@ -72,10 +74,34 @@ class Manager(Application):
         super().__init__("manager")
         self.required_apps_status = {}
 
+        self.sim_start_time = None
+        self.sim_stop_time = None
+        start_time = None
+        time_step = None
+        time_scale_factor = None
+        time_scale_updates = None
+        time_status_step = None
+        time_status_init = None
+        command_lead = None
+        required_apps = None
+        init_retry_delay_s = None
+        init_max_retry = None
+
+    def establish_exchange(self):
+        """
+        Establishes the exchange for the manager application.
+        """
+        self.channel.exchange_declare(
+            exchange=self.prefix,
+            exchange_type="topic",
+            durable=False,
+            auto_delete=True,
+        )
+
     def execute_test_plan(
         self,
-        sim_start_time: datetime,
-        sim_stop_time: datetime,
+        sim_start_time: datetime = None,
+        sim_stop_time: datetime = None,
         start_time: datetime = None,
         time_step: timedelta = timedelta(seconds=1),
         time_scale_factor: float = 1.0,
@@ -107,51 +133,104 @@ class Manager(Application):
             init_retry_delay_s (float): number of seconds to wait between initialization commands while waiting for required applications
             init_max_retry (int): number of initialization commands while waiting for required applications before continuing to execution
         """
-        self.required_apps_status = dict(
-            zip(required_apps, [False] * len(required_apps))
-        )
-        self.add_message_callback("+", "status/ready", self.on_app_ready_status)
-        self.add_message_callback("+", "status/time", self.on_app_time_status)
+        if sim_start_time is not None and sim_stop_time is not None:
+            self.sim_start_time = sim_start_time
+            self.sim_stop_time = sim_stop_time
+            self.start_time = start_time
+            self.time_step = time_step
+            self.time_scale_factor = time_scale_factor
+            self.time_scale_updates = time_scale_updates
+            self.time_status_step = time_status_step
+            self.time_status_init = time_status_init
+            self.command_lead = command_lead
+            self.required_apps = required_apps
+            self.init_retry_delay_s = init_retry_delay_s
+            self.init_max_retry = init_max_retry
+        else:
+            if self.config.rc:
+                logger.info("Retrieving execution parameters from YAML file.")
+                parameters = getattr(
+                    self.config.rc.simulation_configuration.execution_parameters,
+                    self.app_name,
+                    None,
+                )
+                self.sim_start_time = parameters.sim_start_time
+                self.sim_stop_time = parameters.sim_stop_time
+                self.start_time = parameters.start_time
+                self.time_step = parameters.time_step
+                self.time_scale_factor = parameters.time_scale_factor
+                self.time_scale_updates = parameters.time_scale_updates
+                self.time_status_step = parameters.time_status_step
+                self.time_status_init = parameters.time_status_init
+                self.command_lead = parameters.command_lead
+                # self.required_apps = (
+                #     self.config.rc.simulation_configuration.execution_parameters.required_apps
+                # )
+                self.required_apps = [
+                    app for app in parameters.required_apps if app != self.app_name
+                ]
+                self.init_retry_delay_s = parameters.init_retry_delay_s
+                self.init_max_retry = parameters.init_max_retry
+            else:
+                raise ValueError(
+                    "No configuration runtime. Please provide simulation start and stop times."
+                )
+        ####
+        self.establish_exchange()
+        # if self.predefined_exchanges_queues:
+        #     self.declare_exchange()
+        #     self.declare_bind_queue()
+        ####
 
-        self._create_time_status_publisher(time_status_step, time_status_init)
-        for i in range(init_max_retry):
+        self.required_apps_status = dict(
+            zip(self.required_apps, [False] * len(self.required_apps))
+        )
+        self.add_message_callback("*", "status.ready", self.on_app_ready_status)
+        self.add_message_callback("*", "status.time", self.on_app_time_status)
+
+        self._create_time_status_publisher(self.time_status_step, self.time_status_init)
+        for i in range(self.init_max_retry):
             # issue the init command
-            self.init(sim_start_time, sim_stop_time, required_apps)
+            self.init(self.sim_start_time, self.sim_stop_time, self.required_apps)
             next_try = self.simulator.get_wallclock_time() + timedelta(
-                seconds=init_retry_delay_s
+                seconds=self.init_retry_delay_s
             )
             # wait until all required apps are ready
             while (
-                not all([self.required_apps_status[app] for app in required_apps])
+                not all([self.required_apps_status[app] for app in self.required_apps])
                 and self.simulator.get_wallclock_time() < next_try
             ):
                 time.sleep(0.001)
-        self.remove_message_callback("+", "status/ready")
+        # self.remove_message_callback("*", "status.ready")
+        # self.remove_message_callback()
         # configure start time
-        if start_time is None:
-            start_time = self.simulator.get_wallclock_time() + command_lead
+        if self.start_time is None:
+            self.start_time = self.simulator.get_wallclock_time() + self.command_lead
         # sleep until the start command needs to be issued
         time.sleep(
             max(
                 0,
-                ((start_time - self.simulator.get_wallclock_time()) - command_lead)
+                (
+                    (self.start_time - self.simulator.get_wallclock_time())
+                    - self.command_lead
+                )
                 / timedelta(seconds=1),
             )
         )
         # issue the start command
         self.start(
-            sim_start_time,
-            sim_stop_time,
-            start_time,
-            time_step,
-            time_scale_factor,
-            time_status_step,
-            time_status_init,
+            self.sim_start_time,
+            self.sim_stop_time,
+            self.start_time,
+            self.time_step,
+            self.time_scale_factor,
+            self.time_status_step,
+            self.time_status_init,
         )
         # wait for simulation to start executing
         while self.simulator.get_mode() != Mode.EXECUTING:
             time.sleep(0.001)
-        for update in time_scale_updates:
+        for update in self.time_scale_updates:
             update_time = self.simulator.get_wallclock_time_at_simulation_time(
                 update.sim_update_time
             )
@@ -159,15 +238,20 @@ class Manager(Application):
             time.sleep(
                 max(
                     0,
-                    ((update_time - self.simulator.get_wallclock_time()) - command_lead)
+                    (
+                        (update_time - self.simulator.get_wallclock_time())
+                        - self.command_lead
+                    )
                     / timedelta(seconds=1),
                 )
             )
             # issue the update command
-            self.update(update.time_scale_factor, update.sim_update_time)
+            self.update(
+                update.time_scale_factor, update.sim_update_time, self.required_apps
+            )
             # wait until the update command takes effect
             while self.simulator.get_time_scale_factor() != update.time_scale_factor:
-                time.sleep(command_lead / timedelta(seconds=1) / 100)
+                time.sleep(self.command_lead / timedelta(seconds=1) / 100)
         end_time = self.simulator.get_wallclock_time_at_simulation_time(
             self.simulator.get_end_time()
         )
@@ -175,54 +259,76 @@ class Manager(Application):
         time.sleep(
             max(
                 0,
-                ((end_time - self.simulator.get_wallclock_time()) - command_lead)
+                ((end_time - self.simulator.get_wallclock_time()) - self.command_lead)
                 / timedelta(seconds=1),
             )
         )
         # issue the stop command
-        self.stop(sim_stop_time)
+        self.stop(self.sim_stop_time)
 
-    def on_app_ready_status(
-        self, client: Client, userdata: object, message: MQTTMessage
-    ) -> None:
+    def on_app_ready_status(self, ch, method, properties, body) -> None:
         """
         Callback to handle a message containing an application ready status.
+
+        Args:
+            ch (:obj:`pika.channel.Channel`): The channel object used to communicate with the RabbitMQ server.
+            method (:obj:`pika.spec.Basic.Deliver`): Delivery-related information such as delivery tag, exchange, and routing key.
+            properties (:obj:`pika.BasicProperties`): Message properties including content type, headers, and more.
+            body (bytes): The actual message body sent, containing the message payload.
         """
         try:
             # split the message topic into components (prefix/app_name/...)
-            topic_parts = message.topic.split("/")
+            topic_parts = method.routing_key.split(".")
+            message = body.decode("utf-8")
             # check if app_name is monitored in the ready_status dict
             if len(topic_parts) > 1 and topic_parts[1] in self.required_apps_status:
-                # update the ready status based on the payload value
-                self.required_apps_status[topic_parts[1]] = ReadyStatus.parse_raw(
-                    message.payload
-                ).properties.ready
+                # validate if message is a valid JSON
+                try:
+                    # update the ready status based on the payload value
+                    self.required_apps_status[topic_parts[1]] = (
+                        ReadyStatus.model_validate_json(message).properties.ready
+                    )
+                except json.JSONDecodeError:
+                    logger.error(f"Invalid JSON format: {message}")
+        except ValidationError as e:
+            logger.error(f"Validation error: {e}")
         except Exception as e:
             logger.error(
-                f"Exception (topic: {message.topic}, payload: {message.payload}): {e}"
+                f"Exception (topic: {method.routing_key}, payload: {message}): {e}"
             )
             print(traceback.format_exc())
 
-    def on_app_time_status(
-        self, client: Client, userdata: object, message: MQTTMessage
-    ) -> None:
+    def on_app_time_status(self, ch, method, properties, body) -> None:
         """
         Callback to handle a message containing an application time status.
+
+        Args:
+            ch (:obj:`pika.channel.Channel`): The channel object used to communicate with the RabbitMQ server.
+            method (:obj:`pika.spec.Basic.Deliver`): Delivery-related information such as delivery tag, exchange, and routing key.
+            properties (:obj:`pika.BasicProperties`): Message properties including content type, headers, and more.
+            body (bytes): The actual message body sent, containing the message payload.
         """
         try:
             # split the message topic into components (prefix/app_name/...)
-            topic_parts = message.topic.split("/")
-            # parse the message payload properties
-            props = TimeStatus.parse_raw(message.payload).properties
-            wallclock_delta = self.simulator.get_wallclock_time() - props.time
-            scenario_delta = self.simulator.get_time() - props.sim_time
-            if len(topic_parts) > 1:
-                logger.info(
-                    f"Application {topic_parts[1]} latency: {scenario_delta} (scenario), {wallclock_delta} (wallclock)"
-                )
+            topic_parts = method.routing_key.split(".")
+            message = body.decode("utf-8")
+            # validate if message is a valid JSON
+            try:
+                # parse the message payload properties
+                props = TimeStatus.model_validate_json(message).properties
+                wallclock_delta = self.simulator.get_wallclock_time() - props.time
+                scenario_delta = self.simulator.get_time() - props.sim_time
+                if len(topic_parts) > 1:
+                    logger.info(
+                        f"Application {topic_parts[1]} latency: {scenario_delta} (scenario), {wallclock_delta} (wallclock)"
+                    )
+            except json.JSONDecodeError:
+                logger.error(f"Invalid JSON format: {message}")
+        except ValidationError as e:
+            logger.error(f"Validation error: {e}")
         except Exception as e:
             logger.error(
-                f"Exception (topic: {message.topic}, payload: {message.payload}): {e}"
+                f"Exception (topic: {method.routing_key}, payload: {message}): {e}"
             )
             print(traceback.format_exc())
 
@@ -241,7 +347,7 @@ class Manager(Application):
             required_apps (list(str)): List of required apps
         """
         # publish init command message
-        command = InitCommand.parse_obj(
+        command = InitCommand.model_validate(
             {
                 "taskingParameters": {
                     "simStartTime": sim_start_time,
@@ -250,10 +356,16 @@ class Manager(Application):
                 }
             }
         )
-        logger.info(f"Sending initialize command {command.json(by_alias=True)}.")
-        self.client.publish(
-            f"{self.prefix}/{self.app_name}/init", command.json(by_alias=True)
+        logger.info(
+            f"Sending initialize command {command.model_dump_json(by_alias=True)}."
         )
+        self.send_message(
+            app_name=self.app_name,
+            app_topics="init",
+            payload=command.model_dump_json(by_alias=True),
+        )
+        # logger.info(f"Declared Queues: {self.declared_queues}")
+        # logger.info(f"Declared Exchanges: {self.declared_exchanges}")
 
     def start(
         self,
@@ -284,7 +396,7 @@ class Manager(Application):
         self.time_status_step = time_status_step
         self.time_status_init = time_status_init
         # publish a start command message
-        command = StartCommand.parse_obj(
+        command = StartCommand.model_validate(
             {
                 "taskingParameters": {
                     "startTime": start_time,
@@ -294,12 +406,13 @@ class Manager(Application):
                 }
             }
         )
-        logger.info(f"Sending start command {command.json(by_alias=True)}.")
-        self.client.publish(
-            f"{self.prefix}/{self.app_name}/start", command.json(by_alias=True)
+        logger.info(f"Sending start command {command.model_dump_json(by_alias=True)}.")
+        self.send_message(
+            app_name=self.app_name,
+            app_topics="start",
+            payload=command.model_dump_json(by_alias=True),
         )
-        # start execution in a background thread
-        threading.Thread(
+        exec_thread = threading.Thread(
             target=self.simulator.execute,
             kwargs={
                 "init_time": sim_start_time,
@@ -308,7 +421,8 @@ class Manager(Application):
                 "wallclock_epoch": start_time,
                 "time_scale_factor": time_scale_factor,
             },
-        ).start()
+        )
+        exec_thread.start()
 
     def stop(self, sim_stop_time: datetime) -> None:
         """
@@ -318,12 +432,14 @@ class Manager(Application):
             sim_stop_time (:obj:`datetime`): Scenario time at which to stop execution.
         """
         # publish a stop command message
-        command = StopCommand.parse_obj(
+        command = StopCommand.model_validate(
             {"taskingParameters": {"simStopTime": sim_stop_time}}
         )
-        logger.info(f"Sending stop command {command.json(by_alias=True)}.")
-        self.client.publish(
-            f"{self.prefix}/{self.app_name}/stop", command.json(by_alias=True)
+        logger.info(f"Sending stop command {command.model_dump_json(by_alias=True)}.")
+        self.send_message(
+            app_name=self.app_name,
+            app_topics="stop",
+            payload=command.model_dump_json(by_alias=True),
         )
         # update the execution end time
         self.simulator.set_end_time(sim_stop_time)
@@ -338,7 +454,7 @@ class Manager(Application):
             sim_update_time (:obj:`datetime`): scenario time at which to update
         """
         # publish an update command message
-        command = UpdateCommand.parse_obj(
+        command = UpdateCommand.model_validate(
             {
                 "taskingParameters": {
                     "simUpdateTime": sim_update_time,
@@ -346,9 +462,11 @@ class Manager(Application):
                 }
             }
         )
-        logger.info(f"Sending update command {command.json(by_alias=True)}.")
-        self.client.publish(
-            f"{self.prefix}/{self.app_name}/update", command.json(by_alias=True)
+        logger.info(f"Sending update command {command.model_dump_json(by_alias=True)}.")
+        self.send_message(
+            app_name=self.app_name,
+            app_topics="update",
+            payload=command.model_dump_json(by_alias=True),
         )
         # update the execution time scale factor
         self.simulator.set_time_scale_factor(time_scale_factor, sim_update_time)

@@ -9,10 +9,11 @@ build-backend = "setuptools.build_meta"
 name = "nost_tools"
 description = "Tools for Novel Observing Strategies Testbed (NOS-T) Applications"
 authors = [
-    {"name" = "Paul T. Grogan", "email" = "paul.grogan@asu.edu"}
+    {"name" = "Paul T. Grogan", "email" = "paul.grogan@asu.edu"},
+    {"name" = "Emmanuel M. Gonzalez", "email" = "emmanuelgonzalez@asu.edu"}
 ]
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python =">=3.9"
 license = {text = "BSD 3-Clause License"}
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -21,11 +22,14 @@ classifiers = [
 ]
 dependencies = [
     "ntplib",
-    "numpy",
-    "paho-mqtt",
-    "pandas",
-    "pydantic >= 2",
+    "numpy >= 2",
+    "pandas >= 2",
+    "pydantic >= 2, < 3",
     "python-dateutil",
+    "pika >= 1",
+    "python-dotenv",
+    "pyyaml",
+    "python-keycloak >= 5"
 ]
 dynamic = ["version"]
 
@@ -48,6 +52,18 @@ examples = [
     "scipy",
     "seaborn",
     "skyfield",
+    "matplotlib >= 3",
+    "xarray >= 2023",
+    "rioxarray >= 0.13",
+    "geopandas >= 0.12",
+    "netCDF4 >= 1.6",
+    "aiobotocore >= 2.17",
+    "botocore >= 1.35",
+    "boto3 >= 1.35",
+    "tatc <= 3.4.3",
+    "s3fs >= 2024.10.0",
+    "pulp >= 2.9.0",
+    "h5netcdf >= 1.0"
 ]
 docs = [
     "autodoc_pydantic >= 2",
@@ -57,4 +73,6 @@ docs = [
     "sphinx_rtd_theme",
     "sphinx-copybutton",
     "sphinx_design",
+    "myst-parser",
+    "sphinxcontrib-mermaid",
 ]
