@@ -21,13 +21,13 @@ NOS-T Tools Installation
 
 .. code-block:: bash
 
-    git clone git@github.com:emmanuelgonz/nost-tools.git
+    git clone git@github.com:code-lab-org/nost-tools.git
 
 If the above command fails, try using the HTTPS URL instead:
 
 .. code-block:: bash
 
-    git clone https://github.com/emmanuelgonz/nost-tools.git
+    git clone https://github.com/code-lab-org/nost-tools.git
 
 2. Change to the directory where the repository was cloned:
 
@@ -174,7 +174,7 @@ To install optional dependencies:
     pip install .[dev]       # For development tools
     pip install .[docs]      # For documentation building
 
-For a complete list of dependencies and version requirements, refer to the `project specification file (pyproject.toml) <https://github.com/emmanuelgonz/nost-tools/blob/main/pyproject.toml>`__ in the repository.
+For a complete list of dependencies and version requirements, refer to the `project specification file (pyproject.toml) <https://github.com/code-lab-org/nost-tools/blob/main/pyproject.toml>`__ in the repository.
 
 If you encounter compatibility issues, check your Python version (3.8+) and ensure your environment meets all requirements.
 
