@@ -19,7 +19,7 @@ Info Section
 ^^^^^^^^^^^
 Contains metadata about the configuration file. This does not influence the operation of the NOS-T Tools library, it is merely for documentation and informational purposes.
 
-.. autopydantic_model:: nost_tools.config.InfoConfig
+.. autopydantic_model:: nost_tools.configuration.InfoConfig
   :members:
   :inherited-members: BaseModel
 
@@ -43,7 +43,7 @@ Defines connection parameters for the RabbitMQ message broker and Keycloak authe
 RabbitMQ Configuration
 """"""""""""""""""""""
 
-.. autopydantic_model:: nost_tools.config.RabbitMQConfig
+.. autopydantic_model:: nost_tools.configuration.RabbitMQConfig
   :members:
   :inherited-members: BaseModel
 
@@ -71,7 +71,7 @@ Example:
 Keycloak Configuration
 """"""""""""""""""""""
 
-.. autopydantic_model:: nost_tools.config.KeycloakConfig
+.. autopydantic_model:: nost_tools.configuration.KeycloakConfig
   :members:
   :inherited-members: BaseModel
 
@@ -98,7 +98,7 @@ Defines parameters controlling simulation execution and time management.
 General Configuration
 """""""""""""""""""""
 
-.. autopydantic_model:: nost_tools.config.GeneralConfig
+.. autopydantic_model:: nost_tools.configuration.GeneralConfig
   :members:
   :inherited-members: BaseModel
 
@@ -116,7 +116,7 @@ Example:
 Manager Configuration
 """""""""""""""""""""
 
-.. autopydantic_model:: nost_tools.config.ManagerConfig
+.. autopydantic_model:: nost_tools.configuration.ManagerConfig
   :members:
   :inherited-members: BaseModel
 
@@ -151,7 +151,7 @@ Example:
 Managed Application Configuration
 """""""""""""""""""""""""""""
 
-.. autopydantic_model:: nost_tools.config.ManagedApplicationConfig
+.. autopydantic_model:: nost_tools.configuration.ManagedApplicationConfig
   :members:
   :inherited-members: BaseModel
 
