@@ -224,20 +224,26 @@ class RabbitMQConfig(BaseModel):
     tls: bool = Field(False, description="RabbitMQ TLS/SSL.")
     virtual_host: str = Field("/", description="RabbitMQ virtual host.")
     message_expiration: str = Field(
-        "60000", description="RabbitMQ expiration, in milliseconds."
+        None, description="RabbitMQ expiration, in milliseconds."
     )
     delivery_mode: int = Field(
-        2, description="RabbitMQ delivery mode (1: non-persistent, 2: durable)."
+        None, description="RabbitMQ delivery mode (1: non-persistent, 2: durable)."
     )
     content_type: str = Field(
-        "text/plain",
+        None,
         description="RabbitMQ MIME content type (application/json, text/plain, etc.).",
     )
-    heartbeat: int = Field(30, description="RabbitMQ heartbeat interval, in seconds.")
+    heartbeat: int = Field(None, description="RabbitMQ heartbeat interval, in seconds.")
     connection_attempts: int = Field(
-        3, description="RabbitMQ connection attempts before giving up."
+        1, description="RabbitMQ connection attempts before giving up."
     )
-    retry_delay: int = Field(5, description="RabbitMQ retry delay, in seconds.")
+    retry_delay: int = Field(2, description="RabbitMQ retry delay, in seconds.")
+    socket_timeout: int = Field(10, description="RabbitMQ socket timeout, in seconds.")
+    stack_timeout: int = Field(15, description="RabbitMQ stack timeout, in seconds.")
+    locale: str = Field("en_US", description="RabbitMQ locale.")
+    blocked_connection_timeout: int = Field(
+        None, description="Timeout for blocked connections."
+    )
 
 
 class KeycloakConfig(BaseModel):

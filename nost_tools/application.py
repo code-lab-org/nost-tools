@@ -13,7 +13,6 @@ from typing import Callable
 
 import ntplib
 import pika
-import pika.connection
 import urllib3
 from keycloak.exceptions import KeycloakAuthenticationError
 from keycloak.keycloak_openid import KeycloakOpenID
@@ -269,12 +268,20 @@ class Application:
             heartbeat=config.rc.server_configuration.servers.rabbitmq.heartbeat,
             connection_attempts=config.rc.server_configuration.servers.rabbitmq.connection_attempts,
             retry_delay=config.rc.server_configuration.servers.rabbitmq.retry_delay,
+            socket_timeout=config.rc.server_configuration.servers.rabbitmq.socket_timeout,
+            stack_timeout=config.rc.server_configuration.servers.rabbitmq.stack_timeout,
+            locale=config.rc.server_configuration.servers.rabbitmq.locale,
         )
 
         # Configure transport layer security (TLS) if needed
         if self.config.rc.server_configuration.servers.rabbitmq.tls:
             logger.info("Using TLS/SSL.")
-            parameters.ssl_options = pika.SSLOptions(ssl.SSLContext())
+            # Create an SSL context
+            context = ssl.create_default_context()
+            context.check_hostname = False
+            context.verify_mode = ssl.CERT_NONE
+            # Set SSL options
+            parameters.ssl_options = pika.SSLOptions(context)
 
         # Callback functions for connection
         def on_connection_open(connection):
