@@ -14,7 +14,7 @@ authors = [
 ]
 readme = "README.md"
 requires-python =">=3.9"
-license = {text = "BSD 3-Clause License"}
+license = {text = "BSD License"}
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
@@ -48,7 +48,6 @@ examples = [
     "dash",
     "dash-daq",
     "flask",
-    "python-dotenv",
     "scipy",
     "seaborn",
     "skyfield",
