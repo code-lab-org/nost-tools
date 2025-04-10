@@ -368,9 +368,9 @@ class LoggerApplicationConfig(BaseModel):
 
 class ExecConfig(BaseModel):
     general: GeneralConfig
-    manager: ManagerConfig
-    managed_application: ManagedApplicationConfig
-    logger_application: LoggerApplicationConfig
+    manager: Optional[ManagerConfig] = None
+    managed_application: Optional[ManagedApplicationConfig] = None
+    logger_application: Optional[LoggerApplicationConfig] = None
 
 
 class Config(BaseModel):
