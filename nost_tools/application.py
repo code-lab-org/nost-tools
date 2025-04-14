@@ -83,6 +83,7 @@ class Application:
         self.refresh_token = None
         self._token_refresh_thread = None
         self.token_refresh_interval = None
+        self._reconnect_delay = None
 
     def ready(self) -> None:
         """
@@ -158,14 +159,12 @@ class Application:
     def start_token_refresh_thread(self):
         """
         Starts a background thread to refresh the access token periodically.
-
-        Args:
-            config (:obj:`ConnectionConfig`): connection configuration
         """
         logger.debug("Starting refresh token thread.")
 
         def refresh_token_periodically():
             while not self._should_stop.wait(timeout=self.token_refresh_interval):
+                logger.debug("Token refresh thread is running.")
                 try:
                     access_token, refresh_token = self.new_access_token(
                         self.refresh_token
@@ -283,16 +282,17 @@ class Application:
             # Set SSL options
             parameters.ssl_options = pika.SSLOptions(context)
 
-        # Callback functions for connection
-        def on_connection_open(connection):
-            self.connection = connection
-            self.connection.channel(on_open_callback=self.on_channel_open)
-            logger.info("Connection established successfully.")
+        # Save connection parameters for reconnection
+        self._connection_parameters = parameters
+        self._reconnect_delay = (
+            self.config.rc.server_configuration.servers.rabbitmq.reconnect_delay
+        )
+        logger.info(f"Reconnect delay: {self._reconnect_delay}")
 
         # Establish non-blocking connection to RabbitMQ
         self.connection = pika.SelectConnection(
             parameters=parameters,
-            on_open_callback=on_connection_open,
+            on_open_callback=self.on_connection_open,
             on_open_error_callback=self.on_connection_error,
             on_close_callback=self.on_connection_closed,
         )
@@ -327,11 +327,16 @@ class Application:
 
     def _start_io_loop(self):
         """
-        Starts the I/O loop for the connection.
+        Starts the I/O loop in a separate thread. This allows the application to
+        run in the background while still being able to process messages from RabbitMQ.
         """
         self.stop_event = threading.Event()
         while not self.stop_event.is_set():
-            self.connection.ioloop.start()
+            try:
+                self.connection.ioloop.start()
+            except Exception as e:
+                logger.error(f"I/O loop error: {e}")
+                break
 
     def on_channel_open(self, channel):
         """
@@ -341,8 +346,45 @@ class Application:
             channel (:obj:`pika.channel.Channel`): channel object
         """
         self.channel = channel
+        self.add_on_channel_close_callback()
+
         # Signal that connection is established
         self._is_connected.set()
+
+    def add_on_channel_close_callback(self):
+        """This method tells pika to call the on_channel_closed method if
+        RabbitMQ unexpectedly closes the channel.
+        """
+        logger.info("Adding channel close callback")
+        self.channel.add_on_close_callback(self.on_channel_closed)
+
+    def on_channel_closed(self, channel, reason):
+        """
+        Invoked by pika when RabbitMQ unexpectedly closes the channel.
+        Channels are usually closed if you attempt to do something that
+        violates the protocol, such as re-declare an exchange or queue with
+        different parameters. In this case, we'll close the connection
+        to shutdown the object.
+
+        Args:
+            channel (:obj:`pika.channel.Channel`): channel object
+            reason (Exception): exception representing reason for loss of connection
+        """
+        logger.warning(f"Channel {channel} was closed: {reason}")
+        self.close_connection()
+
+    def close_connection(self):
+        """
+        This method is invoked by pika when the connection to RabbitMQ is
+        closed. This method is called when the application is shutting down
+        or when the connection is closed unexpectedly.
+        """
+        self._consuming = False
+        if self.connection.is_closing or self.connection.is_closed:
+            logger.info("Connection is closing or already closed")
+        else:
+            logger.info("Closing connection")
+            self.connection.close()
 
     def on_connection_error(self, connection, error):
         """
@@ -362,18 +404,61 @@ class Application:
         RabbitMQ if it disconnects.
 
         Args:
-            connection (:obj:`pika.connection.Connection`): closed connection object
+            connection (:obj:`pika.connection.Connection`): connection object
             reason (Exception): exception representing reason for loss of connection
         """
         self.channel = None
         if self._closing:
             self.connection.ioloop.stop()
+        else:
+            logger.warning(
+                f"Connection closed, reconnecting in {self._reconnect_delay} seconds: {reason}"
+            )
+            self.connection.ioloop.call_later(self._reconnect_delay, self.reconnect)
+
+    def on_connection_open(self, connection):
+        """
+        This method is invoked by pika when the connection to RabbitMQ has
+        been established. At this point we can create a channel and start
+        consuming messages.
+
+        Args:
+            connection (:obj:`pika.connection.Connection`): connection object
+        """
+        self.connection = connection
+        self.connection.channel(on_open_callback=self.on_channel_open)
+        logger.info("Connection established successfully.")
+
+    def reconnect(self):
+        """
+        Reconnect to RabbitMQ by reinitializing the connection.
+        """
+        if not self._closing:
+            try:
+                logger.info("Attempting to reconnect to RabbitMQ...")
+                self.connection = pika.SelectConnection(
+                    parameters=self._connection_parameters,
+                    on_open_callback=self.on_connection_open,
+                    on_open_error_callback=self.on_connection_error,
+                    on_close_callback=self.on_connection_closed,
+                )
+
+                # Start the I/O loop in a separate thread
+                self._io_thread = threading.Thread(target=self._start_io_loop)
+                self._io_thread.start()
+                self._is_connected.wait()
+                logger.info(
+                    "Attempting to reconnect to RabbitMQ completed successfully."
+                )
+
+            except Exception as e:
+                logger.error(f"Reconnection attempt failed: {e}")
+                self.connection.ioloop.call_later(self._reconnect_delay, self.reconnect)
 
     def shut_down(self) -> None:
         """
         Shuts down the application by stopping the background event loop and disconnecting from the broker.
         """
-        # self._should_stop.set()
         if self._time_status_publisher is not None:
             self.simulator.remove_observer(self._time_status_publisher)
         self._time_status_publisher = None
@@ -381,6 +466,11 @@ class Application:
         if self.connection:
             self.stop_application()
             self._consuming = False
+
+        # Stop the token refresh thread
+        if hasattr(self, "_should_stop"):
+            self._should_stop.set()
+
         logger.info(f"Application {self.app_name} successfully shut down.")
 
     def send_message(self, app_name, app_topics, payload: str) -> None:
@@ -466,9 +556,12 @@ class Application:
     ):
         """
         Add callback for a topic, supporting wildcards (* and #) in routing keys.
+        (* matches exactly one word, # matches zero or more words)
 
-        * matches exactly one word
-        # matches zero or more words
+        Args:
+            app_name (str): application name
+            app_topic (str): topic name
+            user_callback (Callable): callback function to be called when a message is received
         """
         self.was_consuming = True
         self._consuming = True
@@ -521,6 +614,12 @@ class Application:
         """
         Callback for handling messages received from RabbitMQ.
         Supports both direct routing key matches and wildcard patterns.
+
+        Args:
+            ch (:obj:`pika.channel.Channel`): channel object
+            method (:obj:`pika.spec.Basic.Deliver`): method frame
+            properties (:obj:`pika.spec.BasicProperties`): properties frame
+            body (str): message body
         """
         routing_key = method.routing_key
         logger.debug(f"Received message with routing key: {routing_key}")
@@ -571,8 +670,8 @@ class Application:
         """Acknowledge the message delivery from RabbitMQ by sending a
         Basic.Ack RPC method for the delivery tag.
 
-        :param int delivery_tag: The delivery tag from the Basic.Deliver frame
-
+        Args:
+            delivery_tag (str): The delivery tag of the message to acknowledge
         """
         try:
             logger.debug(f"Acknowledging message {delivery_tag}")
@@ -596,10 +695,10 @@ class Application:
     ) -> None:
         """
         Declares and binds a queue to the exchange. The queue is bound to the exchange using the routing key. The routing key is created using the application name and topic.
+
         Args:
-            app_name (str): application name
-            topic (str): topic name
-            app_specific_extender (str): application specific extender, used to create a unique queue name for the application. If the app_specific_extender is not provided, the queue name is the same as the routing key.
+            routing_key (str): routing key
+            app_specific_extender (str): application-specific extender for the queue name
         """
         try:
             if app_specific_extender:
@@ -684,8 +783,10 @@ class Application:
         cancellation of a consumer. At this point we will close the channel.
         This will invoke the on_channel_closed method once the channel has been
         closed, which will in-turn close the connection.
-        :param pika.frame.Method _unused_frame: The Basic.CancelOk frame
-        :param str|unicode userdata: Extra user data (consumer tag)
+
+        Args:
+            _unused_frame (:obj:`pika.frame.Method`): The Basic.CancelOk frame
+            userdata (str|unicode): Extra user data (consumer tag)
         """
         self._consuming = False
         logger.info(
@@ -758,7 +859,7 @@ class Application:
                 logger.info(f"Wallclock offset updated to {offset}.")
                 return
             except ntplib.NTPException:
-                logger.warn(
+                logger.warning(
                     f"Could not connect to {host}, attempt #{i+1}/{max_retry} in {retry_delay_s} s."
                 )
                 time.sleep(retry_delay_s)
