@@ -244,6 +244,7 @@ class RabbitMQConfig(BaseModel):
     blocked_connection_timeout: int = Field(
         None, description="Timeout for blocked connections."
     )
+    reconnect_delay: int = Field(10, description="Reconnect delay, in seconds.")
 
 
 class KeycloakConfig(BaseModel):
