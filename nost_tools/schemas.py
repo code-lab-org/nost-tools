@@ -267,7 +267,7 @@ class ServersConfig(BaseModel):
     def validate_keycloak_authentication(cls, values):
         rabbitmq_config = values.get("rabbitmq")
         keycloak_config = values.get("keycloak")
-    
+
         # Check if rabbitmq_config is a dictionary and validate the keycloak_authentication key
         if (
             isinstance(rabbitmq_config, dict)
@@ -320,8 +320,9 @@ class ManagerConfig(BaseModel):
         if "time_status_step" in values:
             time_status_step = values["time_status_step"]
             if isinstance(time_status_step, str):
+                hours, minutes, seconds = map(int, time_status_step.split(":"))
                 time_status_step = timedelta(
-                    seconds=float(time_status_step.split(":")[-1])
+                    hours=hours, minutes=minutes, seconds=seconds
                 )
             if isinstance(time_status_step, timedelta):
                 values["time_status_step"] = timedelta(
@@ -351,7 +352,8 @@ class ManagedApplicationConfig(BaseModel):
         if "time_step" in values:
             time_step = values["time_step"]
             if isinstance(time_step, str):
-                time_step = timedelta(seconds=float(time_step.split(":")[-1]))
+                hours, minutes, seconds = map(int, time_step.split(":"))
+                time_step = timedelta(hours=hours, minutes=minutes, seconds=seconds)
             if isinstance(time_step, timedelta):
                 values["time_step"] = timedelta(
                     seconds=time_step.total_seconds() * time_scale_factor
@@ -360,8 +362,9 @@ class ManagedApplicationConfig(BaseModel):
         if "time_status_step" in values:
             time_status_step = values["time_status_step"]
             if isinstance(time_status_step, str):
+                hours, minutes, seconds = map(int, time_status_step.split(":"))
                 time_status_step = timedelta(
-                    seconds=float(time_status_step.split(":")[-1])
+                    hours=hours, minutes=minutes, seconds=seconds
                 )
             if isinstance(time_status_step, timedelta):
                 values["time_status_step"] = timedelta(
