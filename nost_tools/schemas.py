@@ -259,7 +259,25 @@ class KeycloakConfig(BaseModel):
 
 class ServersConfig(BaseModel):
     rabbitmq: RabbitMQConfig = Field(..., description="RabbitMQ configuration.")
-    keycloak: KeycloakConfig = Field(..., description="Keycloak configuration.")
+    keycloak: Optional[KeycloakConfig] = Field(
+        None, description="Keycloak configuration."
+    )
+
+    @model_validator(mode="before")
+    def validate_keycloak_authentication(cls, values):
+        rabbitmq_config = values.get("rabbitmq")
+        keycloak_config = values.get("keycloak")
+    
+        # Check if rabbitmq_config is a dictionary and validate the keycloak_authentication key
+        if (
+            isinstance(rabbitmq_config, dict)
+            and rabbitmq_config.get("keycloak_authentication", False)
+            and not keycloak_config
+        ):
+            raise ValueError(
+                "Keycloak authentication is enabled, but the Keycloak configuration is missing."
+            )
+        return values
 
 
 class GeneralConfig(BaseModel):
@@ -375,9 +393,13 @@ class LoggerApplicationConfig(BaseModel):
 
 class ExecConfig(BaseModel):
     general: GeneralConfig
-    manager: Optional[ManagerConfig] = None
-    managed_application: Optional[ManagedApplicationConfig] = None
-    logger_application: Optional[LoggerApplicationConfig] = None
+    manager: Optional[ManagerConfig] = Field(None, description="Manager configuration.")
+    managed_application: Optional[ManagedApplicationConfig] = Field(
+        None, description="Managed application configuration."
+    )
+    logger_application: Optional[LoggerApplicationConfig] = Field(
+        None, description="Logger application configuration."
+    )
 
 
 class Config(BaseModel):
