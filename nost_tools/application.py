@@ -221,14 +221,11 @@ class Application:
             self.shut_down_when_terminated = shut_down_when_terminated
         else:
             self.config = config
-            parameters = (
-                self.config.rc.simulation_configuration.execution_parameters.managed_applications
+            parameters = getattr(
+                self.config.rc.simulation_configuration.execution_parameters,
+                self.app_name,
+                None,
             )
-
-            try:
-                parameters = parameters[self.app_name]
-            except KeyError:
-                parameters = parameters["default"]
 
             self.set_offset = parameters.set_offset
             self.time_status_step = parameters.time_status_step
