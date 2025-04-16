@@ -86,15 +86,11 @@ class ManagedApplication(Application):
             self.manager_app_name = manager_app_name
         else:
             self.config = config
-            parameters = (
-                self.config.rc.simulation_configuration.execution_parameters.managed_applications
+            parameters = getattr(
+                self.config.rc.simulation_configuration.execution_parameters,
+                "managed_application",
+                None,
             )
-
-            try:
-                parameters = parameters[self.app_name]
-            except KeyError:
-                parameters = parameters["default"]
-
             self.set_offset = parameters.set_offset
             self.time_status_step = parameters.time_status_step
             self.time_status_init = parameters.time_status_init
