@@ -397,8 +397,9 @@ class LoggerApplicationConfig(BaseModel):
 class ExecConfig(BaseModel):
     general: GeneralConfig
     manager: Optional[ManagerConfig] = Field(None, description="Manager configuration.")
-    managed_application: Optional[ManagedApplicationConfig] = Field(
-        None, description="Managed application configuration."
+    managed_applications: Optional[Dict[str, ManagedApplicationConfig]] = Field(
+        default_factory=lambda: {"default": ManagedApplicationConfig()},
+        description="Dictionary of managed application configurations, keyed by application name.",
     )
     logger_application: Optional[LoggerApplicationConfig] = Field(
         None, description="Logger application configuration."
