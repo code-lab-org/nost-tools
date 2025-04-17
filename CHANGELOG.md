@@ -33,6 +33,7 @@ Changed:
 
 ## 2.0.3
 Addded: 
+- GitHub Action for PyPi publishing
 
 Changed:
 - Updated PyDantic model to allow for multiple managed applications to be configured using a dictionary for `execution.managed_applications.<app name>`. If a field is not provided, default values specified in `ManagedApplicationConfig` are used for all applications.
