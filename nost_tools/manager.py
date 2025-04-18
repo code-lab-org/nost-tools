@@ -98,7 +98,21 @@ class Manager(Application):
             auto_delete=True,
         )
 
-    def execute_test_plan(
+    def execute_test_plan(self, *args, **kwargs) -> None:
+        """
+        Starts the test plan execution in a background thread.
+
+        Args:
+            *args: Positional arguments to be passed to the test plan execution.
+            **kwargs: Keyword arguments to be passed to the test plan execution.
+        """
+        thread = threading.Thread(
+            target=self._execute_test_plan_impl, args=args, kwargs=kwargs, daemon=True
+        )
+        logger.debug("Running test plan in background thread.")
+        thread.start()
+
+    def _execute_test_plan_impl(
         self,
         sim_start_time: datetime = None,
         sim_stop_time: datetime = None,
@@ -163,9 +177,6 @@ class Manager(Application):
                 self.time_status_step = parameters.time_status_step
                 self.time_status_init = parameters.time_status_init
                 self.command_lead = parameters.command_lead
-                # self.required_apps = (
-                #     self.config.rc.simulation_configuration.execution_parameters.required_apps
-                # )
                 self.required_apps = [
                     app for app in parameters.required_apps if app != self.app_name
                 ]

@@ -38,3 +38,9 @@ Addded:
 Changed:
 - Updated PyDantic model to allow for multiple managed applications to be configured using a dictionary for `execution.managed_applications.<app name>`. If a field is not provided, default values specified in `ManagedApplicationConfig` are used for all applications.
 - Updated the `start_up()` method to filter the necessary fields within the dictionary. Ensure that only the execution parameters for the specific application (e.g., "planner") are pulled and applied for each application separately.
+
+## 2.0.4
+Added:
+
+Changed:
+- Refactored `manager.py` so that `execute_test_plan` always runs in a background thread.
