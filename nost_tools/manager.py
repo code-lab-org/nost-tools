@@ -112,6 +112,36 @@ class Manager(Application):
         logger.debug("Running test plan in background thread.")
         thread.start()
 
+    def _sleep_with_heartbeat(self, total_seconds):
+        """
+        Sleep for a specified number of seconds while allowing connection heartbeats.
+        Works with SelectConnection by using short sleep intervals.
+
+        Args:
+            total_seconds (float): Total number of seconds to sleep
+        """
+        if total_seconds <= 0:
+            return
+
+        # Sleep in smaller chunks to allow heartbeats to pass through
+        check_interval = 30  # Check every 30 seconds at most
+        end_time = time.time() + total_seconds
+
+        logger.debug(f"Starting heartbeat-safe sleep for {total_seconds:.2f} seconds")
+
+        while time.time() < end_time:
+            # Calculate remaining time
+            remaining = end_time - time.time()
+
+            # Sleep for the shorter of check_interval or remaining time
+            sleep_time = min(check_interval, remaining)
+
+            if sleep_time > 0:
+                time.sleep(sleep_time)
+                logger.debug(
+                    f"Heartbeat check: {remaining:.2f} seconds remaining in sleep"
+                )
+
     def _execute_test_plan_impl(
         self,
         sim_start_time: datetime = None,
@@ -147,6 +177,7 @@ class Manager(Application):
             init_retry_delay_s (float): number of seconds to wait between initialization commands while waiting for required applications
             init_max_retry (int): number of initialization commands while waiting for required applications before continuing to execution
         """
+        # Initialize parameters from arguments or config
         if sim_start_time is not None and sim_stop_time is not None:
             self.sim_start_time = sim_start_time
             self.sim_stop_time = sim_stop_time
@@ -186,13 +217,10 @@ class Manager(Application):
                 raise ValueError(
                     "No configuration runtime. Please provide simulation start and stop times."
                 )
-        ####
-        self.establish_exchange()
-        # if self.predefined_exchanges_queues:
-        #     self.declare_exchange()
-        #     self.declare_bind_queue()
-        ####
 
+        self.establish_exchange()
+
+        # Set up tracking of required applications
         self.required_apps_status = dict(
             zip(self.required_apps, [False] * len(self.required_apps))
         )
@@ -200,35 +228,37 @@ class Manager(Application):
         self.add_message_callback("*", "status.time", self.on_app_time_status)
 
         self._create_time_status_publisher(self.time_status_step, self.time_status_init)
+
+        # Initialize with retry logic
         for i in range(self.init_max_retry):
-            # issue the init command
             self.init(self.sim_start_time, self.sim_stop_time, self.required_apps)
             next_try = self.simulator.get_wallclock_time() + timedelta(
                 seconds=self.init_retry_delay_s
             )
-            # wait until all required apps are ready
             while (
                 not all([self.required_apps_status[app] for app in self.required_apps])
                 and self.simulator.get_wallclock_time() < next_try
             ):
                 time.sleep(0.001)
-        # self.remove_message_callback("*", "status.ready")
-        # self.remove_message_callback()
-        # configure start time
+
+        # Configure start time if not provided
         if self.start_time is None:
             self.start_time = self.simulator.get_wallclock_time() + self.command_lead
-        # sleep until the start command needs to be issued
-        time.sleep(
-            max(
-                0,
-                (
-                    (self.start_time - self.simulator.get_wallclock_time())
-                    - self.command_lead
-                )
-                / timedelta(seconds=1),
+
+        # Sleep until start time using heartbeat-safe approach
+        sleep_seconds = max(
+            0,
+            (
+                (self.start_time - self.simulator.get_wallclock_time())
+                - self.command_lead
             )
+            / timedelta(seconds=1),
         )
-        # issue the start command
+
+        # Use our heartbeat-safe sleep
+        self._sleep_with_heartbeat(sleep_seconds)
+
+        # Issue the start command
         self.start(
             self.sim_start_time,
             self.sim_stop_time,
@@ -238,43 +268,51 @@ class Manager(Application):
             self.time_status_step,
             self.time_status_init,
         )
-        # wait for simulation to start executing
+
+        # Wait for simulation to start executing
         while self.simulator.get_mode() != Mode.EXECUTING:
             time.sleep(0.001)
+
+        # Process time scale updates
         for update in self.time_scale_updates:
             update_time = self.simulator.get_wallclock_time_at_simulation_time(
                 update.sim_update_time
             )
-            # sleep until the update command needs to be issued
-            time.sleep(
-                max(
-                    0,
-                    (
-                        (update_time - self.simulator.get_wallclock_time())
-                        - self.command_lead
-                    )
-                    / timedelta(seconds=1),
+            # Sleep until update time using heartbeat-safe approach
+            sleep_seconds = max(
+                0,
+                (
+                    (update_time - self.simulator.get_wallclock_time())
+                    - self.command_lead
                 )
+                / timedelta(seconds=1),
             )
-            # issue the update command
-            self.update(
-                update.time_scale_factor, update.sim_update_time, self.required_apps
-            )
-            # wait until the update command takes effect
+
+            # Use our heartbeat-safe sleep
+            self._sleep_with_heartbeat(sleep_seconds)
+
+            # Issue the update command
+            self.update(update.time_scale_factor, update.sim_update_time)
+
+            # Wait until update takes effect
             while self.simulator.get_time_scale_factor() != update.time_scale_factor:
-                time.sleep(self.command_lead / timedelta(seconds=1) / 100)
+                time.sleep(0.001)
+
         end_time = self.simulator.get_wallclock_time_at_simulation_time(
             self.simulator.get_end_time()
         )
-        # sleep until the stop command should be issued
-        time.sleep(
-            max(
-                0,
-                ((end_time - self.simulator.get_wallclock_time()) - self.command_lead)
-                / timedelta(seconds=1),
-            )
+
+        # Sleep until stop time using heartbeat-safe approach
+        sleep_seconds = max(
+            0,
+            ((end_time - self.simulator.get_wallclock_time()) - self.command_lead)
+            / timedelta(seconds=1),
         )
-        # issue the stop command
+
+        # Use our heartbeat-safe sleep
+        self._sleep_with_heartbeat(sleep_seconds)
+
+        # Issue the stop command
         self.stop(self.sim_stop_time)
 
     def on_app_ready_status(self, ch, method, properties, body) -> None:
