@@ -44,3 +44,10 @@ Added:
 
 Changed:
 - Refactored `manager.py` so that `execute_test_plan` always runs in a background thread.
+
+## 2.0.5
+Added:
+- Implemented a heartbeat-safe sleep mechanism called `_sleep_with_heartbeat()` in the Manager class
+
+Changed:
+- Modified `_execute_test_plan_impl()` to use the new heartbeat-safe sleep method for all long-duration sleeps in the Manager class
