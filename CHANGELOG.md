@@ -51,3 +51,4 @@ Added:
 
 Changed:
 - Modified `_execute_test_plan_impl()` to use the new heartbeat-safe sleep method for all long-duration sleeps in the Manager class
+- Update authors, version, and release date in `CITATION.cff`
