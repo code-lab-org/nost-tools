@@ -98,20 +98,6 @@ class Manager(Application):
             auto_delete=True,
         )
 
-    def execute_test_plan(self, *args, **kwargs) -> None:
-        """
-        Starts the test plan execution in a background thread.
-
-        Args:
-            *args: Positional arguments to be passed to the test plan execution.
-            **kwargs: Keyword arguments to be passed to the test plan execution.
-        """
-        thread = threading.Thread(
-            target=self._execute_test_plan_impl, args=args, kwargs=kwargs, daemon=True
-        )
-        logger.debug("Running test plan in background thread.")
-        thread.start()
-
     def _sleep_with_heartbeat(self, total_seconds):
         """
         Sleep for a specified number of seconds while allowing connection heartbeats.
@@ -141,6 +127,20 @@ class Manager(Application):
                 logger.debug(
                     f"Heartbeat check: {remaining:.2f} seconds remaining in sleep"
                 )
+
+    def execute_test_plan(self, *args, **kwargs) -> None:
+        """
+        Starts the test plan execution in a background thread.
+
+        Args:
+            *args: Positional arguments to be passed to the test plan execution.
+            **kwargs: Keyword arguments to be passed to the test plan execution.
+        """
+        thread = threading.Thread(
+            target=self._execute_test_plan_impl, args=args, kwargs=kwargs, daemon=True
+        )
+        logger.debug("Running test plan in background thread.")
+        thread.start()
 
     def _execute_test_plan_impl(
         self,
