@@ -43,13 +43,30 @@ class Entity(Observable):
         """
         self._init_time = self._time = self._next_time = init_time
 
+    # def tick(self, time_step: timedelta) -> None:
+    #     """
+    #     Computes the next state transition following an elapsed scenario duration (time step).
+
+    #     Args:
+    #         time_step (:obj:`timedelta`): elapsed scenario duration
+    #     """
+    #     self._next_time = self._time + time_step
     def tick(self, time_step: timedelta) -> None:
         """
         Computes the next state transition following an elapsed scenario duration (time step).
+        If the entity hasn't been initialized yet, the time_step will be stored but no
+        time advancement will occur until the entity is initialized.
 
         Args:
             time_step (:obj:`timedelta`): elapsed scenario duration
         """
+        if self._time is None:
+            logger.debug(
+                f"Entity {self.name} not yet initialized, waiting for initialization."
+            )
+            # Don't try to calculate next_time yet, just maintain the current None state
+            return
+
         self._next_time = self._time + time_step
 
     def tock(self) -> None:

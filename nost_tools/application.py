@@ -261,16 +261,20 @@ class Application:
         # Set up connection parameters
         parameters = pika.ConnectionParameters(
             host=self.config.rc.server_configuration.servers.rabbitmq.host,
-            virtual_host=self.config.rc.server_configuration.servers.rabbitmq.virtual_host,
             port=self.config.rc.server_configuration.servers.rabbitmq.port,
+            virtual_host=self.config.rc.server_configuration.servers.rabbitmq.virtual_host,
             credentials=credentials,
+            channel_max=config.rc.server_configuration.servers.rabbitmq.channel_max,
+            frame_max=config.rc.server_configuration.servers.rabbitmq.frame_max,
             heartbeat=config.rc.server_configuration.servers.rabbitmq.heartbeat,
             connection_attempts=config.rc.server_configuration.servers.rabbitmq.connection_attempts,
             retry_delay=config.rc.server_configuration.servers.rabbitmq.retry_delay,
             socket_timeout=config.rc.server_configuration.servers.rabbitmq.socket_timeout,
             stack_timeout=config.rc.server_configuration.servers.rabbitmq.stack_timeout,
             locale=config.rc.server_configuration.servers.rabbitmq.locale,
+            blocked_connection_timeout=config.rc.server_configuration.servers.rabbitmq.blocked_connection_timeout,
         )
+        logger.info(parameters)
 
         # Configure transport layer security (TLS) if needed
         if self.config.rc.server_configuration.servers.rabbitmq.tls:
@@ -280,7 +284,9 @@ class Application:
             context.check_hostname = False
             context.verify_mode = ssl.CERT_NONE
             # Set SSL options
-            parameters.ssl_options = pika.SSLOptions(context)
+            parameters.ssl_options = pika.SSLOptions(
+                context, self.config.rc.server_configuration.servers.rabbitmq.host
+            )
 
         # Save connection parameters for reconnection
         self._connection_parameters = parameters
@@ -407,6 +413,17 @@ class Application:
             connection (:obj:`pika.connection.Connection`): connection object
             reason (Exception): exception representing reason for loss of connection
         """
+        if self.channel and not self.channel.is_closed:
+            try:
+                logger.info("Connection closing - attempting to clean up resources.")
+                if self.predefined_exchanges_queues:
+                    self.delete_queue(self.channel_configs, self.app_name)
+                    self.delete_exchange(self.unique_exchanges)
+                else:
+                    self.delete_all_queues_and_exchanges()
+            except Exception as e:
+                logger.error(f"Error during cleanup on connection close: {e}")
+
         self.channel = None
         if self._closing:
             self.connection.ioloop.stop()
@@ -429,13 +446,63 @@ class Application:
         self.connection.channel(on_open_callback=self.on_channel_open)
         logger.info("Connection established successfully.")
 
+    # def reconnect(self):
+    #     """
+    #     Reconnect to RabbitMQ by reinitializing the connection.
+    #     """
+    #     if not self._closing:
+    #         try:
+    #             logger.info("Attempting to reconnect to RabbitMQ...")
+    #             self.connection = pika.SelectConnection(
+    #                 parameters=self._connection_parameters,
+    #                 on_open_callback=self.on_connection_open,
+    #                 on_open_error_callback=self.on_connection_error,
+    #                 on_close_callback=self.on_connection_closed,
+    #             )
+
+    #             # Start the I/O loop in a separate thread
+    #             self._io_thread = threading.Thread(target=self._start_io_loop)
+    #             self._io_thread.start()
+    #             self._is_connected.wait()
+    #             logger.info(
+    #                 "Attempting to reconnect to RabbitMQ completed successfully."
+    #             )
+
+    #         except Exception as e:
+    #             logger.error(f"Reconnection attempt failed: {e}")
+    #             self.connection.ioloop.call_later(self._reconnect_delay, self.reconnect)
     def reconnect(self):
         """
-        Reconnect to RabbitMQ by reinitializing the connection.
+        Reconnect to RabbitMQ by reinitializing the connection with refreshed credentials.
         """
         if not self._closing:
             try:
                 logger.info("Attempting to reconnect to RabbitMQ...")
+
+                # Refresh the token if Keycloak authentication is enabled
+                if (
+                    self.config.rc.server_configuration.servers.rabbitmq.keycloak_authentication
+                ):
+                    try:
+                        logger.info("Refreshing access token before reconnection...")
+                        access_token, refresh_token = self.new_access_token(
+                            self.refresh_token
+                        )
+                        self.refresh_token = refresh_token
+
+                        # Update connection parameters with new credentials
+                        self._connection_parameters.credentials = pika.PlainCredentials(
+                            "", access_token
+                        )
+                        logger.info(
+                            "Access token refreshed successfully for reconnection"
+                        )
+                    except Exception as e:
+                        logger.error(
+                            f"Failed to refresh token during reconnection: {e}"
+                        )
+                        # Continue with existing token, it might still work
+
                 self.connection = pika.SelectConnection(
                     parameters=self._connection_parameters,
                     on_open_callback=self.on_connection_open,
@@ -473,6 +540,44 @@ class Application:
 
         logger.info(f"Application {self.app_name} successfully shut down.")
 
+    # def send_message(self, app_name, app_topics, payload: str) -> None:
+    #     """
+    #     Sends a message to the broker. The message is sent to the exchange using the routing key. The routing key is created using the application name and topic. The message is published with an expiration of 60 seconds.
+
+    #     Args:
+    #         app_name (str): application name
+    #         app_topics (str or list): topic name or list of topic names
+    #         payload (str): message payload
+    #     """
+    #     if isinstance(app_topics, str):
+    #         app_topics = [app_topics]
+
+    #     for app_topic in app_topics:
+    #         routing_key = self.create_routing_key(app_name=app_name, topic=app_topic)
+    #         self.channel.basic_publish(
+    #             exchange=self.prefix,
+    #             routing_key=routing_key,
+    #             body=payload,
+    #             properties=pika.BasicProperties(
+    #                 content_type=self.config.rc.server_configuration.servers.rabbitmq.content_type,
+    #                 content_encoding=self.config.rc.server_configuration.servers.rabbitmq.content_encoding,
+    #                 headers=self.config.rc.server_configuration.servers.rabbitmq.headers,
+    #                 delivery_mode=self.config.rc.server_configuration.servers.rabbitmq.delivery_mode,
+    #                 priority=self.config.rc.server_configuration.servers.rabbitmq.priority,
+    #                 correlation_id=self.config.rc.server_configuration.servers.rabbitmq.correlation_id,
+    #                 reply_to=self.config.rc.server_configuration.servers.rabbitmq.reply_to,
+    #                 expiration=self.config.rc.server_configuration.servers.rabbitmq.message_expiration,
+    #                 message_id=self.config.rc.server_configuration.servers.rabbitmq.message_id,
+    #                 timestamp=self.config.rc.server_configuration.servers.rabbitmq.timestamp,
+    #                 type=self.config.rc.server_configuration.servers.rabbitmq.type,
+    #                 user_id=self.config.rc.server_configuration.servers.rabbitmq.user_id,
+    #                 app_id=self.config.rc.server_configuration.servers.rabbitmq.app_id,
+    #                 cluster_id=self.config.rc.server_configuration.servers.rabbitmq.cluster_id,
+    #             ),
+    #         )
+    #         logger.debug(
+    #             f"Successfully sent message '{payload}' to topic '{routing_key}'."
+    #         )
     def send_message(self, app_name, app_topics, payload: str) -> None:
         """
         Sends a message to the broker. The message is sent to the exchange using the routing key. The routing key is created using the application name and topic. The message is published with an expiration of 60 seconds.
@@ -482,29 +587,45 @@ class Application:
             app_topics (str or list): topic name or list of topic names
             payload (str): message payload
         """
+        # Check if channel is available before attempting to send
+        if self.channel is None or not self._is_connected.is_set():
+            logger.warning(
+                f"Cannot send message: connection is down or channel is None"
+            )
+            return  # Silently return instead of raising an exception
+
         if isinstance(app_topics, str):
             app_topics = [app_topics]
 
         for app_topic in app_topics:
             routing_key = self.create_routing_key(app_name=app_name, topic=app_topic)
-            if not self.predefined_exchanges_queues:
-                routing_key, queue_name = self.yamless_declare_bind_queue(
-                    routing_key=routing_key
+            try:
+                self.channel.basic_publish(
+                    exchange=self.prefix,
+                    routing_key=routing_key,
+                    body=payload,
+                    properties=pika.BasicProperties(
+                        content_type=self.config.rc.server_configuration.servers.rabbitmq.content_type,
+                        content_encoding=self.config.rc.server_configuration.servers.rabbitmq.content_encoding,
+                        headers=self.config.rc.server_configuration.servers.rabbitmq.headers,
+                        delivery_mode=self.config.rc.server_configuration.servers.rabbitmq.delivery_mode,
+                        priority=self.config.rc.server_configuration.servers.rabbitmq.priority,
+                        correlation_id=self.config.rc.server_configuration.servers.rabbitmq.correlation_id,
+                        reply_to=self.config.rc.server_configuration.servers.rabbitmq.reply_to,
+                        expiration=self.config.rc.server_configuration.servers.rabbitmq.message_expiration,
+                        message_id=self.config.rc.server_configuration.servers.rabbitmq.message_id,
+                        timestamp=self.config.rc.server_configuration.servers.rabbitmq.timestamp,
+                        type=self.config.rc.server_configuration.servers.rabbitmq.type,
+                        user_id=self.config.rc.server_configuration.servers.rabbitmq.user_id,
+                        app_id=self.config.rc.server_configuration.servers.rabbitmq.app_id,
+                        cluster_id=self.config.rc.server_configuration.servers.rabbitmq.cluster_id,
+                    ),
                 )
-            self.channel.basic_publish(
-                exchange=self.prefix,
-                routing_key=routing_key,
-                body=payload,
-                properties=pika.BasicProperties(
-                    expiration=self.config.rc.server_configuration.servers.rabbitmq.message_expiration,
-                    delivery_mode=self.config.rc.server_configuration.servers.rabbitmq.delivery_mode,
-                    content_type=self.config.rc.server_configuration.servers.rabbitmq.content_type,
-                    app_id=self.app_name,
-                ),
-            )
-            logger.debug(
-                f"Successfully sent message '{payload}' to topic '{routing_key}'."
-            )
+                logger.debug(
+                    f"Successfully sent message '{payload}' to topic '{routing_key}'."
+                )
+            except Exception as e:
+                logger.warning(f"Failed to publish message to {routing_key}: {e}")
 
     def routing_key_matches_pattern(self, routing_key, pattern):
         """
@@ -576,6 +697,7 @@ class Application:
             if not self.predefined_exchanges_queues:
                 # For wildcard subscriptions, use the app_name as queue suffix to ensure uniqueness
                 queue_suffix = self.app_name
+                queue_name = None
 
                 # If using wildcards, bind to the wildcard pattern
                 if "*" in routing_key or "#" in routing_key:
@@ -592,20 +714,26 @@ class Application:
                         exchange=self.prefix, queue=queue_name, routing_key=routing_key
                     )
 
-                    # Track the declared queue
+                    # Track the declared queue and exchange
                     self.declared_queues.add(queue_name)
+                    self.declared_exchanges.add(self.prefix.strip())
+
+                    # Also track the routing key if it's used for binding
+                    if routing_key != queue_name:
+                        self.declared_queues.add(routing_key.strip())
                 else:
                     # For non-wildcard keys, use the standard approach
                     routing_key, queue_name = self.yamless_declare_bind_queue(
                         routing_key=routing_key, app_specific_extender=queue_suffix
                     )
 
-                self.channel.basic_qos(prefetch_count=1)
-                self._consumer_tag = self.channel.basic_consume(
-                    queue=queue_name,
-                    on_message_callback=self._handle_message,
-                    auto_ack=False,
-                )
+                if queue_name:
+                    self.channel.basic_qos(prefetch_count=1)
+                    self._consumer_tag = self.channel.basic_consume(
+                        queue=queue_name,
+                        on_message_callback=self._handle_message,
+                        auto_ack=False,
+                    )
 
         # Add the callback to the list for this routing key
         self._callbacks_per_topic[routing_key].append(user_callback)
@@ -754,20 +882,48 @@ class Application:
         """
         Deletes all declared queues and exchanges from RabbitMQ.
         """
+        if not self.channel or self.channel.is_closed:
+            logger.warning("Cannot delete queues/exchanges: channel is closed")
+            return
+
+        # First delete all queues
+        logger.info(f"List of declared queues: {self.declared_queues}")
         for queue_name in list(self.declared_queues):
             try:
-                # self.channel.queue_purge(queue=queue_name)
+                # First purge the queue to remove all messages
+                try:
+                    self.channel.queue_purge(queue=queue_name)
+                except Exception as e:
+                    logger.debug(f"Failed to purge queue {queue_name}: {e}")
+
+                # Then try to unbind the queue from the exchange
+                try:
+                    self.channel.queue_unbind(
+                        queue=queue_name, exchange=self.prefix, routing_key=queue_name
+                    )
+                except Exception as e:
+                    logger.debug(f"Failed to unbind queue {queue_name}: {e}")
+
+                # Finally delete the queue
                 self.channel.queue_delete(queue=queue_name)
                 logger.info(f"Deleted queue: {queue_name}")
             except Exception as e:
                 logger.error(f"Failed to delete queue {queue_name}: {e}")
 
+        # Then delete exchanges
+        logger.info(f"List of declared exchanges: {self.declared_exchanges}")
         for exchange_name in list(self.declared_exchanges):
             try:
-                self.channel.exchange_delete(exchange=exchange_name)
-                logger.info(f"Deleted exchange: {exchange_name}")
+                # Don't delete the default exchange
+                if exchange_name and exchange_name != "":
+                    self.channel.exchange_delete(exchange=exchange_name)
+                    logger.info(f"Deleted exchange: {exchange_name}")
             except Exception as e:
                 logger.error(f"Failed to delete exchange {exchange_name}: {e}")
+
+        # Clear our tracking sets
+        self.declared_queues.clear()
+        self.declared_exchanges.clear()
 
     def stop_consuming(self):
         """Tell RabbitMQ that you would like to stop consuming by sending the

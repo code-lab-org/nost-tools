@@ -52,3 +52,15 @@ Added:
 Changed:
 - Modified `_execute_test_plan_impl()` to use the new heartbeat-safe sleep method for all long-duration sleeps in the Manager class
 - Update authors, version, and release date in `CITATION.cff`
+
+## 2.1.0
+Added:
+- Added `frame_max` and `blocked_connection_timeout` to YAML for use in `pika.connection.ConnectionParameters` within Application class
+- Added `content_type`, `content_encoding`, `headers`, `priority`, `correlation_id`, `reply_to`, `message_expiration`, `message_id`, `timestamp`, `type`, `user_id`, `app_id`, and `cluster_id` to YAML for use in `pika.spec.BasicProperties` within Application class
+- Refresh Keycloak access token before attempting reconnection in `reconnect` method
+
+Changed:
+- Modified `delete_all_queues_and_exchanges` method more resilient, including checking if connection is open before attempting to clean up
+- Modified `on_connection_closed` method attempt to clean up
+- Modified `tick` method to only perform time calculation if the entity has been initizlied
+- Removed exchange and queue declaration by `yamless_declare_bind_queue` in `send_message` method
