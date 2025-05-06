@@ -5,7 +5,6 @@ Provides a base application that publishes messages from a simulator to a broker
 import functools
 import logging
 import ssl
-import sys
 import threading
 import time
 from datetime import datetime, timedelta
@@ -421,36 +420,15 @@ class Application:
         self._is_connected.clear()
 
     def on_connection_closed(self, connection, reason):
-        """
-        This method is invoked by pika when the connection to RabbitMQ is
-        closed unexpectedly or intentionally. We need to distinguish between
-        the two cases and handle them differently.
-
-        Args:
-            connection (:obj:`pika.connection.Connection`): connection object
-            reason (Exception): exception representing reason for loss of connection
-        """
         # First clear the channel reference regardless of reason
         self.channel = None
 
         # Check if this is an intentional closure (self._closing is True)
         if self._closing:
-            # This is an intentional close, clean up resources
-            if hasattr(self, "connection") and self.connection:
-                try:
-                    logger.info(
-                        "Connection intentionally closing - cleaning up resources."
-                    )
-                    if self.predefined_exchanges_queues:
-                        self.delete_queue(self.channel_configs, self.app_name)
-                        self.delete_exchange(self.unique_exchanges)
-                    else:
-                        self.delete_all_queues_and_exchanges()
-                except Exception as e:
-                    logger.error(
-                        f"Error during cleanup on intentional connection close: {e}"
-                    )
-
+            # Resources already cleaned up in stop_application()
+            logger.debug(
+                "Connection closed after intentional stop - cleanup already performed"
+            )
             self.connection.ioloop.stop()
         else:
             # This is an unexpected connection drop - don't delete queues or exchanges
@@ -928,68 +906,165 @@ class Application:
 
     def delete_all_queues_and_exchanges(self):
         """
-        Deletes all declared queues and exchanges from RabbitMQ.
+        Deletes all declared queues and exchanges from RabbitMQ with proper callbacks.
         """
         if not self.channel or self.channel.is_closed:
             logger.warning("Cannot delete queues/exchanges: channel is closed")
             return
 
-        # First delete all queues
         logger.info(f"List of declared queues: {self.declared_queues}")
-        for queue_name in list(self.declared_queues):
+        logger.info(f"List of declared exchanges: {self.declared_exchanges}")
+
+        # Create copies to avoid modification during iteration
+        queues_to_delete = list(self.declared_queues)
+        exchanges_to_delete = list(self.declared_exchanges)
+
+        # Callback functions
+        def on_queue_purged(method_frame, queue_name, exchange_list):
+            """Callback for queue purge"""
+            logger.info(f"Successfully purged queue: {queue_name}")
+            # After purging, unbind the queue
+            unbind_queue_from_exchanges(queue_name, exchange_list)
+
+        def on_queue_unbind_ok(
+            method_frame, queue_name, current_exchange, remaining_exchanges
+        ):
+            """Callback for queue unbind"""
+            logger.debug(
+                f"Successfully unbound queue {queue_name} from exchange {current_exchange}"
+            )
+            if remaining_exchanges:
+                # Continue unbinding from next exchange
+                next_exchange = remaining_exchanges[0]
+                try:
+                    self.channel.queue_unbind(
+                        queue=queue_name,
+                        exchange=next_exchange,
+                        routing_key=queue_name,
+                        callback=lambda method_frame: on_queue_unbind_ok(
+                            method_frame,
+                            queue_name,
+                            next_exchange,
+                            remaining_exchanges[1:],
+                        ),
+                    )
+                except Exception as e:
+                    logger.error(
+                        f"Failed to unbind queue {queue_name} from exchange {next_exchange}: {e}"
+                    )
+                    # Continue with queue deletion even if unbinding fails
+                    delete_queue(queue_name)
+            else:
+                # All unbinds complete, delete queue
+                delete_queue(queue_name)
+
+        def on_queue_deleted(method_frame, queue_name):
+            """Callback for queue delete"""
+            logger.info(f"Successfully deleted queue: {queue_name}")
+            self.declared_queues.discard(queue_name)
+
+            # When all queues are deleted, start deleting exchanges
+            if not self.declared_queues and exchanges_to_delete:
+                delete_exchanges()
+
+        def on_exchange_deleted(method_frame, exchange_name):
+            """Callback for exchange delete"""
+            logger.info(f"Successfully deleted exchange: {exchange_name}")
+            self.declared_exchanges.discard(exchange_name)
+
+        def unbind_queue_from_exchanges(queue_name, exchange_list):
+            """Unbind queue from each exchange"""
+            if exchange_list:
+                first_exchange = exchange_list[0]
+                try:
+                    if first_exchange and first_exchange != "":
+                        logger.debug(
+                            f"Unbinding queue {queue_name} from exchange {first_exchange}"
+                        )
+                        self.channel.queue_unbind(
+                            queue=queue_name,
+                            exchange=first_exchange,
+                            routing_key=queue_name,
+                            callback=lambda method_frame: on_queue_unbind_ok(
+                                method_frame,
+                                queue_name,
+                                first_exchange,
+                                exchange_list[1:],
+                            ),
+                        )
+                    else:
+                        # Skip empty exchange, move to next
+                        on_queue_unbind_ok(
+                            None, queue_name, first_exchange, exchange_list[1:]
+                        )
+                except Exception as e:
+                    logger.error(
+                        f"Failed to unbind queue {queue_name} from exchange {first_exchange}: {e}"
+                    )
+                    # Continue with queue deletion even if unbinding fails
+                    delete_queue(queue_name)
+            else:
+                # No exchanges to unbind from, proceed with delete
+                delete_queue(queue_name)
+
+        def delete_queue(queue_name):
+            """Delete a queue with callback"""
             try:
-                # First purge the queue to remove all messages
-                try:
-                    logger.debug(f"Attempting to purge queue: {queue_name}")
-                    self.channel.queue_purge(queue=queue_name)
-                    logger.debug(f"Successfully purged queue: {queue_name}")
-                except Exception as e:
-                    logger.debug(f"Failed to purge queue {queue_name}: {e}")
-
-                # Try to unbind the queue from all exchanges it might be bound to
-                try:
-                    for exchange_name in self.declared_exchanges:
-                        if exchange_name and exchange_name != "":
-                            logger.debug(
-                                f"Unbinding queue {queue_name} from exchange {exchange_name}"
-                            )
-                            self.channel.queue_unbind(
-                                queue=queue_name,
-                                exchange=exchange_name,
-                                routing_key=queue_name,
-                            )
-                except Exception as e:
-                    logger.debug(f"Failed to unbind queue {queue_name}: {e}")
-
-                # Finally delete the queue with if_unused=False to force deletion
                 logger.info(f"Deleting queue: {queue_name}")
                 self.channel.queue_delete(
-                    queue=queue_name, if_unused=False, if_empty=False
+                    queue=queue_name,
+                    if_unused=False,
+                    if_empty=False,
+                    callback=lambda method_frame: on_queue_deleted(
+                        method_frame, queue_name
+                    ),
                 )
-                logger.info(f"Deleted queue: {queue_name}")
             except Exception as e:
                 logger.error(f"Failed to delete queue {queue_name}: {e}")
+                # Remove from tracking even if deletion fails
+                self.declared_queues.discard(queue_name)
 
-        # Add a small delay to ensure queue deletions are processed
-        time.sleep(0.5)
+                # Check if we need to proceed with exchange deletion
+                if not self.declared_queues and exchanges_to_delete:
+                    delete_exchanges()
 
-        # Then delete exchanges
-        logger.info(f"List of declared exchanges: {self.declared_exchanges}")
-        for exchange_name in list(self.declared_exchanges):
+        def delete_exchanges():
+            """Delete all exchanges"""
+            for exchange_name in exchanges_to_delete:
+                try:
+                    # Don't delete the default exchange
+                    if exchange_name and exchange_name != "":
+                        logger.info(f"Deleting exchange: {exchange_name}")
+                        self.channel.exchange_delete(
+                            exchange=exchange_name,
+                            if_unused=False,
+                            callback=lambda method_frame, ex_name=exchange_name: on_exchange_deleted(
+                                method_frame, ex_name
+                            ),
+                        )
+                except Exception as e:
+                    logger.error(f"Failed to delete exchange {exchange_name}: {e}")
+                    # Remove from tracking even if deletion fails
+                    self.declared_exchanges.discard(exchange_name)
+
+        # Start the deletion process
+        for queue_name in queues_to_delete:
             try:
-                # Don't delete the default exchange
-                if exchange_name and exchange_name != "":
-                    logger.info(f"Deleting exchange: {exchange_name}")
-                    self.channel.exchange_delete(
-                        exchange=exchange_name, if_unused=False
-                    )
-                    logger.info(f"Deleted exchange: {exchange_name}")
+                logger.debug(f"Attempting to purge queue: {queue_name}")
+                self.channel.queue_purge(
+                    queue=queue_name,
+                    callback=lambda method_frame, q=queue_name: on_queue_purged(
+                        method_frame, q, list(exchanges_to_delete)
+                    ),
+                )
             except Exception as e:
-                logger.error(f"Failed to delete exchange {exchange_name}: {e}")
+                logger.debug(f"Failed to purge queue {queue_name}: {e}")
+                # Continue with unbinding even if purge fails
+                unbind_queue_from_exchanges(queue_name, list(exchanges_to_delete))
 
-        # Clear our tracking sets
-        self.declared_queues.clear()
-        self.declared_exchanges.clear()
+        # If no queues to delete, proceed with exchanges
+        if not queues_to_delete and exchanges_to_delete:
+            delete_exchanges()
 
     def stop_consuming(self):
         """Tell RabbitMQ that you would like to stop consuming by sending the
@@ -1021,14 +1096,6 @@ class Application:
         """Call to close the channel with RabbitMQ cleanly by issuing the
         Channel.Close RPC command.
         """
-        logger.info("Deleting queues and exchanges.")
-
-        if self.predefined_exchanges_queues:
-            self.delete_queue(self.channel_configs, self.app_name)
-            self.delete_exchange(self.unique_exchanges)
-        else:
-            self.delete_all_queues_and_exchanges()
-
         logger.info("Closing channel")
         self.channel.close()
 
@@ -1038,28 +1105,64 @@ class Application:
 
     def stop_application(self):
         """Cleanly shutdown the connection to RabbitMQ by stopping the consumer
-        with RabbitMQ. When RabbitMQ confirms the cancellation, on_cancelok
-        will be invoked by pika, which will then closing the channel and
-        connection. The IOLoop is started again because this method is invoked
-        when CTRL-C is pressed raising a KeyboardInterrupt exception. This
-        exception stops the IOLoop which needs to be running for pika to
-        communicate with RabbitMQ. All of the commands issued prior to starting
-        the IOLoop will be buffered but not processed.
+        with RabbitMQ, cleaning up resources, and stopping all background threads.
         """
         if not self._closing:
             self._closing = True
-            if self._consuming:
-                self.stop_consuming()
-                # Signal the thread to stop
+            logger.info("Initiating application shutdown sequence")
+
+            # First clean up RabbitMQ resources if channel is available
+            if (
+                self.channel
+                and not self.channel.is_closing
+                and not self.channel.is_closed
+            ):
+                try:
+                    # Clean up resources before stopping the loop
+                    if self.predefined_exchanges_queues:
+                        self.delete_queue(self.channel_configs, self.app_name)
+                        self.delete_exchange(self.unique_exchanges)
+                    else:
+                        self.delete_all_queues_and_exchanges()
+                except Exception as e:
+                    logger.error(f"Error during cleanup: {e}")
+
+            time.sleep(10)
+
+            if self.shut_down_when_terminated:
+                # Stop consuming messages if we were consuming
+                if self._consuming:
+                    try:
+                        self.stop_consuming()
+                    except Exception as e:
+                        logger.error(f"Error stopping consumer: {e}")
+
+                # Signal all background threads to stop
                 if hasattr(self, "stop_event"):
                     self.stop_event.set()
                 if hasattr(self, "_should_stop"):
                     self._should_stop.set()
-                if hasattr(self, "io_thread"):
-                    self._io_thread.join()
-                sys.exit()
-            else:
-                self.connection.ioloop.stop()
+
+                # Stop the I/O loop
+                if self.connection and not self.connection.is_closed:
+                    logger.info("Stopping IO loop")
+                    self.connection.ioloop.stop()
+
+                # If we have an I/O thread, set a timeout and join it
+                if self._io_thread and self._io_thread.is_alive():
+                    logger.info("Waiting for IO thread to finish...")
+                    self._io_thread.join()  # 2 second timeout
+
+                # Also stop token refresh thread if it exists
+                if (
+                    hasattr(self, "_token_refresh_thread")
+                    and self._token_refresh_thread
+                    and self._token_refresh_thread.is_alive()
+                ):
+                    logger.info("Waiting for token refresh thread to finish...")
+                    self._token_refresh_thread.join()
+
+                logger.info("Application shutdown complete")
 
     def set_wallclock_offset(
         self, host="pool.ntp.org", retry_delay_s: int = 5, max_retry: int = 5
