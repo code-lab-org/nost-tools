@@ -357,6 +357,11 @@ class Application:
         # Signal that connection is established
         self._is_connected.set()
 
+        # Process any queued messages now that we're connected
+        if hasattr(self, "_message_queue") and self._message_queue:
+            # Schedule message processing to happen after all initialization
+            self.connection.ioloop.call_later(0.1, self._process_message_queue)
+
     def add_on_channel_close_callback(self):
         """This method tells pika to call the on_channel_closed method if
         RabbitMQ unexpectedly closes the channel.
@@ -468,6 +473,9 @@ class Application:
         self.connection.channel(on_open_callback=self.on_channel_open)
         logger.info("Connection established successfully.")
 
+        # Schedule message queue processing once the channel is open
+        # (will be called after on_channel_open sets self._is_connected)
+
     # def reconnect(self):
     #     """
     #     Reconnect to RabbitMQ by reinitializing the connection.
@@ -562,63 +570,43 @@ class Application:
 
         logger.info(f"Application {self.app_name} successfully shut down.")
 
-    # def send_message(self, app_name, app_topics, payload: str) -> None:
-    #     """
-    #     Sends a message to the broker. The message is sent to the exchange using the routing key. The routing key is created using the application name and topic. The message is published with an expiration of 60 seconds.
-
-    #     Args:
-    #         app_name (str): application name
-    #         app_topics (str or list): topic name or list of topic names
-    #         payload (str): message payload
-    #     """
-    #     if isinstance(app_topics, str):
-    #         app_topics = [app_topics]
-
-    #     for app_topic in app_topics:
-    #         routing_key = self.create_routing_key(app_name=app_name, topic=app_topic)
-    #         self.channel.basic_publish(
-    #             exchange=self.prefix,
-    #             routing_key=routing_key,
-    #             body=payload,
-    #             properties=pika.BasicProperties(
-    #                 content_type=self.config.rc.server_configuration.servers.rabbitmq.content_type,
-    #                 content_encoding=self.config.rc.server_configuration.servers.rabbitmq.content_encoding,
-    #                 headers=self.config.rc.server_configuration.servers.rabbitmq.headers,
-    #                 delivery_mode=self.config.rc.server_configuration.servers.rabbitmq.delivery_mode,
-    #                 priority=self.config.rc.server_configuration.servers.rabbitmq.priority,
-    #                 correlation_id=self.config.rc.server_configuration.servers.rabbitmq.correlation_id,
-    #                 reply_to=self.config.rc.server_configuration.servers.rabbitmq.reply_to,
-    #                 expiration=self.config.rc.server_configuration.servers.rabbitmq.message_expiration,
-    #                 message_id=self.config.rc.server_configuration.servers.rabbitmq.message_id,
-    #                 timestamp=self.config.rc.server_configuration.servers.rabbitmq.timestamp,
-    #                 type=self.config.rc.server_configuration.servers.rabbitmq.type,
-    #                 user_id=self.config.rc.server_configuration.servers.rabbitmq.user_id,
-    #                 app_id=self.config.rc.server_configuration.servers.rabbitmq.app_id,
-    #                 cluster_id=self.config.rc.server_configuration.servers.rabbitmq.cluster_id,
-    #             ),
-    #         )
-    #         logger.debug(
-    #             f"Successfully sent message '{payload}' to topic '{routing_key}'."
-    #         )
     def send_message(self, app_name, app_topics, payload: str) -> None:
         """
-        Sends a message to the broker. The message is sent to the exchange using the routing key. The routing key is created using the application name and topic. The message is published with an expiration of 60 seconds.
+        Sends a message to the broker. If the connection is down, the message is queued
+        for later delivery when the connection is restored.
 
         Args:
             app_name (str): application name
             app_topics (str or list): topic name or list of topic names
             payload (str): message payload
         """
-        # Check if channel is available before attempting to send
-        if self.channel is None or not self._is_connected.is_set():
-            logger.warning(
-                f"Cannot send message: connection is down or channel is None"
-            )
-            return  # Silently return instead of raising an exception
+        # Initialize message queue if it doesn't exist
+        if not hasattr(self, "_message_queue"):
+            self._message_queue = []
+            self._queue_max_size = 1000  # Limit queue size to prevent memory issues
 
         if isinstance(app_topics, str):
             app_topics = [app_topics]
 
+        # Check if channel is available
+        if self.channel is None or not self._is_connected.is_set():
+            logger.warning(f"Connection down, queueing message for later delivery")
+
+            # Queue the message if there's space available
+            if len(self._message_queue) < self._queue_max_size:
+                for app_topic in app_topics:
+                    self._message_queue.append((app_name, app_topic, payload))
+                    logger.info(
+                        f"Queued message for topic {app_topic} (queue size: {len(self._message_queue)})"
+                    )
+            else:
+                logger.error(f"Message queue full, dropping message for {app_topics}")
+            return
+
+        # Try to send any queued messages first
+        self._process_message_queue()
+
+        # Now send the current message
         for app_topic in app_topics:
             routing_key = self.create_routing_key(app_name=app_name, topic=app_topic)
             try:
@@ -648,6 +636,69 @@ class Application:
                 )
             except Exception as e:
                 logger.warning(f"Failed to publish message to {routing_key}: {e}")
+                # Queue the failed message if there's space available
+                if len(self._message_queue) < self._queue_max_size:
+                    self._message_queue.append((app_name, app_topic, payload))
+                    logger.info(
+                        f"Queued failed message for retry (queue size: {len(self._message_queue)})"
+                    )
+
+    def _process_message_queue(self):
+        """
+        Process queued messages when connection is available.
+        Attempts to send all queued messages.
+        """
+        if not hasattr(self, "_message_queue") or not self._message_queue:
+            return  # No messages to process
+
+        if self.channel is None or not self._is_connected.is_set():
+            return  # Still no connection
+
+        # Process the queue in FIFO order
+        logger.info(f"Processing message queue ({len(self._message_queue)} messages)")
+
+        # Work with a copy of the queue to avoid modification during iteration
+        queued_messages = list(self._message_queue)
+        self._message_queue.clear()
+
+        success_count = 0
+        for app_name, app_topic, payload in queued_messages:
+            routing_key = self.create_routing_key(app_name=app_name, topic=app_topic)
+            try:
+                self.channel.basic_publish(
+                    exchange=self.prefix,
+                    routing_key=routing_key,
+                    body=payload,
+                    properties=pika.BasicProperties(
+                        content_type=self.config.rc.server_configuration.servers.rabbitmq.content_type,
+                        content_encoding=self.config.rc.server_configuration.servers.rabbitmq.content_encoding,
+                        headers=self.config.rc.server_configuration.servers.rabbitmq.headers,
+                        delivery_mode=self.config.rc.server_configuration.servers.rabbitmq.delivery_mode,
+                        priority=self.config.rc.server_configuration.servers.rabbitmq.priority,
+                        correlation_id=self.config.rc.server_configuration.servers.rabbitmq.correlation_id,
+                        reply_to=self.config.rc.server_configuration.servers.rabbitmq.reply_to,
+                        expiration=self.config.rc.server_configuration.servers.rabbitmq.message_expiration,
+                        message_id=self.config.rc.server_configuration.servers.rabbitmq.message_id,
+                        timestamp=self.config.rc.server_configuration.servers.rabbitmq.timestamp,
+                        type=self.config.rc.server_configuration.servers.rabbitmq.type,
+                        user_id=self.config.rc.server_configuration.servers.rabbitmq.user_id,
+                        app_id=self.config.rc.server_configuration.servers.rabbitmq.app_id,
+                        cluster_id=self.config.rc.server_configuration.servers.rabbitmq.cluster_id,
+                    ),
+                )
+                success_count += 1
+            except Exception as e:
+                # If sending still fails, put it back in the queue
+                logger.warning(f"Failed to resend queued message to {routing_key}: {e}")
+                self._message_queue.append((app_name, app_topic, payload))
+
+        if success_count > 0:
+            logger.info(f"Successfully sent {success_count} queued messages")
+
+        if self._message_queue:
+            logger.info(
+                f"{len(self._message_queue)} messages remain queued for later delivery"
+            )
 
     def routing_key_matches_pattern(self, routing_key, pattern):
         """
