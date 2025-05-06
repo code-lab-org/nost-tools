@@ -476,31 +476,6 @@ class Application:
         # Schedule message queue processing once the channel is open
         # (will be called after on_channel_open sets self._is_connected)
 
-    # def reconnect(self):
-    #     """
-    #     Reconnect to RabbitMQ by reinitializing the connection.
-    #     """
-    #     if not self._closing:
-    #         try:
-    #             logger.info("Attempting to reconnect to RabbitMQ...")
-    #             self.connection = pika.SelectConnection(
-    #                 parameters=self._connection_parameters,
-    #                 on_open_callback=self.on_connection_open,
-    #                 on_open_error_callback=self.on_connection_error,
-    #                 on_close_callback=self.on_connection_closed,
-    #             )
-
-    #             # Start the I/O loop in a separate thread
-    #             self._io_thread = threading.Thread(target=self._start_io_loop)
-    #             self._io_thread.start()
-    #             self._is_connected.wait()
-    #             logger.info(
-    #                 "Attempting to reconnect to RabbitMQ completed successfully."
-    #             )
-
-    #         except Exception as e:
-    #             logger.error(f"Reconnection attempt failed: {e}")
-    #             self.connection.ioloop.call_later(self._reconnect_delay, self.reconnect)
     def reconnect(self):
         """
         Reconnect to RabbitMQ by reinitializing the connection with refreshed credentials.
