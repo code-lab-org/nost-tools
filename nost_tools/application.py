@@ -367,17 +367,29 @@ class Application:
     def on_channel_closed(self, channel, reason):
         """
         Invoked by pika when RabbitMQ unexpectedly closes the channel.
-        Channels are usually closed if you attempt to do something that
-        violates the protocol, such as re-declare an exchange or queue with
-        different parameters. In this case, we'll close the connection
-        to shutdown the object.
 
         Args:
             channel (:obj:`pika.channel.Channel`): channel object
-            reason (Exception): exception representing reason for loss of connection
+            reason (Exception): exception representing reason for channel closure
         """
-        logger.warning(f"Channel {channel} was closed: {reason}")
-        self.close_connection()
+        reply_code = 0
+        if hasattr(reason, "reply_code"):
+            reply_code = reason.reply_code
+
+        logger.warning(f"Channel {channel} was closed: {reason} (code: {reply_code})")
+
+        # Only close connection for critical errors
+        # 404 (NOT_FOUND) can happen if an exchange/queue doesn't exist yet
+        # 406 (PRECONDITION_FAILED) usually means queue/exchange already exists
+        if reply_code not in [404, 406]:
+            logger.info("Closing connection due to critical channel error")
+            self.close_connection()
+        else:
+            logger.info(
+                "Channel closed with non-critical error - will reopen during reconnection"
+            )
+            # Mark channel as None but don't close connection
+            self.channel = None
 
     def close_connection(self):
         """
@@ -406,31 +418,41 @@ class Application:
     def on_connection_closed(self, connection, reason):
         """
         This method is invoked by pika when the connection to RabbitMQ is
-        closed unexpectedly. Since it is unexpected, we will reconnect to
-        RabbitMQ if it disconnects.
+        closed unexpectedly or intentionally. We need to distinguish between
+        the two cases and handle them differently.
 
         Args:
             connection (:obj:`pika.connection.Connection`): connection object
             reason (Exception): exception representing reason for loss of connection
         """
-        if self.channel and not self.channel.is_closed:
-            try:
-                logger.info("Connection closing - attempting to clean up resources.")
-                if self.predefined_exchanges_queues:
-                    self.delete_queue(self.channel_configs, self.app_name)
-                    self.delete_exchange(self.unique_exchanges)
-                else:
-                    self.delete_all_queues_and_exchanges()
-            except Exception as e:
-                logger.error(f"Error during cleanup on connection close: {e}")
-
+        # First clear the channel reference regardless of reason
         self.channel = None
+
+        # Check if this is an intentional closure (self._closing is True)
         if self._closing:
+            # This is an intentional close, clean up resources
+            if hasattr(self, "connection") and self.connection:
+                try:
+                    logger.info(
+                        "Connection intentionally closing - cleaning up resources."
+                    )
+                    if self.predefined_exchanges_queues:
+                        self.delete_queue(self.channel_configs, self.app_name)
+                        self.delete_exchange(self.unique_exchanges)
+                    else:
+                        self.delete_all_queues_and_exchanges()
+                except Exception as e:
+                    logger.error(
+                        f"Error during cleanup on intentional connection close: {e}"
+                    )
+
             self.connection.ioloop.stop()
         else:
+            # This is an unexpected connection drop - don't delete queues or exchanges
             logger.warning(
-                f"Connection closed, reconnecting in {self._reconnect_delay} seconds: {reason}"
+                f"Connection dropped unexpectedly, reconnecting in {self._reconnect_delay} seconds: {reason}"
             )
+            # Schedule reconnection
             self.connection.ioloop.call_later(self._reconnect_delay, self.reconnect)
 
     def on_connection_open(self, connection):
@@ -706,7 +728,7 @@ class Application:
 
                     # Declare a new queue
                     self.channel.queue_declare(
-                        queue=queue_name, durable=False, auto_delete=True
+                        queue=queue_name, durable=False, auto_delete=False
                     )
 
                     # Bind queue to the exchange with the wildcard pattern
@@ -718,9 +740,9 @@ class Application:
                     self.declared_queues.add(queue_name)
                     self.declared_exchanges.add(self.prefix.strip())
 
-                    # Also track the routing key if it's used for binding
-                    if routing_key != queue_name:
-                        self.declared_queues.add(routing_key.strip())
+                    # # Also track the routing key if it's used for binding
+                    # if routing_key != queue_name:
+                    #     self.declared_queues.add(routing_key.strip())
                 else:
                     # For non-wildcard keys, use the standard approach
                     routing_key, queue_name = self.yamless_declare_bind_queue(
@@ -834,14 +856,14 @@ class Application:
             else:
                 queue_name = routing_key
             self.channel.queue_declare(
-                queue=queue_name, durable=False, auto_delete=True
+                queue=queue_name, durable=False, auto_delete=False
             )
             self.channel.queue_bind(
                 exchange=self.prefix, queue=queue_name, routing_key=routing_key
             )
             # Create list of declared queues and exchanges
             self.declared_queues.add(queue_name.strip())
-            self.declared_queues.add(routing_key.strip())
+            # self.declared_queues.add(routing_key.strip())
             self.declared_exchanges.add(self.prefix.strip())
 
             logger.debug(f"Bound queue '{queue_name}' to topic '{routing_key}'.")
@@ -892,23 +914,38 @@ class Application:
             try:
                 # First purge the queue to remove all messages
                 try:
+                    logger.debug(f"Attempting to purge queue: {queue_name}")
                     self.channel.queue_purge(queue=queue_name)
+                    logger.debug(f"Successfully purged queue: {queue_name}")
                 except Exception as e:
                     logger.debug(f"Failed to purge queue {queue_name}: {e}")
 
-                # Then try to unbind the queue from the exchange
+                # Try to unbind the queue from all exchanges it might be bound to
                 try:
-                    self.channel.queue_unbind(
-                        queue=queue_name, exchange=self.prefix, routing_key=queue_name
-                    )
+                    for exchange_name in self.declared_exchanges:
+                        if exchange_name and exchange_name != "":
+                            logger.debug(
+                                f"Unbinding queue {queue_name} from exchange {exchange_name}"
+                            )
+                            self.channel.queue_unbind(
+                                queue=queue_name,
+                                exchange=exchange_name,
+                                routing_key=queue_name,
+                            )
                 except Exception as e:
                     logger.debug(f"Failed to unbind queue {queue_name}: {e}")
 
-                # Finally delete the queue
-                self.channel.queue_delete(queue=queue_name)
+                # Finally delete the queue with if_unused=False to force deletion
+                logger.info(f"Deleting queue: {queue_name}")
+                self.channel.queue_delete(
+                    queue=queue_name, if_unused=False, if_empty=False
+                )
                 logger.info(f"Deleted queue: {queue_name}")
             except Exception as e:
                 logger.error(f"Failed to delete queue {queue_name}: {e}")
+
+        # Add a small delay to ensure queue deletions are processed
+        time.sleep(0.5)
 
         # Then delete exchanges
         logger.info(f"List of declared exchanges: {self.declared_exchanges}")
@@ -916,7 +953,10 @@ class Application:
             try:
                 # Don't delete the default exchange
                 if exchange_name and exchange_name != "":
-                    self.channel.exchange_delete(exchange=exchange_name)
+                    logger.info(f"Deleting exchange: {exchange_name}")
+                    self.channel.exchange_delete(
+                        exchange=exchange_name, if_unused=False
+                    )
                     logger.info(f"Deleted exchange: {exchange_name}")
             except Exception as e:
                 logger.error(f"Failed to delete exchange {exchange_name}: {e}")

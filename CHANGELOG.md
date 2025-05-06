@@ -64,3 +64,5 @@ Changed:
 - Modified `on_connection_closed` method attempt to clean up
 - Modified `tick` method to only perform time calculation if the entity has been initizlied
 - Removed exchange and queue declaration by `yamless_declare_bind_queue` in `send_message` method
+- Modified `on_channel_closed` and `on_connection_closed` methods to delete exchanges and queues only when the connection or channel is intentionally closed. If the connection drops unexpectedly due to network issues, exchanges and queues are retained. This ensures that the connection can be re-established without needing to redeclare and rebind exchanges and queues.
+- Exchanges and queues are now declared with `auto_delete=False` and `durable=True`. This configuration ensures that exchanges and queues are not deleted during unexpected network issues, but only when intentionally closed, such as at the end of a simulation.

@@ -95,7 +95,7 @@ class Manager(Application):
             exchange=self.prefix,
             exchange_type="topic",
             durable=False,
-            auto_delete=True,
+            auto_delete=False,
         )
 
     def _sleep_with_heartbeat(self, total_seconds):
