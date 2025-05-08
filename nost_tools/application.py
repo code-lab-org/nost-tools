@@ -416,8 +416,12 @@ class Application:
 
         logger.debug(f"Channel was closed: {reason} (code: {reply_code})")
 
-        # Always clear channel reference first
+        # Clear channel reference
         self.channel = None
+
+        # # Clear consumer tag reference
+        # if hasattr(self, "_consumer_tag"):
+        #     self._consumer_tag = None
 
         # Check if this is part of an intentional shutdown
         if self._closing:
@@ -946,207 +950,7 @@ class Application:
             self.channel.exchange_delete(exchange=exchange_name)
         logger.info("Successfully deleted exchanges.")
 
-    # def _delete_all_queues_and_exchanges_with_callback(self, completion_event):
-    #     """
-    #     Deletes all declared queues and exchanges from RabbitMQ with proper callbacks,
-    #     and signals the completion_event when done.
-
-    #     Args:
-    #         completion_event (threading.Event): Event to signal when deletion is complete
-    #     """
-    #     if not self.channel or self.channel.is_closed:
-    #         logger.warning("Cannot delete queues/exchanges: channel is closed")
-    #         completion_event.set()  # Signal completion since we can't proceed
-    #         return
-
-    #     # Create copies to avoid modification during iteration
-    #     queues_to_delete = list(self.declared_queues)
-    #     exchanges_to_delete = list(self.declared_exchanges)
-
-    #     # If nothing to delete, signal completion immediately
-    #     if not queues_to_delete and not exchanges_to_delete:
-    #         logger.info("No queues or exchanges to delete")
-    #         completion_event.set()
-    #         return
-
-    #     # Callback functions
-    #     def on_queue_purged(method_frame, queue_name, exchange_list):
-    #         """Callback for queue purge"""
-    #         logger.info(f"Successfully purged queue: {queue_name}")
-    #         # After purging, unbind the queue
-    #         unbind_queue_from_exchanges(queue_name, exchange_list)
-
-    #     def on_queue_unbind_ok(
-    #         method_frame, queue_name, current_exchange, remaining_exchanges
-    #     ):
-    #         """Callback for queue unbind"""
-    #         logger.debug(
-    #             f"Successfully unbound queue {queue_name} from exchange {current_exchange}"
-    #         )
-    #         if remaining_exchanges:
-    #             # Continue unbinding from next exchange
-    #             next_exchange = remaining_exchanges[0]
-    #             try:
-    #                 self.channel.queue_unbind(
-    #                     queue=queue_name,
-    #                     exchange=next_exchange,
-    #                     routing_key=queue_name,
-    #                     callback=lambda method_frame: on_queue_unbind_ok(
-    #                         method_frame,
-    #                         queue_name,
-    #                         next_exchange,
-    #                         remaining_exchanges[1:],
-    #                     ),
-    #                 )
-    #             except Exception as e:
-    #                 logger.error(
-    #                     f"Failed to unbind queue {queue_name} from exchange {next_exchange}: {e}"
-    #                 )
-    #                 # Continue with queue deletion even if unbinding fails
-    #                 delete_queue(queue_name)
-    #         else:
-    #             # All unbinds complete, delete queue
-    #             delete_queue(queue_name)
-
-    #     def on_queue_deleted(method_frame, queue_name):
-    #         """Callback for queue delete"""
-    #         logger.info(f"Successfully deleted queue: {queue_name}")
-    #         self.declared_queues.discard(queue_name)
-
-    #         # When all queues are deleted, start deleting exchanges
-    #         if not self.declared_queues and exchanges_to_delete:
-    #             delete_exchanges()
-    #         elif not self.declared_queues and not exchanges_to_delete:
-    #             # Everything is deleted, signal completion
-    #             logger.info("All queues and exchanges have been deleted")
-    #             completion_event.set()
-
-    #     def on_exchange_deleted(method_frame, exchange_name):
-    #         """Callback for exchange delete"""
-    #         logger.info(f"Successfully deleted exchange: {exchange_name}")
-    #         self.declared_exchanges.discard(exchange_name)
-
-    #         # Check if all exchanges are now deleted
-    #         if not self.declared_exchanges:
-    #             # All exchanges deleted, signal completion
-    #             logger.info("All exchanges have been deleted")
-    #             completion_event.set()
-
-    #     def unbind_queue_from_exchanges(queue_name, exchange_list):
-    #         """Unbind queue from each exchange"""
-    #         if exchange_list:
-    #             first_exchange = exchange_list[0]
-    #             try:
-    #                 if first_exchange and first_exchange != "":
-    #                     logger.debug(
-    #                         f"Unbinding queue {queue_name} from exchange {first_exchange}"
-    #                     )
-    #                     self.channel.queue_unbind(
-    #                         queue=queue_name,
-    #                         exchange=first_exchange,
-    #                         routing_key=queue_name,
-    #                         callback=lambda method_frame: on_queue_unbind_ok(
-    #                             method_frame,
-    #                             queue_name,
-    #                             first_exchange,
-    #                             exchange_list[1:],
-    #                         ),
-    #                     )
-    #                 else:
-    #                     # Skip empty exchange, move to next
-    #                     on_queue_unbind_ok(
-    #                         None, queue_name, first_exchange, exchange_list[1:]
-    #                     )
-    #             except Exception as e:
-    #                 logger.error(
-    #                     f"Failed to unbind queue {queue_name} from exchange {first_exchange}: {e}"
-    #                 )
-    #                 # Continue with queue deletion even if unbinding fails
-    #                 delete_queue(queue_name)
-    #         else:
-    #             # No exchanges to unbind from, proceed with delete
-    #             delete_queue(queue_name)
-
-    #     def delete_queue(queue_name):
-    #         """Delete a queue with callback"""
-    #         try:
-    #             logger.info(f"Deleting queue: {queue_name}")
-    #             self.channel.queue_delete(
-    #                 queue=queue_name,
-    #                 if_unused=False,
-    #                 if_empty=False,
-    #                 callback=lambda method_frame: on_queue_deleted(
-    #                     method_frame, queue_name
-    #                 ),
-    #             )
-    #         except Exception as e:
-    #             logger.error(f"Failed to delete queue {queue_name}: {e}")
-    #             # Remove from tracking even if deletion fails
-    #             self.declared_queues.discard(queue_name)
-
-    #             # Check if we need to proceed with exchange deletion
-    #             if not self.declared_queues and exchanges_to_delete:
-    #                 delete_exchanges()
-    #             elif not self.declared_queues and not exchanges_to_delete:
-    #                 # Everything is deleted (or failed to delete), signal completion
-    #                 completion_event.set()
-
-    #     def delete_exchanges():
-    #         """Delete all exchanges"""
-    #         if not exchanges_to_delete:
-    #             # No exchanges to delete, signal completion
-    #             completion_event.set()
-    #             return
-
-    #         for exchange_name in exchanges_to_delete:
-    #             try:
-    #                 # Don't delete the default exchange
-    #                 if exchange_name and exchange_name != "":
-    #                     logger.info(f"Deleting exchange: {exchange_name}")
-    #                     self.channel.exchange_delete(
-    #                         exchange=exchange_name,
-    #                         if_unused=False,
-    #                         callback=lambda method_frame, ex_name=exchange_name: on_exchange_deleted(
-    #                             method_frame, ex_name
-    #                         ),
-    #                     )
-    #                 else:
-    #                     # Skip empty exchanges
-    #                     self.declared_exchanges.discard(exchange_name)
-    #                     if not self.declared_exchanges:
-    #                         # All exchanges processed, signal completion
-    #                         completion_event.set()
-    #             except Exception as e:
-    #                 logger.error(f"Failed to delete exchange {exchange_name}: {e}")
-    #                 # Remove from tracking even if deletion fails
-    #                 self.declared_exchanges.discard(exchange_name)
-
-    #                 # If this was the last exchange, signal completion
-    #                 if not self.declared_exchanges:
-    #                     completion_event.set()
-
-    #     # Start the deletion process
-    #     for queue_name in queues_to_delete:
-    #         try:
-    #             logger.debug(f"Attempting to purge queue: {queue_name}")
-    #             self.channel.queue_purge(
-    #                 queue=queue_name,
-    #                 callback=lambda method_frame, q=queue_name: on_queue_purged(
-    #                     method_frame, q, list(exchanges_to_delete)
-    #                 ),
-    #             )
-    #         except Exception as e:
-    #             logger.debug(f"Failed to purge queue {queue_name}: {e}")
-    #             # Continue with unbinding even if purge fails
-    #             unbind_queue_from_exchanges(queue_name, list(exchanges_to_delete))
-
-    #     # If no queues to delete, proceed with exchanges
-    #     if not queues_to_delete and exchanges_to_delete:
-    #         delete_exchanges()
-    #     elif not queues_to_delete and not exchanges_to_delete:
-    #         # Nothing to delete at all, signal completion immediately
-    #         completion_event.set()
-    def _delete_all_queues_and_exchanges_with_callback(self, completion_event):
+    def _delete_queues_with_callback(self, completion_event):
         """
         Deletes all declared queues from RabbitMQ with proper callbacks,
         and signals the completion_event when done.
@@ -1222,7 +1026,7 @@ class Application:
 
             # When all queues are deleted, signal completion
             if pending_deletions == 0:
-                logger.info("All queues have been deleted")
+                logger.debug("All queues have been deleted.")
                 completion_event.set()
 
         def unbind_queue_from_exchanges(queue_name):
@@ -1366,9 +1170,7 @@ class Application:
                         cleanup_complete_event.set()
                     else:
                         # Delete all queues and exchanges with a callback for completion
-                        self._delete_all_queues_and_exchanges_with_callback(
-                            cleanup_complete_event
-                        )
+                        self._delete_queues_with_callback(cleanup_complete_event)
                 except Exception as e:
                     logger.error(f"Error during cleanup: {e}")
                     # Set the event even if there's an error
