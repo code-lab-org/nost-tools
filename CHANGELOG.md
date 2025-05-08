@@ -60,10 +60,12 @@ Added:
 - Refresh Keycloak access token before attempting reconnection in `reconnect` method
 
 Changed:
-- Modified `delete_all_queues_and_exchanges` method more resilient, including checking if connection is open before attempting to clean up
+- Modified `delete_all_queues_and_exchanges` method to check if connection is open before attempting to clean up
 - Modified `on_connection_closed` method attempt to clean up
 - Modified `tick` method to only perform time calculation if the entity has been initizlied
 - Removed exchange and queue declaration by `yamless_declare_bind_queue` in `send_message` method
-- Modified `on_channel_closed` and `on_connection_closed` methods to delete exchanges and queues only when the connection or channel is intentionally closed. If the connection drops unexpectedly due to network issues, exchanges and queues are retained. This ensures that the connection can be re-established without needing to redeclare and rebind exchanges and queues.
-- Exchanges and queues are now declared with `auto_delete=False` and `durable=True`. This configuration ensures that exchanges and queues are not deleted during unexpected network issues, but only when intentionally closed, such as at the end of a simulation.
+- Modified `on_channel_closed` and `on_connection_closed` methods to delete queues only when the connection or channel is intentionally closed. If the connection drops unexpectedly due to network issues, queues are retained. This ensures that the connection can be re-established without needing to redeclare and rebind queues.
+- Queues are now declared with `auto_delete=False` and `durable=True`. This configuration ensures that queues are not deleted during unexpected network issues, but only when intentionally closed, such as at the end of a simulation.
+- Exchanges are now declared with `auto_delete=True` and `durable=True`. This configuration ensures that exchanges are deleted only when no more queues are bound to it, such as the end of a simulation run.
 - Messages that fail to send due to a connection drop are added to the `self._message_queue` dictionary in the `send_message` method. These queued messages are later dispatched asynchronously via the `_process_message_queue` method, which is scheduled using `self.connection.ioloop.call_later`.
+- Updated SSL context for TLS configuration to that of Amazon MQ for RabbitMQ in `start_up` method
