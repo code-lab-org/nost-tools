@@ -172,7 +172,7 @@ class Application:
                     self.refresh_token = refresh_token
                     self.update_connection_credentials(access_token)
                 except Exception as e:
-                    logger.error(f"Failed to refresh access token: {e}")
+                    logger.debug(f"Failed to refresh access token: {e}")
 
         self._token_refresh_thread = threading.Thread(target=refresh_token_periodically)
         self._token_refresh_thread.start()
@@ -363,6 +363,13 @@ class Application:
         # Signal that connection is established
         self._is_connected.set()
 
+        # Re-establish callbacks if this is a reconnection
+        if hasattr(self, "_saved_callbacks") and self._saved_callbacks:
+            logger.info(f"Restoring {len(self._saved_callbacks)} message callbacks")
+            for app_name, app_topic, user_callback in self._saved_callbacks:
+                # Pass through existing add_message_callback to handle all logic consistently
+                self.add_message_callback(app_name, app_topic, user_callback)
+
         # Process any queued messages now that we're connected
         if hasattr(self, "_message_queue") and self._message_queue:
             # Schedule message processing to happen after all initialization
@@ -372,35 +379,9 @@ class Application:
         """This method tells pika to call the on_channel_closed method if
         RabbitMQ unexpectedly closes the channel.
         """
-        logger.info("Adding channel close callback")
+        logger.debug("Adding channel close callback")
         self.channel.add_on_close_callback(self.on_channel_closed)
 
-    # def on_channel_closed(self, channel, reason):
-    #     """
-    #     Invoked by pika when RabbitMQ unexpectedly closes the channel.
-
-    #     Args:
-    #         channel (:obj:`pika.channel.Channel`): channel object
-    #         reason (Exception): exception representing reason for channel closure
-    #     """
-    #     reply_code = 0
-    #     if hasattr(reason, "reply_code"):
-    #         reply_code = reason.reply_code
-
-    #     logger.warning(f"Channel was closed: {reason} (code: {reply_code})")
-
-    #     # Only close connection for critical errors
-    #     # 404 (NOT_FOUND) can happen if an exchange/queue doesn't exist yet
-    #     # 406 (PRECONDITION_FAILED) usually means queue/exchange already exists
-    #     if reply_code not in [404, 406]:
-    #         logger.info("Closing connection due to critical channel error")
-    #         self.close_connection()
-    #     else:
-    #         logger.info(
-    #             "Channel closed with non-critical error - will reopen during reconnection"
-    #         )
-    #         # Mark channel as None but don't close connection
-    #         self.channel = None
     def on_channel_closed(self, channel, reason):
         """
         Invoked by pika when RabbitMQ unexpectedly closes the channel.
@@ -425,14 +406,16 @@ class Application:
 
         # Check if this is part of an intentional shutdown
         if self._closing:
-            logger.info("Channel closed as part of intentional shutdown")
+            logger.info(
+                "Connection closed intentionally. Proceeding with connection closure."
+            )
             # During intentional shutdown, proceed with connection closure
             self.close_connection()
             return
 
-        # For other codes, this is likely a critical error requiring connection restart
+        # If unexpected closure, wait for reconnection
         logger.info(
-            f"Connection closed with non-critical error - will reopen during reconnection"
+            f"Connection closed unexpectedly. Reconnecting in {self._reconnect_delay} seconds."
         )
 
     def close_connection(self):
@@ -472,8 +455,8 @@ class Application:
             self.connection.ioloop.stop()
         else:
             # This is an unexpected connection drop - don't delete queues or exchanges
-            logger.warning(
-                f"Connection dropped unexpectedly, reconnecting in {self._reconnect_delay} seconds: {reason}"
+            logger.debug(
+                f"Connection closed unexpectedly, reconnecting in {self._reconnect_delay} seconds: {reason}"
             )
             # Schedule reconnection
             self.connection.ioloop.call_later(self._reconnect_delay, self.reconnect)
@@ -489,10 +472,7 @@ class Application:
         """
         self.connection = connection
         self.connection.channel(on_open_callback=self.on_channel_open)
-        logger.info("Connection established successfully.")
-
-        # Schedule message queue processing once the channel is open
-        # (will be called after on_channel_open sets self._is_connected)
+        # logger.info("Connection established successfully.")
 
     def reconnect(self):
         """
@@ -500,14 +480,17 @@ class Application:
         """
         if not self._closing:
             try:
-                logger.info("Attempting to reconnect to RabbitMQ...")
+                logger.info("Attempting to reconnect to RabbitMQ.")
+
+                # Reset callback tracking dictionary but keep saved callbacks
+                self._callbacks_per_topic = {}
 
                 # Refresh the token if Keycloak authentication is enabled
                 if (
                     self.config.rc.server_configuration.servers.rabbitmq.keycloak_authentication
                 ):
                     try:
-                        logger.info("Refreshing access token before reconnection...")
+                        logger.debug("Refreshing access token before reconnection...")
                         access_token, refresh_token = self.new_access_token(
                             self.refresh_token
                         )
@@ -517,7 +500,7 @@ class Application:
                         self._connection_parameters.credentials = pika.PlainCredentials(
                             "", access_token
                         )
-                        logger.info(
+                        logger.debug(
                             "Access token refreshed successfully for reconnection"
                         )
                     except Exception as e:
@@ -758,6 +741,15 @@ class Application:
         """
         self.was_consuming = True
         self._consuming = True
+
+        # Store callback for reconnection
+        if not hasattr(self, "_saved_callbacks"):
+            self._saved_callbacks = []
+
+        # Don't duplicate callbacks in saved list
+        callback_info = (app_name, app_topic, user_callback)
+        if callback_info not in self._saved_callbacks:
+            self._saved_callbacks.append(callback_info)
 
         routing_key = self.create_routing_key(app_name=app_name, topic=app_topic)
 
