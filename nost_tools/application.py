@@ -1378,8 +1378,12 @@ class Application:
                 cleanup_complete_event.set()
 
             # Wait for cleanup to complete with a reasonable timeout (10 seconds)
-            logger.info("Waiting for queue and exchange cleanup to complete...")
-            cleanup_complete_event.wait(timeout=10)
+            logger.info("Cleaning up queues.")
+            cleanup_result = cleanup_complete_event.wait(timeout=10)
+            if cleanup_result:
+                logger.info("Cleaning up queues completed successfully.")
+            else:
+                logger.warning("Cleaning up queues timed out after 10 seconds.")
 
             # Stop consuming messages if we were consuming
             if self._consuming:
@@ -1387,22 +1391,6 @@ class Application:
                     self.stop_consuming()
                 except Exception as e:
                     logger.error(f"Error stopping consumer: {e}")
-
-            # # Signal I/O thread to stop
-            # if hasattr(self, "stop_event"):
-            #     self.stop_event.set()
-
-            # # Stop the I/O loop
-            # if self.connection and not self.connection.is_closed:
-            #     logger.info("Stopping IO loop")
-            #     self.connection.ioloop.stop()
-
-            # # If we have an I/O thread, set a timeout and join it
-            # if self._io_thread and self._io_thread.is_alive():
-            #     logger.info("Waiting for IO thread to finish...")
-            #     self._io_thread.join(timeout=60.0)
-            #     if self._io_thread.is_alive():
-            #         logger.warning("IO thread did not terminate within timeout")
 
             # Also stop token refresh thread if it exists
             if hasattr(self, "_should_stop"):
@@ -1412,14 +1400,16 @@ class Application:
                 and self._token_refresh_thread
                 and self._token_refresh_thread.is_alive()
             ):
-                logger.info("Waiting for token refresh thread to finish...")
+                logger.info("Closing token refresh thread.")
                 # Set a timeout to avoid hanging indefinitely
                 self._token_refresh_thread.join(timeout=60.0)
                 # Check if it's still alive after timeout
                 if self._token_refresh_thread.is_alive():
                     logger.warning(
-                        "Token refresh thread did not terminate within timeout"
+                        "Closing token refresh thread timed out after 60 seconds. "
                     )
+                else:
+                    logger.info("Closing token refresh thread completed successfully")
 
             logger.debug("Stop_application completed successfully.")
 
