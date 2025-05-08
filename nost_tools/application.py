@@ -450,13 +450,13 @@ class Application:
         if self._closing:
             # Resources already cleaned up in stop_application()
             logger.debug(
-                "Connection closed after intentional stop - cleanup already performed"
+                "Connection closed after intentional stop, cleanup already performed."
             )
             self.connection.ioloop.stop()
         else:
             # This is an unexpected connection drop - don't delete queues or exchanges
             logger.debug(
-                f"Connection closed unexpectedly, reconnecting in {self._reconnect_delay} seconds: {reason}"
+                f"Connection closed unexpectedly, reconnecting in {self._reconnect_delay} seconds: {reason}."
             )
             # Schedule reconnection
             self.connection.ioloop.call_later(self._reconnect_delay, self.reconnect)
