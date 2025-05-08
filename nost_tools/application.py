@@ -279,14 +279,6 @@ class Application:
         # Configure transport layer security (TLS) if needed
         if self.config.rc.server_configuration.servers.rabbitmq.tls:
             logger.info("Using TLS/SSL.")
-            # # Create an SSL context
-            # context = ssl.create_default_context()
-            # context.check_hostname = False
-            # context.verify_mode = ssl.CERT_NONE
-            # # Set SSL options
-            # parameters.ssl_options = pika.SSLOptions(
-            #     context, self.config.rc.server_configuration.servers.rabbitmq.host
-            # )
             # SSL Context for TLS configuration of Amazon MQ for RabbitMQ
             ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
             ssl_context.check_hostname = False
