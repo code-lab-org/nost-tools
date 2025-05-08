@@ -94,8 +94,8 @@ class Manager(Application):
         self.channel.exchange_declare(
             exchange=self.prefix,
             exchange_type="topic",
-            durable=False,
-            auto_delete=False,
+            durable=True,
+            auto_delete=True,
         )
 
     def _sleep_with_heartbeat(self, total_seconds):
