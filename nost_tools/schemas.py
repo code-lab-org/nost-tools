@@ -220,6 +220,8 @@ class RabbitMQConfig(BaseModel):
         False, description="Keycloak authentication for RabbitMQ."
     )
     tls: bool = Field(False, description="RabbitMQ TLS/SSL.")
+    reconnect_delay: int = Field(10, description="Reconnection delay, in seconds.")
+    queue_max_size: int = Field(5000, description="Maximum size of the RabbitMQ queue.")
     # BasicProperties
     content_type: str = Field(
         None,
@@ -270,7 +272,6 @@ class RabbitMQConfig(BaseModel):
     blocked_connection_timeout: int = Field(
         None, description="Timeout for blocked connections."
     )
-    reconnect_delay: int = Field(10, description="Reconnect delay, in seconds.")
 
 
 class KeycloakConfig(BaseModel):
