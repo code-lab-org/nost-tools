@@ -4,12 +4,14 @@ Provides a base application that manages communication between a simulator and b
 
 import logging
 import threading
+import time
 import traceback
 from datetime import datetime, timedelta
 
 from .application import Application
 from .application_utils import ConnectionConfig
 from .schemas import InitCommand, StartCommand, StopCommand, UpdateCommand
+from .simulator import Mode
 
 logger = logging.getLogger(__name__)
 
@@ -134,6 +136,8 @@ class ManagedApplication(Application):
             app_topic="update",
             user_callback=self.on_manager_update,
         )
+
+        self.wait_until_terminated()
 
     def shut_down(self) -> None:
         """
@@ -262,3 +266,10 @@ class ManagedApplication(Application):
                 f"Exception (topic: {method.routing_key}, payload: {message}): {e}"
             )
             print(traceback.format_exc())
+
+    def wait_until_terminated(self, poll_interval=0.2):
+        """
+        Blocks until the simulator's mode is TERMINATED.
+        """
+        while self.simulator.get_mode() != Mode.TERMINATED:
+            time.sleep(poll_interval)
