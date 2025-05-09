@@ -291,7 +291,9 @@ class Application:
         self._reconnect_delay = (
             self.config.rc.server_configuration.servers.rabbitmq.reconnect_delay
         )
-        logger.info(f"Reconnect delay: {self._reconnect_delay}")
+        self._queue_max_size = (
+            self.config.rc.server_configuration.servers.rabbitmq.queue_max_size
+        )
 
         # Establish non-blocking connection to RabbitMQ
         self.connection = pika.SelectConnection(
@@ -557,7 +559,6 @@ class Application:
         # Initialize message queue if it doesn't exist
         if not hasattr(self, "_message_queue"):
             self._message_queue = []
-            self._queue_max_size = 1000  # Limit queue size to prevent memory issues
 
         if isinstance(app_topics, str):
             app_topics = [app_topics]
