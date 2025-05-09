@@ -559,6 +559,7 @@ class Application:
         # Initialize message queue if it doesn't exist
         if not hasattr(self, "_message_queue"):
             self._message_queue = []
+            # self._queue_max_size = 1000  # Limit queue size to prevent memory issues
 
         if isinstance(app_topics, str):
             app_topics = [app_topics]
@@ -569,8 +570,12 @@ class Application:
 
             # Queue the message if there's space available
             if len(self._message_queue) < self._queue_max_size:
+                # Add timestamp to each message for FIFO ordering
+                timestamp = time.time()
                 for app_topic in app_topics:
-                    self._message_queue.append((app_name, app_topic, payload))
+                    self._message_queue.append(
+                        (timestamp, app_name, app_topic, payload)
+                    )
                     logger.info(
                         f"Queued message for topic {app_topic} (queue size: {len(self._message_queue)})"
                     )
@@ -613,7 +618,10 @@ class Application:
                 logger.warning(f"Failed to publish message to {routing_key}: {e}")
                 # Queue the failed message if there's space available
                 if len(self._message_queue) < self._queue_max_size:
-                    self._message_queue.append((app_name, app_topic, payload))
+                    timestamp = time.time()
+                    self._message_queue.append(
+                        (timestamp, app_name, app_topic, payload)
+                    )
                     logger.info(
                         f"Queued failed message for retry (queue size: {len(self._message_queue)})"
                     )
@@ -621,7 +629,7 @@ class Application:
     def _process_message_queue(self):
         """
         Process queued messages when connection is available.
-        Attempts to send all queued messages.
+        Attempts to send all queued messages in order of oldest first.
         """
         if not hasattr(self, "_message_queue") or not self._message_queue:
             return  # No messages to process
@@ -629,15 +637,15 @@ class Application:
         if self.channel is None or not self._is_connected.is_set():
             return  # Still no connection
 
-        # Process the queue in FIFO order
+        # Process the queue in timestamp order (oldest first)
         logger.info(f"Processing message queue ({len(self._message_queue)} messages)")
 
-        # Work with a copy of the queue to avoid modification during iteration
-        queued_messages = list(self._message_queue)
+        # Sort messages by timestamp (oldest first)
+        sorted_messages = sorted(self._message_queue, key=lambda x: x[0])
         self._message_queue.clear()
 
         success_count = 0
-        for app_name, app_topic, payload in queued_messages:
+        for timestamp, app_name, app_topic, payload in sorted_messages:
             routing_key = self.create_routing_key(app_name=app_name, topic=app_topic)
             try:
                 self.channel.basic_publish(
@@ -663,9 +671,10 @@ class Application:
                 )
                 success_count += 1
             except Exception as e:
-                # If sending still fails, put it back in the queue
+                # If sending still fails, put it back in the queue with original timestamp
+                # to preserve ordering
                 logger.warning(f"Failed to resend queued message to {routing_key}: {e}")
-                self._message_queue.append((app_name, app_topic, payload))
+                self._message_queue.append((timestamp, app_name, app_topic, payload))
 
         if success_count > 0:
             logger.info(f"Successfully sent {success_count} queued messages")
