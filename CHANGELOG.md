@@ -58,7 +58,8 @@ Added:
 - Added `frame_max` and `blocked_connection_timeout` to YAML for use in `pika.connection.ConnectionParameters` within Application class
 - Added `content_type`, `content_encoding`, `headers`, `priority`, `correlation_id`, `reply_to`, `message_expiration`, `message_id`, `timestamp`, `type`, `user_id`, `app_id`, and `cluster_id` to YAML for use in `pika.spec.BasicProperties` within Application class
 - Refresh Keycloak access token before attempting reconnection in `reconnect` method
-
+- Added `servers.rabbitmq.queue_max_size` to YAML, establishing the maximum number of messages that can be queued in `self._message_queue`
+ 
 Changed:
 - Modified `delete_all_queues_and_exchanges` method to check if connection is open before attempting to clean up
 - Modified `on_connection_closed` method attempt to clean up
