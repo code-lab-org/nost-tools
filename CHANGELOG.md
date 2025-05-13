@@ -59,7 +59,6 @@ Added:
 - Added `content_type`, `content_encoding`, `headers`, `priority`, `correlation_id`, `reply_to`, `message_expiration`, `message_id`, `timestamp`, `type`, `user_id`, `app_id`, and `cluster_id` to YAML for use in `pika.spec.BasicProperties` within Application class
 - Refresh Keycloak access token before attempting reconnection in `reconnect` method, as the token may have expired during connection drop
 - Added `servers.rabbitmq.queue_max_size` to YAML, establishing the maximum number of messages that can be queued in `self._message_queue` during connection drop
-- Introduced a `wait_until_terminated` method, which is now invoked during the `start_up` phase of the ManagedApplication class. This ensures that the main thread waits for the simulation thread—spawned in `on_manager_start` and executing `self.simulator.execute`—to complete before the application exits.
 
 Changed:
 - Modified `delete_all_queues_and_exchanges` method to check if connection is open before attempting to clean up
