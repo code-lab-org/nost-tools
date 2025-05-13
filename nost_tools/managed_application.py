@@ -196,7 +196,7 @@ class ManagedApplication(Application):
                 self._sim_stop_time = params.sim_stop_time
                 logger.info(f"Sim stop time: {params.sim_stop_time}")
 
-            threading.Thread(
+            self._simulation_thread = threading.Thread(
                 target=self.simulator.execute,
                 kwargs={
                     "init_time": self._sim_start_time,
@@ -205,7 +205,8 @@ class ManagedApplication(Application):
                     "wallclock_epoch": params.start_time,
                     "time_scale_factor": params.time_scaling_factor,
                 },
-            ).start()
+            )
+            self._simulation_thread.start()
 
         except Exception as e:
             logger.error(
