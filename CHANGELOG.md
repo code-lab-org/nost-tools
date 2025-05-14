@@ -57,14 +57,16 @@ Changed:
 Added:
 - Added `frame_max` and `blocked_connection_timeout` to YAML for use in `pika.connection.ConnectionParameters` within Application class
 - Added `content_type`, `content_encoding`, `headers`, `priority`, `correlation_id`, `reply_to`, `message_expiration`, `message_id`, `timestamp`, `type`, `user_id`, `app_id`, and `cluster_id` to YAML for use in `pika.spec.BasicProperties` within Application class
-- Refresh Keycloak access token before attempting reconnection in `reconnect` method, as the token may have expired during connection drop
+- Refresh Keycloak access token before attempting reconnection in `reconnect()` method, as the token may have expired during connection drop
 - Added `servers.rabbitmq.queue_max_size` to YAML, establishing the maximum number of messages that can be queued in `self._message_queue` during connection drop
+- Introduced a new private method `_setup_signal_handlers()` in the `Application` class to handle system signals (SIGINT and SIGTERM), ensuing the application can shut down gracefully when interrupted (e.g., via CTRL+C or termination signals)
+- Introduced a new private method `_cleanup_joblib_resources()` in the `Application` class to proactively clean up resources used by joblib and Python's multiprocessing module during execution of `shut_down()`. This helps prevent potential memory leaks, lingering semaphores, and zombie processes—especially in long-running or parallelized workloads.
 
 Changed:
-- Modified `delete_all_queues_and_exchanges` method to check if connection is open before attempting to clean up
-- Modified `on_connection_closed` method attempt to clean up
-- Modified `tick` method to only perform time calculation if the entity has been initizlied
-- Removed exchange and queue declaration by `yamless_declare_bind_queue` in `send_message` method
+- Modified `delete_all_queues_and_exchanges()` method to check if connection is open before attempting to clean up
+- Modified `on_connection_closed()` method attempt to clean up
+- Modified `tick()` method to only perform time calculation if the entity has been initizlied
+- Removed exchange and queue declaration by `yamless_declare_bind_queue()` in `send_message()` method
 - Modified `on_channel_closed` and `on_connection_closed` methods to delete queues only when the connection or channel is intentionally closed. If the connection drops unexpectedly due to network issues, queues are retained. This ensures that the connection can be re-established without needing to redeclare and rebind queues.
 - Queues are now declared with `auto_delete=False` and `durable=True`. This configuration ensures that queues are not deleted during unexpected network issues, but only when intentionally closed, such as at the end of a simulation.
 - Exchanges are now declared with `auto_delete=True` and `durable=True`. This configuration ensures that exchanges are deleted only when no more queues are bound to it, such as the end of a simulation run.
