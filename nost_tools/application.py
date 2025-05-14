@@ -3,9 +3,12 @@ Provides a base application that publishes messages from a simulator to a broker
 """
 
 import functools
+import gc
 import logging
 import os
+import signal
 import ssl
+import sys
 import threading
 import time
 from datetime import datetime, timedelta
@@ -84,6 +87,22 @@ class Application:
         self._token_refresh_thread = None
         self.token_refresh_interval = None
         self._reconnect_delay = None
+
+        # Set up signal handlers for graceful shutdown
+        self._setup_signal_handlers()
+
+    def _setup_signal_handlers(self):
+        """
+        Sets up signal handlers for graceful shutdown on SIGINT (CTRL+C) and SIGTERM.
+        """
+
+        def signal_handler(sig, frame):
+            logger.info(f"Received signal {sig}, shutting down...")
+            self.shut_down()
+
+        # Register the signal handler for CTRL+C (SIGINT) and SIGTERM
+        signal.signal(signal.SIGINT, signal_handler)
+        signal.signal(signal.SIGTERM, signal_handler)
 
     def ready(self) -> None:
         """
@@ -522,29 +541,176 @@ class Application:
                 logger.error(f"Reconnection attempt failed: {e}")
                 self.connection.ioloop.call_later(self._reconnect_delay, self.reconnect)
 
+    # def shut_down(self) -> None:
+    #     """
+    #     Shuts down the application by stopping the background event loop and disconnecting from the broker.
+    #     """
+    #     if self._time_status_publisher is not None:
+    #         self.simulator.remove_observer(self._time_status_publisher)
+    #     self._time_status_publisher = None
+
+    #     if self.connection and not self._closing:
+    #         logger.info(f"Shutting down {self.app_name}.")
+    #         self.stop_application()
+    #         self._consuming = False
+
+    #     # Signal I/O thread to stop
+    #     if hasattr(self, "stop_event"):
+    #         self.stop_event.set()
+
+    #     logger.info(
+    #         f"Shutting down {self.app_name} successfully completed successfully."
+    #     )
+
+    #     # sys.exit(0)
+    #     os._exit(0)
+    # def shut_down(self) -> None:
+    #     """
+    #     Shuts down the application by stopping the background event loop and disconnecting from the broker.
+    #     """
+    #     logger.info(f"Initiating shutdown of {self.app_name}")
+
+    #     # Clean up simulator-related resources
+    #     if self._time_status_publisher is not None:
+    #         self.simulator.remove_observer(self._time_status_publisher)
+    #     self._time_status_publisher = None
+
+    #     # Clean up connection-related resources
+    #     if self.connection and not self._closing:
+    #         logger.info(f"Shutting down {self.app_name} connection.")
+    #         self.stop_application()
+    #         self._consuming = False
+
+    #     # Signal I/O thread to stop
+    #     if hasattr(self, "stop_event"):
+    #         self.stop_event.set()
+
+    #     # If we have an I/O thread, wait for it to terminate
+    #     if hasattr(self, "_io_thread") and self._io_thread is not None:
+    #         if self._io_thread.is_alive():
+    #             self._io_thread.join(timeout=5.0)
+
+    #     # Clean up any joblib-related resources
+    #     self._cleanup_joblib_resources()
+
+    #     logger.info(f"Shutdown of {self.app_name} completed successfully.")
+
+    #     sys.exit(0)
+    #     # os._exit(0)
     def shut_down(self) -> None:
         """
         Shuts down the application by stopping the background event loop and disconnecting from the broker.
         """
+        logger.info(f"Initiating shutdown of {self.app_name}")
+
+        # Clean up simulator-related resources
         if self._time_status_publisher is not None:
             self.simulator.remove_observer(self._time_status_publisher)
         self._time_status_publisher = None
 
+        # Clean up connection-related resources
         if self.connection and not self._closing:
-            logger.info(f"Shutting down {self.app_name}.")
+            logger.info(f"Shutting down {self.app_name} connection.")
             self.stop_application()
             self._consuming = False
 
-        # Signal I/O thread to stop
+        # Signal all threads to stop
         if hasattr(self, "stop_event"):
             self.stop_event.set()
+        if hasattr(self, "_should_stop"):
+            self._should_stop.set()
 
-        logger.info(
-            f"Shutting down {self.app_name} successfully completed successfully."
-        )
+        # Terminate ALL threads except the main thread
+        self._terminate_all_threads()
 
-        # sys.exit(0)
+        # Clean up any joblib-related resources
+        self._cleanup_joblib_resources()
+
+        logger.info(f"Shutdown of {self.app_name} completed successfully.")
+
         os._exit(0)
+
+    def _terminate_all_threads(self):
+        """
+        Ensure all threads are terminated to free up the terminal.
+        """
+        try:
+            # Join the I/O thread with timeout
+            if hasattr(self, "_io_thread") and self._io_thread is not None:
+                if self._io_thread.is_alive():
+                    logger.debug("Waiting for I/O thread to terminate...")
+                    self._io_thread.join(timeout=2.0)
+                    
+            # Join token refresh thread with timeout
+            if hasattr(self, "_token_refresh_thread") and self._token_refresh_thread is not None:
+                if self._token_refresh_thread.is_alive():
+                    logger.debug("Waiting for token refresh thread to terminate...")
+                    self._token_refresh_thread.join(timeout=2.0)
+            
+            # Find and kill all non-daemon threads (except main thread)
+            import threading
+            main_thread = threading.main_thread()
+            for thread in threading.enumerate():
+                if thread is not main_thread and thread.is_alive():
+                    logger.debug(f"Found active thread: {thread.name}, attempting to join")
+                    # Try to join with a short timeout to avoid blocking
+                    thread.join(timeout=1.0)
+                    
+        except Exception as e:
+            logger.warning(f"Error during thread termination: {e}")
+            
+    def _cleanup_joblib_resources(self):
+        """
+        Clean up any joblib resources that might be causing leaks.
+        """
+        try:
+            # Force garbage collection to clean up any lingering references
+            gc.collect()
+
+            # Try different approaches for cleaning up multiprocessing resources
+            try:
+                # For Python 3.8+ where resource_tracker is the main interface
+                from multiprocessing import resource_tracker
+
+                if hasattr(resource_tracker, "_resource_tracker") and hasattr(
+                    resource_tracker._resource_tracker, "_stop_semaphore"
+                ):
+                    resource_tracker._resource_tracker._stop_semaphore.release()
+            except (ImportError, AttributeError):
+                pass
+
+            # Try different methods for semaphore cleanup
+            try:
+                # Try the direct method if available
+                from multiprocessing.semaphore_tracker import _cleanup
+
+                _cleanup()
+            except ImportError:
+                # For newer Python versions that use resource_tracker
+                try:
+                    from multiprocessing.resource_tracker import _resource_tracker
+
+                    if hasattr(_resource_tracker, "ensure_running"):
+                        _resource_tracker.ensure_running()
+                except (ImportError, AttributeError):
+                    pass
+
+            # Additional cleanup for multiprocessing contexts
+            try:
+                import multiprocessing as mp
+
+                if hasattr(mp, "get_all_start_methods"):
+                    for method in mp.get_all_start_methods():
+                        ctx = mp.get_context(method)
+                        if hasattr(ctx, "_Pool") and hasattr(
+                            ctx._Pool, "_help_stuff_finish"
+                        ):
+                            ctx._Pool._help_stuff_finish()
+            except Exception:
+                pass
+
+        except Exception as e:
+            logger.warning(f"Error during joblib resource cleanup: {e}")
 
     def send_message(self, app_name, app_topics, payload: str) -> None:
         """
