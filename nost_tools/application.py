@@ -3,12 +3,10 @@ Provides a base application that publishes messages from a simulator to a broker
 """
 
 import functools
-import gc
 import logging
 import os
 import signal
 import ssl
-import sys
 import threading
 import time
 from datetime import datetime, timedelta
@@ -621,7 +619,7 @@ class Application:
             self._should_stop.set()
 
         # Terminate ALL threads except the main thread
-        self._terminate_all_threads()
+        # self._terminate_all_threads()
 
         # Clean up any joblib-related resources
         self._cleanup_joblib_resources()
@@ -635,79 +633,147 @@ class Application:
         Ensure all threads are terminated to free up the terminal.
         """
         try:
+            # Get the current thread for comparison
+            current_thread = threading.current_thread()
+
             # Join the I/O thread with timeout
             if hasattr(self, "_io_thread") and self._io_thread is not None:
-                if self._io_thread.is_alive():
+                if self._io_thread.is_alive() and self._io_thread != current_thread:
                     logger.debug("Waiting for I/O thread to terminate...")
                     self._io_thread.join(timeout=2.0)
-                    
+
             # Join token refresh thread with timeout
-            if hasattr(self, "_token_refresh_thread") and self._token_refresh_thread is not None:
-                if self._token_refresh_thread.is_alive():
+            if (
+                hasattr(self, "_token_refresh_thread")
+                and self._token_refresh_thread is not None
+            ):
+                if (
+                    self._token_refresh_thread.is_alive()
+                    and self._token_refresh_thread != current_thread
+                ):
                     logger.debug("Waiting for token refresh thread to terminate...")
                     self._token_refresh_thread.join(timeout=2.0)
-            
-            # Find and kill all non-daemon threads (except main thread)
-            import threading
+
+            # Find and kill all non-daemon threads (except main thread and current thread)
             main_thread = threading.main_thread()
             for thread in threading.enumerate():
-                if thread is not main_thread and thread.is_alive():
-                    logger.debug(f"Found active thread: {thread.name}, attempting to join")
+                if (
+                    thread is not main_thread
+                    and thread is not current_thread
+                    and thread.is_alive()
+                ):
+                    logger.debug(
+                        f"Found active thread: {thread.name}, attempting to join"
+                    )
                     # Try to join with a short timeout to avoid blocking
                     thread.join(timeout=1.0)
-                    
+
         except Exception as e:
             logger.warning(f"Error during thread termination: {e}")
-            
+
     def _cleanup_joblib_resources(self):
         """
         Clean up any joblib resources that might be causing leaks.
         """
         try:
-            # Force garbage collection to clean up any lingering references
-            gc.collect()
+            import gc
+            import sys
 
-            # Try different approaches for cleaning up multiprocessing resources
+            # First check if joblib is actually used/imported
+            if "joblib" not in sys.modules:
+                return
+
+            # Import joblib components that need cleanup
+            import joblib
+            from joblib.externals.loky import process_executor
+
+            # Force garbage collection multiple times to help break reference cycles
+            for _ in range(3):
+                gc.collect()
+
+            # Clear any joblib Memory caches if present
             try:
-                # For Python 3.8+ where resource_tracker is the main interface
-                from multiprocessing import resource_tracker
+                memory_locations = []
+                for obj in gc.get_objects():
+                    if isinstance(obj, joblib.Memory):
+                        memory_locations.append(obj.location)
+                        obj.clear()
 
-                if hasattr(resource_tracker, "_resource_tracker") and hasattr(
-                    resource_tracker._resource_tracker, "_stop_semaphore"
-                ):
-                    resource_tracker._resource_tracker._stop_semaphore.release()
-            except (ImportError, AttributeError):
-                pass
+                if memory_locations:
+                    logger.info(f"Cleared {len(memory_locations)} joblib memory caches")
+            except Exception as e:
+                logger.debug(f"Error clearing joblib memory caches: {e}")
 
-            # Try different methods for semaphore cleanup
-            try:
-                # Try the direct method if available
-                from multiprocessing.semaphore_tracker import _cleanup
-
-                _cleanup()
-            except ImportError:
-                # For newer Python versions that use resource_tracker
+            # Find and terminate any active Parallel instances
+            terminated_count = 0
+            for obj in gc.get_objects():
                 try:
-                    from multiprocessing.resource_tracker import _resource_tracker
-
-                    if hasattr(_resource_tracker, "ensure_running"):
-                        _resource_tracker.ensure_running()
-                except (ImportError, AttributeError):
+                    if (
+                        hasattr(obj, "_backend")
+                        and hasattr(obj, "n_jobs")
+                        and hasattr(obj, "_terminate")
+                    ):
+                        obj._terminate()
+                        terminated_count += 1
+                except Exception:
                     pass
 
-            # Additional cleanup for multiprocessing contexts
-            try:
-                import multiprocessing as mp
+            if terminated_count:
+                logger.info(f"Terminated {terminated_count} joblib Parallel instances")
 
-                if hasattr(mp, "get_all_start_methods"):
-                    for method in mp.get_all_start_methods():
-                        ctx = mp.get_context(method)
-                        if hasattr(ctx, "_Pool") and hasattr(
-                            ctx._Pool, "_help_stuff_finish"
-                        ):
-                            ctx._Pool._help_stuff_finish()
+            # Try to clean up the process pool executor
+            try:
+                process_executor._CURRENT_DEPTH = 0
+                if hasattr(process_executor, "_INITIALIZER"):
+                    process_executor._INITIALIZER = None
+                if hasattr(process_executor, "_INITARGS"):
+                    process_executor._INITARGS = ()
             except Exception:
                 pass
+
+            # Force remove all joblib worker processes
+            try:
+                from multiprocessing import resource_tracker
+
+                for resource_type in ["semaphore", "folder"]:
+                    if hasattr(resource_tracker, "_resource_tracker"):
+                        tracker = resource_tracker._resource_tracker
+                        if hasattr(tracker, "_resources"):
+                            resources = tracker._resources.get(resource_type, set())
+                            if resources:
+                                logger.info(
+                                    f"Cleaning up {len(resources)} {resource_type} resources"
+                                )
+                                resources.clear()
+
+                # Make sure the resource tracker stops tracking
+                if hasattr(resource_tracker, "_resource_tracker"):
+                    if hasattr(resource_tracker._resource_tracker, "_stop"):
+                        resource_tracker._resource_tracker._stop()
+
+            except (ImportError, AttributeError, Exception) as e:
+                logger.debug(f"Error during resource_tracker cleanup: {e}")
+
+            # Final attempt - clean up any multiprocessing contexts/pools
+            try:
+                import multiprocessing as mp
+                from multiprocessing.pool import Pool
+
+                # Find and terminate any active pools
+                for obj in gc.get_objects():
+                    if isinstance(obj, Pool):
+                        try:
+                            if hasattr(obj, "_state") and obj._state == "RUN":
+                                obj.terminate()
+                                obj.join(timeout=0.2)  # Short timeout to avoid blocking
+                        except Exception:
+                            pass
+
+            except Exception as e:
+                logger.debug(f"Error cleaning up multiprocessing pools: {e}")
+
+            # Force another garbage collection after all cleanups
+            gc.collect()
 
         except Exception as e:
             logger.warning(f"Error during joblib resource cleanup: {e}")
