@@ -85,7 +85,6 @@ class Application:
         self._token_refresh_thread = None
         self.token_refresh_interval = None
         self._reconnect_delay = None
-
         # Set up signal handlers for graceful shutdown
         self._setup_signal_handlers()
 
@@ -539,62 +538,6 @@ class Application:
                 logger.error(f"Reconnection attempt failed: {e}")
                 self.connection.ioloop.call_later(self._reconnect_delay, self.reconnect)
 
-    # def shut_down(self) -> None:
-    #     """
-    #     Shuts down the application by stopping the background event loop and disconnecting from the broker.
-    #     """
-    #     if self._time_status_publisher is not None:
-    #         self.simulator.remove_observer(self._time_status_publisher)
-    #     self._time_status_publisher = None
-
-    #     if self.connection and not self._closing:
-    #         logger.info(f"Shutting down {self.app_name}.")
-    #         self.stop_application()
-    #         self._consuming = False
-
-    #     # Signal I/O thread to stop
-    #     if hasattr(self, "stop_event"):
-    #         self.stop_event.set()
-
-    #     logger.info(
-    #         f"Shutting down {self.app_name} successfully completed successfully."
-    #     )
-
-    #     # sys.exit(0)
-    #     os._exit(0)
-    # def shut_down(self) -> None:
-    #     """
-    #     Shuts down the application by stopping the background event loop and disconnecting from the broker.
-    #     """
-    #     logger.info(f"Initiating shutdown of {self.app_name}")
-
-    #     # Clean up simulator-related resources
-    #     if self._time_status_publisher is not None:
-    #         self.simulator.remove_observer(self._time_status_publisher)
-    #     self._time_status_publisher = None
-
-    #     # Clean up connection-related resources
-    #     if self.connection and not self._closing:
-    #         logger.info(f"Shutting down {self.app_name} connection.")
-    #         self.stop_application()
-    #         self._consuming = False
-
-    #     # Signal I/O thread to stop
-    #     if hasattr(self, "stop_event"):
-    #         self.stop_event.set()
-
-    #     # If we have an I/O thread, wait for it to terminate
-    #     if hasattr(self, "_io_thread") and self._io_thread is not None:
-    #         if self._io_thread.is_alive():
-    #             self._io_thread.join(timeout=5.0)
-
-    #     # Clean up any joblib-related resources
-    #     self._cleanup_joblib_resources()
-
-    #     logger.info(f"Shutdown of {self.app_name} completed successfully.")
-
-    #     sys.exit(0)
-    #     # os._exit(0)
     def shut_down(self) -> None:
         """
         Shuts down the application by stopping the background event loop and disconnecting from the broker.
@@ -619,7 +562,7 @@ class Application:
             self._should_stop.set()
 
         # Terminate ALL threads except the main thread
-        # self._terminate_all_threads()
+        self._terminate_all_threads()
 
         # Clean up any joblib-related resources
         self._cleanup_joblib_resources()
@@ -639,7 +582,7 @@ class Application:
             # Join the I/O thread with timeout
             if hasattr(self, "_io_thread") and self._io_thread is not None:
                 if self._io_thread.is_alive() and self._io_thread != current_thread:
-                    logger.debug("Waiting for I/O thread to terminate...")
+                    logger.info("Waiting for I/O thread to terminate...")
                     self._io_thread.join(timeout=2.0)
 
             # Join token refresh thread with timeout
@@ -651,7 +594,7 @@ class Application:
                     self._token_refresh_thread.is_alive()
                     and self._token_refresh_thread != current_thread
                 ):
-                    logger.debug("Waiting for token refresh thread to terminate...")
+                    logger.info("Waiting for token refresh thread to terminate...")
                     self._token_refresh_thread.join(timeout=2.0)
 
             # Find and kill all non-daemon threads (except main thread and current thread)
@@ -662,7 +605,7 @@ class Application:
                     and thread is not current_thread
                     and thread.is_alive()
                 ):
-                    logger.debug(
+                    logger.info(
                         f"Found active thread: {thread.name}, attempting to join"
                     )
                     # Try to join with a short timeout to avoid blocking
