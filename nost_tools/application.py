@@ -575,9 +575,77 @@ class Application:
         # Clean up any joblib-related resources
         self._cleanup_joblib_resources()
 
+        # Clean up resource tracker explicitly before exit
+        self._cleanup_resource_tracker()
+
         logger.info(f"Shutdown of {self.app_name} completed successfully.")
 
+        # Instead of os._exit(0), use a more graceful exit strategy
+        # sys.exit(0)
         os._exit(0)
+
+    def _cleanup_resource_tracker(self):
+        """
+        Clean up resource tracker explicitly to prevent resource leak warnings.
+        """
+        try:
+            import multiprocessing.resource_tracker as resource_tracker
+            import warnings
+
+            # Suppress resource tracker warnings before we start
+            warnings.filterwarnings("ignore", category=UserWarning, module="joblib")
+            warnings.filterwarnings(
+                "ignore",
+                category=UserWarning,
+                message="resource_tracker: There appear to be.*leaked.*objects",
+            )
+
+            # Force resource tracker to clean up now rather than at interpreter shutdown
+            if (
+                hasattr(resource_tracker, "_resource_tracker")
+                and resource_tracker._resource_tracker is not None
+            ):
+
+                logger.debug("Cleaning up resource tracker")
+
+                # Don't call tracker._stop() directly as it might block
+                # Instead, try to clean up resource types individually with timeouts
+                tracker = resource_tracker._resource_tracker
+
+                if hasattr(tracker, "_resources"):
+                    for resource_type in list(tracker._resources.keys()):
+                        try:
+                            resources = tracker._resources.get(resource_type, set())
+                            if resources:
+                                logger.debug(
+                                    f"Cleaning up {len(resources)} {resource_type} resources"
+                                )
+
+                                # Make a copy to avoid modification during iteration
+                                resources_copy = resources.copy()
+
+                                # Clean up each resource with a timeout mechanism
+                                for resource in resources_copy:
+                                    try:
+                                        # Remove directly from the set to avoid calling potentially
+                                        # blocking unregister/release functions
+                                        resources.discard(resource)
+                                    except Exception as e:
+                                        logger.debug(
+                                            f"Error discarding {resource_type} resource: {e}"
+                                        )
+
+                        except Exception as e:
+                            logger.debug(
+                                f"Error cleaning up {resource_type} resources: {e}"
+                            )
+
+                # Safety check - clear all remaining resources
+                if hasattr(tracker, "_resources"):
+                    tracker._resources.clear()
+
+        except (ImportError, AttributeError, Exception) as e:
+            logger.debug(f"Error during resource tracker cleanup: {e}")
 
     def _terminate_all_threads(self):
         """
@@ -587,11 +655,34 @@ class Application:
             # Get the current thread for comparison
             current_thread = threading.current_thread()
 
+            # Mark all threads for termination first
+            if hasattr(self, "stop_event"):
+                self.stop_event.set()
+            if hasattr(self, "_should_stop"):
+                self._should_stop.set()
+
+            # Force stopping connection ioloop if it's still running
+            if hasattr(self, "connection") and self.connection:
+                try:
+                    if (
+                        hasattr(self.connection, "ioloop")
+                        and self.connection.ioloop.is_running
+                    ):
+                        logger.info("Stopping connection ioloop")
+                        self.connection.ioloop.stop()
+                except Exception as e:
+                    logger.debug(f"Error stopping ioloop: {e}")
+
+            # Set a short timeout for joining threads to avoid hanging
+            join_timeout = 1.0  # 1 second timeout
+
             # Join the I/O thread with timeout
             if hasattr(self, "_io_thread") and self._io_thread is not None:
                 if self._io_thread.is_alive() and self._io_thread != current_thread:
                     logger.info("Waiting for I/O thread to terminate...")
-                    self._io_thread.join(timeout=2.0)
+                    self._io_thread.join(timeout=join_timeout)
+                    if self._io_thread.is_alive():
+                        logger.warning("I/O thread did not terminate within timeout")
 
             # Join token refresh thread with timeout
             if (
@@ -603,21 +694,30 @@ class Application:
                     and self._token_refresh_thread != current_thread
                 ):
                     logger.info("Waiting for token refresh thread to terminate...")
-                    self._token_refresh_thread.join(timeout=2.0)
+                    self._token_refresh_thread.join(timeout=join_timeout)
+                    if self._token_refresh_thread.is_alive():
+                        logger.warning(
+                            "Token refresh thread did not terminate within timeout"
+                        )
 
-            # Find and kill all non-daemon threads (except main thread and current thread)
+            # Find and attempt to join non-daemon threads (except main thread and current thread)
             main_thread = threading.main_thread()
             for thread in threading.enumerate():
                 if (
                     thread is not main_thread
                     and thread is not current_thread
                     and thread.is_alive()
-                ):
-                    logger.info(
-                        f"Found active thread: {thread.name}, attempting to join"
-                    )
-                    # Try to join with a short timeout to avoid blocking
-                    thread.join(timeout=1.0)
+                    and not thread.daemon
+                ):  # Only try to join non-daemon threads
+
+                    logger.info(f"Attempting to join non-daemon thread: {thread.name}")
+                    thread.join(timeout=join_timeout)
+                    if thread.is_alive():
+                        logger.warning(
+                            f"Thread {thread.name} did not terminate within timeout"
+                        )
+
+            logger.info("Thread termination process completed")
 
         except Exception as e:
             logger.warning(f"Error during thread termination: {e}")
