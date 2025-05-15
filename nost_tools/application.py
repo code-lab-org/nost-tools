@@ -453,6 +453,14 @@ class Application:
         self._is_connected.clear()
 
     def on_connection_closed(self, connection, reason):
+        """
+        Invoked by pika when RabbitMQ unexpectedly closes the connection.
+        Determines whether to close the connection or just prepare for reconnection.
+
+        Args:
+            connection (:obj:`pika.connection.Connection`): connection object
+            reason (Exception): exception representing reason for loss of connection
+        """
         # First clear the channel reference regardless of reason
         self.channel = None
 
