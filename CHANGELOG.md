@@ -62,6 +62,7 @@ Added:
 - Introduced a new private method `_setup_signal_handlers()` in the `Application` class to handle system signals (SIGINT and SIGTERM), ensuing the application can shut down gracefully when interrupted (e.g., via CTRL+C or termination signals)
 - Introduced a new private method `_cleanup_joblib_resources()` in the `Application` class to proactively clean up resources used by joblib and Python's multiprocessing module during execution of `shut_down()`. This helps prevent potential memory leaks, lingering semaphores, and zombie processes—especially in long-running or parallelized workloads.
 - Introduced a new private method `_terminate_all_threads()` method that ensures all threads are terminated during the `shut_down()` execution. 
+- Introduced a new private method `_cleanup_resource_tracker()` method that cleans up the multiprocessing resource tracker before exit.
 
 Changed:
 - Modified `delete_all_queues_and_exchanges()` method to check if connection is open before attempting to clean up
