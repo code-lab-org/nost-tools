@@ -63,6 +63,10 @@ Added:
 - Introduced a new private method `_cleanup_joblib_resources()` in the `Application` class to proactively clean up resources used by joblib and Python's multiprocessing module during execution of `shut_down()`. This helps prevent potential memory leaks, lingering semaphores, and zombie processes—especially in long-running or parallelized workloads.
 - Introduced a new private method `_terminate_all_threads()` method that ensures all threads are terminated during the `shut_down()` execution. 
 - Introduced a new private method `_cleanup_resource_tracker()` method that cleans up the multiprocessing resource tracker before exit.
+- New callback observer classes for flexible event handling:
+  - `PropertyChangeCallback`: Triggers a custom callback function when a specific property changes
+  - `ScenarioTimeIntervalCallback`: Executes a callback at fixed intervals in simulation time
+  - `WallclockTimeIntervalCallback`: Executes a callback at fixed intervals in real-world time, independent of simulation speed
 
 Changed:
 - Modified `delete_all_queues_and_exchanges()` method to check if connection is open before attempting to clean up
