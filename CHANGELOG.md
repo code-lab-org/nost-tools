@@ -60,9 +60,7 @@ Added:
 - Refresh Keycloak access token before attempting reconnection in `reconnect()` method, as the token may have expired during connection drop
 - Added `servers.rabbitmq.queue_max_size` to YAML, establishing the maximum number of messages that can be queued in `self._message_queue` during connection drop
 - Introduced a new private method `_setup_signal_handlers()` in the `Application` class to handle system signals (SIGINT and SIGTERM), ensuing the application can shut down gracefully when interrupted (e.g., via CTRL+C or termination signals)
-- Introduced a new private method `_cleanup_joblib_resources()` in the `Application` class to proactively clean up resources used by joblib and Python's multiprocessing module during execution of `shut_down()`. This helps prevent potential memory leaks, lingering semaphores, and zombie processes—especially in long-running or parallelized workloads.
-- Introduced a new private method `_terminate_all_threads()` method that ensures all threads are terminated during the `shut_down()` execution. 
-- Introduced a new private method `_cleanup_resource_tracker()` method that cleans up the multiprocessing resource tracker before exit.
+- Introduced a new private method `_cleanup_resources()` that cleans up resources used by joblib and Python's multiprocessing module during execution of `shut_down()`
 - New callback observer classes for flexible event handling:
   - `PropertyChangeCallback`: Triggers a custom callback function when a specific property changes
   - `ScenarioTimeIntervalCallback`: Executes a callback at fixed intervals in simulation time
