@@ -7,7 +7,6 @@ from collections.abc import Callable
 from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING, List, Optional, Union
 
-# Use conditional imports to break the circular dependency
 if TYPE_CHECKING:
     from nost_tools.simulator import Mode, Simulator
 
@@ -246,7 +245,6 @@ class WallclockTimeIntervalCallback(Observer):
     def on_change(
         self, source: object, property_name: str, old_value: object, new_value: object
     ):
-        # Import at runtime to avoid circular imports
         from nost_tools.simulator import Mode, Simulator
 
         if property_name == Simulator.PROPERTY_MODE and new_value == Mode.INITIALIZED:
