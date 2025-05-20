@@ -379,7 +379,7 @@ class ManagedApplicationConfig(BaseModel):
     manager_app_name: str = Field("manager", description="Manager application name.")
     is_scenario_time_step: bool = Field(
         True,
-        description="If True, time_step is in scenario time and won't be scaled. If False, time_step is in wallclock time and will be scaled.",
+        description="If True, time_step is in scenario time and won't be scaled. If False, time_step is in wallclock time and will be scaled by the time scale factor.",
     )
     is_scenario_time_status_step: bool = Field(
         True,
