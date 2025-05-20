@@ -52,3 +52,30 @@ Added:
 Changed:
 - Modified `_execute_test_plan_impl()` to use the new heartbeat-safe sleep method for all long-duration sleeps in the Manager class
 - Update authors, version, and release date in `CITATION.cff`
+
+## 2.1.0
+Added:
+- Added `frame_max` and `blocked_connection_timeout` to YAML for use in `pika.connection.ConnectionParameters` within Application class
+- Added `content_type`, `content_encoding`, `headers`, `priority`, `correlation_id`, `reply_to`, `message_expiration`, `message_id`, `timestamp`, `type`, `user_id`, `app_id`, and `cluster_id` to YAML for use in `pika.spec.BasicProperties` within Application class
+- Refresh Keycloak access token before attempting reconnection in `reconnect()` method, as the token may have expired during connection drop
+- Added `servers.rabbitmq.queue_max_size` to YAML, establishing the maximum number of messages that can be queued in `self._message_queue` during connection drop
+- Introduced a new private method `_setup_signal_handlers()` in the `Application` class to handle system signals (SIGINT and SIGTERM), ensuing the application can shut down gracefully when interrupted (e.g., via CTRL+C or termination signals)
+- Introduced a new private method `_cleanup_resources()` that cleans up resources used by joblib and Python's multiprocessing module during execution of `shut_down()`
+- New callback observer classes for flexible event handling:
+  - `PropertyChangeCallback`: Triggers a custom callback function when a specific property changes
+  - `ScenarioTimeIntervalCallback`: Executes a callback at fixed intervals in simulation time
+  - `WallclockTimeIntervalCallback`: Executes a callback at fixed intervals in real-world time, independent of simulation speed
+
+Changed:
+- Modified `delete_all_queues_and_exchanges()` method to check if connection is open before attempting to clean up
+- Modified `on_connection_closed()` method attempt to clean up
+- Modified `tick()` method to only perform time calculation if the entity has been initizlied
+- Removed exchange and queue declaration by `yamless_declare_bind_queue()` in `send_message()` method
+- Modified `on_channel_closed` and `on_connection_closed` methods to delete queues only when the connection or channel is intentionally closed. If the connection drops unexpectedly due to network issues, queues are retained. This ensures that the connection can be re-established without needing to redeclare and rebind queues.
+- Queues are now declared with `auto_delete=False` and `durable=True`. This configuration ensures that queues are not deleted during unexpected network issues, but only when intentionally closed, such as at the end of a simulation.
+- Exchanges are now declared with `auto_delete=True` and `durable=True`. This configuration ensures that exchanges are deleted only when no more queues are bound to it, such as the end of a simulation run.
+- Messages that fail to send due to a connection drop are added to the `self._message_queue` dictionary in the `send_message` method. After reconnection by the `reconnect` method, these queued messages are later dispatched asynchronously via the `_process_message_queue` method, which is scheduled using `self.connection.ioloop.call_later`.
+- Updated SSL context for TLS configuration to that of Amazon MQ for RabbitMQ in `start_up` method
+- Updated `add_message_callback` method to create a `_saved_callbacks` list to store all registered callbacks. Each entry is a tuple of `(app_name, app_topic, user_callback)` 
+- Updated `on_channel_open`  to check for and restore saved callbacks in `_saved_callbacks`, each saved callback is re-registered by calling the `add_message_callback` method
+- Updated `reconnect` to reset `_callbacks_per_topic` dictionary to prevent duplicate callbacks when restoring after reconnection 

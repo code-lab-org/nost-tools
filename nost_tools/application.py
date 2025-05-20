@@ -4,8 +4,9 @@ Provides a base application that publishes messages from a simulator to a broker
 
 import functools
 import logging
+import os
+import signal
 import ssl
-import sys
 import threading
 import time
 from datetime import datetime, timedelta
@@ -28,7 +29,7 @@ from .simulator import Simulator
 
 logging.captureWarnings(True)
 logger = logging.getLogger(__name__)
-urllib3.disable_warnings()
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class Application:
@@ -84,6 +85,21 @@ class Application:
         self._token_refresh_thread = None
         self.token_refresh_interval = None
         self._reconnect_delay = None
+        # Set up signal handlers for graceful shutdown
+        self._setup_signal_handlers()
+
+    def _setup_signal_handlers(self):
+        """
+        Sets up signal handlers for graceful shutdown on SIGINT (CTRL+C) and SIGTERM.
+        """
+
+        def signal_handler(sig, frame):
+            logger.info(f"Received signal {sig}, shutting down...")
+            self.shut_down()
+
+        # Register the signal handler for CTRL+C (SIGINT) and SIGTERM
+        signal.signal(signal.SIGINT, signal_handler)
+        signal.signal(signal.SIGTERM, signal_handler)
 
     def ready(self) -> None:
         """
@@ -172,7 +188,7 @@ class Application:
                     self.refresh_token = refresh_token
                     self.update_connection_credentials(access_token)
                 except Exception as e:
-                    logger.error(f"Failed to refresh access token: {e}")
+                    logger.debug(f"Failed to refresh access token: {e}")
 
         self._token_refresh_thread = threading.Thread(target=refresh_token_periodically)
         self._token_refresh_thread.start()
@@ -261,33 +277,39 @@ class Application:
         # Set up connection parameters
         parameters = pika.ConnectionParameters(
             host=self.config.rc.server_configuration.servers.rabbitmq.host,
-            virtual_host=self.config.rc.server_configuration.servers.rabbitmq.virtual_host,
             port=self.config.rc.server_configuration.servers.rabbitmq.port,
+            virtual_host=self.config.rc.server_configuration.servers.rabbitmq.virtual_host,
             credentials=credentials,
+            channel_max=config.rc.server_configuration.servers.rabbitmq.channel_max,
+            frame_max=config.rc.server_configuration.servers.rabbitmq.frame_max,
             heartbeat=config.rc.server_configuration.servers.rabbitmq.heartbeat,
             connection_attempts=config.rc.server_configuration.servers.rabbitmq.connection_attempts,
             retry_delay=config.rc.server_configuration.servers.rabbitmq.retry_delay,
             socket_timeout=config.rc.server_configuration.servers.rabbitmq.socket_timeout,
             stack_timeout=config.rc.server_configuration.servers.rabbitmq.stack_timeout,
             locale=config.rc.server_configuration.servers.rabbitmq.locale,
+            blocked_connection_timeout=config.rc.server_configuration.servers.rabbitmq.blocked_connection_timeout,
         )
+        logger.info(parameters)
 
         # Configure transport layer security (TLS) if needed
         if self.config.rc.server_configuration.servers.rabbitmq.tls:
             logger.info("Using TLS/SSL.")
-            # Create an SSL context
-            context = ssl.create_default_context()
-            context.check_hostname = False
-            context.verify_mode = ssl.CERT_NONE
-            # Set SSL options
-            parameters.ssl_options = pika.SSLOptions(context)
+            # SSL Context for TLS configuration of Amazon MQ for RabbitMQ
+            ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+            ssl_context.check_hostname = False
+            ssl_context.verify_mode = ssl.CERT_NONE
+            ssl_context.set_ciphers("ECDHE+AESGCM:!ECDSA")
+            parameters.ssl_options = pika.SSLOptions(context=ssl_context)
 
         # Save connection parameters for reconnection
         self._connection_parameters = parameters
         self._reconnect_delay = (
             self.config.rc.server_configuration.servers.rabbitmq.reconnect_delay
         )
-        logger.info(f"Reconnect delay: {self._reconnect_delay}")
+        self._queue_max_size = (
+            self.config.rc.server_configuration.servers.rabbitmq.queue_max_size
+        )
 
         # Establish non-blocking connection to RabbitMQ
         self.connection = pika.SelectConnection(
@@ -351,27 +373,60 @@ class Application:
         # Signal that connection is established
         self._is_connected.set()
 
+        # Re-establish callbacks if this is a reconnection
+        if hasattr(self, "_saved_callbacks") and self._saved_callbacks:
+            logger.info(f"Restoring {len(self._saved_callbacks)} message callbacks")
+            for app_name, app_topic, user_callback in self._saved_callbacks:
+                # Pass through existing add_message_callback to handle all logic consistently
+                self.add_message_callback(app_name, app_topic, user_callback)
+
+        # Process any queued messages now that we're connected
+        if hasattr(self, "_message_queue") and self._message_queue:
+            # Schedule message processing to happen after all initialization
+            self.connection.ioloop.call_later(0.1, self._process_message_queue)
+
     def add_on_channel_close_callback(self):
         """This method tells pika to call the on_channel_closed method if
         RabbitMQ unexpectedly closes the channel.
         """
-        logger.info("Adding channel close callback")
+        logger.debug("Adding channel close callback")
         self.channel.add_on_close_callback(self.on_channel_closed)
 
     def on_channel_closed(self, channel, reason):
         """
         Invoked by pika when RabbitMQ unexpectedly closes the channel.
-        Channels are usually closed if you attempt to do something that
-        violates the protocol, such as re-declare an exchange or queue with
-        different parameters. In this case, we'll close the connection
-        to shutdown the object.
+        Determines whether to close the connection or just prepare for reconnection.
 
         Args:
             channel (:obj:`pika.channel.Channel`): channel object
-            reason (Exception): exception representing reason for loss of connection
+            reason (Exception): exception representing reason for channel closure
         """
-        logger.warning(f"Channel {channel} was closed: {reason}")
-        self.close_connection()
+        reply_code = 0
+        if hasattr(reason, "reply_code"):
+            reply_code = reason.reply_code
+
+        logger.debug(f"Channel was closed: {reason} (code: {reply_code})")
+
+        # Clear channel reference
+        self.channel = None
+
+        # # Clear consumer tag reference
+        # if hasattr(self, "_consumer_tag"):
+        #     self._consumer_tag = None
+
+        # Check if this is part of an intentional shutdown
+        if self._closing:
+            logger.info(
+                "Connection closed intentionally. Proceeding with connection closure."
+            )
+            # During intentional shutdown, proceed with connection closure
+            self.close_connection()
+            return
+
+        # If unexpected closure, wait for reconnection
+        logger.info(
+            f"Connection closed unexpectedly. Reconnecting in {self._reconnect_delay} seconds."
+        )
 
     def close_connection(self):
         """
@@ -399,21 +454,29 @@ class Application:
 
     def on_connection_closed(self, connection, reason):
         """
-        This method is invoked by pika when the connection to RabbitMQ is
-        closed unexpectedly. Since it is unexpected, we will reconnect to
-        RabbitMQ if it disconnects.
+        Invoked by pika when RabbitMQ unexpectedly closes the connection.
+        Determines whether to close the connection or just prepare for reconnection.
 
         Args:
             connection (:obj:`pika.connection.Connection`): connection object
             reason (Exception): exception representing reason for loss of connection
         """
+        # First clear the channel reference regardless of reason
         self.channel = None
+
+        # Check if this is an intentional closure (self._closing is True)
         if self._closing:
+            # Resources already cleaned up in stop_application()
+            logger.debug(
+                "Connection closed after intentional stop, cleanup already performed."
+            )
             self.connection.ioloop.stop()
         else:
-            logger.warning(
-                f"Connection closed, reconnecting in {self._reconnect_delay} seconds: {reason}"
+            # This is an unexpected connection drop - don't delete queues or exchanges
+            logger.debug(
+                f"Connection closed unexpectedly, reconnecting in {self._reconnect_delay} seconds: {reason}."
             )
+            # Schedule reconnection
             self.connection.ioloop.call_later(self._reconnect_delay, self.reconnect)
 
     def on_connection_open(self, connection):
@@ -427,15 +490,43 @@ class Application:
         """
         self.connection = connection
         self.connection.channel(on_open_callback=self.on_channel_open)
-        logger.info("Connection established successfully.")
+        # logger.info("Connection established successfully.")
 
     def reconnect(self):
         """
-        Reconnect to RabbitMQ by reinitializing the connection.
+        Reconnect to RabbitMQ by reinitializing the connection with refreshed credentials.
         """
         if not self._closing:
             try:
-                logger.info("Attempting to reconnect to RabbitMQ...")
+                logger.info("Attempting to reconnect to RabbitMQ.")
+
+                # Reset callback tracking dictionary but keep saved callbacks
+                self._callbacks_per_topic = {}
+
+                # Refresh the token if Keycloak authentication is enabled
+                if (
+                    self.config.rc.server_configuration.servers.rabbitmq.keycloak_authentication
+                ):
+                    try:
+                        logger.debug("Refreshing access token before reconnection...")
+                        access_token, refresh_token = self.new_access_token(
+                            self.refresh_token
+                        )
+                        self.refresh_token = refresh_token
+
+                        # Update connection parameters with new credentials
+                        self._connection_parameters.credentials = pika.PlainCredentials(
+                            "", access_token
+                        )
+                        logger.debug(
+                            "Access token refreshed successfully for reconnection"
+                        )
+                    except Exception as e:
+                        logger.error(
+                            f"Failed to refresh token during reconnection: {e}"
+                        )
+                        # Continue with existing token, it might still work
+
                 self.connection = pika.SelectConnection(
                     parameters=self._connection_parameters,
                     on_open_callback=self.on_connection_open,
@@ -459,51 +550,280 @@ class Application:
         """
         Shuts down the application by stopping the background event loop and disconnecting from the broker.
         """
+        logger.info(f"Initiating shutdown of {self.app_name}")
+
+        # Clean up simulator-related resources
         if self._time_status_publisher is not None:
             self.simulator.remove_observer(self._time_status_publisher)
         self._time_status_publisher = None
 
-        if self.connection:
+        # Clean up connection-related resources
+        if self.connection and not self._closing:
+            logger.info(f"Shutting down {self.app_name} connection.")
             self.stop_application()
             self._consuming = False
 
-        # Stop the token refresh thread
+        # Signal all threads to stop
+        if hasattr(self, "stop_event"):
+            self.stop_event.set()
         if hasattr(self, "_should_stop"):
             self._should_stop.set()
 
-        logger.info(f"Application {self.app_name} successfully shut down.")
+        # Comprehensive resource cleanup
+        self._cleanup_resources()
+
+        logger.info(f"Shutdown of {self.app_name} completed successfully.")
+
+        # Exit the process
+        os._exit(0)
+
+    def _cleanup_resources(self):
+        """
+        Comprehensive cleanup of both multiprocessing resource tracker and joblib resources.
+        Handles cleanup in the correct order to prevent resource leaks and warnings.
+        """
+        try:
+            import gc
+            import sys
+            import warnings
+
+            # Suppress resource tracker warnings
+            warnings.filterwarnings("ignore", category=UserWarning, module="joblib")
+            warnings.filterwarnings(
+                "ignore",
+                category=UserWarning,
+                message="resource_tracker: There appear to be.*leaked.*objects",
+            )
+
+            # 1. First cleanup joblib resources (if joblib is used)
+            joblib_used = "joblib" in sys.modules
+            if joblib_used:
+                logger.debug("Cleaning up joblib resources")
+                try:
+                    import joblib
+                    from joblib.externals.loky import process_executor
+
+                    # Force garbage collection to help break reference cycles
+                    gc.collect()
+
+                    # Clear any joblib Memory caches
+                    memory_locations = []
+                    for obj in gc.get_objects():
+                        if isinstance(obj, joblib.Memory):
+                            memory_locations.append(obj.location)
+                            obj.clear()
+
+                    if memory_locations:
+                        logger.debug(
+                            f"Cleared {len(memory_locations)} joblib memory caches"
+                        )
+
+                    # Find and terminate any active Parallel instances
+                    terminated_count = 0
+                    for obj in gc.get_objects():
+                        try:
+                            if (
+                                hasattr(obj, "_backend")
+                                and hasattr(obj, "n_jobs")
+                                and hasattr(obj, "_terminate")
+                            ):
+                                obj._terminate()
+                                terminated_count += 1
+                        except Exception:
+                            pass
+
+                    if terminated_count:
+                        logger.debug(
+                            f"Terminated {terminated_count} joblib Parallel instances"
+                        )
+
+                    # Reset the process executor state
+                    process_executor._CURRENT_DEPTH = 0
+                    if hasattr(process_executor, "_INITIALIZER"):
+                        process_executor._INITIALIZER = None
+                    if hasattr(process_executor, "_INITARGS"):
+                        process_executor._INITARGS = ()
+
+                except Exception as e:
+                    logger.debug(f"Error during joblib cleanup: {e}")
+
+            # 2. Then clean up multiprocessing resource tracker
+            try:
+                import multiprocessing.resource_tracker as resource_tracker
+
+                # Force resource tracker to clean up resources
+                if (
+                    hasattr(resource_tracker, "_resource_tracker")
+                    and resource_tracker._resource_tracker is not None
+                ):
+
+                    logger.debug("Cleaning up resource tracker")
+                    tracker = resource_tracker._resource_tracker
+
+                    if hasattr(tracker, "_resources"):
+                        for resource_type in list(tracker._resources.keys()):
+                            resources = tracker._resources.get(resource_type, set())
+                            if resources:
+                                logger.debug(
+                                    f"Cleaning up {len(resources)} {resource_type} resources"
+                                )
+                                resources_copy = resources.copy()
+                                for resource in resources_copy:
+                                    try:
+                                        resources.discard(resource)
+                                    except Exception as e:
+                                        logger.debug(
+                                            f"Error discarding {resource_type} resource: {e}"
+                                        )
+
+                        # Final safety check - clear all remaining resources
+                        tracker._resources.clear()
+
+                # Force garbage collection after cleanup
+                gc.collect()
+
+            except (ImportError, AttributeError, Exception) as e:
+                logger.debug(f"Error during resource tracker cleanup: {e}")
+
+        except Exception as e:
+            logger.warning(f"Error during resource cleanup: {e}")
 
     def send_message(self, app_name, app_topics, payload: str) -> None:
         """
-        Sends a message to the broker. The message is sent to the exchange using the routing key. The routing key is created using the application name and topic. The message is published with an expiration of 60 seconds.
+        Sends a message to the broker. If the connection is down, the message is queued
+        for later delivery when the connection is restored.
 
         Args:
             app_name (str): application name
             app_topics (str or list): topic name or list of topic names
             payload (str): message payload
         """
+        # Initialize message queue if it doesn't exist
+        if not hasattr(self, "_message_queue"):
+            self._message_queue = []
+            # self._queue_max_size = 1000  # Limit queue size to prevent memory issues
+
         if isinstance(app_topics, str):
             app_topics = [app_topics]
 
+        # Check if channel is available
+        if self.channel is None or not self._is_connected.is_set():
+            logger.warning(f"Connection down, queueing message for later delivery")
+
+            # Queue the message if there's space available
+            if len(self._message_queue) < self._queue_max_size:
+                # Add timestamp to each message for FIFO ordering
+                timestamp = time.time()
+                for app_topic in app_topics:
+                    self._message_queue.append(
+                        (timestamp, app_name, app_topic, payload)
+                    )
+                    logger.info(
+                        f"Queued message for topic {app_topic} (queue size: {len(self._message_queue)})"
+                    )
+            else:
+                logger.error(f"Message queue full, dropping message for {app_topics}")
+            return
+
+        # Try to send any queued messages first
+        self._process_message_queue()
+
+        # Now send the current message
         for app_topic in app_topics:
             routing_key = self.create_routing_key(app_name=app_name, topic=app_topic)
-            if not self.predefined_exchanges_queues:
-                routing_key, queue_name = self.yamless_declare_bind_queue(
-                    routing_key=routing_key
+            try:
+                self.channel.basic_publish(
+                    exchange=self.prefix,
+                    routing_key=routing_key,
+                    body=payload,
+                    properties=pika.BasicProperties(
+                        content_type=self.config.rc.server_configuration.servers.rabbitmq.content_type,
+                        content_encoding=self.config.rc.server_configuration.servers.rabbitmq.content_encoding,
+                        headers=self.config.rc.server_configuration.servers.rabbitmq.headers,
+                        delivery_mode=self.config.rc.server_configuration.servers.rabbitmq.delivery_mode,
+                        priority=self.config.rc.server_configuration.servers.rabbitmq.priority,
+                        correlation_id=self.config.rc.server_configuration.servers.rabbitmq.correlation_id,
+                        reply_to=self.config.rc.server_configuration.servers.rabbitmq.reply_to,
+                        expiration=self.config.rc.server_configuration.servers.rabbitmq.message_expiration,
+                        message_id=self.config.rc.server_configuration.servers.rabbitmq.message_id,
+                        timestamp=self.config.rc.server_configuration.servers.rabbitmq.timestamp,
+                        type=self.config.rc.server_configuration.servers.rabbitmq.type,
+                        user_id=self.config.rc.server_configuration.servers.rabbitmq.user_id,
+                        app_id=self.config.rc.server_configuration.servers.rabbitmq.app_id,
+                        cluster_id=self.config.rc.server_configuration.servers.rabbitmq.cluster_id,
+                    ),
                 )
-            self.channel.basic_publish(
-                exchange=self.prefix,
-                routing_key=routing_key,
-                body=payload,
-                properties=pika.BasicProperties(
-                    expiration=self.config.rc.server_configuration.servers.rabbitmq.message_expiration,
-                    delivery_mode=self.config.rc.server_configuration.servers.rabbitmq.delivery_mode,
-                    content_type=self.config.rc.server_configuration.servers.rabbitmq.content_type,
-                    app_id=self.app_name,
-                ),
-            )
-            logger.debug(
-                f"Successfully sent message '{payload}' to topic '{routing_key}'."
+                logger.debug(
+                    f"Successfully sent message '{payload}' to topic '{routing_key}'."
+                )
+            except Exception as e:
+                logger.warning(f"Failed to publish message to {routing_key}: {e}")
+                # Queue the failed message if there's space available
+                if len(self._message_queue) < self._queue_max_size:
+                    timestamp = time.time()
+                    self._message_queue.append(
+                        (timestamp, app_name, app_topic, payload)
+                    )
+                    logger.info(
+                        f"Queued failed message for retry (queue size: {len(self._message_queue)})"
+                    )
+
+    def _process_message_queue(self):
+        """
+        Process queued messages when connection is available.
+        Attempts to send all queued messages in order of oldest first.
+        """
+        if not hasattr(self, "_message_queue") or not self._message_queue:
+            return  # No messages to process
+
+        if self.channel is None or not self._is_connected.is_set():
+            return  # Still no connection
+
+        # Process the queue in timestamp order (oldest first)
+        logger.info(f"Processing message queue ({len(self._message_queue)} messages)")
+
+        # Sort messages by timestamp (oldest first)
+        sorted_messages = sorted(self._message_queue, key=lambda x: x[0])
+        self._message_queue.clear()
+
+        success_count = 0
+        for timestamp, app_name, app_topic, payload in sorted_messages:
+            routing_key = self.create_routing_key(app_name=app_name, topic=app_topic)
+            try:
+                self.channel.basic_publish(
+                    exchange=self.prefix,
+                    routing_key=routing_key,
+                    body=payload,
+                    properties=pika.BasicProperties(
+                        content_type=self.config.rc.server_configuration.servers.rabbitmq.content_type,
+                        content_encoding=self.config.rc.server_configuration.servers.rabbitmq.content_encoding,
+                        headers=self.config.rc.server_configuration.servers.rabbitmq.headers,
+                        delivery_mode=self.config.rc.server_configuration.servers.rabbitmq.delivery_mode,
+                        priority=self.config.rc.server_configuration.servers.rabbitmq.priority,
+                        correlation_id=self.config.rc.server_configuration.servers.rabbitmq.correlation_id,
+                        reply_to=self.config.rc.server_configuration.servers.rabbitmq.reply_to,
+                        expiration=self.config.rc.server_configuration.servers.rabbitmq.message_expiration,
+                        message_id=self.config.rc.server_configuration.servers.rabbitmq.message_id,
+                        timestamp=self.config.rc.server_configuration.servers.rabbitmq.timestamp,
+                        type=self.config.rc.server_configuration.servers.rabbitmq.type,
+                        user_id=self.config.rc.server_configuration.servers.rabbitmq.user_id,
+                        app_id=self.config.rc.server_configuration.servers.rabbitmq.app_id,
+                        cluster_id=self.config.rc.server_configuration.servers.rabbitmq.cluster_id,
+                    ),
+                )
+                success_count += 1
+            except Exception as e:
+                # If sending still fails, put it back in the queue with original timestamp
+                # to preserve ordering
+                logger.warning(f"Failed to resend queued message to {routing_key}: {e}")
+                self._message_queue.append((timestamp, app_name, app_topic, payload))
+
+        if success_count > 0:
+            logger.info(f"Successfully sent {success_count} queued messages")
+
+        if self._message_queue:
+            logger.info(
+                f"{len(self._message_queue)} messages remain queued for later delivery"
             )
 
     def routing_key_matches_pattern(self, routing_key, pattern):
@@ -566,6 +886,15 @@ class Application:
         self.was_consuming = True
         self._consuming = True
 
+        # Store callback for reconnection
+        if not hasattr(self, "_saved_callbacks"):
+            self._saved_callbacks = []
+
+        # Don't duplicate callbacks in saved list
+        callback_info = (app_name, app_topic, user_callback)
+        if callback_info not in self._saved_callbacks:
+            self._saved_callbacks.append(callback_info)
+
         routing_key = self.create_routing_key(app_name=app_name, topic=app_topic)
 
         # Check if this is the first callback for this routing key pattern
@@ -576,6 +905,7 @@ class Application:
             if not self.predefined_exchanges_queues:
                 # For wildcard subscriptions, use the app_name as queue suffix to ensure uniqueness
                 queue_suffix = self.app_name
+                queue_name = None
 
                 # If using wildcards, bind to the wildcard pattern
                 if "*" in routing_key or "#" in routing_key:
@@ -584,7 +914,7 @@ class Application:
 
                     # Declare a new queue
                     self.channel.queue_declare(
-                        queue=queue_name, durable=False, auto_delete=True
+                        queue=queue_name, durable=True, auto_delete=False
                     )
 
                     # Bind queue to the exchange with the wildcard pattern
@@ -592,20 +922,26 @@ class Application:
                         exchange=self.prefix, queue=queue_name, routing_key=routing_key
                     )
 
-                    # Track the declared queue
+                    # Track the declared queue and exchange
                     self.declared_queues.add(queue_name)
+                    self.declared_exchanges.add(self.prefix.strip())
+
+                    # # Also track the routing key if it's used for binding
+                    # if routing_key != queue_name:
+                    #     self.declared_queues.add(routing_key.strip())
                 else:
                     # For non-wildcard keys, use the standard approach
                     routing_key, queue_name = self.yamless_declare_bind_queue(
                         routing_key=routing_key, app_specific_extender=queue_suffix
                     )
 
-                self.channel.basic_qos(prefetch_count=1)
-                self._consumer_tag = self.channel.basic_consume(
-                    queue=queue_name,
-                    on_message_callback=self._handle_message,
-                    auto_ack=False,
-                )
+                if queue_name:
+                    self.channel.basic_qos(prefetch_count=1)
+                    self._consumer_tag = self.channel.basic_consume(
+                        queue=queue_name,
+                        on_message_callback=self._handle_message,
+                        auto_ack=False,
+                    )
 
         # Add the callback to the list for this routing key
         self._callbacks_per_topic[routing_key].append(user_callback)
@@ -706,14 +1042,14 @@ class Application:
             else:
                 queue_name = routing_key
             self.channel.queue_declare(
-                queue=queue_name, durable=False, auto_delete=True
+                queue=queue_name, durable=True, auto_delete=False
             )
             self.channel.queue_bind(
                 exchange=self.prefix, queue=queue_name, routing_key=routing_key
             )
             # Create list of declared queues and exchanges
             self.declared_queues.add(queue_name.strip())
-            self.declared_queues.add(routing_key.strip())
+            # self.declared_queues.add(routing_key.strip())
             self.declared_exchanges.add(self.prefix.strip())
 
             logger.debug(f"Bound queue '{queue_name}' to topic '{routing_key}'.")
@@ -735,7 +1071,7 @@ class Application:
         """
         for config in configs:
             if config["app"] == app_name:
-                logger.info(f"Deleting queue: {config['address']}")
+                logger.debug(f"Deleting queue: {config['address']}")
                 self.channel.queue_delete(queue=config["address"])
         logger.info("Successfully deleted queues.")
 
@@ -750,31 +1086,169 @@ class Application:
             self.channel.exchange_delete(exchange=exchange_name)
         logger.info("Successfully deleted exchanges.")
 
-    def delete_all_queues_and_exchanges(self):
+    def _delete_queues_with_callback(self, completion_event):
         """
-        Deletes all declared queues and exchanges from RabbitMQ.
+        Deletes all declared queues from RabbitMQ with proper callbacks,
+        and signals the completion_event when done.
+        Does NOT delete exchanges - those are managed exclusively by the Manager class.
+
+        Args:
+            completion_event (threading.Event): Event to signal when deletion is complete
         """
-        for queue_name in list(self.declared_queues):
+        if not self.channel or self.channel.is_closed:
+            logger.warning("Cannot delete queues: channel is closed")
+            completion_event.set()  # Signal completion since we can't proceed
+            return
+
+        # Create copies to avoid modification during iteration
+        queues_to_delete = list(self.declared_queues)
+
+        # If nothing to delete, signal completion immediately
+        if not queues_to_delete:
+            logger.info("No queues to delete")
+            completion_event.set()
+            return
+
+        # Track how many queues are still pending deletion
+        pending_deletions = len(queues_to_delete)
+
+        # Callback functions
+        def on_queue_purged(method_frame, queue_name):
+            """Callback for queue purge"""
+            logger.debug(f"Successfully purged queue: {queue_name}")
+            # After purging, unbind the queue
+            unbind_queue_from_exchanges(queue_name)
+
+        def on_queue_unbind_ok(
+            method_frame, queue_name, current_exchange, remaining_exchanges
+        ):
+            """Callback for queue unbind"""
+            logger.debug(
+                f"Successfully unbound queue {queue_name} from exchange {current_exchange}"
+            )
+            if remaining_exchanges:
+                # Continue unbinding from next exchange
+                next_exchange = remaining_exchanges[0]
+                try:
+                    self.channel.queue_unbind(
+                        queue=queue_name,
+                        exchange=next_exchange,
+                        routing_key=queue_name,
+                        callback=lambda method_frame: on_queue_unbind_ok(
+                            method_frame,
+                            queue_name,
+                            next_exchange,
+                            remaining_exchanges[1:],
+                        ),
+                    )
+                except Exception as e:
+                    logger.error(
+                        f"Failed to unbind queue {queue_name} from exchange {next_exchange}: {e}"
+                    )
+                    # Continue with queue deletion even if unbinding fails
+                    delete_queue(queue_name)
+            else:
+                # All unbinds complete, delete queue
+                delete_queue(queue_name)
+
+        def on_queue_deleted(method_frame, queue_name):
+            """Callback for queue delete"""
+            nonlocal pending_deletions
+            logger.debug(f"Successfully deleted queue: {queue_name}")
+            self.declared_queues.discard(queue_name)
+
+            # Decrement pending deletions counter
+            pending_deletions -= 1
+
+            # When all queues are deleted, signal completion
+            if pending_deletions == 0:
+                logger.debug("All queues have been deleted.")
+                completion_event.set()
+
+        def unbind_queue_from_exchanges(queue_name):
+            """Unbind queue from each exchange"""
+            exchanges_to_unbind_from = list(self.declared_exchanges)
+            if exchanges_to_unbind_from:
+                first_exchange = exchanges_to_unbind_from[0]
+                try:
+                    if first_exchange and first_exchange != "":
+                        logger.debug(
+                            f"Unbinding queue {queue_name} from exchange {first_exchange}"
+                        )
+                        self.channel.queue_unbind(
+                            queue=queue_name,
+                            exchange=first_exchange,
+                            routing_key=queue_name,
+                            callback=lambda method_frame: on_queue_unbind_ok(
+                                method_frame,
+                                queue_name,
+                                first_exchange,
+                                exchanges_to_unbind_from[1:],
+                            ),
+                        )
+                    else:
+                        # Skip empty exchange, move to next
+                        on_queue_unbind_ok(
+                            None,
+                            queue_name,
+                            first_exchange,
+                            exchanges_to_unbind_from[1:],
+                        )
+                except Exception as e:
+                    logger.error(
+                        f"Failed to unbind queue {queue_name} from exchange {first_exchange}: {e}"
+                    )
+                    # Continue with queue deletion even if unbinding fails
+                    delete_queue(queue_name)
+            else:
+                # No exchanges to unbind from, proceed with delete
+                delete_queue(queue_name)
+
+        def delete_queue(queue_name):
+            """Delete a queue with callback"""
             try:
-                # self.channel.queue_purge(queue=queue_name)
-                self.channel.queue_delete(queue=queue_name)
-                logger.info(f"Deleted queue: {queue_name}")
+                logger.debug(f"Deleting queue: {queue_name}")
+                self.channel.queue_delete(
+                    queue=queue_name,
+                    if_unused=False,
+                    if_empty=False,
+                    callback=lambda method_frame: on_queue_deleted(
+                        method_frame, queue_name
+                    ),
+                )
             except Exception as e:
                 logger.error(f"Failed to delete queue {queue_name}: {e}")
+                # Remove from tracking even if deletion fails and update counter
+                self.declared_queues.discard(queue_name)
+                nonlocal pending_deletions
+                pending_deletions -= 1
 
-        for exchange_name in list(self.declared_exchanges):
+                # Check if this was the last queue
+                if pending_deletions == 0:
+                    # All queues processed (or failed), signal completion
+                    completion_event.set()
+
+        # Start the deletion process for each queue
+        for queue_name in queues_to_delete:
             try:
-                self.channel.exchange_delete(exchange=exchange_name)
-                logger.info(f"Deleted exchange: {exchange_name}")
+                logger.debug(f"Attempting to purge queue: {queue_name}")
+                self.channel.queue_purge(
+                    queue=queue_name,
+                    callback=lambda method_frame, q=queue_name: on_queue_purged(
+                        method_frame, q
+                    ),
+                )
             except Exception as e:
-                logger.error(f"Failed to delete exchange {exchange_name}: {e}")
+                logger.debug(f"Failed to purge queue {queue_name}: {e}")
+                # Continue with unbinding even if purge fails
+                unbind_queue_from_exchanges(queue_name)
 
     def stop_consuming(self):
         """Tell RabbitMQ that you would like to stop consuming by sending the
         Basic.Cancel RPC command.
         """
         if self.channel:
-            logger.info("Sending a Basic.Cancel RPC command to RabbitMQ")
+            logger.debug("Sending a Basic.Cancel RPC command to RabbitMQ")
             cb = functools.partial(self.on_cancelok, userdata=self._consumer_tag)
             self.channel.basic_cancel(self._consumer_tag, cb)
 
@@ -799,14 +1273,6 @@ class Application:
         """Call to close the channel with RabbitMQ cleanly by issuing the
         Channel.Close RPC command.
         """
-        logger.info("Deleting queues and exchanges.")
-
-        if self.predefined_exchanges_queues:
-            self.delete_queue(self.channel_configs, self.app_name)
-            self.delete_exchange(self.unique_exchanges)
-        else:
-            self.delete_all_queues_and_exchanges()
-
         logger.info("Closing channel")
         self.channel.close()
 
@@ -816,28 +1282,74 @@ class Application:
 
     def stop_application(self):
         """Cleanly shutdown the connection to RabbitMQ by stopping the consumer
-        with RabbitMQ. When RabbitMQ confirms the cancellation, on_cancelok
-        will be invoked by pika, which will then closing the channel and
-        connection. The IOLoop is started again because this method is invoked
-        when CTRL-C is pressed raising a KeyboardInterrupt exception. This
-        exception stops the IOLoop which needs to be running for pika to
-        communicate with RabbitMQ. All of the commands issued prior to starting
-        the IOLoop will be buffered but not processed.
+        with RabbitMQ, cleaning up resources, and stopping all background threads.
         """
         if not self._closing:
             self._closing = True
-            if self._consuming:
-                self.stop_consuming()
-                # Signal the thread to stop
-                if hasattr(self, "stop_event"):
-                    self.stop_event.set()
-                if hasattr(self, "_should_stop"):
-                    self._should_stop.set()
-                if hasattr(self, "io_thread"):
-                    self._io_thread.join()
-                sys.exit()
+            logger.debug("Initiating application shutdown sequence")
+
+            # Create a threading Event to signal when cleanup is complete
+            cleanup_complete_event = threading.Event()
+
+            # First clean up RabbitMQ resources if channel is available
+            if (
+                self.channel
+                and not self.channel.is_closing
+                and not self.channel.is_closed
+            ):
+                try:
+                    # Clean up resources before stopping the loop
+                    if self.predefined_exchanges_queues:
+                        self.delete_queue(self.channel_configs, self.app_name)
+                        self.delete_exchange(self.unique_exchanges)
+                        # Signal completion immediately for simple delete operations
+                        cleanup_complete_event.set()
+                    else:
+                        # Delete all queues and exchanges with a callback for completion
+                        self._delete_queues_with_callback(cleanup_complete_event)
+                except Exception as e:
+                    logger.error(f"Error during cleanup: {e}")
+                    # Set the event even if there's an error
+                    cleanup_complete_event.set()
             else:
-                self.connection.ioloop.stop()
+                # No channel available, so cleanup is "complete"
+                cleanup_complete_event.set()
+
+            # Wait for cleanup to complete with a reasonable timeout (10 seconds)
+            logger.info("Cleaning up queues.")
+            cleanup_result = cleanup_complete_event.wait(timeout=10)
+            if cleanup_result:
+                logger.info("Cleaning up queues completed successfully.")
+            else:
+                logger.warning("Cleaning up queues timed out after 10 seconds.")
+
+            # Stop consuming messages if we were consuming
+            if self._consuming:
+                try:
+                    self.stop_consuming()
+                except Exception as e:
+                    logger.error(f"Error stopping consumer: {e}")
+
+            # Also stop token refresh thread if it exists
+            if hasattr(self, "_should_stop"):
+                self._should_stop.set()
+            if (
+                hasattr(self, "_token_refresh_thread")
+                and self._token_refresh_thread
+                and self._token_refresh_thread.is_alive()
+            ):
+                logger.info("Closing token refresh thread.")
+                # Set a timeout to avoid hanging indefinitely
+                self._token_refresh_thread.join(timeout=60.0)
+                # Check if it's still alive after timeout
+                if self._token_refresh_thread.is_alive():
+                    logger.warning(
+                        "Closing token refresh thread timed out after 60 seconds. "
+                    )
+                else:
+                    logger.info("Closing token refresh thread completed successfully")
+
+            logger.debug("Stop_application completed successfully.")
 
     def set_wallclock_offset(
         self, host="pool.ntp.org", retry_delay_s: int = 5, max_retry: int = 5

@@ -94,7 +94,7 @@ class Manager(Application):
         self.channel.exchange_declare(
             exchange=self.prefix,
             exchange_type="topic",
-            durable=False,
+            durable=True,
             auto_delete=True,
         )
 

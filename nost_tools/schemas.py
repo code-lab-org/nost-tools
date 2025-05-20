@@ -219,20 +219,48 @@ class RabbitMQConfig(BaseModel):
     keycloak_authentication: bool = Field(
         False, description="Keycloak authentication for RabbitMQ."
     )
-    host: str = Field("localhost", description="RabbitMQ host.")
-    port: int = Field(5672, description="RabbitMQ port.")
     tls: bool = Field(False, description="RabbitMQ TLS/SSL.")
-    virtual_host: str = Field("/", description="RabbitMQ virtual host.")
-    message_expiration: str = Field(
-        None, description="RabbitMQ expiration, in milliseconds."
-    )
-    delivery_mode: int = Field(
-        None, description="RabbitMQ delivery mode (1: non-persistent, 2: durable)."
-    )
+    reconnect_delay: int = Field(10, description="Reconnection delay, in seconds.")
+    queue_max_size: int = Field(5000, description="Maximum size of the RabbitMQ queue.")
+    # BasicProperties
     content_type: str = Field(
         None,
         description="RabbitMQ MIME content type (application/json, text/plain, etc.).",
     )
+    content_encoding: str = Field(
+        None,
+        description="RabbitMQ MIME content encoding (gzip, deflate, etc.).",
+    )
+    headers: Dict[str, str] = Field(
+        None, description="RabbitMQ message headers (key-value pairs)."
+    )
+    delivery_mode: int = Field(
+        None, description="RabbitMQ delivery mode (1: non-persistent, 2: durable)."
+    )
+    priority: int = Field(None, description="RabbitMQ message priority (0-255).")
+    correlation_id: str = Field(
+        None, description="RabbitMQ correlation ID for message tracking."
+    )
+    reply_to: str = Field(
+        None, description="RabbitMQ reply-to queue for response messages."
+    )
+    message_expiration: str = Field(
+        None, description="RabbitMQ expiration, in milliseconds."
+    )
+    message_id: str = Field(None, description="RabbitMQ message ID for tracking.")
+    timestamp: datetime = Field(None, description="RabbitMQ message timestamp.")
+    type: str = Field(None, description="RabbitMQ message type (e.g., 'text', 'json').")
+    user_id: str = Field(None, description="RabbitMQ user ID for authentication.")
+    app_id: str = Field(None, description="RabbitMQ application ID for tracking.")
+    cluster_id: str = Field(None, description="RabbitMQ cluster ID for tracking.")
+    # ConnectionParameters
+    host: str = Field("localhost", description="RabbitMQ host.")
+    port: int = Field(5672, description="RabbitMQ port.")
+    virtual_host: str = Field("/", description="RabbitMQ virtual host.")
+    channel_max: int = Field(
+        65535, description="RabbitMQ maximum number of channels per connection."
+    )
+    frame_max: int = Field(131072, description="RabbitMQ maximum frame size in bytes.")
     heartbeat: int = Field(None, description="RabbitMQ heartbeat interval, in seconds.")
     connection_attempts: int = Field(
         1, description="RabbitMQ connection attempts before giving up."
@@ -244,7 +272,6 @@ class RabbitMQConfig(BaseModel):
     blocked_connection_timeout: int = Field(
         None, description="Timeout for blocked connections."
     )
-    reconnect_delay: int = Field(10, description="Reconnect delay, in seconds.")
 
 
 class KeycloakConfig(BaseModel):
