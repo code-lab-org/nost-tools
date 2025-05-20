@@ -79,3 +79,7 @@ Changed:
 - Updated `add_message_callback` method to create a `_saved_callbacks` list to store all registered callbacks. Each entry is a tuple of `(app_name, app_topic, user_callback)` 
 - Updated `on_channel_open`  to check for and restore saved callbacks in `_saved_callbacks`, each saved callback is re-registered by calling the `add_message_callback` method
 - Updated `reconnect` to reset `_callbacks_per_topic` dictionary to prevent duplicate callbacks when restoring after reconnection 
+
+## 2.1.1 
+Added:
+- Introduces a new boolean flags to explicitly define the time domain for time_step and time_status_step. These flags will determine whether the associated values are interpreted in ST (unscaled) or WCT (scaled by the time scale factor).
