@@ -29,7 +29,7 @@ from .simulator import Simulator
 
 logging.captureWarnings(True)
 logger = logging.getLogger(__name__)
-urllib3.disable_warnings()
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class Application:
