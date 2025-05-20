@@ -14,7 +14,7 @@ authors:
     given-names: "Matthew J."
     orcid: "https://orcid.org/0000-0002-1972-9227"
 title: "New Observing Strategies Testbed (NOS-T)"
-version: 2.1.0
+version: 2.1.1
 doi:
 date-released: 2025-05-20
 url: "https://github.com/code-lab-org/nost-tools"
