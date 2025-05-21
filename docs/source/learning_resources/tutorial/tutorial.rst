@@ -38,7 +38,7 @@ NOS-T Tools Download and Installation
 NOS-T Tools Installation
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-NOS-T Tools is available on PyPi. 
+NOS-T Tools is available on `PyPi <https://pypi.org/project/nost-tools/>`__.
 
 First, install pip version 23 or greater:
 ::
