@@ -30,41 +30,41 @@ This section will show you how to set up NOS-T assuming you are a beginner to bo
 Integrated Development Environment (IDE)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-An IDE will make developing applications and interacting with the testbed much easier. The developers have mostly used `Spyder <https://www.spyder-ide.org/>`__
-and Microsoft's `Visual Studio Code <https://visualstudio.microsoft.com/>`__. Going forward, this tutorial will assume that you are using one of these IDE's
-or something similar.
+An IDE will make developing applications and interacting with the testbed much easier. The developers have mostly used Microsoft's `Visual Studio Code <https://visualstudio.microsoft.com/>`__. This tutorial will proceed under the assumption that you are using Visual Studio Code or a comparable IDE.
 
 NOS-T Tools Download and Installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The best way to get the NOS-T tools library and example codes is to clone the NOS-T git repository
-and install the tools. 
+NOS-T Tools Installation
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+NOS-T Tools is available on PyPi. 
+
+First, install pip version 23 or greater:
+
+::
+  python3 -m pip install --upgrade pip
+
+Then, install the NOS-T Tools library:
+
+::
+  python3 -m pip install "nost_tools[examples]"
 
 Cloning the Repository
 ^^^^^^^^^^^^^^^^^^^^^^
 
-There are several ways to clone a git repository. `Here <https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository?tool=webui>`__
+The best way to get the NOS-T Tools example codes is to clone the NOS-T git repository. There are several ways to clone a git repository. `Here <https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository?tool=webui>`__
 is a good description of some of them.
 
-Then, you need to clone the repository from the following link:
-
-https://github.com/code-lab-org/nost-tools
-
-Installing NOS-T tools requires pip version 23 or greater. Install via
-
+Clone the repository:
 ::
-  
-  python -m pip install --upgrade pip
+  git clone git@github.com:code-lab-org/nost-tools.git
 
-Then, from a command prompt,  navigate to the root directory 
-(the location where you cloned the library) and install by running the following command:
+If the above fails, you can also try the HTTPS version:
+::
+  git clone https://github.com/code-lab-org/nost-tools.git
 
-:: 
-  
-  pip install -e .[examples]
-
-
-Following the instructions above will automatically install the python packages that NOS-T depends on to run. These package dependencies can
+Following the instructions above will automatically install the Python packages that NOS-T depends on to run. These package dependencies can
 otherwise be found in the `requirements file <https://github.com/code-lab-org/nost-tools/blob/main/pyproject.toml>`__.
 
 .. _tutorialSystemDescription:
