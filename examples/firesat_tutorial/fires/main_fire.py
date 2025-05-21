@@ -1,38 +1,34 @@
 # -*- coding: utf-8 -*-
 """
-    *This application demonstrates a simulation of a schedule of fires given geospatial locations and specified datetimes (at one minute resolution)*
+*This application demonstrates a simulation of a schedule of fires given geospatial locations and specified datetimes (at one minute resolution)*
 
-    The application contains a single :obj:`Environment` class which listens to the time status published by the manager application and publishes fire information at the specified ignition :obj:`datetime`. The application also contains callback messages that updates :obj:`datetime` in the fires :obj:`DataFrame` for each of ignition (including latitude-longitude :obj:`GeographicPosition`), detection, and reporting.
+The application contains a single :obj:`Environment` class which listens to the time status published by the manager application and publishes fire information at the specified ignition :obj:`datetime`. The application also contains callback messages that updates :obj:`datetime` in the fires :obj:`DataFrame` for each of ignition (including latitude-longitude :obj:`GeographicPosition`), detection, and reporting.
 
 """
 
 import logging
-from datetime import datetime, timezone, timedelta
-from dotenv import dotenv_values
-import pandas as pd
-import pika
 import os
+from datetime import datetime, timezone
+
+import pandas as pd
 
 pd.options.mode.chained_assignment = None
 
-import importlib.resources
 
-from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
-from nost_tools.observer import Observer
+from fire_config_files.schemas import FireDetected, FireReported, FireStarted, FireState
+
+from nost_tools.application_utils import ShutDownObserver
+from nost_tools.configuration import ConnectionConfig
 from nost_tools.managed_application import ManagedApplication
-
-from fire_config_files.schemas import FireState, FireStarted, FireDetected, FireReported
-from fire_config_files.config import PREFIX, SCALE
-
-import json
-from pydantic import ValidationError
-import threading
+from nost_tools.observer import Observer
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger() #__name__)
+logger = logging.getLogger(__name__)
 
 import warnings
-warnings.simplefilter(action='ignore', category=FutureWarning)
+
+warnings.simplefilter(action="ignore", category=FutureWarning)
+
 
 # define an observer to manage fire updates and record to a dataframe fires
 class Environment(Observer):
@@ -71,22 +67,22 @@ class Environment(Observer):
                         start=fire.start,
                         latitude=fire.latitude,
                         longitude=fire.longitude,
-                    ).json(),
+                    ).model_dump_json(),
                 )
 
     def on_fire(self, ch, method, properties, body):
-        body = body.decode('utf-8')
+        body = body.decode("utf-8")
 
-        start = FireStarted.parse_raw(body)
+        start = FireStarted.model_validate_json(body)
         for key, fire in self.fires.iterrows():
             if key == start.fireId:
                 self.fires["fireState"][key] = FireState.started
                 break
 
     def on_detected(self, ch, method, properties, body):
-        body = body.decode('utf-8')
+        body = body.decode("utf-8")
 
-        detect = FireDetected.parse_raw(body)
+        detect = FireDetected.model_validate_json(body)
         for key, fire in self.fires.iterrows():
             if key == detect.fireId:
                 self.fires["fireState"][key] = FireState.detected
@@ -95,9 +91,9 @@ class Environment(Observer):
                 break
 
     def on_reported(self, ch, method, properties, body):
-        body = body.decode('utf-8')
+        body = body.decode("utf-8")
 
-        report = FireReported.parse_raw(body)
+        report = FireReported.model_validate_json(body)
         for key, fire in self.fires.iterrows():
             if key == report.fireId:
                 self.fires["fireState"][key] = FireState.reported
@@ -105,6 +101,7 @@ class Environment(Observer):
                 self.fires["reported_by"][key] = report.reported_by
                 self.fires["reported_to"][key] = report.reported_to
                 break
+
 
 def on_fire(ch, method, properties, body):
     """
@@ -144,35 +141,22 @@ def on_reported(ch, method, properties, body):
         if isinstance(observer, Environment):
             app.simulator._observers[index].on_reported(ch, method, properties, body)
 
-if __name__ == "__main__":
-    # Load credentials from a .env file in current working directory
-    credentials = dotenv_values(".env")
-    HOST, RABBITMQ_PORT, KEYCLOAK_PORT, KEYCLOAK_REALM = credentials["HOST"], int(credentials["RABBITMQ_PORT"]), int(credentials["KEYCLOAK_PORT"]), str(credentials["KEYCLOAK_REALM"])
-    USERNAME, PASSWORD = credentials["USERNAME"], credentials["PASSWORD"]
-    CLIENT_ID = credentials["CLIENT_ID"]
-    CLIENT_SECRET_KEY = credentials["CLIENT_SECRET_KEY"]
-    VIRTUAL_HOST = credentials["VIRTUAL_HOST"]
-    IS_TLS = credentials["IS_TLS"].lower() == 'true'  # Convert to boolean
 
-    # Set the client credentials from the config file
-    config = ConnectionConfig(
-        USERNAME,
-        PASSWORD,
-        HOST,
-        RABBITMQ_PORT,
-        KEYCLOAK_PORT,
-        KEYCLOAK_REALM,
-        CLIENT_ID,
-        CLIENT_SECRET_KEY,
-        VIRTUAL_HOST,
-        IS_TLS)
-    
+if __name__ == "__main__":
+    # Load config
+    config = ConnectionConfig(yaml_file="firesat.yaml")
+
+    # Define the simulation parameters
+    NAME = "fire"
+
     # create the managed application
-    app = ManagedApplication("fire") #, config=config)
+    app = ManagedApplication(NAME)
 
     # import csv file from fire_scenarios subdirectory with scenario defining locations and ignition datetimes of fires
     # csvFile = importlib.resources.open_text("fire_scenarios", "first5days.csv")
-    csvFile = os.path.join('fires', 'fire_scenarios', "random_global_fires_5days.csv") #"first5days.csv")
+    csvFile = os.path.join(
+        "fires", "fire_scenarios", "random_global_fires_5days.csv"
+    )  # "first5days.csv")
 
     # Read the csv file and convert to a DataFrame with initial column defining the index
     df = pd.read_csv(csvFile, index_col=0)
@@ -201,19 +185,15 @@ if __name__ == "__main__":
 
     # start up the application on PREFIX, publish time status every 10 seconds of wallclock time
     app.start_up(
-        PREFIX,
+        config.rc.simulation_configuration.execution_parameters.general.prefix,
         config,
         True,
-        time_status_step=timedelta(seconds=10) * SCALE,
-        time_status_init=datetime(2020, 1, 1, 7, 20, tzinfo=timezone.utc),
-        time_step=timedelta(seconds=1) * SCALE,
-        # shut_down_when_terminated=True,
     )
-    
+
     # Add message callbacks for fire ignition, detection, and report
-    app.add_message_callback("fire", "location", on_fire) #, app_specific_extender=app.app_name)
+    app.add_message_callback("fire", "location", on_fire)
     app.add_message_callback("constellation", "detected", on_detected)
     app.add_message_callback("constellation", "reported", on_reported)
 
-    # while True:
-    #     pass
+    while True:
+        pass

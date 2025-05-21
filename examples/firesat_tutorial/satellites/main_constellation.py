@@ -1,37 +1,30 @@
+import copy
 import logging
-from datetime import datetime, timezone, timedelta
-from dotenv import dotenv_values
+from datetime import timedelta
+
 import numpy as np
 import pandas as pd
-import copy
-from skyfield.api import load, wgs84, EarthSatellite
-import threading
-
-from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
-from nost_tools.entity import Entity
-from nost_tools.observer import Observer
-from nost_tools.managed_application import ManagedApplication
-from nost_tools.publisher import WallclockTimeIntervalPublisher
-
+from constellation_config_files.config import FIELD_OF_REGARD, NAME
 from constellation_config_files.schemas import (
-    FireStarted,
     FireDetected,
     FireReported,
-    SatelliteStatus,
+    FireStarted,
     GroundLocation,
+    SatelliteStatus,
 )
-from constellation_config_files.config import (
-    PREFIX,
-    NAME,
-    SCALE,
-    TLES,
-    FIELD_OF_REGARD,
-)
-import json
+from skyfield.api import EarthSatellite, load, wgs84
+
+from nost_tools.application_utils import ShutDownObserver
+from nost_tools.configuration import ConnectionConfig
+from nost_tools.entity import Entity
+from nost_tools.managed_application import ManagedApplication
+from nost_tools.observer import Observer
+from nost_tools.publisher import WallclockTimeIntervalPublisher
 
 logging.basicConfig(level=logging.INFO)
 
-logger = logging.getLogger() #__name__)
+logger = logging.getLogger(__name__)
+
 
 def compute_min_elevation(altitude, field_of_regard):
     """
@@ -154,6 +147,7 @@ def check_in_range(t, satellite, grounds):
                 groundId = k
                 break
     return isInRange, groundId
+
 
 # define an entity to manage satellite updates
 class Constellation(Entity):
@@ -312,8 +306,7 @@ class Constellation(Entity):
             self.report[i]["firstReport"] = False
         super().tock()
 
-
-    def on_fire(self, ch, method, properties, body): #, client, userdata, message):
+    def on_fire(self, ch, method, properties, body):  # , client, userdata, message):
         """
         Callback function appends a dictionary of information for a new fire to fires :obj:`list` when message detected on the *PREFIX/fires/location* topic
 
@@ -323,9 +316,9 @@ class Constellation(Entity):
             message (:obj:`message`): Contains *topic* the client subscribed to and *payload* message content as attributes
 
         """
-        body = body.decode('utf-8')
+        body = body.decode("utf-8")
 
-        started = FireStarted.parse_raw(body) #message.payload)
+        started = FireStarted.model_validate_json(body)  # message.payload)
         self.fires.append(
             {
                 "fireId": started.fireId,
@@ -337,9 +330,7 @@ class Constellation(Entity):
         satelliteDictionary = dict.fromkeys(
             self.names
         )  # Creates dictionary where keys are satellite names and values are defaulted to NoneType
-        satelliteDictionary[
-            "fireId"
-        ] = (
+        satelliteDictionary["fireId"] = (
             started.fireId
         )  # Adds fireId to dictionary, which will coordinate with position of dictionary in list of dictionaries
         detectDictionary = copy.deepcopy(satelliteDictionary)
@@ -354,7 +345,7 @@ class Constellation(Entity):
         # ch.connection.close()
         # ch.basic_ack(delivery_tag=method.delivery_tag)
 
-    def on_ground(self, ch, method, properties, body): #client, userdata, message):
+    def on_ground(self, ch, method, properties, body):  # client, userdata, message):
         """
         Callback function appends a dictionary of information for a new ground station to grounds :obj:`list` when message detected on the *PREFIX/ground/location* topic. Ground station information is published at beginning of simulation, and the :obj:`list` is converted to a :obj:`DataFrame` when the Constellation is initialized.
 
@@ -364,38 +355,39 @@ class Constellation(Entity):
             message (:obj:`message`): Contains *topic* the client subscribed to and *payload* message content as attributes
 
         """
-        body = body.decode('utf-8')
+        body = body.decode("utf-8")
 
-        location = GroundLocation.parse_raw(body) #message.payload)
+        location = GroundLocation.model_validate_json(body)  # message.payload)
 
         if location.groundId in self.grounds.groundId:
-            self.grounds[
-                self.grounds.groundId == location.groundId
-            ].latitude = location.latitude
-            self.grounds[
-                self.grounds.groundId == location.groundId
-            ].longitude = location.longitude
-            self.grounds[
-                self.grounds.groundId == location.groundId
-            ].elevAngle = location.elevAngle
-            self.grounds[
-                self.grounds.groundId == location.groundId
-            ].operational = location.operational
+            self.grounds[self.grounds.groundId == location.groundId].latitude = (
+                location.latitude
+            )
+            self.grounds[self.grounds.groundId == location.groundId].longitude = (
+                location.longitude
+            )
+            self.grounds[self.grounds.groundId == location.groundId].elevAngle = (
+                location.elevAngle
+            )
+            self.grounds[self.grounds.groundId == location.groundId].operational = (
+                location.operational
+            )
             print(f"Station {location.groundId} updated at time {self.get_time()}.")
         else:
             location = {
-                    "groundId": location.groundId,
-                    "latitude": location.latitude,
-                    "longitude": location.longitude,
-                    "elevAngle": location.elevAngle,
-                    "operational": location.operational,
-                }
-            
+                "groundId": location.groundId,
+                "latitude": location.latitude,
+                "longitude": location.longitude,
+                "elevAngle": location.elevAngle,
+                "operational": location.operational,
+            }
+
             # Create a DataFrame from the location dictionary
             new_data = pd.DataFrame([location])
 
             # Concatenate the new data with the existing DataFrame
             self.grounds = pd.concat([self.grounds, new_data], ignore_index=True)
+
 
 # define a publisher to report satellite status
 class PositionPublisher(WallclockTimeIntervalPublisher):
@@ -452,7 +444,7 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
                     radius=sensorRadius,
                     commRange=self.isInRange[i],
                     time=constellation.get_time(),
-                ).json(),
+                ).model_dump_json(),
             )
 
 
@@ -464,6 +456,7 @@ class FireDetectedObserver(Observer):
     Args:
         app (:obj:`ManagedApplication`): An application containing a test-run namespace, a name and description for the app, client credentials, and simulation timing instructions
     """
+
     def __init__(self, app):
         self.app = app
 
@@ -482,7 +475,7 @@ class FireDetectedObserver(Observer):
                     fireId=new_value["fireId"],
                     detected=new_value["detected"],
                     detected_by=new_value["detected_by"],
-                ).json(),
+                ).model_dump_json(),
             )
 
 
@@ -515,48 +508,40 @@ class FireReportedObserver(Observer):
                     reported=new_value["reported"],
                     reported_by=new_value["reported_by"],
                     reported_to=new_value["reported_to"],
-                ).json(),
+                ).model_dump_json(),
             )
 
-if __name__ == "__main__":
-    # Load credentials from a .env file in current working directory
-    credentials = dotenv_values(".env")
-    HOST, RABBITMQ_PORT, KEYCLOAK_PORT, KEYCLOAK_REALM = credentials["HOST"], int(credentials["RABBITMQ_PORT"]), int(credentials["KEYCLOAK_PORT"]), str(credentials["KEYCLOAK_REALM"])
-    USERNAME, PASSWORD = credentials["USERNAME"], credentials["PASSWORD"]
-    CLIENT_ID = credentials["CLIENT_ID"]
-    CLIENT_SECRET_KEY = credentials["CLIENT_SECRET_KEY"]
-    VIRTUAL_HOST = credentials["VIRTUAL_HOST"]
-    IS_TLS = credentials["IS_TLS"].lower() == 'true'  # Convert to boolean
 
-    # Set the client credentials from the config file
-    config = ConnectionConfig(
-        USERNAME,
-        PASSWORD,
-        HOST,
-        RABBITMQ_PORT,
-        KEYCLOAK_PORT,
-        KEYCLOAK_REALM,
-        CLIENT_ID,
-        CLIENT_SECRET_KEY,
-        VIRTUAL_HOST,
-        IS_TLS)
+if __name__ == "__main__":
+    # Load config
+    config = ConnectionConfig(yaml_file="firesat.yaml")
+
+    # Define the simulation parameters
+    NAME = "constellation"
 
     # create the managed application
-    app = ManagedApplication(NAME) #, config=config)
+    app = ManagedApplication(NAME)
 
     # load current TLEs for active satellites from Celestrak (NOTE: User has option to specify their own TLE instead)
-    activesats_url = "satellites/active.txt" #"https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle" #"https://celestrak.com/NORAD/elements/active.txt"
+    activesats_url = "satellites/active.txt"  # "https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle" #"https://celestrak.com/NORAD/elements/active.txt"
     activesats = load.tle_file(activesats_url, reload=False)
 
     by_name = {sat.name: sat for sat in activesats}
-    names = ["AQUA", "TERRA", "SUOMI NPP", "NOAA 20", "SENTINEL-2A", "SENTINEL-2B"] #"NOAA 20 (JPSS-1)", 
+    names = [
+        "AQUA",
+        "TERRA",
+        "SUOMI NPP",
+        "NOAA 20",
+        "SENTINEL-2A",
+        "SENTINEL-2B",
+    ]  # "NOAA 20 (JPSS-1)",
 
     ES = []
     indices = []
     for name_i, name in enumerate(names):
         ES.append(by_name[name])
         indices.append(name_i)
-    
+
     # initialize the Constellation object class (in this example from EarthSatellite type)
     constellation = Constellation("constellation", app, indices, names, ES)
 
@@ -577,18 +562,14 @@ if __name__ == "__main__":
 
     # start up the application on PREFIX, publish time status every 10 seconds of wallclock time
     app.start_up(
-        PREFIX,
+        config.rc.simulation_configuration.execution_parameters.general.prefix,
         config,
         True,
-        time_status_step=timedelta(seconds=10) * SCALE,
-        time_status_init=datetime(2020, 1, 1, 7, 20, tzinfo=timezone.utc),
-        time_step=timedelta(seconds=1) * SCALE,
-        # shut_down_when_terminated=True,
     )
 
     # add message callbacks
-    app.add_message_callback("fire", "location", constellation.on_fire) #, app_specific_extender=app.app_name)
+    app.add_message_callback("fire", "location", constellation.on_fire)
     app.add_message_callback("ground", "location", constellation.on_ground)
 
-    # while True:
-    #     pass
+    while True:
+        pass
