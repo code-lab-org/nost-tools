@@ -38,21 +38,18 @@ NOS-T Tools Download and Installation
 NOS-T Tools Installation
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-NOS-T Tools is available on `PyPi <https://pypi.org/project/nost-tools/>`__.
-
 First, install pip version 23 or greater:
 ::
   python3 -m pip install --upgrade pip
 
-Then, install the NOS-T Tools library:
+Then, install the NOS-T Tools library from `PyPi <https://pypi.org/project/nost-tools/>`__:
 ::
   python3 -m pip install "nost_tools[examples]"
 
 Cloning the Repository
 ^^^^^^^^^^^^^^^^^^^^^^
 
-The best way to get the NOS-T Tools example codes is to clone the NOS-T git repository. There are several ways to clone a git repository. `Here <https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository?tool=webui>`__
-is a good description of some of them.
+The best way to get the NOS-T Tools example codes is to clone the NOS-T git repository. There are several ways to clone a git repository, more details are available `here <https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository?tool=webui>`__.
 
 Clone the repository:
 ::
