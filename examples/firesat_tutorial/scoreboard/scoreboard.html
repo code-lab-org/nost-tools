@@ -1,45 +1,94 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
-      <meta charset="utf-8">
-    <title>Novel Observing Strategies Testbed (NOS-T)</title>
-    <h1 style="text-align: center;">Novel Observing Strategies Testbed (NOS-T): FireSat+ Example</h1>
-      <meta name="description" content="">
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-      <link href="https://cesium.com/downloads/cesiumjs/releases/1.85/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
-      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
-        <script type="text/javascript"
-            src="env.js">
-        </script>
+        <meta charset="utf-8">
+        <title>Novel Observing Strategies Testbed (NOS-T)</title>
+        <meta name="description" content="FireSat+ simulation visualization dashboard">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        
+        <!-- External CSS dependencies -->
+        <link href="https://cesium.com/downloads/cesiumjs/releases/1.85/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" 
+              integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" 
+              crossorigin="anonymous">
+        
+        <!-- Load environment variables -->
+        <script type="text/javascript" src="env.js"></script>
+        
+        <style>
+            #cesiumContainer {
+                width: 100%;
+                height: 80vh;
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+            }
+            
+            .page-title {
+                text-align: center;
+                margin: 10px 0;
+            }
+        </style>
     </head>
 
     <body>
+        <h1 class="page-title">Novel Observing Strategies Testbed (NOS-T): FireSat+ Example</h1>
         <main role="main" class="container-fluid">
-            <div id="cesiumContainer" style="will-change: contents;"></div>
+            <div id="cesiumContainer"></div>
         </main>
+        
+        <!-- External JavaScript dependencies -->
         <script src="https://cesium.com/downloads/cesiumjs/releases/1.85/Build/Cesium/Cesium.js"></script>
-        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" 
+                integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" 
+                crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" 
+                integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" 
+                crossorigin="anonymous"></script>
+        
         <script type="module">
-            import { AMQPWebSocketClient } from './js/amqp-websocket-client.mjs';
+            /**
+             * FireSat+ Scoreboard Visualization
+             * 
+             * This script visualizes a satellite fire detection simulation. It connects to a RabbitMQ
+             * message broker to receive simulation updates and displays them on a 3D globe using CesiumJS.
+             * 
+             * Key components:
+             * - Satellite positions and sensor view areas
+             * - Ground stations and communication zones
+             * - Fire locations with detection status
+             * - Simulation clock and timeline
+             */
+            import { AMQPWebSocketClient } from 'https://cdn.jsdelivr.net/npm/@cloudamqp/amqp-client@3.1.1/dist/amqp-websocket-client.mjs';
 
-            var CESIUM_ACCESS_TOKEN = TOKEN;
-            var BROKER_HOST = HOST;
-            var BROKER_PORT = RABBITMQ_PORT;
-            var AUTH_PORT = KEYCLOAK_PORT;
-            var BROKER_CLIENT_USERNAME = USERNAME;
-            var BROKER_CLIENT_PASSWORD = PASSWORD;
-            var BROKER_CLIENT_ID = CLIENT_ID;
-            var BROKER_CLIENT_SECRET = CLIENT_SECRET;
+            // Configuration variables loaded from env.js
+            const CESIUM_ACCESS_TOKEN = TOKEN;
+            const BROKER_HOST = HOST;
+            const BROKER_PORT = RABBITMQ_PORT;
+            const BROKER_CLIENT_USERNAME = USERNAME;
+            const BROKER_CLIENT_PASSWORD = PASSWORD;
 
-            $(document).ready(function(){
+            $(document).ready(function() {
+                // Initialize CesiumJS viewer
+                initCesiumViewer();
+            });
+
+            /**
+             * Initialize the CesiumJS viewer with appropriate settings
+             */
+            function initCesiumViewer() {
+                // Set Cesium access token
                 Cesium.Ion.defaultAccessToken = CESIUM_ACCESS_TOKEN;
-                var clock = new Cesium.Clock({
-                        currentTime: Cesium.JulianDate.fromIso8601("1900-01-01"),
-                        clockStep: Cesium.ClockStep.SYSTEM_CLOCK_MULTIPLIER,
-                        multiplier: 0, // how much time to advance each SYSTEM CLOCK tick
-                        shouldAnimate: false,
-                    });
+                
+                // Create a simulation clock
+                const clock = new Cesium.Clock({
+                    currentTime: Cesium.JulianDate.fromIso8601("1900-01-01"),
+                    clockStep: Cesium.ClockStep.SYSTEM_CLOCK_MULTIPLIER,
+                    multiplier: 0, // Paused initially
+                    shouldAnimate: false,
+                });
+                
+                // Create the Cesium viewer with custom configuration
                 const viewer = new Cesium.Viewer('cesiumContainer', {
                     terrainProvider: Cesium.createWorldTerrain(),
                     baseLayerPicker: false,
@@ -53,233 +102,330 @@
                     imageryProvider: new Cesium.IonImageryProvider({ assetId: 3845 }),
                     clockViewModel: new Cesium.ClockViewModel(clock)
                 });
-                // viewer.scene.globe.enableLighting = true;
 
-                var satellites = {}; // Positions of satellites as points at altitude, BLUE out of comms range, GREEN in comms range
-                var sensorCircles = {}; // Circles showing views of nadir pointed satellites
-                var commsCones = {}; // Views from ground station FOR comms
-                var commsRange = false; // Initialize this commsRange boolean as false, but will update based on satellite subscription
-                var satColor = Cesium.Color.BLUE; // Initialize satColor as Cesium's default BLUE, which is color when commsRange is false
-                var fires = viewer.scene.primitives.add(new Cesium.PointPrimitiveCollection()); // Initialize fires as primitive points since there will be so many
-                var grounds = {}; // Surface position of ground stations as PINK points
-                var updates = {};
+                // Create collections for tracking simulation entities
+                const entities = {
+                    satellites: {},      // Satellite positions (BLUE: out of comms range, GREEN: in comms range)
+                    sensorCircles: {},    // Circles showing satellite sensor coverage areas
+                    commsCones: {},       // Communication cones from ground stations
+                    grounds: {},          // Ground station positions
+                    fires: viewer.scene.primitives.add(new Cesium.PointPrimitiveCollection()) // Fire locations
+                };
 
-                function handleMessage(topic, payload) {
-                    var activeCheck; // Declare activeCheck variable
-                    var commRange; // Declare commRange variable
-                    var groundColor; // Declare groundColor variable
-                    var groundMaterial; // Declare groundMaterial variable
-                    var satColor; // Declare satColor variable
-                    var fireColor; // Declare fireColor variable
-                    var fireMaterial; // Declare fireMaterial variable
-                    var fireId; // Declare fireId variable
-                    var groundId; // Declare groundId variable
-                    var id; // Declare id variable
-                    var latitude; // Declare latitude variable
-                    var longitude; // Declare longitude variable
-                    var name; // Declare name variable
-                    var color; // Declare color variable
+                // Connect to the message broker
+                connectToBroker(viewer, entities);
+            }
 
-                    // try to parse and stringify a JSON string
-                    try {
-                        if(topic=="greenfield.manager.init") {
-                            console.log("Initialize command received.");
-                            viewer.clockViewModel.currentTime = Cesium.JulianDate.fromIso8601(payload.taskingParameters.simStartTime);
-                            viewer.clockViewModel.startTime = Cesium.JulianDate.fromIso8601(payload.taskingParameters.simStartTime);
-                            viewer.clockViewModel.stopTime = Cesium.JulianDate.fromIso8601(payload.taskingParameters.simStopTime);
-                            viewer.clockViewModel.clockRange = Cesium.ClockRange.CLAMPED;
-                            viewer.timeline.zoomTo(viewer.clockViewModel.startTime,viewer.clockViewModel.stopTime);
-                        } else if(topic=="greenfield.manager.start") {
-                            console.log("Start command received.");
-                            viewer.clockViewModel.multiplier = payload.taskingParameters.timeScalingFactor;
-                        } else if(topic=="greenfield.manager.time" || topic=="greenfield.manager.status.time") {
-                            // console.log("Time message received.");
-                            viewer.clockViewModel.currentTime = Cesium.JulianDate.fromIso8601(payload.properties.simTime);
-                            viewer.timeline.updateFromClock();
-                        } else if(topic=="greenfield.manager.update"){
-                            // console.log("Update message received.");
-                            viewer.clockViewModel.multiplier = payload.taskingParameters.timeScalingFactor;
-                        // } else if(topic=="greenfield.manager.stop"){
-                        //     console.log("Stop command received.");
-                        //     viewer.clockViewModel.multiplier = 0;
-                        } else if(topic=="greenfield.constellation.location") {
-                            // console.log("Satellite location received.");
-                            commRange = payload.commRange;
-                            if (commRange){
-                                satColor = Cesium.Color.GREEN
-                            } else {
-                                satColor = Cesium.Color.BLUE
-                            };
-                            if(satellites[payload.id]) {
-                                satellites[payload.id].position=Cesium.Cartesian3.fromDegrees(
-                                    payload.longitude,
-                                    payload.latitude,
-                                    payload.altitude
-                                );
-                                satellites[payload.id].point.color = satColor;
-                                sensorCircles[payload.id].ellipse.semiMajorAxis = payload.radius;
-                                sensorCircles[payload.id].ellipse.semiMinorAxis = payload.radius;
-                                sensorCircles[payload.id].position=Cesium.Cartesian3.fromDegrees(
-                                    payload.longitude,
-                                    payload.latitude
-                                );
-                            } else {
-                                satellites[payload.id] = viewer.entities.add({
-                                    position: Cesium.Cartesian3.fromDegrees(
-                                        payload.longitude,
-                                        payload.latitude,
-                                        payload.altitude
-                                    ),
-                                    point: {
-                                        pixelSize: 8,
-                                        color: satColor
-                                    },
-                                    label: {
-                                        text: payload.name,
-                                        font: "12px Georgia",
-                                        fillColor: Cesium.Color.SKYBLUE,
-                                        outlineColor: Cesium.Color.BLACK,
-                                        outlineWidth: 2,
-                                        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-                                        pixelOffset: new Cesium.Cartesian2(40.0, 8.0),
-                                        pixelOffsetScaleByDistance: new Cesium.NearFarScalar(
-                                            1.5e2,
-                                            3.0,
-                                            1.5e7,
-                                            0.5
-                                        ),
-                                        scaleByDistance: new Cesium.NearFarScalar(1.5e2, 2.0, 1.5e7, 0.5),
-                                        translucencyByDistance: new Cesium.NearFarScalar(
-                                            1.5e2,
-                                            1.0,
-                                            1.5e8,
-                                            0.0
-                                        ),
-                                    },
-                                    show: true
-                                });
-                                sensorCircles[payload.id]=viewer.entities.add({
-                                    position: Cesium.Cartesian3.fromDegrees(
-                                        payload.longitude,
-                                        payload.latitude
-                                    ),
-                                    ellipse: {
-                                        semiMajorAxis: payload.radius,
-                                        semiMinorAxis: payload.radius,
-                                        material: Cesium.Color.BLUE.withAlpha(0.2)
-                                    }
-                                });
-                            }
-                        } else if(topic=="greenfield.fire.location") {
-                            // console.log("Fire location received.");
-                            // Cesium suggests using PointPrimitives when have large collection of points, applies to fires
-                            fires.add({
-                                position : new Cesium.Cartesian3.fromDegrees(
-                                    payload.longitude,
-                                    payload.latitude
-                                ),
-                                pixelSize: 8,
-                                color : Cesium.Color.RED,
-                                show: true,
-                                willReadFrequently: true // Set willReadFrequently to true
-                            });
-                        } else if(topic=="greenfield.constellation.detected"){
-                            // console.log("Satellite detected.");
-                            fires.get(payload.fireId).color = Cesium.Color.DARKORANGE
-                        } else if(topic=="greenfield.constellation.reported"){
-                            // console.log("Satellite reported.");
-                            fires.get(payload.fireId).color = Cesium.Color.YELLOW
-                        } else if(topic=="greenfield.ground.location"){
-                            // console.log("Ground location received.");
-                            activeCheck = payload.operational;
-                            if (activeCheck){
-                                groundColor = Cesium.Color.PINK
-                                groundMaterial = Cesium.Color.PINK.withAlpha(0.1)
-                            } else {
-                                groundColor = Cesium.Color.LIGHTGRAY
-                                groundMaterial = Cesium.Color.LIGHTGRAY.withAlpha(0.1)
-                            };
-                            if (!grounds[payload.groundId]) {
-                                // Only add grounds with unique ids
-                                grounds[payload.groundId] = viewer.entities.add({
-                                    position: Cesium.Cartesian3.fromDegrees(
-                                        payload.longitude,
-                                        payload.latitude
-                                    ),
-                                    point: {
-                                        pixelSize: 8,
-                                        color: groundColor
-                                    },
-                                    show: true
-                                });
-                                // Currently hardcoded cylinder dimensions, although angle read from message
-                                commsCones[payload.groundId] = viewer.entities.add({
-                                    position: Cesium.Cartesian3.fromDegrees(
-                                        payload.longitude,
-                                        payload.latitude,
-                                        100000.0
-                                    ),
-                                    cylinder: {
-                                        length: 200000.0,
-                                        topRadius: 200000.0*Math.tan((90-payload.elevAngle)*Math.PI/180),
-                                        bottomRadius: 0.0,
-                                        material: groundMaterial,
-                                        outline: true,
-                                        outlineWidth: 1.0,
-                                    }
-                                });
-                            }
-                        }
-                    } catch(err) {
-                        console.log(`ERROR: ${err}`) //'An error was caught somewhere...')
-                    }
+            /**
+             * Connect to RabbitMQ message broker and set up message handlers
+             * @param {Cesium.Viewer} viewer - The CesiumJS viewer instance
+             * @param {Object} entities - Collections of visualization entities
+             */
+            function connectToBroker(viewer, entities) {
+                // Determine websocket protocol based on page security
+                const tls = window.location.protocol === "https:";
+                const url = `${tls ? "wss" : "ws"}://${BROKER_HOST}:${BROKER_PORT}`;
+                console.log(`Connecting to message broker at ${url}`);
+
+                // Create AMQP client
+                const amqp = new AMQPWebSocketClient(url, "/", BROKER_CLIENT_USERNAME, BROKER_CLIENT_PASSWORD);
+                
+                // Connect to broker and set up subscriptions
+                setupBrokerConnection(amqp, viewer, entities);
+            }
+
+            /**
+             * Establish connection to the broker and subscribe to simulation topics
+             * @param {AMQPWebSocketClient} amqp - The AMQP client
+             * @param {Cesium.Viewer} viewer - The CesiumJS viewer instance
+             * @param {Object} entities - Collections of visualization entities
+             */
+            async function setupBrokerConnection(amqp, viewer, entities) {
+                try {
+                    const conn = await amqp.connect();
+                    const ch = await conn.channel();
+                    console.log("Connected to the message broker");
+                    
+                    // Set up exchange and queue
+                    await ch.exchangeDeclare("greenfield", "topic", { durable: true, autoDelete: true });
+                    // const q = await ch.queue("", { exclusive: true });
+                    const q = await ch.queue("greenfield.#", {durable: false, autoDelete: true});
+                    await q.bind("greenfield", "greenfield.#");
+                    
+                    // Subscribe to messages
+                    await q.subscribe({ noAck: true }, (msg) => {
+                        const topic = msg.routingKey;
+                        const payload = JSON.parse(msg.bodyToString());
+                        handleMessage(topic, payload, viewer, entities);
+                    });
+                } catch (err) {
+                    console.error("Failed to connect to message broker:", err);
+                    // Show connection error indicator
+                    showConnectionError();
                 }
+            }
 
-                const url = `ws://${BROKER_HOST}:${BROKER_PORT}`;
-                // fetch('http://localhost:8080/realms/test/protocol/openid-connect/token', {
-                fetch(`${BROKER_HOST.includes("localhost") ? "http" : "https"}://${BROKER_HOST}:${AUTH_PORT}/realms/NOS-T/protocol/openid-connect/token`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: new URLSearchParams({
-                        'client_id': BROKER_CLIENT_ID,
-                        'client_secret': BROKER_CLIENT_SECRET,
-                        'grant_type': 'client_credentials'
-                    })
-                }).then(response => {
-                    if (response.ok) {
-                        return response.json();
-                    } else {
-                        throw new Error('Failed to obtain access token');
+            /**
+             * Show connection error message to user
+             */
+            function showConnectionError() {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'alert alert-danger';
+                errorDiv.style.position = 'absolute';
+                errorDiv.style.top = '10px';
+                errorDiv.style.left = '50%';
+                errorDiv.style.transform = 'translateX(-50%)';
+                errorDiv.style.zIndex = '1000';
+                errorDiv.textContent = 'Connection to message broker failed. Please check your configuration.';
+                document.body.appendChild(errorDiv);
+            }
+
+            /**
+             * Process incoming messages from the broker based on topic
+             * @param {string} topic - Message topic
+             * @param {Object} payload - Message payload
+             * @param {Cesium.Viewer} viewer - CesiumJS viewer instance
+             * @param {Object} entities - Entity collections
+             */
+            function handleMessage(topic, payload, viewer, entities) {
+                try {
+                    // Route message to appropriate handler based on topic
+                    if (topic === "greenfield.manager.init") {
+                        handleInitMessage(payload, viewer);
+                    } else if (topic === "greenfield.manager.start") {
+                        handleStartMessage(payload, viewer);
+                    } else if (topic === "greenfield.manager.time" || topic === "greenfield.manager.status.time") {
+                        handleTimeMessage(payload, viewer);
+                    } else if (topic === "greenfield.manager.update") {
+                        handleUpdateMessage(payload, viewer);
+                    } else if (topic === "greenfield.constellation.location") {
+                        handleSatelliteLocationMessage(payload, entities, viewer);
+                    } else if (topic === "greenfield.fire.location") {
+                        handleFireLocationMessage(payload, entities);
+                    } else if (topic === "greenfield.constellation.detected") {
+                        handleFireDetectionMessage(payload, entities);
+                    } else if (topic === "greenfield.constellation.reported") {
+                        handleFireReportMessage(payload, entities);
+                    } else if (topic === "greenfield.ground.location") {
+                        handleGroundStationMessage(payload, entities, viewer);
                     }
-                }).then(data => {
-                    console.log("Access token obtained.");
-                    const accessToken = data.access_token;
-                    const amqp = new AMQPWebSocketClient(url, "/", "", accessToken);
-                    async function start(amqp) {
-                        try {
-                            const conn = await amqp.connect();
-                            const ch = await conn.channel();
-                            await ch.exchangeDeclare("greenfield", "topic", {durable: false, autoDelete: true}); //{durable: true, autoDelete: false});
-                            const q = await ch.queue("greenfield.#", {durable: false, autoDelete: true});
-                            await q.bind("greenfield", "greenfield.#");
-                            const consumer = await q.subscribe({noAck: true}, (msg) => {
-                                const topic = msg.routingKey;
-                                const payload = JSON.parse(msg.bodyToString());
-                                handleMessage(topic, payload);
-                                // msg.ack();
-                            })
-                        } catch (err) {
-                            console.error("Error", err, "reconnecting in 1s");
-                            setTimeout(() => start(amqp), 1000);
+                } catch (err) {
+                    console.error(`Error handling message (${topic}):`, err);
+                }
+            }
+
+            /**
+             * Handle simulation initialization message
+             * @param {Object} payload - Message data
+             * @param {Cesium.Viewer} viewer - CesiumJS viewer
+             */
+            function handleInitMessage(payload, viewer) {
+                console.log("Initialize command received");
+                
+                // Set timeline start and end times
+                const startTime = Cesium.JulianDate.fromIso8601(payload.taskingParameters.simStartTime);
+                const stopTime = Cesium.JulianDate.fromIso8601(payload.taskingParameters.simStopTime);
+                
+                viewer.clockViewModel.currentTime = startTime;
+                viewer.clockViewModel.startTime = startTime;
+                viewer.clockViewModel.stopTime = stopTime;
+                viewer.clockViewModel.clockRange = Cesium.ClockRange.CLAMPED;
+                
+                // Zoom timeline to simulation duration
+                viewer.timeline.zoomTo(startTime, stopTime);
+            }
+
+            /**
+             * Handle simulation start message
+             * @param {Object} payload - Message data
+             * @param {Cesium.Viewer} viewer - CesiumJS viewer
+             */
+            function handleStartMessage(payload, viewer) {
+                console.log("Start command received");
+                viewer.clockViewModel.multiplier = payload.taskingParameters.timeScalingFactor;
+            }
+
+            /**
+             * Handle simulation time update message
+             * @param {Object} payload - Message data
+             * @param {Cesium.Viewer} viewer - CesiumJS viewer
+             */
+            function handleTimeMessage(payload, viewer) {
+                // Update simulation clock
+                viewer.clockViewModel.currentTime = Cesium.JulianDate.fromIso8601(payload.properties.simTime);
+                viewer.timeline.updateFromClock();
+            }
+
+            /**
+             * Handle simulation update message
+             * @param {Object} payload - Message data
+             * @param {Cesium.Viewer} viewer - CesiumJS viewer
+             */
+            function handleUpdateMessage(payload, viewer) {
+                console.log("Update message received");
+                viewer.clockViewModel.multiplier = payload.taskingParameters.timeScalingFactor;
+            }
+
+            /**
+             * Handle satellite location message
+             * @param {Object} payload - Satellite data
+             * @param {Object} entities - Entity collections
+             * @param {Cesium.Viewer} viewer - CesiumJS viewer
+             */
+            function handleSatelliteLocationMessage(payload, entities, viewer) {
+                // Determine satellite color based on communications status
+                const satColor = payload.commRange ? Cesium.Color.GREEN : Cesium.Color.BLUE;
+                
+                const { satellites, sensorCircles } = entities;
+                
+                if (satellites[payload.id]) {
+                    // Update existing satellite
+                    satellites[payload.id].position = Cesium.Cartesian3.fromDegrees(
+                        payload.longitude,
+                        payload.latitude,
+                        payload.altitude
+                    );
+                    satellites[payload.id].point.color = satColor;
+                    
+                    // Update sensor circle
+                    sensorCircles[payload.id].ellipse.semiMajorAxis = payload.radius;
+                    sensorCircles[payload.id].ellipse.semiMinorAxis = payload.radius;
+                    sensorCircles[payload.id].position = Cesium.Cartesian3.fromDegrees(
+                        payload.longitude,
+                        payload.latitude
+                    );
+                } else {
+                    // Create new satellite entity
+                    satellites[payload.id] = viewer.entities.add({
+                        position: Cesium.Cartesian3.fromDegrees(
+                            payload.longitude,
+                            payload.latitude,
+                            payload.altitude
+                        ),
+                        point: {
+                            pixelSize: 8,
+                            color: satColor
+                        },
+                        label: {
+                            text: payload.name,
+                            font: "12px Georgia",
+                            fillColor: Cesium.Color.SKYBLUE,
+                            outlineColor: Cesium.Color.BLACK,
+                            outlineWidth: 2,
+                            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                            pixelOffset: new Cesium.Cartesian2(40.0, 8.0),
+                            pixelOffsetScaleByDistance: new Cesium.NearFarScalar(
+                                1.5e2, 3.0, 1.5e7, 0.5
+                            ),
+                            scaleByDistance: new Cesium.NearFarScalar(1.5e2, 2.0, 1.5e7, 0.5),
+                            translucencyByDistance: new Cesium.NearFarScalar(
+                                1.5e2, 1.0, 1.5e8, 0.0
+                            ),
+                        },
+                        show: true
+                    });
+                    
+                    // Create sensor coverage circle
+                    sensorCircles[payload.id] = viewer.entities.add({
+                        position: Cesium.Cartesian3.fromDegrees(
+                            payload.longitude,
+                            payload.latitude
+                        ),
+                        ellipse: {
+                            semiMajorAxis: payload.radius,
+                            semiMinorAxis: payload.radius,
+                            material: Cesium.Color.BLUE.withAlpha(0.2)
                         }
-                    }
-                    start(amqp);
-                }).catch(error => {
-                    console.error(error);
+                    });
+                }
+            }
+
+            /**
+             * Handle fire location message
+             * @param {Object} payload - Fire data
+             * @param {Object} entities - Entity collections
+             */
+            function handleFireLocationMessage(payload, entities) {
+                // Add new fire point primitive
+                entities.fires.add({
+                    position: new Cesium.Cartesian3.fromDegrees(
+                        payload.longitude,
+                        payload.latitude
+                    ),
+                    pixelSize: 8,
+                    color: Cesium.Color.RED,
+                    show: true,
+                    willReadFrequently: true
                 });
-            });
+            }
+
+            /**
+             * Handle fire detection message
+             * @param {Object} payload - Detection data
+             * @param {Object} entities - Entity collections
+             */
+            function handleFireDetectionMessage(payload, entities) {
+                // Update fire color to indicate detection
+                entities.fires.get(payload.fireId).color = Cesium.Color.DARKORANGE;
+            }
+
+            /**
+             * Handle fire report message
+             * @param {Object} payload - Report data
+             * @param {Object} entities - Entity collections
+             */
+            function handleFireReportMessage(payload, entities) {
+                // Update fire color to indicate reporting
+                entities.fires.get(payload.fireId).color = Cesium.Color.YELLOW;
+            }
+
+            /**
+             * Handle ground station location message
+             * @param {Object} payload - Ground station data
+             * @param {Object} entities - Entity collections
+             * @param {Cesium.Viewer} viewer - CesiumJS viewer
+             */
+            function handleGroundStationMessage(payload, entities, viewer) {
+                // Set ground station color based on operational status
+                const isOperational = payload.operational;
+                const groundColor = isOperational ? Cesium.Color.PINK : Cesium.Color.LIGHTGRAY;
+                const groundMaterial = isOperational ? 
+                    Cesium.Color.PINK.withAlpha(0.1) : 
+                    Cesium.Color.LIGHTGRAY.withAlpha(0.1);
+                
+                // Only add ground station if it doesn't already exist
+                if (!entities.grounds[payload.groundId]) {
+                    // Add ground station point
+                    entities.grounds[payload.groundId] = viewer.entities.add({
+                        position: Cesium.Cartesian3.fromDegrees(
+                            payload.longitude,
+                            payload.latitude
+                        ),
+                        point: {
+                            pixelSize: 8,
+                            color: groundColor
+                        },
+                        show: true
+                    });
+                    
+                    // Add communication cone
+                    entities.commsCones[payload.groundId] = viewer.entities.add({
+                        position: Cesium.Cartesian3.fromDegrees(
+                            payload.longitude,
+                            payload.latitude,
+                            100000.0
+                        ),
+                        cylinder: {
+                            length: 200000.0,
+                            topRadius: 200000.0 * Math.tan((90 - payload.elevAngle) * Math.PI / 180),
+                            bottomRadius: 0.0,
+                            material: groundMaterial,
+                            outline: true,
+                            outlineWidth: 1.0,
+                        }
+                    });
+                }
+            }
         </script>
     </body>
 </html>
