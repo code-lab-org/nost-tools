@@ -41,12 +41,10 @@ NOS-T Tools Installation
 NOS-T Tools is available on PyPi. 
 
 First, install pip version 23 or greater:
-
 ::
   python3 -m pip install --upgrade pip
 
 Then, install the NOS-T Tools library:
-
 ::
   python3 -m pip install "nost_tools[examples]"
 
