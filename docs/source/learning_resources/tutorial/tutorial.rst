@@ -184,8 +184,8 @@ The next function, ``on_fire``, checks the current simulation time vs. a databas
 The final block of the Constellation class is next. It contains the ``on_ground`` function which is used to collect information on ground station locations and elevation angles when those messages are published.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-  :lines: 356-392
-
+  :pyobject: Constellation.on_ground
+  
 Position Publisher Class
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
