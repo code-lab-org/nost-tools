@@ -126,9 +126,11 @@ This next group of import statements is tailored for FireSat+, pulling in values
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
 	:lines: 7-14
 
-The first line in the code block below sets up a logger to help you track what is going on. More info on the various levels can be found
-`here <https://docs.python.org/3/howto/logging.html#when-to-use-logging>`__. Next, the function, ``compute_min_elevation``, returns the minimum elevation angle required for a satellite to observe a point from it's current location. It accepts the parameters altitude and field_of_regard to 
-complete mathematical functions to return the degree on minimum elevation.
+The first two lines in the code block below initializes a logger, which is useful for monitoring the behavior and flow of the program. You can find more details about the different logging levels 
+`here <https://docs.python.org/3/howto/logging.html#when-to-use-logging>`__.
+
+Following that, the function ``compute_min_elevation`` calculates the minimum elevation angle necessary for a satellite to observe a specific point from its current position. It takes two parameters: ``altitude`` and ``field_of_regard``. These inputs are used in mathematical computations to determine and return the minimum elevation angle in degrees.
+
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
 	:lines: 24-52
