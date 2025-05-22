@@ -119,13 +119,13 @@ A key component of the FireSat+ example case is the **Satellite** application. T
 This first part of the code contains import statements allow you to install the necessary dependencies to construct the application. The group at the top are regular Python dependencies while the ones at the bottom draw from the :ref:`NOS-T tools library <nostTools>`.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-	:lines: 8-20
+	:lines: 1-6,15-22
 
 This next set of import statements are customized for FireSat+ values from the constellation configuration files. The first set of imports draws in the message schema configuration, which defines the structure of how **Satellites** communicates data. The second set of imports pulls in values to define the constellation: the ``PREFIX`` the messages will be published on, the ``NAME`` of the satellite, the ``SCALE`` of the timed simulation, 
 the two-line element sets (``TLEs``) that define the satellites' orbit, and the ``FIELD_OF_REGARD``, which indicates the region visible on Earth by the satellite's instrument.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-	:lines: 22-35
+	:lines: 7-14
 
 The first line in the code block below sets up a logger to help you track what is going on. More info on the various levels can be found
 `here <https://docs.python.org/3/howto/logging.html#when-to-use-logging>`__. Next, the function, ``compute_min_elevation``, returns the minimum elevation angle required for a satellite to observe a point from it's current location. It accepts the parameters altitude and field_of_regard to 
