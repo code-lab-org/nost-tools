@@ -131,7 +131,7 @@ The first line in the code block below sets up a logger to help you track what i
 complete mathematical functions to return the degree on minimum elevation.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-	:lines: 37-63
+	:lines: 24-52
  
 Next, the ``compute_sensor_radius`` function  pulls in the result of compute_min_elevation and the altitude value to return ``sensor_radius``, which provides the radius of the nadir pointing sensor's circular view projected onto Earth. 
 
