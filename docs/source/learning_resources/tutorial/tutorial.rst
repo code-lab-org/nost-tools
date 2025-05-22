@@ -127,7 +127,7 @@ This next group of import statements is tailored for FireSat+, pulling in values
 	:lines: 7-14
 
 A logger is initialized for monitoring the behavior and flow of the program. You can find more details about the different logging levels 
-`here <https://docs.python.org/3/howto/logging.html#when-to-use-logging>`__
+`here <https://docs.python.org/3/howto/logging.html#when-to-use-logging>`__.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
   :lines: 24-25
@@ -151,6 +151,8 @@ These two functions, ``check_in_view`` and ``check_in_range``, affirm if the ele
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
 	:pyobject: check_in_view
+
+.. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
   :pyobject: check_in_range
 
 .. _tutorialConstellation:
