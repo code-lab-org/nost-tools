@@ -209,7 +209,7 @@ The next code block contains two different fire observation classes. The first o
 The final block of code in the **Satellites** app is for initializing data and adding the functions and classes.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-  :start-after: FireReportedObserver.on_change
+  :pyobject: main
 
 The **Manager** application - main_manager.py
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
