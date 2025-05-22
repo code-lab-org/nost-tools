@@ -116,13 +116,12 @@ The **Satellites** application - main_constellation.py
 
 A key component of the FireSat+ example case is the **Satellite** application. This application enables the user to generate a satellite constellation using the NOS-T Tools library, leveraging predefined templates to construct a model of a real-life constellation. You will be guided through the how each code block works, to help understand the purpose of different components in an application.
 
-This first part of the code contains import statements allow you to install the necessary dependencies to construct the application. The group at the top are regular Python dependencies while the ones at the bottom draw from the :ref:`NOS-T tools library <nostTools>`.
+The first section of the code includes import statements that bring in the necessary dependencies for building the application. The imports at the top are standard Python libraries, while those at the bottom are sourced from the :ref:`NOS-T tools library <nostTools>`.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
 	:lines: 1-6,15-22
 
-This next set of import statements are customized for FireSat+ values from the constellation configuration files. The first set of imports draws in the message schema configuration, which defines the structure of how **Satellites** communicates data. The second set of imports pulls in values to define the constellation: the ``PREFIX`` the messages will be published on, the ``NAME`` of the satellite, the ``SCALE`` of the timed simulation, 
-the two-line element sets (``TLEs``) that define the satellites' orbit, and the ``FIELD_OF_REGARD``, which indicates the region visible on Earth by the satellite's instrument.
+This next group of import statements is tailored for FireSat+, pulling in values from the constellation configuration files. The first set imports the message schema configuration, which defines the structure for how **Satellites** transmit data. The second set brings in the ``FIELD_OF_REGARD`` parameter, which specifies the area on Earth visible to the satellite\’s instrument.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
 	:lines: 7-14
