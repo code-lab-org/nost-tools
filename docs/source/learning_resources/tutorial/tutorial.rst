@@ -278,35 +278,26 @@ visualization.
 Setting Up Environment Files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In order to protect your (and our) information, these applications all use
-environment files for usernames, passwords, event broker host site URLs, and
-port numbers. You will need to create an environment file in the each FireSat+ folders.
-
-Note that you can use most text editors to make these files but be sure that you are not saving them as a .txt file type.
-For instance, if you save a .evn file as a .txt file type using Windows Notepad, it will actually save as .evn.txt which will
-not work. If you're using Windows Notepad choose the file type "All Files (*.*)".
-
-For the applications coded in python (.py files) you will need to create a text
-file with the name ".env" containing the following text:
-
-::
-
-  HOST="your event broker host URL"
-  PORT=8883 - your connection port
-  USERNAME="your event broker username"
-  PASSWORD="your event broker password"
-
 The Scoreboard application is in .html, and pulls in credentials from a JavaScript file. To do this create a text file with the name "env.js" containing the following information:
 
 ::
 
   var HOST="your event broker host URL"
-  var PORT=8883 - your connection port
+  var RABBITMQ_PORT=15670
   var USERNAME="your event broker username"
   var PASSWORD="your event broker password"
   var TOKEN="your Cesium token (see Cesium installation instructions)"
 
+For example, if you are running the test suite on your local computer using a local RabbitMQ event broker, you can set up the env.js file like this:
+::
 
+  var HOST="localhost"
+  var RABBITMQ_PORT=15670
+  var USERNAME="admin"
+  var PASSWORD="admin"
+  var TOKEN="your Cesium token (see Cesium installation instructions)"
+
+For details on setting up a RabbitMQ event broker, please see the :file:`../../operators_guide/modules/localBroker.rst`.
 
 Executing FireSat+
 ~~~~~~~~~~~~~~~~~~
