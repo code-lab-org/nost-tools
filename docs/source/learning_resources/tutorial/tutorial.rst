@@ -121,7 +121,7 @@ The first section of the code includes import statements that bring in the neces
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
 	:lines: 1-6,15-22
 
-This next group of import statements is tailored for FireSat+, pulling in values from the constellation configuration files. The first set imports the message schema configuration, which defines the structure for how **Satellites** transmit data. The second set brings in the ``FIELD_OF_REGARD`` parameter, which specifies the area on Earth visible to the satellite\’s instrument.
+This next group of import statements is tailored for FireSat+, pulling in values from the constellation configuration files.  The first set brings in the ``FIELD_OF_REGARD`` parameter, which specifies the area on Earth visible to the satellite\’s instrument. The second set imports the message schema configuration, which defines the structure for how **Satellites** transmit data.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
 	:lines: 7-14
