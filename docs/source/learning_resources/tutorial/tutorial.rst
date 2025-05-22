@@ -209,7 +209,7 @@ The next code block contains two different fire observation classes. The first o
 The final block of code in the **Satellites** app is for initializing data and adding the functions and classes.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-  :start-after: START-MAIN
+  :start-at: __main__
 
 The **Manager** application - main_manager.py
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -228,7 +228,7 @@ second two are drawn from the NOS-T tools library. The last imports come from a 
 In that config file you will need to set your desired event message prefix, the time scale, and any time scale updates. 
 
 .. literalinclude:: /../../examples/firesat/manager/main_manager.py
-	:end-at: logging
+	:end-at: basicConfig
 
 .. _timeScaleUpdate:
 
