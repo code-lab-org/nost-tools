@@ -511,6 +511,7 @@ class FireReportedObserver(Observer):
             )
 
 
+# START-MAIN
 if __name__ == "__main__":
     # Load config
     config = ConnectionConfig(yaml_file="firesat.yaml")
