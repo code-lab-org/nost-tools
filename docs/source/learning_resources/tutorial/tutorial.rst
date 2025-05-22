@@ -185,14 +185,14 @@ The final block of the Constellation class is next. It contains the ``on_ground`
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
   :pyobject: Constellation.on_ground
-  
+
 Position Publisher Class
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 The next class in the **Satellites** application is the Position Publisher. This class takes the satellite location information from the Constellation class and publishes it over the NOS-T infrastructre. These messages are used for the **Scoreboard** application, which is a geospatial visualization tool.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-	:lines: 395-460
+	:pyobject: PositionPublisher
 
 Fire Observer Classes
 ~~~~~~~~~~~~~~~~~~~~~
@@ -200,12 +200,12 @@ Fire Observer Classes
 The next code block contains two different fire observation classes. The first of these is for detecting fires and the second is for reporting fires. The concept of operations for FireSat+ is that fires are first *ignited*, then *detected* when a satellite passes over them. Finally, the fires are *reported* when the detecting satellite is in range of a ground station for the data downlink. The Fire Observer classes publish this over the testbed for postprocessing of results, and for **Scoreboard** visualization.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-	:lines: 463-523
+	:pyobject: FireDetectedObserver
 
 The final block of code in the **Satellites** app is for initializing data and adding the functions and classes.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-	:lines: 526- 574
+	:pyobject: FireReportedObserver
 
 
 The **Manager** application - main_manager.py
