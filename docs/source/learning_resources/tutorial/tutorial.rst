@@ -142,7 +142,7 @@ Next, the ``compute_sensor_radius`` function  pulls in the result of ``compute_m
 The ``get_elevation_angle`` is a function that uses the Skyfield library. It accepts the parameters ``t``, ``sat``, and ``loc``. The first two, respectively, represent the Skyfield time object, the Skyfield EarthSat object. The third is the latitude/longitude of the spacecraft's subpoint, along with the spacecraft altitude. It returns an elevation angle in respect to the topocentric horizon.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-	:lines: 92-109
+	:pyobject: get_elevation_angle
 
 These two functions, ``check_in_view`` and ``check_in_range``, affirm if the elevation angle and immediate location of the satellite enable it to connect to a ground station and view regions on Earth. 
 
