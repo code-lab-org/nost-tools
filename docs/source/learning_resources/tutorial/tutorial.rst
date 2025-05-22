@@ -174,7 +174,7 @@ The next two functions, ``tick`` and ``tock``, are very important for executing 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
   :pyobject: Constellation
   :start-at: tick
-  :end-after: tock
+  :end-before: on_fire
 
 The next function, ``on_fire``, checks the current simulation time vs. a database of actual fires detected by an space-based infrared sensor. This function then publishes a message containing information about the fire. It also maintains an internal database for when fires are detected and reported, and which satellite did the detecting/reporting.
 
