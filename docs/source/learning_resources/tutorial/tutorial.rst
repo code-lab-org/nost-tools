@@ -166,6 +166,11 @@ The Constellation class leverages the NOS-T tools library 'Entity' object class 
 The first two functions in the Constellation class, ``init`` and ``initialize``, prepare the test run for startup by initializing data.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
+  :pyobject: Constellation
+  :start-after: __init__
+  :end-before: initialize
+
+.. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
   :pyobject: Constellation.__init__
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
