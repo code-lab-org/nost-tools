@@ -4,7 +4,7 @@ from datetime import timedelta
 
 import numpy as np
 import pandas as pd
-from constellation_config_files.config import FIELD_OF_REGARD, NAME
+from constellation_config_files.config import FIELD_OF_REGARD
 from constellation_config_files.schemas import (
     FireDetected,
     FireReported,
