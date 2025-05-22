@@ -126,13 +126,16 @@ This next group of import statements is tailored for FireSat+, pulling in values
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
 	:lines: 7-14
 
-The first two lines in the code block below initializes a logger, which is useful for monitoring the behavior and flow of the program. You can find more details about the different logging levels 
-`here <https://docs.python.org/3/howto/logging.html#when-to-use-logging>`__.
+A logger is initialized for monitoring the behavior and flow of the program. You can find more details about the different logging levels 
+`here <https://docs.python.org/3/howto/logging.html#when-to-use-logging>`__
+
+.. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
+  :lines: 24-25
 
 Following that, the function ``compute_min_elevation`` calculates the minimum elevation angle necessary for a satellite to observe a specific point from its current position. It takes two parameters: ``altitude`` and ``field_of_regard``. These inputs are used in mathematical computations to determine and return the minimum elevation angle in degrees.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-	:lines: 24-52
+  :pyobject: compute_min_elevation
  
 Next, the ``compute_sensor_radius`` function  pulls in the result of ``compute_min_elevation`` and the altitude value to return ``sensor_radius``, which provides the radius of the nadir pointing sensor's circular view projected onto Earth. 
 
@@ -147,7 +150,8 @@ The ``get_elevation_angle`` is a function that uses the Skyfield library. It acc
 These two functions, ``check_in_view`` and ``check_in_range``, affirm if the elevation angle and immediate location of the satellite enable it to connect to a ground station and view regions on Earth. 
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-	:lines: 112-159
+	:pyobject: check_in_view
+  :pyobject: check_in_range
 
 .. _tutorialConstellation:
 
