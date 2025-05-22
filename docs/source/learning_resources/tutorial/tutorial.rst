@@ -228,7 +228,7 @@ second two are drawn from the NOS-T tools library. The last imports come from a 
 In that config file you will need to set your desired event message prefix, the time scale, and any time scale updates. 
 
 .. literalinclude:: /../../examples/firesat/manager/main_manager.py
-	:lines: 12-26
+	:end-at: logging
 
 .. _timeScaleUpdate:
 
