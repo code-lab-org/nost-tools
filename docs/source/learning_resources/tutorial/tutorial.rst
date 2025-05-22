@@ -297,7 +297,7 @@ For example, if you are running the test suite on your local computer using a lo
   var PASSWORD="admin"
   var TOKEN="your Cesium token (see Cesium installation instructions)"
 
-For details on setting up a RabbitMQ event broker, please see the :doc:`../../operators_guide/modules/localBroker.rst`.
+For details on setting up a local RabbitMQ broker, refer to the :ref:`localBroker` guide.
 
 Executing FireSat+
 ~~~~~~~~~~~~~~~~~~
