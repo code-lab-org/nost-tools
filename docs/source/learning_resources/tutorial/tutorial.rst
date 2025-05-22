@@ -250,14 +250,7 @@ The next block of code starts with a name guard and credentials like the **Satel
 file :ref:`described below<envSetUp>`. The next four lines of code follow their preceding comments. Using the various NOS-T tools from the library the connection is set, the manager application is created, it is set to shut down after the test case, and is commanded to start up.
 
 .. literalinclude:: /../../examples/firesat/manager/main_manager.py
-	:lines: 29-45
-
-This final section of code contains the vital information for executing your test plan. The comments on the right side give a good explanation of 
-what each line means. It is important to note that the :code:`SCALE` and :code:`UPDATE` values should be set in the config file as explained 
-:ref:`above <timeScaleUpdate>`.
-
-.. literalinclude:: /../../examples/firesat/manager/main_manager.py
-	:lines: 48-58
+  :start-at: __main__
 
 Test Suite Wrap-Up
 ------------------
