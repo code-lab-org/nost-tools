@@ -169,12 +169,6 @@ The first two functions in the Constellation class, ``init`` and ``initialize``,
   :pyobject: Constellation
   :end-before: tick
 
-.. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-  :pyobject: Constellation.__init__
-
-.. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-  :pyobject: Constellation.initialize
-
 The next two functions, ``tick`` and ``tock``, are very important for executing time-managed test suites. Generally, the ``tick`` function computes the current state of an application. Any cumbersome functions like simulations should be performed here. The ``tock`` function commits the state changes. You want this done as quickly as possible to maintain consistent timing between applications.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
