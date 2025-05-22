@@ -22,7 +22,6 @@ from nost_tools.observer import Observer
 from nost_tools.publisher import WallclockTimeIntervalPublisher
 
 logging.basicConfig(level=logging.INFO)
-
 logger = logging.getLogger(__name__)
 
 
