@@ -167,8 +167,7 @@ The first two functions in the Constellation class, ``init`` and ``initialize``,
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
   :pyobject: Constellation
-  :start-after: __init__
-  :end-before: initialize
+  :end-before: tick
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
   :pyobject: Constellation.__init__
