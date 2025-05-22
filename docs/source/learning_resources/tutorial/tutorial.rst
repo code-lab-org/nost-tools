@@ -131,14 +131,13 @@ The first two lines in the code block below initializes a logger, which is usefu
 
 Following that, the function ``compute_min_elevation`` calculates the minimum elevation angle necessary for a satellite to observe a specific point from its current position. It takes two parameters: ``altitude`` and ``field_of_regard``. These inputs are used in mathematical computations to determine and return the minimum elevation angle in degrees.
 
-
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
 	:lines: 24-52
  
-Next, the ``compute_sensor_radius`` function  pulls in the result of compute_min_elevation and the altitude value to return ``sensor_radius``, which provides the radius of the nadir pointing sensor's circular view projected onto Earth. 
+Next, the ``compute_sensor_radius`` function  pulls in the result of ``compute_min_elevation`` and the altitude value to return ``sensor_radius``, which provides the radius of the nadir pointing sensor's circular view projected onto Earth. 
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-	:lines: 66-89
+	:pyobject: compute_sensor_radius
 
 The ``get_elevation_angle`` is a function that uses the Skyfield library. It accepts the parameters ``t``, ``sat``, and ``loc``. The first two, respectively, represent the Skyfield time object, the Skyfield EarthSat object. The third is the latitude/longitude of the spacecraft's subpoint, along with the spacecraft altitude. It returns an elevation angle in respect to the topocentric horizon.
 
