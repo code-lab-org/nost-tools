@@ -250,33 +250,13 @@ The next block of code starts with a name guard and credentials like the **Satel
 file :ref:`described below<envSetUp>`. The next four lines of code follow their preceding comments. Using the various NOS-T tools from the library the connection is set, the manager application is created, it is set to shut down after the test case, and is commanded to start up.
 
 .. literalinclude:: /../../examples/firesat/manager/main_manager.py
-  :start-at: __main__
-
-Test Suite Wrap-Up
-------------------
-
-Next, we'll go through the next steps to actually executing FireSat+.
-
-File Tree Checkup
-~~~~~~~~~~~~~~~~~
-
-If you have done everything correctly up to this point, you should see a file tree like the image below. Most importantly, you should have 
-the five folders in the firesat folder which contain the constituent FireSat+ applications. These applications are described in the next section.
-
-.. image:: media/fileTree.png
-   :width: 400
-   :align: center
-
-Remaining Applications
-~~~~~~~~~~~~~~~~~~~~~~
-
-There are a total of five files you will need to run for FireSat+, four user applications, the NOS-T manager application,
-and the **Scoreboard**, a geospatial data visualization tool. 
-Managing an NOS-T Test Run
-
+  :start-at: main
 
 Executing the FireSat+ Test Suite
 ---------------------------------
+
+There are a total of five files you will need to run for FireSat+, four user applications, the NOS-T manager application,
+and the **Scoreboard**, a geospatial data visualization tool.
 
 There are a few more steps necessary to run FireSat+. You need to create a Cesium token to run the **Scoreboard** and set up
 environment files for each application.
