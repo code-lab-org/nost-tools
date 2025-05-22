@@ -35,6 +35,10 @@ An IDE will make developing applications and interacting with the testbed much e
 NOS-T Tools Download and Installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+The NOS-T Tools library is available on `PyPi <https://pypi.org/project/nost-tools/>`__ and can be installed using pip, the standard package manager for Python. The library is compatible with Python 3.8 and later versions.
+
+Example code for the FireSat+ test suite is hosted on GitHub and can be easily cloned to your local environment for use.
+
 NOS-T Tools Installation
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -59,7 +63,7 @@ If the above fails, you can also try the HTTPS version:
 ::
   git clone https://github.com/code-lab-org/nost-tools.git
 
-Following the instructions above will automatically install the Python packages that NOS-T depends on to run. These package dependencies can
+Following the instructions above will install the Python packages that the FireSat+ test suite depends on to run. The details of these dependencies, including version numbers, can
 otherwise be found in the `requirements file <https://github.com/code-lab-org/nost-tools/blob/main/pyproject.toml>`__.
 
 .. _tutorialSystemDescription:
@@ -110,9 +114,7 @@ NOS-T test suites are made up of applications communicating over the broker. Nex
 The **Satellites** application - main_constellation.py
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A key component of the FireSat+ example case is **Satellite** application. This application enables the user to generation a satellite constellation using the nost-tools library, leveraging predefined templates to construct a model of a real-life constellation. You will be guided through the how each code block works, to help understand the purpose of different components in an application.
-
-First, you'll need to create a new file titled main_constellation.py inside your examples/firesat_tutorial/satellites folder. To progress through this section, copy and paste the code blocks into this file. NOTE: You *must* maintain the indentations you see in these code blocks when pasting them into the main_constellation.py file.
+A key component of the FireSat+ example case is the **Satellite** application. This application enables the user to generate a satellite constellation using the NOS-T Tools library, leveraging predefined templates to construct a model of a real-life constellation. You will be guided through the how each code block works, to help understand the purpose of different components in an application.
 
 This first part of the code contains import statements allow you to install the necessary dependencies to construct the application. The group at the top are regular Python dependencies while the ones at the bottom draw from the :ref:`NOS-T tools library <nostTools>`.
 
