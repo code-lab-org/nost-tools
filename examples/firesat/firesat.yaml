@@ -47,6 +47,11 @@ execution:
     init_max_retry: 5
     set_offset: True
     shut_down_when_terminated: True
+    # time_scale_updates:
+    #   - time_scale_factor: 120.0
+    #     sim_update_time: "2020-01-01T08:20:00+00:00"
+    #   - time_scale_factor: 60.0
+    #     sim_update_time: "2020-01-01T09:20:00+00:00"
   managed_applications:
     fire:
       time_scale_factor: 60
