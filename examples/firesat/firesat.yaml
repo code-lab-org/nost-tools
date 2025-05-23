@@ -9,21 +9,6 @@ servers:
     port: 5672
     tls: False
     virtual_host: "/"
-
-    # Basic Properties
-    message_expiration: "60000" # in milliseconds, message expiration time
-    # delivery_mode: 1 # 1=transient, 2=durable
-    # content_type: "application/json" #"text/plain"
-    
-    # Connection Parameters
-    # connection_attempts: 3
-    # retry_delay: 5 # in seconds
-    # socket_timeout: 10 # in seconds
-    # stack_timeout: 86400 # in seconds
-    heartbeat: 600 #65535 # in seconds
-    blocked_connection_timeout: 300 # in seconds
-    # frame_max: 1048576 # in bytes
-    reconnect_delay: 15 # in seconds
 execution:
   general:
     prefix: greenfield
