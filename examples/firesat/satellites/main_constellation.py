@@ -522,18 +522,18 @@ if __name__ == "__main__":
     app = ManagedApplication(NAME)
 
     # load current TLEs for active satellites from Celestrak (NOTE: User has option to specify their own TLE instead)
-    activesats_url = "satellites/active.txt"  # "https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle" #"https://celestrak.com/NORAD/elements/active.txt"
-    activesats = load.tle_file(activesats_url, reload=False)
+    activesats_url = "https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle"  # "satellites/active.txt" #"https://celestrak.com/NORAD/elements/active.txt"
+    activesats = load.tle_file(activesats_url, reload=True)
 
     by_name = {sat.name: sat for sat in activesats}
     names = [
         "AQUA",
         "TERRA",
         "SUOMI NPP",
-        "NOAA 20",
+        "NOAA 20 (JPSS-1)",  # "NOAA 20",
         "SENTINEL-2A",
         "SENTINEL-2B",
-    ]  # "NOAA 20 (JPSS-1)",
+    ]
 
     ES = []
     indices = []
