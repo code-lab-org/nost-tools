@@ -309,7 +309,7 @@ For example, if you are running the test suite on your local computer using a lo
   var TOKEN="your Cesium token (see Cesium installation instructions)"
 
 .. note::
-  
+
   For details on setting up a local RabbitMQ broker, refer to the :ref:`localBroker` guide.
 
 Executing FireSat+
@@ -326,10 +326,6 @@ has a code you need to run, they are:
 * main_constellation.py - The **Satellites** app models the constellation of spacecraft observing and reporting the fires.
 * scoreboard.html - The aforementioned **Scoreboard** gives a view of what's happening during a test run.
 * main_manager.py - The NOS-T **Manager** app orchestrates each test run by starting the other apps at the same time, maintaining a consistent time throughout, and shutting down the apps at the end.
-
-You **must** run the main_manager.py application last, otherwise it does not matter in which 
-order you start the other applications. All of the .py applications will give an output that
-they are waiting for the test case to start up. 
 
 If everything is running correctly, the Scoreboard app should show an image similar
 to below.
