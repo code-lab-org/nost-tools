@@ -261,6 +261,13 @@ and the **Scoreboard**, a geospatial data visualization tool.
 There are a few more steps necessary to run FireSat+. You need to create a Cesium token to run the **Scoreboard** and set up
 environment files for each application.
 
+YAML Configuration File
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Each application reads a YAML configuration file to set up the parameters for the test case. The configuration file is located in the ``examples/firesat/`` folder. The configuration file is named ``firesat.yaml`` and contains the following parameters:
+
+.. literalinclude:: /../../examples/firesat/firesat.yaml
+
 Cesium Access Token and Assets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
