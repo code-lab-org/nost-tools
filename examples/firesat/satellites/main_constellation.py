@@ -521,8 +521,10 @@ if __name__ == "__main__":
     # create the managed application
     app = ManagedApplication(NAME)
 
-    # load current TLEs for active satellites from Celestrak (NOTE: User has option to specify their own TLE instead)
-    activesats_url = "https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle"  # "satellites/active.txt" #"https://celestrak.com/NORAD/elements/active.txt"
+    # load current TLEs for active satellites from Celestrak
+    activesats_url = (
+        "https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle"
+    )
     activesats = load.tle_file(
         activesats_url, filename="satellites/active.txt", reload=True
     )
