@@ -333,7 +333,7 @@ has a code you need to run, they are:
 If everything is running correctly, the Scoreboard app should show an image similar
 to below.
 
-.. image:: media/fireSatScoreboard.png
+.. image:: media/fireSatScoreboard_update.png
    :width: 600
    :align: center
 
