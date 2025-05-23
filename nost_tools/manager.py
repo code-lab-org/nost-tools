@@ -218,6 +218,18 @@ class Manager(Application):
                     "No configuration runtime. Please provide simulation start and stop times."
                 )
 
+        # Convert TimeScaleUpdateSchema objects to TimeScaleUpdate objects
+        converted_updates = []
+        for update_schema in parameters.time_scale_updates:
+            converted_updates.append(
+                TimeScaleUpdate(
+                    time_scale_factor=update_schema.time_scale_factor,
+                    sim_update_time=update_schema.sim_update_time,
+                )
+            )
+        self.time_scale_updates = converted_updates
+
+        # 
         self.establish_exchange()
 
         # Set up tracking of required applications

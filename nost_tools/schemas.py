@@ -311,6 +311,13 @@ class GeneralConfig(BaseModel):
     prefix: str = Field("nost", description="Execution prefix.")
 
 
+class TimeScaleUpdateSchema(BaseModel):
+    """
+    Provides a scheduled update to the simulation time scale factor.
+    """
+    time_scale_factor: float = Field(..., description="Scenario seconds per wallclock second")
+    sim_update_time: datetime = Field(..., description="Scenario time that the update will occur")
+
 class ManagerConfig(BaseModel):
     sim_start_time: Optional[datetime] = Field(
         None, description="Simulation start time."
@@ -322,7 +329,7 @@ class ManagerConfig(BaseModel):
         description="Time step for the simulation.",
     )
     time_scale_factor: float = Field(1.0, description="Time scale factor.")
-    time_scale_updates: List[str] = Field(
+    time_scale_updates: List[TimeScaleUpdateSchema] = Field(
         default_factory=list, description="List of time scale updates."
     )
     time_status_step: Optional[timedelta] = Field(None, description="Time status step.")
