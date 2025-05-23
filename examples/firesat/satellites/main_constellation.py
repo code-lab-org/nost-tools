@@ -523,7 +523,9 @@ if __name__ == "__main__":
 
     # load current TLEs for active satellites from Celestrak (NOTE: User has option to specify their own TLE instead)
     activesats_url = "https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle"  # "satellites/active.txt" #"https://celestrak.com/NORAD/elements/active.txt"
-    activesats = load.tle_file(activesats_url, reload=True)
+    activesats = load.tle_file(
+        activesats_url, filename="satellites/active.txt", reload=True
+    )
 
     by_name = {sat.name: sat for sat in activesats}
     names = [
