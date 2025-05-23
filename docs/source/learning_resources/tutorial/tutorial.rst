@@ -327,6 +327,9 @@ has a code you need to run, they are:
 * scoreboard.html - The aforementioned **Scoreboard** gives a view of what's happening during a test run.
 * main_manager.py - The NOS-T **Manager** app orchestrates each test run by starting the other apps at the same time, maintaining a consistent time throughout, and shutting down the apps at the end.
 
+.. note::
+  You **must** run the main_manager.py application first, as it establishes the RabbitMQ exchange required to run the execution. Tt does not matter in which order you start the other applications.
+
 If everything is running correctly, the Scoreboard app should show an image similar
 to below.
 
