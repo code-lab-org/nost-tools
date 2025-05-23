@@ -9,6 +9,7 @@ servers:
     port: 5672
     tls: False
     virtual_host: "/"
+    message_expiration: "60000"
 execution:
   general:
     prefix: greenfield
