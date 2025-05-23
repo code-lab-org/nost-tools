@@ -268,6 +268,8 @@ Each application reads a YAML configuration file to set up the parameters for th
 
 .. literalinclude:: /../../examples/firesat/firesat.yaml
 
+For details about the YAML configuration file, refer to the :ref:`yamlConfig` guide.
+
 Cesium Access Token and Assets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
