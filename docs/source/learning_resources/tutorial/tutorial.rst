@@ -268,7 +268,9 @@ Each application reads a YAML configuration file to set up the parameters for th
 
 .. literalinclude:: /../../examples/firesat/firesat.yaml
 
-For details about the YAML configuration file, refer to the :ref:`yamlConfig` guide.
+.. note::
+
+  For details about the YAML configuration file, refer to the :ref:`yamlConfig` guide.
 
 Cesium Access Token and Assets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -306,7 +308,9 @@ For example, if you are running the test suite on your local computer using a lo
   var PASSWORD="admin"
   var TOKEN="your Cesium token (see Cesium installation instructions)"
 
-For details on setting up a local RabbitMQ broker, refer to the :ref:`localBroker` guide.
+.. note::
+  
+  For details on setting up a local RabbitMQ broker, refer to the :ref:`localBroker` guide.
 
 Executing FireSat+
 ~~~~~~~~~~~~~~~~~~
