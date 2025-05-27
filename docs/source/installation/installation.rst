@@ -12,12 +12,12 @@ The installation phase involves:
 
 NOS-T Tools Installation
 ------------------------
-To install the NOS-T tools library, you can use either `pip` or `conda`. Below are the instructions for both methods.
+To install the NOS-T tools library, you can use either ``pip`` or ``conda``. Below are the instructions for both methods.
 
 Pip 
 ^^^
 
-To install NOS-T tools using `pip``, follow these steps:
+To install NOS-T tools using ``pip``, follow these steps:
 
 1. Upgrade `pip`` to the latest version:
 

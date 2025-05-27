@@ -42,13 +42,10 @@ Example code for the FireSat+ test suite is hosted on GitHub and can be easily c
 NOS-T Tools Installation
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-First, install pip version 23 or greater:
-::
-  python3 -m pip install --upgrade pip
-
-Then, install the NOS-T Tools library from `PyPi <https://pypi.org/project/nost-tools/>`__:
-::
-  python3 -m pip install "nost_tools[examples]"
+.. literalinclude:: /../../docs/source/installation/installation.rst
+   :start-after: NOS-T Tools Installation
+   :end-before: Credentials
+   :language: restructuredtext
 
 Cloning the Repository
 ^^^^^^^^^^^^^^^^^^^^^^
