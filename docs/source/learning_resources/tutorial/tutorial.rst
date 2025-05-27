@@ -25,7 +25,11 @@ upon existing Earth science measurement techniques.
 Setup
 -----
 
-This section will show you how to set up NOS-T assuming you are a beginner to both coding and the testbed.
+This section will show you how to set up NOS-T assuming you are a beginner to both coding and the testbed. The setup phase involves:
+
+1. Installing an Integrated Development Environment (IDE)
+2. Installing the NOS-T Tools library
+3. Cloning the NOS-T Tools repository
 
 Integrated Development Environment (IDE)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
