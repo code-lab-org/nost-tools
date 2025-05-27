@@ -3,9 +3,18 @@
 Visualization Implementation Example
 ====================================
 
+This example illustrates how to build a basic visualization tool using a publish-subscribe (pub/sub) architecture powered by a RabbitMQ event broker. It aims to help users understand how to visualize data flows within a test suite, with a focus on science event data.
+
+.. note::
+   This example does not require the full NOS-T tools library, making it accessible for users who want to implement similar functionality without the overhead of the entire tools suite.
+
+Introduction
+------------
+
 The Science Event Dashboard Test Suite is a simple example of NOS-T
 capabilities. It does not require the use of the NOS-T tools library.
-It contains two applications, a Science Event Publisher and Dashboard. Importantly, it uses a dashboard to visualize data being sent over the testbed. The development 
+It contains two applications: a publisher (``scienceEventPublisher.py``) and a dashboard (``scienceEventDashboard.py``).
+Importantly, it uses a dashboard to visualize data being sent over the testbed. The development 
 team has found visualization tools like this to be essential in ensuring test suites are functioning as intended.
 
 The Science Event Publisher regularly publishes a utility score and globally distributed random location.

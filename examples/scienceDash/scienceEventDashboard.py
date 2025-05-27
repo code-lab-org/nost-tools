@@ -156,4 +156,4 @@ if __name__ == "__main__":
         Output("Utility_Plot", "figure"), Input("interval-component", "n_intervals")
     )(update_fig)
 
-    app.run_server(debug=True)
+    app.run(debug=True)
