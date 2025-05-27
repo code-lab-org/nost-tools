@@ -49,13 +49,8 @@ However, this is an unmanaged NOS-T test suite and it is not necessary to have t
 Setting Up Environment Files
 ----------------------------
 
-In order to protect your (and our) information, these applications use an
-environment file for usernames, passwords, event broker host site URLs, and
-port numbers.
-
-For this test suite you will need to use a text editor to create a file with the
-name ".env" containing the following text. Make sure that you "Save as type"
-"All files" and *not* as a text file. 
+For this test suite, you will need to use a text editor to create a file with the
+name ``.env`` containing the following information:
 
 ::
 
@@ -64,14 +59,35 @@ name ".env" containing the following text. Make sure that you "Save as type"
   USERNAME="your event broker username"
   PASSWORD="your event broker password"
 
-Both applications must have this file in the home path (folder). If they're both in the
-same folder then just one is sufficient.
+if you are running the test suite on your local computer using a local RabbitMQ event broker, you can set up the ``.env`` file like this:
+
+::
+   HOST="localhost"
+   PORT=5672
+   USERNAME="admin"
+   PASSWORD="admin"
+
+.. note::
+
+  For details on setting up a local RabbitMQ broker, refer to the :ref:`localBroker` guide.
 
 Running a Test Case
 -------------------
 
-Next, run each application on separate computers or consoles. Wherever the
-dashboard application is running, you should be able to see the utility scores
+Next, run each application on separate computers or consoles using the following commands: 
+
+1. Run the Dashboard application:
+
+   .. code-block:: bash
+
+      python3 scienceEventDashboard.py
+      
+2. Run the Publisher application:
+   .. code-block:: bash
+
+      python3 scienceEventPublisher.py
+
+Wherever the dashboard application is running, you should be able to see the utility scores
 from a web browser (default address:  http://127.0.0.1:8050/). If everything is
 running properly the dashboard will look like the figure below:
 
