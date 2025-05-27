@@ -49,8 +49,8 @@ The NOS-T Tools library is available on `PyPi <https://pypi.org/project/nost-too
   Following the instructions above will install the Python packages that the FireSat+ test suite depends on to run. The details of these dependencies, including version numbers, can
   otherwise be found in the `requirements file <https://github.com/code-lab-org/nost-tools/blob/main/pyproject.toml>`__.
 
-Cloning the Repository
-~~~~~~~~~~~~~~~~~~~~~~
+Repository Cloning
+~~~~~~~~~~~~~~~~~~
 
 The recommended way to access the example code is by cloning the NOS-T Tools repository from GitHub. If you're unfamiliar with how to clone a Git repository, you can find detailed instructions `here <https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository?tool=webui>`__.
 
