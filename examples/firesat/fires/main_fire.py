@@ -48,11 +48,11 @@ class Environment(Observer):
         """
         *Standard on_change callback function format inherited from Observer object class*
 
-        In this instance, the callback function checks the simulation :obj:`datetime` against each scheduled fire ignition :obj:`datetime` for the scenario. If past the scheduled start of a fire, a :obj:`FireStarted` message is sent to *PREFIX/fire/location*:
+        In this instance, the callback function checks the simulation :obj:`datetime` against each scheduled fire ignition :obj:`datetime` for the scenario. If past the scheduled start of a fire, a :obj:`FireStarted` message is sent to *PREFIX.fire.location*:
 
         .. literalinclude:: /../../examples/firesat/fires/main_fire.py
-            :lines: 51-66
-
+            :pyobject: Environment.on_change
+            :lines: 11-
         """
         if property_name == "time":
             new_fires = self.fires[
@@ -108,8 +108,7 @@ def on_fire(ch, method, properties, body):
     *Callback function parses a FireStarted message and switches FireState from "undefined" to "started"*
 
     .. literalinclude:: /../../examples/firesat/fires/main_fire.py
-        :lines: 68-73
-
+        :pyobject: Environment.on_fire
     """
     for index, observer in enumerate(app.simulator._observers):
         if isinstance(observer, Environment):
@@ -121,8 +120,7 @@ def on_detected(ch, method, properties, body):
     *Callback function parses a FireDetected message, switches FireState from "started" to "detected", and records time of first detection and name of satellite detecting the fire*
 
     .. literalinclude:: /../../examples/firesat/fires/main_fire.py
-        :lines: 75-82
-
+        :pyobject: Environment.on_detected
     """
     for index, observer in enumerate(app.simulator._observers):
         if isinstance(observer, Environment):
@@ -134,8 +132,7 @@ def on_reported(ch, method, properties, body):
     *Callback function parses a FireReported message, switches FireState from "detected" to "reported", and records time of first report, name of satellite reporting the fire, and groundId receiving the report*
 
     .. literalinclude:: /../../examples/firesat/fires/main_fire.py
-        :lines: 84-92
-
+        :pyobject: Environment.on_reported
     """
     for index, observer in enumerate(app.simulator._observers):
         if isinstance(observer, Environment):

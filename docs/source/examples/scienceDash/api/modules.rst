@@ -1,6 +1,6 @@
 .. _scienceDashEX:
 
-NOS-T Science Event Test Suite
+Science Event Test Suite
 ==============================
 
 These two applications provide a basic demonstration on how to publish and

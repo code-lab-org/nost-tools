@@ -41,9 +41,9 @@ class Environment(Observer):
 
         In this instance, the callback function checks when the **PROPERTY_MODE** switches to **EXECUTING** to send a :obj:`GroundLocation` message to the *PREFIX/ground/location* topic:
 
-            .. literalinclude:: /../../NWISdemo/grounds/main_ground.py
-                :lines: 56-67
-
+            .. literalinclude:: /../../examples/firesat/grounds/main_ground.py
+                :pyobject: Environment.on_change
+                :lines: 11-
         """
         if property_name == Simulator.PROPERTY_MODE and new_value == Mode.EXECUTING:
             logger.info("Grounds are operational")

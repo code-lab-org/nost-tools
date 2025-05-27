@@ -1,21 +1,19 @@
 # -*- coding: utf-8 -*-
 """
-    *This is an example of a common schema file that defines consistent message structures between applications.*
-
-    Words Words Words.
+*Schema are implemented using the pydantic library. The following schema define consistent message structures between this application and other observer applications:*
 
 """
 
-from pydantic import BaseModel, Field, confloat
-from typing import Optional
 from datetime import datetime
 from enum import Enum
+from typing import Optional
+
+from pydantic import BaseModel, Field, confloat
 
 
 class FireState(str, Enum):
-    """
-    
-    """
+    """ """
+
     undefined = "undefined"
     started = "started"
     detected = "detected"
@@ -23,9 +21,8 @@ class FireState(str, Enum):
 
 
 class FireStarted(BaseModel):
-    """
-    
-    """
+    """ """
+
     fireId: int = Field(..., description="Unique fire identifier.")
     start: Optional[datetime] = Field(description="Time fire started.")
     latitude: Optional[confloat(ge=-90, le=90)] = Field(
@@ -37,18 +34,16 @@ class FireStarted(BaseModel):
 
 
 class FireDetected(BaseModel):
-    """
-    
-    """
+    """ """
+
     fireId: int = Field(..., description="Unique fire identifier.")
     detected: datetime = Field(..., description="Time fire detected.")
     detected_by: str = Field(..., description="Satellite name that detected the fire.")
 
 
 class FireReported(BaseModel):
-    """
-    
-    """
+    """ """
+
     fireId: int = Field(..., description="Unique fire identifier.")
     reported: datetime = Field(..., description="Time fire reported.")
     reported_by: str = Field(
@@ -60,9 +55,8 @@ class FireReported(BaseModel):
 
 
 class SatelliteStatus(BaseModel):
-    """
-    
-    """
+    """ """
+
     id: int = Field(..., description="Unique satellite identifier")
     name: str = Field(..., description="Satellite name for labeling.")
     latitude: confloat(ge=-90, le=90) = Field(
@@ -82,9 +76,8 @@ class SatelliteStatus(BaseModel):
 
 
 class GroundLocation(BaseModel):
-    """
-    
-    """
+    """ """
+
     groundId: int = Field(..., description="Unique ground station identifier.")
     latitude: confloat(ge=-90, le=90) = Field(
         ..., description="Latitude (deg) of ground station."

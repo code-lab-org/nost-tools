@@ -30,13 +30,51 @@ as expected. A basic graphical representation of the data flow is shown below.
 
 |
 
-In order to run the Science Event test case you first need to get the two
-applications which comprise this test suite. The entire set of NOS-T tools and examples
-are available at the `main GitHub page <https://github.com/code-lab-org/nost-tools>`__.
-However, because this example doesn't require the tools api, just the two necessary applications are found
-at the `Science Dashboard GitHub repository <https://github.com/code-lab-org/nost-tools/tree/main/examples/scienceDash>`__.
+Setup
+-----
 
-More in-depth descriptions of what the code is doing can be found here: :ref:`scienceDashEX`.
+The setup phase involves:
+
+1. Installing the NOS-T Tools library
+2. Setting up a RabbitMQ Event Broker
+3. Cloning the NOS-T Tools repository
+
+.. note::
+   
+
+NOS-T Tools Installation
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Although the Science Event Test Suite code does not require the full NOS-T Tools library, it is recommended to install the library to simplify installation of dependencies for this test suite.
+
+The NOS-T Tools library is available on `PyPi <https://pypi.org/project/nost-tools/>`__ and can be installed using pip, the standard package manager for Python. The library is compatible with Python 3.8 and later versions.
+
+.. include:: /../../docs/source/installation/installation.rst
+  :start-after: start-nos-t-installation
+  :end-before: end-nos-t-installation
+
+.. note:: 
+  Following the instructions above will install the Python packages that the Science Event test suite depends on to run. The details of these dependencies, including version numbers, can
+  otherwise be found in the `requirements file <https://github.com/code-lab-org/nost-tools/blob/main/pyproject.toml>`__.
+
+
+Setting up a RabbitMQ Event Broker
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Refer to the :ref:`localBroker` guide for instructions on how to set up a RabbitMQ event broker locally.
+
+Repository Cloning
+~~~~~~~~~~~~~~~~~~
+
+.. include:: /../../docs/source/installation/installation.rst
+  :start-after: start-repository-cloning
+  :end-before: end-repository-cloning
+
+This will create a directory called ``nost-tools`` in your current working directory. Inside this directory, you will find the example code under the ``examples/scienceDash/`` folder.
+
+.. note::
+   
+   More in-depth descriptions of what the code is doing can be found here: :ref:`scienceDashEX`.
 
 Initial Requirements
 --------------------
@@ -44,7 +82,6 @@ Initial Requirements
 This test suite assumes that you have first downloaded the constituent applications.
 It is also necessary to install several python packages as found in the `requirements file <https://github.com/code-lab-org/nost-tools/blob/main/docs/requirements.txt>`__.
 However, this is an unmanaged NOS-T test suite and it is not necessary to have the tools library installed.
-
 
 Setting Up Environment Files
 ----------------------------
@@ -62,6 +99,7 @@ name ``.env`` containing the following information:
 if you are running the test suite on your local computer using a local RabbitMQ event broker, you can set up the ``.env`` file like this:
 
 ::
+
    HOST="localhost"
    PORT=5672
    USERNAME="admin"
@@ -81,8 +119,9 @@ Next, run each application on separate computers or consoles using the following
    .. code-block:: bash
 
       python3 scienceEventDashboard.py
-      
+
 2. Run the Publisher application:
+
    .. code-block:: bash
 
       python3 scienceEventPublisher.py
@@ -94,4 +133,3 @@ running properly the dashboard will look like the figure below:
 .. image:: media/scienceDash.png
    :width: 600
    :align: center
-

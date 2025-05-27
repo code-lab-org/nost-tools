@@ -66,4 +66,4 @@ Startup Script
 The following code demonstrates how the fires application is started up, how the :obj:`Environment` :obj:`Observer` object class is initialized and added to the simulator, and how the callback functions are added:
 
 .. literalinclude:: /../../examples/firesat/fires/main_fire.py
-	:lines: 136-
+	:start-after: if __name__ == "__main__":

@@ -5,9 +5,9 @@ Installation
 
 The installation phase involves:
 
-1. Cloning the NOS-T tools repository
-2. Installing the NOS-T Tools library
-3. Configuring the necessary credentials to interact with the NOS-T infrastructure.
+1. Installing the NOS-T Tools library
+2. Cloning the NOS-T tools repository
+3. Configuring the necessary credentials to interact with the NOS-T infrastructure
 
 
 NOS-T Tools Installation
@@ -67,6 +67,23 @@ To install additional libraries required to run the examples:
     python3 -m pip install "nost_tools[examples]"
 
 .. end-nos-t-installation
+
+Repository Cloning
+------------------
+
+.. start-repository-cloning
+
+The recommended way to access the example code is by cloning the NOS-T Tools repository from GitHub. If you're unfamiliar with how to clone a Git repository, you can find detailed instructions `here <https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository?tool=webui>`__.
+
+Clone the repository:
+::
+  git clone git@github.com:code-lab-org/nost-tools.git
+
+If the above fails, you can also try the HTTPS version:
+::
+  git clone https://github.com/code-lab-org/nost-tools.git
+
+.. end-repository-cloning
 
 Credentials
 -----------

@@ -29,7 +29,8 @@ This section will show you how to set up NOS-T assuming you are a beginner to bo
 
 1. Installing an Integrated Development Environment (IDE)
 2. Installing the NOS-T Tools library
-3. Cloning the NOS-T Tools repository
+3. Setting up a RabbitMQ Event Broker
+4. Cloning the NOS-T Tools repository
 
 Integrated Development Environment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -49,18 +50,17 @@ The NOS-T Tools library is available on `PyPi <https://pypi.org/project/nost-too
   Following the instructions above will install the Python packages that the FireSat+ test suite depends on to run. The details of these dependencies, including version numbers, can
   otherwise be found in the `requirements file <https://github.com/code-lab-org/nost-tools/blob/main/pyproject.toml>`__.
 
+Setting up a RabbitMQ Event Broker
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Refer to the :ref:`localBroker` guide for instructions on how to set up a RabbitMQ event broker locally.
+
 Repository Cloning
 ~~~~~~~~~~~~~~~~~~
 
-The recommended way to access the example code is by cloning the NOS-T Tools repository from GitHub. If you're unfamiliar with how to clone a Git repository, you can find detailed instructions `here <https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository?tool=webui>`__.
-
-Clone the repository:
-::
-  git clone git@github.com:code-lab-org/nost-tools.git
-
-If the above fails, you can also try the HTTPS version:
-::
-  git clone https://github.com/code-lab-org/nost-tools.git
+.. include:: /../../docs/source/installation/installation.rst
+  :start-after: start-repository-cloning
+  :end-before: end-repository-cloning
 
 This will create a directory called ``nost-tools`` in your current working directory. Inside this directory, you will find the example code under the ``examples/firesat/`` folder.
 
@@ -292,7 +292,7 @@ The Scoreboard application is in .html, and pulls in credentials from a JavaScri
 ::
 
   var HOST="your event broker host URL"
-  var RABBITMQ_PORT=15670
+  var PORT=15670
   var USERNAME="your event broker username"
   var PASSWORD="your event broker password"
   var TOKEN="your Cesium token (see Cesium installation instructions)"
@@ -301,7 +301,7 @@ For example, if you are running the test suite on your local computer using a lo
 ::
 
   var HOST="localhost"
-  var RABBITMQ_PORT=15670
+  var PORT=15670
   var USERNAME="admin"
   var PASSWORD="admin"
   var TOKEN="your Cesium token (see Cesium installation instructions)"
