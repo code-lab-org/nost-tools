@@ -31,8 +31,8 @@ This section will show you how to set up NOS-T assuming you are a beginner to bo
 2. Installing the NOS-T Tools library
 3. Cloning the NOS-T Tools repository
 
-Integrated Development Environment (IDE)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Integrated Development Environment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 An IDE will make developing applications and interacting with the testbed much easier. The developers have mostly used Microsoft's `Visual Studio Code <https://visualstudio.microsoft.com/>`__. This tutorial will proceed under the assumption that you are using Visual Studio Code or a comparable IDE.
 
