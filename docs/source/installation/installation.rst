@@ -9,38 +9,17 @@ The installation phase involves:
 2. Installing the NOS-T Tools library
 3. Configuring the necessary credentials to interact with the NOS-T infrastructure.
 
-.. note::
-
-    The best way to get the NOS-T Tools library and example codes is to clone the NOS-T git repository 
-    and install the tools. The library will soon be available on PyPI for easy installation.
 
 NOS-T Tools Installation
 ------------------------
-
-1. Clone the repository:
-
-.. code-block:: bash
-
-    git clone git@github.com:code-lab-org/nost-tools.git
-
-If the above command fails, try using the HTTPS URL instead:
-
-.. code-block:: bash
-
-    git clone https://github.com/code-lab-org/nost-tools.git
-
-2. Change to the directory where the repository was cloned:
-
-.. code-block:: bash
-
-    cd nost-tools
+To install the NOS-T tools library, you can use either `pip` or `conda`. Below are the instructions for both methods.
 
 Pip 
 ^^^
 
-To install NOS-T tools using pip:
+To install NOS-T tools using `pip``, follow these steps:
 
-1. Upgrade pip to the latest version:
+1. Upgrade `pip`` to the latest version:
 
 .. code-block:: bash
     
@@ -50,13 +29,13 @@ To install NOS-T tools using pip:
 
 .. code-block:: bash
     
-    pip install .
+    python3 -m pip install nost-tools
 
-To install additional libraries required to run the examples:
+To install additional libraries required to run the NOS-T Tools examples:
 
 .. code-block:: bash
     
-    pip install .[examples]
+    python3 -m pip install "nost_tools[examples]"
 
 Conda
 ^^^^^
@@ -76,13 +55,13 @@ To install NOS-T tools using conda:
 
 .. code-block:: bash
     
-    pip install .
+    python3 -m pip install nost-tools
 
 To install additional libraries required to run the examples:
 
 .. code-block:: bash
 
-    pip install .[examples]
+    python3 -m pip install "nost_tools[examples]"
 
 Credentials
 -----------
@@ -170,9 +149,9 @@ To install optional dependencies:
 
 .. code-block:: bash
 
-    pip install .[examples]  # For example applications
-    pip install .[dev]       # For development tools
-    pip install .[docs]      # For documentation building
+    python3 -m pip install "nost_tools[examples]"  # For example applications
+    python3 -m pip install "nost_tools[dev]"       # For development tools
+    python3 -m pip install "nost_tools[docs]"      # For documentation building
 
 For a complete list of dependencies and version requirements, refer to the `project specification file (pyproject.toml) <https://github.com/code-lab-org/nost-tools/blob/main/pyproject.toml>`__ in the repository.
 
