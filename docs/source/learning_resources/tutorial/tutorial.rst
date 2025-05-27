@@ -42,10 +42,9 @@ Example code for the FireSat+ test suite is hosted on GitHub and can be easily c
 NOS-T Tools Installation
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. literalinclude:: /../../docs/source/installation/installation.rst
+.. include:: /../../docs/source/installation/installation.rst
   :start-after: NOS-T Tools Installation
   :end-before: Credentials
-  :language: restructuredtext
 
 Cloning the Repository
 ^^^^^^^^^^^^^^^^^^^^^^
