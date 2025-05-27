@@ -229,7 +229,7 @@ class Manager(Application):
             )
         self.time_scale_updates = converted_updates
 
-        # 
+        # Establish the exchange
         self.establish_exchange()
 
         # Set up tracking of required applications
