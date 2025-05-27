@@ -19,13 +19,13 @@ Pip
 
 To install NOS-T tools using ``pip``, follow these steps:
 
-1. Upgrade `pip`` to the latest version:
+1. Upgrade ``pip`` to the latest version:
 
 .. code-block:: bash
     
     python -m pip install --upgrade pip
 
-2. Install NOS-T tools:
+2. Install NOS-T Tools:
 
 .. code-block:: bash
     
