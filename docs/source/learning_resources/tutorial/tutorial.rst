@@ -49,7 +49,7 @@ NOS-T Tools Installation
 Cloning the Repository
 ^^^^^^^^^^^^^^^^^^^^^^
 
-The best way to get the NOS-T Tools example codes is to clone the NOS-T git repository. There are several ways to clone a git repository, more details are available `here <https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository?tool=webui>`__.
+The best way to get the example codes is to clone the NOS-T Tools repository on GitHub. There are several ways to clone a git repository, more details are available `here <https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository?tool=webui>`__.
 
 Clone the repository:
 ::
