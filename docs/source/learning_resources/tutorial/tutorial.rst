@@ -43,8 +43,8 @@ NOS-T Tools Installation
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. include:: /../../docs/source/installation/installation.rst
-  :start-after: NOS-T Tools Installation
-  :end-before: Credentials
+  :start-after: start-nos-t-installation
+  :end-before: end-nos-t-installation
 
 Cloning the Repository
 ^^^^^^^^^^^^^^^^^^^^^^

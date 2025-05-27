@@ -12,6 +12,9 @@ The installation phase involves:
 
 NOS-T Tools Installation
 ------------------------
+
+.. start-nos-t-installation
+
 To install the NOS-T tools library, you can use either ``pip`` or ``conda``. Below are the instructions for both methods.
 
 Pip 
@@ -62,6 +65,8 @@ To install additional libraries required to run the examples:
 .. code-block:: bash
 
     python3 -m pip install "nost_tools[examples]"
+
+.. end-nos-t-installation
 
 Credentials
 -----------
