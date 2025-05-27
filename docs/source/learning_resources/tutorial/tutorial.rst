@@ -32,24 +32,23 @@ Integrated Development Environment (IDE)
 
 An IDE will make developing applications and interacting with the testbed much easier. The developers have mostly used Microsoft's `Visual Studio Code <https://visualstudio.microsoft.com/>`__. This tutorial will proceed under the assumption that you are using Visual Studio Code or a comparable IDE.
 
-NOS-T Tools Download and Installation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NOS-T Tools Installation
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 The NOS-T Tools library is available on `PyPi <https://pypi.org/project/nost-tools/>`__ and can be installed using pip, the standard package manager for Python. The library is compatible with Python 3.8 and later versions.
-
-Example code for the FireSat+ test suite is hosted on GitHub and can be easily cloned to your local environment for use.
-
-NOS-T Tools Installation
-^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. include:: /../../docs/source/installation/installation.rst
   :start-after: start-nos-t-installation
   :end-before: end-nos-t-installation
 
-Cloning the Repository
-^^^^^^^^^^^^^^^^^^^^^^
+.. note:: 
+  Following the instructions above will install the Python packages that the FireSat+ test suite depends on to run. The details of these dependencies, including version numbers, can
+  otherwise be found in the `requirements file <https://github.com/code-lab-org/nost-tools/blob/main/pyproject.toml>`__.
 
-The best way to get the example codes is to clone the NOS-T Tools repository on GitHub. There are several ways to clone a git repository, more details are available `here <https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository?tool=webui>`__.
+Cloning the Repository
+~~~~~~~~~~~~~~~~~~~~~~
+
+The recommended way to access the example code is by cloning the NOS-T Tools repository from GitHub. If you're unfamiliar with how to clone a Git repository, you can find detailed instructions `here <https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository?tool=webui>`__.
 
 Clone the repository:
 ::
@@ -59,8 +58,7 @@ If the above fails, you can also try the HTTPS version:
 ::
   git clone https://github.com/code-lab-org/nost-tools.git
 
-Following the instructions above will install the Python packages that the FireSat+ test suite depends on to run. The details of these dependencies, including version numbers, can
-otherwise be found in the `requirements file <https://github.com/code-lab-org/nost-tools/blob/main/pyproject.toml>`__.
+This will create a directory called ``nost-tools`` in your current working directory. Inside this directory, you will find the example code under the ``examples/firesat/`` folder.
 
 .. _tutorialSystemDescription:
 
