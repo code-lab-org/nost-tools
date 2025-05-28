@@ -38,9 +38,6 @@ def on_message(ch, method, properties, body):
 def update_fig(n):
     """
     Updates the dashboard when new data is received.
-
-    Args:
-        n: The number of intervals that have passed.
     """
     if not eventLOD:  # Check if eventLOD is empty
         # Return the initial figure with empty data but defined columns
