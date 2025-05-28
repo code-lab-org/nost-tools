@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-    *Schema are implemented using the pydantic library. The following schema define consistent message structures between this application and other observer applications:*
+*Common script between applications for standardizing object schemas for the FireSat+ test suite*
+
+Standardized schemas for messages are useful to ensure published message content matches the subscribing applications' expected information and data formats.
 
 """
 
