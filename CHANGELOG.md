@@ -95,3 +95,4 @@ Added:
 
 Changed:
 - Updated documentation for FireSat+ and Science Event test suites.
+- Moved `self.establish_exchange()` from `self._execute_test_plan_impl()` to `self.start_up()` to prevent execution from starting before RabbitMQ exchanges have been declared.
