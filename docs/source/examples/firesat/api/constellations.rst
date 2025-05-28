@@ -70,9 +70,6 @@ FireDetectedObserver
 
 .. automethod:: examples.firesat.satellites.main_constellation.FireDetectedObserver.on_change
 
-.. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-            :lines: 473-481
-			
 |
 
 
@@ -83,9 +80,6 @@ FireReportedObserver
 	:show-inheritance:
 
 .. automethod:: examples.firesat.satellites.main_constellation.FireReportedObserver.on_change
-
-.. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-            :lines: 504-513
 
 |
 
