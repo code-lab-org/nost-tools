@@ -314,13 +314,13 @@ class Constellation(Entity):
 
     def on_fire(self, ch, method, properties, body):  # , client, userdata, message):
         """
-        Callback function appends a dictionary of information for a new fire to fires :obj:`list` when message detected on the *PREFIX/fires/location* topic
+        Callback function appends a dictionary of information for a new fire to fires :obj:`list` when message detected on the *PREFIX.fires.location* topic
 
         Args:
-            client (:obj:`MQTT Client`): Client that connects application to the event broker using the MQTT protocol. Includes user credentials, tls certificates, and host server-port information.
-            userdata: User defined data of any type (not currently used)
-            message (:obj:`message`): Contains *topic* the client subscribed to and *payload* message content as attributes
-
+            ch (:obj:`Channel`): Channel object used to communicate with the event broker
+            method (:obj:`Method`): Method object containing information about the message delivery, such as delivery tag and exchange
+            properties (:obj:`Properties`): Properties object containing metadata about the message, such as content type and message ID
+            body (:obj:`bytes`): Contains the message content as a byte string, which is decoded to a UTF-8 string and then parsed into a :obj:`FireStarted` object
         """
         body = body.decode("utf-8")
 
@@ -356,10 +356,10 @@ class Constellation(Entity):
         Callback function appends a dictionary of information for a new ground station to grounds :obj:`list` when message detected on the *PREFIX/ground/location* topic. Ground station information is published at beginning of simulation, and the :obj:`list` is converted to a :obj:`DataFrame` when the Constellation is initialized.
 
         Args:
-            client (:obj:`MQTT Client`): Client that connects application to the event broker using the MQTT protocol. Includes user credentials, tls certificates, and host server-port information.
-            userdata: User defined data of any type (not currently used)
-            message (:obj:`message`): Contains *topic* the client subscribed to and *payload* message content as attributes
-
+            ch (:obj:`Channel`): Channel object used to communicate with the event broker
+            method (:obj:`Method`): Method object containing information about the message delivery, such as delivery tag and exchange
+            properties (:obj:`Properties`): Properties object containing metadata about the message, such as content type and message ID
+            body (:obj:`bytes`): Contains the message content as a byte string, which is decoded to a UTF-8 string and then parsed into a :obj:`FireStarted` object
         """
         body = body.decode("utf-8")
 
@@ -461,6 +461,10 @@ class FireDetectedObserver(Observer):
 
     Args:
         app (:obj:`ManagedApplication`): An application containing a test-run namespace, a name and description for the app, client credentials, and simulation timing instructions
+
+    .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
+        :pyobject: FireDetectedObserver.on_change
+        :lines: 8-
     """
 
     def __init__(self, app):
@@ -493,6 +497,9 @@ class FireReportedObserver(Observer):
     Args:
         app (:obj:`ManagedApplication`): An application containing a test-run namespace, a name and description for the app, client credentials, and simulation timing instructions
 
+    .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
+        :pyobject: FireReportedObserver.on_change
+        :lines: 8-
     """
 
     def __init__(self, app):

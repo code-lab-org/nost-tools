@@ -16,8 +16,7 @@ from nost_tools.manager import Manager
 
 logging.basicConfig(level=logging.INFO)
 
-
-def main():
+if __name__ == "__main__":
     # Load config
     config = ConnectionConfig(yaml_file="firesat.yaml")
 
@@ -35,7 +34,3 @@ def main():
     )
 
     manager.execute_test_plan()
-
-
-if __name__ == "__main__":
-    main()
