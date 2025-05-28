@@ -13,6 +13,7 @@ from typing import List
 from pydantic import ValidationError
 
 from .application import Application
+from .application_utils import ConnectionConfig
 from .schemas import (
     InitCommand,
     ReadyStatus,
@@ -128,6 +129,69 @@ class Manager(Application):
                     f"Heartbeat check: {remaining:.2f} seconds remaining in sleep"
                 )
 
+    def start_up(
+        self,
+        prefix: str,
+        config: ConnectionConfig,
+        set_offset: bool = None,
+        time_status_step: timedelta = None,
+        time_status_init: datetime = None,
+        shut_down_when_terminated: bool = None,
+        time_step: timedelta = None,
+        manager_app_name: str = None,
+    ) -> None:
+        """
+        Starts up the application by connecting to message broker, starting a background event loop,
+        subscribing to manager events, and registering callback functions.
+
+        Args:
+            prefix (str): execution namespace (prefix)
+            config (:obj:`ConnectionConfig`): connection configuration
+            set_offset (bool): True, if the system clock offset shall be set using a NTP request prior to execution
+            time_status_step (:obj:`timedelta`): scenario duration between time status messages
+            time_status_init (:obj:`datetime`): scenario time for first time status message
+            shut_down_when_terminated (bool): True, if the application should shut down when the simulation is terminated
+            time_step (:obj:`timedelta`): scenario time step used in execution (Default: 1 second)
+            manager_app_name (str): manager application name (Default: manager)
+        """
+        if (
+            set_offset is not None
+            and time_status_step is not None
+            and time_status_init is not None
+            and shut_down_when_terminated is not None
+            and time_step is not None
+            and manager_app_name is not None
+        ):
+            self.set_offset = set_offset
+            self.time_status_step = time_status_step
+            self.time_status_init = time_status_init
+            self.shut_down_when_terminated = shut_down_when_terminated
+            self.time_step = time_step
+            self.manager_app_name = manager_app_name
+        else:
+            self.config = config
+            parameters = (
+                self.config.rc.simulation_configuration.execution_parameters.manager
+            )
+            self.set_offset = parameters.set_offset
+            self.time_status_step = parameters.time_status_step
+            self.time_status_init = parameters.time_status_init
+            self.shut_down_when_terminated = parameters.shut_down_when_terminated
+            self.time_step = parameters.time_step
+
+        # start up base application
+        super().start_up(
+            prefix,
+            config,
+            self.set_offset,
+            self.time_status_step,
+            self.time_status_init,
+            self.shut_down_when_terminated,
+        )
+
+        # Establish the exchange
+        self.establish_exchange()
+
     def execute_test_plan(self, *args, **kwargs) -> None:
         """
         Starts the test plan execution in a background thread.
@@ -228,9 +292,6 @@ class Manager(Application):
                 )
             )
         self.time_scale_updates = converted_updates
-
-        # Establish the exchange
-        self.establish_exchange()
 
         # Set up tracking of required applications
         self.required_apps_status = dict(
