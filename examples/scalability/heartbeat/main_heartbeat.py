@@ -14,7 +14,7 @@ from datetime import timedelta
 
 from heartbeat_config_files.config import MSG_LENGTH, MSG_PERIOD
 
-from nost_tools.application_utils import ModeStatusObserver, ShutDownObserver
+from nost_tools.application_utils import ShutDownObserver, ModeStatusObserver
 from nost_tools.configuration import ConnectionConfig
 from nost_tools.managed_application import ManagedApplication
 from nost_tools.publisher import ScenarioTimeIntervalPublisher

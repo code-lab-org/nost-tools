@@ -8,6 +8,7 @@ Application listens for *status/time* topics of specified applications and recor
 
 import json
 import logging
+import os
 import sys
 import time
 from datetime import datetime, timedelta, timezone
@@ -179,7 +180,10 @@ class HeartbeatDelayRecorder:
             print("Manager initiated simulation")
         elif topic == f"{PREFIX}.manager.stop":
             print("Manager published stop message")
-            self.sim_end_time = pd.to_datetime(data["taskingParameters"]["simStopTime"])
+            print(self._wallclock_offset)
+            self.sim_end_time = pd.to_datetime(
+                data["taskingParameters"]["simStopTime"]
+            )  # - timedelta(seconds=4)
         elif topic == f"{PREFIX}.heartbeat.settings":
             print("Heartbeat application settings detected")
             self.msg_periodicity = float(data["periodicity"])
@@ -193,6 +197,7 @@ class HeartbeatDelayRecorder:
                 if self.sim_end_time != None:
                     print("Checking if simulation end time has been reached.")
                     scenarioTime = pd.to_datetime(data["properties"]["simTime"])
+                    # scenarioTime += timedelta(seconds=4)
                     print(scenarioTime)
                     print(self.sim_end_time)
                     if scenarioTime >= self.sim_end_time:
@@ -208,6 +213,10 @@ class HeartbeatDelayRecorder:
                             self.msg_size,
                             self._wallclock_offset,
                         )
+
+                        if not os.path.exists("delay_data_collection"):
+                            os.makedirs("delay_data_collection")
+
                         self.app_df_dict["heartbeat"].to_csv(
                             f"delay_data_collection/logs_msgFreq_{self.msg_periodicity}_msgSize_{self.msg_size}.csv"
                         )
