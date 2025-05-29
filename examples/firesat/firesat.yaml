@@ -19,7 +19,6 @@ execution:
     start_time: 
     time_step: "0:00:01"
     time_scale_factor: 60
-    time_scale_updates: []
     time_status_step: "0:00:01"
     is_scenario_time_status_step: False
     time_status_init: "2020-01-01T07:21:00+00:00"
@@ -33,11 +32,11 @@ execution:
     init_max_retry: 5
     set_offset: True
     shut_down_when_terminated: True
-    # time_scale_updates:
-    #   - time_scale_factor: 120.0
-    #     sim_update_time: "2020-01-01T08:20:00+00:00"
-    #   - time_scale_factor: 60.0
-    #     sim_update_time: "2020-01-01T09:20:00+00:00"
+    time_scale_updates:
+      - time_scale_factor: 120.0
+        sim_update_time: "2020-01-01T08:20:00+00:00"
+      - time_scale_factor: 60.0
+        sim_update_time: "2020-01-01T09:20:00+00:00"
   managed_applications:
     fire:
       time_scale_factor: 60
