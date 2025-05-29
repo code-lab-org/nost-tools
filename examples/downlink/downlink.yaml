@@ -13,6 +13,8 @@ servers:
 execution:
   general:
     prefix: downlink
+  application:
+    shut_down_when_terminated: True
   manager:
     sim_start_time: "2023-01-23T07:20:00+00:00"
     sim_stop_time: "2023-01-23T09:20:00+00:00"
