@@ -25,6 +25,7 @@ from .schemas import (
 
 logger = logging.getLogger(__name__)
 
+
 class ConnectionConfig:
     """Connection configuration.
 
