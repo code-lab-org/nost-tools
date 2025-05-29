@@ -132,52 +132,112 @@ Add the following lines:
     CLIENT_ID=<Ask NOS-T Operator>
     CLIENT_SECRET_KEY=<Ask NOS-T Operator>
 
-.. note::
+.. important::
 
     Restart your computer after defining environmental variables in your ~/.bashrc file.
 
 Dependencies and Requirements
 ------------------------------
 
-NOS-T tools requires Python 3.8 or newer. The installation process automatically handles all required dependencies.
+NOS-T Tools has several dependencies that are essential for its functionality.
 
-**Core Dependencies:**
+.. seealso::
 
-- Core libraries for messaging, event processing, and authentication (pika, python-keycloak)
-- Time synchronization utilities (ntplib)
-- Data serialization and validation tools (pydantic)
-- Data manipulation libraries (numpy, pandas)
-- Configuration and environment management utilities (python-dotenv, pyyaml)
+    For a complete list of dependencies and version requirements, refer to the `project specification file (pyproject.toml) <https://github.com/code-lab-org/nost-tools/blob/main/pyproject.toml>`__ in the repository.
 
-**Optional Dependencies:**
+Below is a categorized list of these dependencies, including both core and optional libraries:
 
-- **examples:** Additional libraries for running example applications including:
+Core Dependencies
+^^^^^^^^^^^^^^^^^
+
+The core dependencies include essential libraries required for the basic functionality of NOS-T Tools:
+
+- Core libraries for messaging, event processing, and authentication
+
+  - `pika <https://pypi.org/project/pika/>`__, `python-keycloak <https://pypi.org/project/python-keycloak/>`__
+
+- Time synchronization utilities 
+
+  - `ntplib <https://pypi.org/project/ntplib/>`__
+
+- Data serialization and validation tools
+
+  - `pydantic <https://pypi.org/project/pydantic/>`__
+
+- Data manipulation libraries
+
+  - `numpy <https://pypi.org/project/numpy/>`__, `pandas <https://pypi.org/project/pandas/>`__
+
+- Configuration and environment management utilities
+
+  - `python-dotenv <https://pypi.org/project/python-dotenv/>`__, `pyyaml <https://pypi.org/project/pyyaml/>`__
+
+
+Optional Dependencies
+^^^^^^^^^^^^^^^^^^^^
+NOS-T Tools also supports several optional dependencies that enhance its functionality for specific use cases. These dependencies can be installed as needed.
+
+Examples
+""""""""
+
+The ``examples`` optional dependencies include additional libraries for running example applications including:
   
-  - Visualization tools (matplotlib, dash, seaborn)
-  - Geospatial libraries (geopandas, rioxarray)
-  - Data formats (netCDF4, h5netcdf)
-  - Optimization tools (pulp)
-  - Cloud storage (s3fs, boto3)
+- Visualization tools
   
-- **dev:** Additional libraries for development and testing including:
+  - `matplotlib <https://pypi.org/project/matplotlib/>`__, `dash <https://pypi.org/project/dash/>`__, `seaborn <https://pypi.org/project/seaborn/>`__
 
-  - Development tools (black, pytest, pylint, coverage)
+- Geospatial libraries
   
-- **docs:** Additional libraries for building documentation including:
+  - `geopandas <https://pypi.org/project/geopandas/>`__, `rioxarray <https://pypi.org/project/rioxarray/>`__, `shapely <https://pypi.org/project/shapely/>`__
 
-  - Documentation tools (sphinx, autodoc_pydantic, sphinx_rtd_theme)
+- Data formats
 
-To install optional dependencies:
+  - `netCDF4 <https://pypi.org/project/netCDF4/>`__, `h5netcdf <https://pypi.org/project/h5netcdf/>`__, `h5py <https://pypi.org/project/h5py/>`__
+
+- Optimization tools
+  
+  - `PuLP <https://pypi.org/project/PuLP/>`__
+  
+- Cloud storage
+  
+  - `s3fs <https://pypi.org/project/s3fs/>`__, `boto3 <https://pypi.org/project/boto3/>`__
+
+To install the optional dependencies for examples:
 
 .. code-block:: bash
 
     python3 -m pip install "nost_tools[examples]"  # For example applications
-    python3 -m pip install "nost_tools[dev]"       # For development tools
+
+Development
+"""""""""""
+
+The ``dev`` optional dependencies include additional libraries for development and testing including:
+  
+- `black <https://pypi.org/project/black/>`__, `pytest <https://pypi.org/project/pytest/>`__, `pylint <https://pypi.org/project/pylint/>`__, `coverage <https://pypi.org/project/coverage/>`__
+
+To install the optional dependencies for development:
+.. code-block:: bash
+
+    python3 -m pip install "nost_tools[dev]"  # For development tools
+
+Documentation
+"""""""""""""
+
+The ``docs`` optional dependencies include additional libraries for building documentation including:
+
+- `sphinx <https://pypi.org/project/Sphinx/>`__, `autodoc_pydantic <https://pypi.org/project/autodoc_pydantic/>`__, `sphinx_rtd_theme <https://pypi.org/project/sphinx_rtd_theme/>`__
+
+To install optional dependencies for documentation:
+
+.. code-block:: bash
+
     python3 -m pip install "nost_tools[docs]"      # For documentation building
 
-For a complete list of dependencies and version requirements, refer to the `project specification file (pyproject.toml) <https://github.com/code-lab-org/nost-tools/blob/main/pyproject.toml>`__ in the repository.
 
-If you encounter compatibility issues, check your Python version (3.8+) and ensure your environment meets all requirements.
+
+.. note::
+
+    If you encounter compatibility issues, check your Python version (3.8+) and ensure your environment meets all requirements.
 
 Next Steps
 ----------
