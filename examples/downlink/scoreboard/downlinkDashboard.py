@@ -17,10 +17,8 @@ from dotenv import dotenv_values  # type:ignore
 from downlinkDashboard_config_files.config import NAME, PREFIX  # type:ignore
 
 from nost_tools.application import Application  # type:ignore
-from nost_tools.application_utils import (  # type:ignore
-    ConnectionConfig,
-    ShutDownObserver,
-)
+from nost_tools.application_utils import ShutDownObserver
+from nost_tools.configuration import ConnectionConfig
 
 
 def on_message(mqttc, obj, msg):
