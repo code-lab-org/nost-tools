@@ -292,21 +292,23 @@ class SatelliteStorage(Entity):
             print(f"Station {location.groundId} updated at time {self.get_time()}.")
         else:
             location = {
-                    "groundId": location.groundId,
-                    "latitude": location.latitude,
-                    "longitude": location.longitude,
-                    "elevAngle": location.elevAngle,
-                    "operational": location.operational,
-                    "downlinkRate": location.downlinkRate,
-                    "costPerSecond": location.costPerSecond,
-                    "costMode": location.costMode,
+                "groundId": location.groundId,
+                "latitude": location.latitude,
+                "longitude": location.longitude,
+                "elevAngle": location.elevAngle,
+                "operational": location.operational,
+                "downlinkRate": location.downlinkRate,
+                "costPerSecond": location.costPerSecond,
+                "costMode": location.costMode,
             }
 
             # Create a DataFrame from the location dictionary
             new_data = pd.DataFrame([location])
 
             # Concatenate the new data with the existing DataFrame
-            self.grounds = self.grounds = pd.concat([self.grounds, new_data], ignore_index=True)
+            self.grounds = self.grounds = pd.concat(
+                [self.grounds, new_data], ignore_index=True
+            )
 
     def on_linkStart(self, ch, method, properties, body):
         """
