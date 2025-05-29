@@ -1,39 +1,29 @@
 # -*- coding: utf-8 -*-
 """
-    *This application implements scheduled and/or random outages at constituent ground stations.*
+*This application implements scheduled and/or random outages at constituent ground stations.*
 
-    The application contains one :obj:`Scheduler` (:obj:`Observer`) object class to monitor the time for outages pre-defined before the simulation begins and one :obj:`Randomizer` (:obj:`ScenarioIntervalPublisher`) object class for executing random Bernoulli trials to trigger randomized outages dynamically during the simulation.
+The application contains one :obj:`Scheduler` (:obj:`Observer`) object class to monitor the time for outages pre-defined before the simulation begins and one :obj:`Randomizer` (:obj:`ScenarioIntervalPublisher`) object class for executing random Bernoulli trials to trigger randomized outages dynamically during the simulation.
 
 """
 
+import importlib.resources
 import logging
 import random
-from datetime import datetime, timezone, timedelta
-from dotenv import dotenv_values
+from datetime import datetime, timedelta, timezone
+
 import pandas as pd
+from outages_config_files.config import NAME, SCALE
+from outages_config_files.schemas import GroundLocation, OutageReport, OutageRestore
 
-from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
-from nost_tools.observer import Observer
+from nost_tools.application_utils import ShutDownObserver
+from nost_tools.configuration import ConnectionConfig
 from nost_tools.managed_application import ManagedApplication
+from nost_tools.observer import Observer
 from nost_tools.publisher import ScenarioTimeIntervalPublisher
-
-import importlib.resources
-
-from outages_config_files.schemas import (
-    GroundLocation,
-    OutageReport,
-    OutageRestore
-)
-from outages_config_files.config import (
-    PREFIX,
-    NAME,
-    SCALE
-)
-
-import outages_scenarios
 
 logging.basicConfig(level=logging.INFO)
 random.seed(72)
+
 
 # define an observer to manage fire updates and record to a dataframe fires
 class Scheduler(Observer):
@@ -51,7 +41,7 @@ class Scheduler(Observer):
         self.scheduled_outages = scheduled_outages
         self.grounds = []
 
-    def on_ground(self, client, userdata, message):
+    def on_ground(self, ch, method, properties, body):
         """
         Callback function appends a dictionary of information for a new ground station to grounds :obj:`list` when :obj:`GroundLocation` message detected on the *PREFIX/ground/location* topic. Ground station information is published at beginning of simulation, and the completed :obj:`list` is converted to a :obj:`DataFrame`.
 
@@ -61,7 +51,8 @@ class Scheduler(Observer):
             message (:obj:`message`): Contains *topic* the client subscribed to and *payload* message content as attributes
 
         """
-        location = GroundLocation.parse_raw(message.payload)
+        body = body.decode("utf-8")
+        location = GroundLocation.model_validate_json(body)
         self.grounds.append(
             {
                 "groundId": location.groundId,
@@ -71,11 +62,13 @@ class Scheduler(Observer):
                 "operational": location.operational,
                 "downlinkRate": location.downlinkRate,
                 "costPerSecond": location.costPerSecond,
-                "costMode": location.costMode
+                "costMode": location.costMode,
             }
         )
-        print(f"Station {location.groundId} registered at time {self.app.simulator.get_time()}.")
-    
+        print(
+            f"Station {location.groundId} registered at time {self.app.simulator.get_time()}."
+        )
+
     def on_change(self, source, property_name, old_value, new_value):
         """
         *Standard on_change callback function format inherited from Observer object class*
@@ -86,25 +79,29 @@ class Scheduler(Observer):
         if property_name == "time":
             if property_name == "time":
                 for index, outage in self.scheduled_outages.iterrows():
-                    if (outage.outageStart <= new_value) & (outage.outageStart > old_value):
+                    if (outage.outageStart <= new_value) & (
+                        outage.outageStart > old_value
+                    ):
                         self.app.send_message(
+                            self.app.app_name,
                             "report",
                             OutageReport(
                                 groundId=outage.groundId,
                                 outageStart=outage.outageStart,
                                 outageDuration=outage.outageDuration,
                                 outageEnd=outage.outageEnd,
-                            ).json(),
+                            ).model_dump_json(),
                         )
                     if (outage.outageEnd <= new_value) & (outage.outageEnd > old_value):
                         self.app.send_message(
+                            self.app.app_name,
                             "restore",
                             OutageRestore(
-                                groundId=outage.groundId,
-                                outageEnd=outage.outageEnd
-                            ).json()
+                                groundId=outage.groundId, outageEnd=outage.outageEnd
+                            ).model_dump_json(),
                         )
-        
+
+
 class Randomizer(ScenarioTimeIntervalPublisher):
     """
     *This object class inherits properties from the ScenarioTimeIntervalPublisher object class from the publisher template in the NOS-T tools library*
@@ -117,12 +114,15 @@ class Randomizer(ScenarioTimeIntervalPublisher):
         time_status_init (:obj:`datetime`): Optional scenario :obj:`datetime` for publishing the first time status 'heartbeat' message.
 
     """
-    def __init__(self, app, scheduler, probOutage, time_status_step=None, time_status_init=None):
+
+    def __init__(
+        self, app, scheduler, probOutage, time_status_step=None, time_status_init=None
+    ):
         super().__init__(app, time_status_step, time_status_init)
         self.app = app
         self.scheduler = scheduler
         self.probOutage = probOutage
-        
+
     def publish_message(self):
         """
         *Abstract publish_message method inherited from the ScenarioTimeIntervalPublisher object class from the publisher template in the NOS-T tools library*
@@ -137,41 +137,46 @@ class Randomizer(ScenarioTimeIntervalPublisher):
                     timeOutage = self.app.simulator.get_time()
                     durationOutage = timedelta(hours=3)
                     endOutage = timeOutage + durationOutage
-                    self.scheduler.scheduled_outages.append(
+                    new_outage = pd.DataFrame(
                         {
-                            "groundId":ground["groundId"],
-                            "outageStart":timeOutage,
-                            "outageDuration":durationOutage,
-                            "outageEnd":endOutage
-                            },
-                        ignore_index=True
+                            "groundId": [ground["groundId"]],
+                            "outageStart": [timeOutage],
+                            "outageDuration": [durationOutage],
+                            "outageEnd": [endOutage],
+                        }
                     )
+                    self.scheduler.scheduled_outages = pd.concat(
+                        [self.scheduler.scheduled_outages, new_outage],
+                        ignore_index=True,
+                    )
+
                     self.app.send_message(
+                        self.app.app_name,
                         "report",
                         OutageReport(
-                            groundId = ground["groundId"],
-                            outageStart = timeOutage,
-                            outageDuration = durationOutage,
-                            outageEnd = endOutage
-                        ).json()
+                            groundId=ground["groundId"],
+                            outageStart=timeOutage,
+                            outageDuration=durationOutage,
+                            outageEnd=endOutage,
+                        ).model_dump_json(),
                     )
 
 
 # name guard used to ensure script only executes if it is run as the __main__
 if __name__ == "__main__":
-    # Note that these are loaded from a .env file in current working directory
-    credentials = dotenv_values(".env")
-    HOST, PORT = credentials["HOST"], int(credentials["PORT"])
-    USERNAME, PASSWORD = credentials["USERNAME"], credentials["PASSWORD"]
+    # Load config
+    config = ConnectionConfig(yaml_file="downlink.yaml")
 
-    # set the client credentials
-    config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, True)
+    # Define the simulation parameters
+    NAME = "outage"
 
     # create the managed application
     app = ManagedApplication(NAME)
-    
+
     # import csv file from outages_scenarios subdirectory with scenario defining groundId and datetimes of outages
-    csvFile = importlib.resources.open_text("outages_scenarios", "only_random_outages.csv")
+    csvFile = importlib.resources.open_text(
+        "outages_scenarios", "only_random_outages.csv"
+    )
     # Read the csv file and convert to a DataFrame with initial column defining the index
     df = pd.read_csv(csvFile, index_col=0)
     schedule = pd.DataFrame(
@@ -180,10 +185,11 @@ if __name__ == "__main__":
             "groundId": df["groundId"],
             "outageStart": pd.to_datetime(df["outageStart"], utc=True),
             "outageDuration": pd.to_timedelta(df["outageDuration"], unit="hours"),
-            "outageEnd": pd.to_datetime(df["outageStart"], utc=True) + pd.to_timedelta(df["outageDuration"], unit="hours")
+            "outageEnd": pd.to_datetime(df["outageStart"], utc=True)
+            + pd.to_timedelta(df["outageDuration"], unit="hours"),
         }
     )
-    
+
     # Initialize Outage Scheduler
     outageScheduler = Scheduler(app, NAME, schedule)
 
@@ -192,19 +198,27 @@ if __name__ == "__main__":
 
     # add a shutdown observer to shut down after a single test case
     app.simulator.add_observer(ShutDownObserver(app))
-    
+
     # add a ScenarioTimeIntervalPublisher for publishing random outages
-    app.simulator.add_observer(Randomizer(app, outageScheduler, 0.03, time_status_step=timedelta(seconds=1)*SCALE, time_status_init=datetime(2023, 1, 23, 7, 20, tzinfo=timezone.utc)))
+    app.simulator.add_observer(
+        Randomizer(
+            app,
+            outageScheduler,
+            0.03,
+            time_status_step=timedelta(seconds=1) * SCALE,
+            time_status_init=datetime(2023, 1, 23, 7, 20, tzinfo=timezone.utc),
+        )
+    )
 
     # start up the application on PREFIX, publish time status every 10 seconds of wallclock time
     app.start_up(
-        PREFIX,
+        config.rc.simulation_configuration.execution_parameters.general.prefix,
         config,
         True,
-        time_status_step=timedelta(seconds=10) * SCALE,
-        time_status_init=datetime(2023, 1, 23, 7, 30, tzinfo=timezone.utc),
-        time_step=timedelta(seconds=1) * SCALE,
     )
-    
+
     # add message callbacks
     app.add_message_callback("ground", "location", outageScheduler.on_ground)
+
+    while True:
+        pass

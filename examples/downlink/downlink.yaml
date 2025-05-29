@@ -1,0 +1,70 @@
+info:
+  title: Novel Observing Strategies Testbed (NOS-T) YAML Configuration
+  version: '1.0.0'
+  description: Version-controlled AsyncAPI document for RabbitMQ event broker with Keycloak authentication within NOS-T
+servers:
+  rabbitmq:
+    keycloak_authentication: False
+    host: "localhost"
+    port: 5672
+    tls: False
+    virtual_host: "/"
+    message_expiration: "60000"
+execution:
+  general:
+    prefix: downlink
+  manager:
+    sim_start_time: "2023-01-23T07:20:00+00:00"
+    sim_stop_time: "2023-01-23T09:20:00+00:00"
+    start_time: 
+    time_step: "0:00:01"
+    time_scale_factor: 60
+    time_status_step: "0:00:01"
+    is_scenario_time_status_step: False
+    time_status_init: "2023-01-23T07:21:00+00:00"
+    command_lead: "0:00:05"
+    required_apps:
+      - manager
+      - satelliteStorage
+      - outage
+      - ground
+    init_retry_delay_s: 5
+    init_max_retry: 5
+    set_offset: True
+    shut_down_when_terminated: True
+    # time_scale_updates:
+    #   - time_scale_factor: 120.0
+    #     sim_update_time: "2020-01-01T08:20:00+00:00"
+    #   - time_scale_factor: 60.0
+    #     sim_update_time: "2020-01-01T09:20:00+00:00"
+  managed_applications:
+    satelliteStorage:
+      time_scale_factor: 60
+      time_step: "0:00:01"
+      is_scenario_time_step: False
+      set_offset: True
+      time_status_step: "0:00:10"
+      is_scenario_time_status_step: False
+      time_status_init: "2023-01-23T07:20:00+00:00"
+      shut_down_when_terminated: True
+      manager_app_name: "manager"
+    outage:
+      time_scale_factor: 60
+      time_step: "0:00:01"
+      is_scenario_time_step: False
+      set_offset: True
+      time_status_step: "0:00:10"
+      is_scenario_time_status_step: False
+      time_status_init: "2023-01-23T07:30:00+00:00"
+      shut_down_when_terminated: True
+      manager_app_name: "manager"
+    ground:
+      time_scale_factor: 60
+      time_step: "0:00:01"
+      is_scenario_time_step: False
+      set_offset: True
+      time_status_step: "0:00:10"
+      is_scenario_time_status_step: False
+      time_status_init: "2023-01-23T07:30:00+00:00"
+      shut_down_when_terminated: True
+      manager_app_name: "manager"
