@@ -315,8 +315,14 @@ class TimeScaleUpdateSchema(BaseModel):
     """
     Provides a scheduled update to the simulation time scale factor.
     """
-    time_scale_factor: float = Field(..., description="Scenario seconds per wallclock second")
-    sim_update_time: datetime = Field(..., description="Scenario time that the update will occur")
+
+    time_scale_factor: float = Field(
+        ..., description="Scenario seconds per wallclock second"
+    )
+    sim_update_time: datetime = Field(
+        ..., description="Scenario time that the update will occur"
+    )
+
 
 class ManagerConfig(BaseModel):
     sim_start_time: Optional[datetime] = Field(
