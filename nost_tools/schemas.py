@@ -450,6 +450,26 @@ class LoggerApplicationConfig(BaseModel):
     )
 
 
+class ApplicationConfig(BaseModel):
+    set_offset: Optional[bool] = Field(True, description="Set offset.")
+    time_scale_factor: Optional[float] = Field(1.0, description="Time scale factor.")
+    time_step: Optional[timedelta] = Field(
+        timedelta(seconds=1), description="Time step for swe_change."
+    )
+    time_status_step: Optional[timedelta] = Field(
+        timedelta(seconds=10), description="Time status step."
+    )
+    time_status_init: Optional[datetime] = Field(
+        datetime.now(), description="Time status init."
+    )
+    shut_down_when_terminated: Optional[bool] = Field(
+        False, description="Shut down when terminated."
+    )
+    manager_app_name: Optional[str] = Field(
+        "manager", description="Manager application name."
+    )
+
+
 class ExecConfig(BaseModel):
     general: GeneralConfig
     manager: Optional[ManagerConfig] = Field(None, description="Manager configuration.")
@@ -459,6 +479,9 @@ class ExecConfig(BaseModel):
     )
     logger_application: Optional[LoggerApplicationConfig] = Field(
         None, description="Logger application configuration."
+    )
+    application: Optional[ApplicationConfig] = Field(
+        None, description="Application configuration."
     )
 
 
