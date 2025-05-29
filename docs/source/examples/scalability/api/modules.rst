@@ -1,7 +1,7 @@
 .. _scalability:
 
-Scalability Test Suite: Example Applications
-============================================
+Scalability
+===========
 
 Scalability test suite demonstrates an unmanaged application monitoring a managed application for delays between message publishing and subscription receipt. Documentation of the manager application in this test suite is omitted since it is similar to the example in the *FireSat+* test suite.
 
@@ -10,6 +10,3 @@ Scalability test suite demonstrates an unmanaged application monitoring a manage
 
   heartbeat
   delay
-  
-
-  

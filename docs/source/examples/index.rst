@@ -18,12 +18,11 @@ Descriptions of each participating application and standardized message schema c
 
 - :ref:`Downlink Test Suite<downlink>`: A derivative of the `FireSat+` suite, but with additional capabilities and standardized message schema. The grounds application in particular is much more active than in the `FireSat+` test suite, as downlink times and associated costs are tracked for every downlink opportunity to a ground station, and the availability of a ground station can change state dynamically during the simulation. While there is no equivalent of the fires application, this test suite does expand on the dashboard capabilities introduced in the `Science Event Dashboard` example.
 
-
 .. toctree::
    :maxdepth: 1
    :hidden:
 
-   Science Event Dashboard <scienceDash/api/modules>
-   Scalability <scalability/api/modules>
-   FireSat+ <firesat/api/modules>
-   Ground Station Network <downlink/api/modules>
+   scienceDash/api/modules
+   scalability/api/modules
+   firesat/api/modules
+   downlink/api/modules
