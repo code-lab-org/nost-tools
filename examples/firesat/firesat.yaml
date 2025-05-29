@@ -13,6 +13,8 @@ servers:
 execution:
   general:
     prefix: greenfield
+  application:
+    shut_down_when_terminated: True
   manager:
     sim_start_time: "2020-01-01T07:20:00+00:00"
     sim_stop_time: "2020-01-01T10:20:00+00:00"
