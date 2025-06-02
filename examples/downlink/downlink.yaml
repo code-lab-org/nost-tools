@@ -34,11 +34,6 @@ execution:
     init_max_retry: 5
     set_offset: True
     shut_down_when_terminated: True
-    # time_scale_updates:
-    #   - time_scale_factor: 120.0
-    #     sim_update_time: "2020-01-01T08:20:00+00:00"
-    #   - time_scale_factor: 60.0
-    #     sim_update_time: "2020-01-01T09:20:00+00:00"
   managed_applications:
     satelliteStorage:
       time_scale_factor: 60
@@ -50,6 +45,23 @@ execution:
       time_status_init: "2023-01-23T07:20:00+00:00"
       shut_down_when_terminated: True
       manager_app_name: "manager"
+      configuration_parameters:
+        SC1:
+          tle1: "1 37849U 11061A   19365.87495 0.00000011  00000-0  25920-4	0  9999"  # Historic SUOMI NPP TLE
+          tle2: "2 37849  98.7213 301.202 0001371  69.7366 357.989 14.19561536000000"  # Historic SUOMI NPP TLE
+          ssr_capacity: 280  # Capacity of onboard Solid State Recorder in Gigabits
+          capacity_used: 0.30  # Fractional value from 0 (empty) to 1 (full)
+          instrument_rate: 0.0125  # Rate of data collection for all instruments in Gigabits/second
+          cost_mode: "discrete"  # Options are "discrete" (per downlink), "continuous" (fixed contract), or "both"
+          fixed_rate: 0.09  # Only used if "continuous" or "both" are the cost mode
+        SC2:
+          tle1: "1 37849U 11061A   19365.87495 0.00000011  00000-0  25920-4	0  9999" 
+          tle2: "2 37849 53.7213 301.202 0001371 69.7366 357.989 14.19561536000000"
+          ssr_capacity: 343
+          capacity_used: 0.25
+          instrument_rate: 0.0125
+          cost_mode: "discrete"
+          fixed_rate: 0.09
     outage:
       time_scale_factor: 60
       time_step: "0:00:01"
@@ -70,3 +82,23 @@ execution:
       time_status_init: "2023-01-23T07:30:00+00:00"
       shut_down_when_terminated: True
       manager_app_name: "manager"
+
+# Configuration parameters for satellites and applications
+configuration:
+  satelliteStorage:
+    SC1:
+      tle1: "1 37849U 11061A   19365.87495 0.00000011  00000-0  25920-4	0  9999"  # Historic SUOMI NPP TLE
+      tle2: "2 37849  98.7213 301.202 0001371  69.7366 357.989 14.19561536000000"  # Historic SUOMI NPP TLE
+      ssr_capacity: 280  # Capacity of onboard Solid State Recorder in Gigabits
+      capacity_used: 0.30  # Fractional value from 0 (empty) to 1 (full)
+      instrument_rate: 0.0125  # Rate of data collection for all instruments in Gigabits/second
+      cost_mode: "discrete"  # Options are "discrete" (per downlink), "continuous" (fixed contract), or "both"
+      fixed_rate: 0.09  # Only used if "continuous" or "both" are the cost mode
+    SC2:
+      tle1: "1 37849U 11061A   19365.87495 0.00000011  00000-0  25920-4	0  9999"  # Historic SUOMI NPP TLE
+      tle2: "2 37849  53.7213 301.202 0001371  69.7366 357.989 14.19561536000000"  # Historic SUOMI NPP TLE
+      ssr_capacity: 343  # Capacity of onboard Solid State Recorder in Gigabits
+      capacity_used: 0.25  # Fractional value from 0 (empty) to 1 (full)
+      instrument_rate: 0.0125  # Rate of data collection for all instruments in Gigabits/second
+      cost_mode: "discrete"  # Options are "discrete" (per downlink), "continuous" (fixed contract), or "both"
+      fixed_rate: 0.09  # Only used if "continuous" or "both" are the cost mode
