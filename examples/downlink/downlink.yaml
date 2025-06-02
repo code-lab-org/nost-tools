@@ -88,7 +88,7 @@ execution:
             longitude: -83.21
             elevAngle: 20.0
             operational: true
-            downlinkRate: 0.78156  # Uses DOWNLINK_RATE_AWS
+            downlinkRate: 0.78156
             costPerSecond: 0.37
             costMode: "discrete"
           - groundId: 1
