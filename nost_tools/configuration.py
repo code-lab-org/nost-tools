@@ -209,6 +209,29 @@ class ConnectionConfig:
         except ValidationError as err:
             raise EnvironmentVariableError(f"Invalid environment variables: {err}")
 
+    def get_app_specific_config(self, app_name):
+        """
+        Get application-specific configuration from execution.managed_applications if available.
+
+        Args:
+            app_name (str): Name of the application
+        
+        Returns:
+            dict: Application-specific configuration parameters if available, otherwise None.
+        """
+        if not os.path.exists(self.yaml_file):
+            raise ConfigurationError("Couldn't load config file (not found)")
+
+        with open(self.yaml_file, "r", encoding="utf-8") as f:
+            yaml_data = yaml.safe_load(f)
+
+            try:
+                return yaml_data["execution"]["managed_applications"][app_name][
+                    "configuration_parameters"
+                ]
+            except:
+                return None
+
     def load_yaml_config_file(self):
         """
         Loads a YAML configuration file and returns the parsed data.

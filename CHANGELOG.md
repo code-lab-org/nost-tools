@@ -92,6 +92,7 @@ Added:
     - time_scale_factor: 120.0
       sim_update_time: "2020-01-01T08:20:00+00:00"
   ```
+- Introduced `get_app_specific_config()` in `configuration.py` that retrieves application-specific configuration from the `execution.managed_applications` section based on the application name.
 
 Changed:
 - Updated documentation for FireSat+ and Science Event test suites.
