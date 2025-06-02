@@ -13,7 +13,6 @@ import pandas as pd  # type:ignore
 import plotly.express as px  # type:ignore
 from dash import dash, dcc, html  # type:ignore
 from dash.dependencies import Input, Output  # type:ignore
-from dotenv import dotenv_values  # type:ignore
 from downlinkDashboard_config_files.config import NAME, PREFIX  # type:ignore
 
 from nost_tools.application import Application  # type:ignore
@@ -21,7 +20,7 @@ from nost_tools.application_utils import ShutDownObserver
 from nost_tools.configuration import ConnectionConfig
 
 
-def on_message(mqttc, obj, msg):
+def on_message(ch, method, properties, body):
     """
     Callback method that processes messages on relevant topic endpoints for regularly triggering dashboard display updates.
 
@@ -31,18 +30,19 @@ def on_message(mqttc, obj, msg):
         msg (:obj:`message`): Contains *topic* the client subscribed to and *payload* message content as attributes
     """
     # setting up list of dictionaries
-    messageIn = json.loads(msg.payload.decode("utf-8"))
-    print(messageIn)
-    if msg.topic == f"{PREFIX}/satelliteStorage/location":
+    body = body.decode("utf-8")
+    messageIn = json.loads(body)
+    print(method.routing_key)
+    if method.routing_key == f"{PREFIX}.satelliteStorage.location":
         capacityLOD.append(messageIn)
         update_capacity(n_capacity)
         update_cost(n_cost)
     elif (
-        msg.topic == f"{PREFIX}/satelliteStorage/linkCharge"
-        or msg.topic == f"{PREFIX}/ground/linkCharge"
+        method.routing_key == f"{PREFIX}.satelliteStorage.linkCharge"
+        or method.routing_key == f"{PREFIX}.ground.linkCharge"
     ):
         # if not state_cost:
-        print(msg.topic)
+        print(method.routing_key)
         print("\n\n linkCharge \n\n")
         print(messageIn)
         costLOD.append(messageIn)
@@ -109,18 +109,25 @@ def disable_dash(state_switch):
 
 # name guard
 if __name__ == "__main__":
-    # Note that these are loaded from a .env file in current working directory
-    credentials = dotenv_values(".env")
-    HOST, PORT = credentials["HOST"], int(credentials["PORT"])  # type:ignore
-    USERNAME, PASSWORD = credentials["USERNAME"], credentials["PASSWORD"]
-    # set the client credentials
-    config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, True)
+    # Load config
+    config = ConnectionConfig(yaml_file="downlink.yaml")
+
+    # Define the simulation parameters
+    NAME = "dashboard"
+
     # create the managed application
     app = Application(NAME)
+
     # add a shutdown observer to shut down after a single test case
     app.simulator.add_observer(ShutDownObserver(app))
+
     # start up the application on PREFIX, publish time status every 10 seconds of wallclock time
-    app.start_up(PREFIX, config)
+    app.start_up(
+        config.rc.simulation_configuration.execution_parameters.general.prefix,
+        config,
+        True,
+    )
+
     # Add on_message callbacks, sort through with if statements for now
     app.add_message_callback("satelliteStorage", "location", on_message)
     app.add_message_callback("satelliteStorage", "linkCharge", on_message)
@@ -239,4 +246,4 @@ if __name__ == "__main__":
         prevent_initial_call=True,
     )(disable_dash)
 
-    downlinkDashboard.run_server(debug=True)
+    downlinkDashboard.run(debug=True)

@@ -392,7 +392,7 @@
              */
             function handleOutageMessage(topicPath, payload, entities) {
                 // Set ground station colors based on whether this is an outage report or restoration
-                const isOutage = topicPath === "outage/report";
+                const isOutage = topicPath === "downlink.outage.report";
                 const groundColor = isOutage ? Cesium.Color.LIGHTGRAY : Cesium.Color.PINK;
                 const groundMaterial = isOutage ? 
                     Cesium.Color.LIGHTGRAY.withAlpha(0.1) : 

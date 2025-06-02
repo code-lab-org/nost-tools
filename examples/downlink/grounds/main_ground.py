@@ -26,6 +26,7 @@ from nost_tools.observer import Observable, Observer  # type: ignore
 from nost_tools.simulator import Mode, Simulator  # type: ignore
 
 logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger()
 
 
 # define an observer to manage ground updates
@@ -138,6 +139,7 @@ class GroundNetwork(Observable, Observer):
                     cumulativeCosts=0.00,
                 ).model_dump_json(),
             )
+            logger.info("ground.linkCharge message sent.")
 
     def on_commRange(self, ch, method, properties, body):
         """

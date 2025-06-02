@@ -22,6 +22,7 @@ from nost_tools.observer import Observer
 from nost_tools.publisher import ScenarioTimeIntervalPublisher
 
 logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger()
 random.seed(72)
 
 

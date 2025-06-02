@@ -39,7 +39,7 @@ from nost_tools.managed_application import ManagedApplication  # type:ignore
 from nost_tools.publisher import WallclockTimeIntervalPublisher  # type:ignore
 
 logging.basicConfig(level=logging.INFO)
-
+logger = logging.getLogger()
 
 def get_elevation_angle(t, sat, loc):
     """
@@ -255,6 +255,7 @@ class SatelliteStorage(Entity):
                         cumulativeCosts=self.cumulativeCosts,
                     ).model_dump_json(),
                 )
+                logger.info("satelliteStorage.linkCharge message sent.")
 
     def on_ground(self, ch, method, properties, body):
         """
@@ -306,9 +307,7 @@ class SatelliteStorage(Entity):
             new_data = pd.DataFrame([location])
 
             # Concatenate the new data with the existing DataFrame
-            self.grounds = self.grounds = pd.concat(
-                [self.grounds, new_data], ignore_index=True
-            )
+            self.grounds = pd.concat([self.grounds, new_data], ignore_index=True)
 
     def on_linkStart(self, ch, method, properties, body):
         """
