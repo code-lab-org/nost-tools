@@ -8,7 +8,7 @@ The application contains a :obj:`GroundNetwork` (:obj:`Observer`) object class t
 
 import logging
 
-from ground_config_files.config import GROUND, NAME  # type: ignore
+import pandas as pd
 from ground_config_files.schemas import (  # type: ignore
     GroundLocation,
     LinkCharge,
@@ -332,7 +332,7 @@ class GroundNetwork(Observable, Observer):
         """
         body = body.decode("utf-8")
         outageReport = OutageReport.model_validate_json(body)
-        self.grounds["operational"][outageReport.groundId] = False
+        self.grounds.loc[outageReport.groundId, "operational"] = False
         self.outages.append(
             {
                 "groundId": outageReport.groundId,
@@ -356,8 +356,7 @@ class GroundNetwork(Observable, Observer):
         """
         body = body.decode("utf-8")
         outageRestore = OutageRestore.model_validate_json(body)
-        print(outageRestore)
-        self.grounds["operational"][outageRestore.groundId] = True
+        self.grounds.loc[outageRestore.groundId, "operational"] = True
         self.restores.append(
             {"groundId": outageRestore.groundId, "outageEnd": outageRestore.outageEnd},
         )
@@ -454,11 +453,27 @@ class LinkEndObserver(Observer):
 
 # name guard used to ensure script only executes if it is run as the __main__
 if __name__ == "__main__":
+    # Define the simulation parameters
+    NAME = "ground"
+
     # Load config
     config = ConnectionConfig(yaml_file="downlink.yaml")
 
-    # Define the simulation parameters
-    NAME = "ground"
+    # Get configuration for a specific application
+    app_config = config.get_app_specific_config(NAME)
+    stations = app_config["stations"]
+    GROUND = pd.json_normalize(stations)[
+        [
+            "groundId",
+            "latitude",
+            "longitude",
+            "elevAngle",
+            "operational",
+            "downlinkRate",
+            "costPerSecond",
+            "costMode",
+        ]
+    ]
 
     # create the managed application
     app = ManagedApplication(NAME)

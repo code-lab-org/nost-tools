@@ -12,14 +12,6 @@ import logging
 from datetime import timedelta
 
 import pandas as pd  # type:ignore
-from satelliteStorage_config_files.config import (  # TLES,
-    CAPACITY_USED,
-    COST_MODE,
-    FIXED_RATES,
-    INSTRUMENT_RATES,
-    NAME,
-    SSR_CAPACITY,
-)
 from satelliteStorage_config_files.schemas import (
     GroundLocation,
     LinkCharge,
@@ -40,6 +32,7 @@ from nost_tools.publisher import WallclockTimeIntervalPublisher  # type:ignore
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
+
 
 def get_elevation_angle(t, sat, loc):
     """
@@ -142,11 +135,11 @@ class SatelliteStorage(Entity):
                     EarthSatellite(tle[0], tle[1], self.names[i], self.ts)
                 )
         self.positions = self.next_positions = [None for satellite in self.satellites]
-        self.ssr_capacity = SSR_CAPACITY  # in Gigabits
-        self.capacity_used = CAPACITY_USED  # fraction from 0 to 1
-        self.instrument_rates = INSTRUMENT_RATES  # in Gigabits/second
-        self.cost_mode = COST_MODE
-        self.fixed_rates = FIXED_RATES
+        self.ssr_capacity = app_config["SSR_CAPACITY"]  # in Gigabits
+        self.capacity_used = app_config["CAPACITY_USED"]  # fraction from 0 to 1
+        self.instrument_rates = app_config["INSTRUMENT_RATES"]  # in Gigabits/second
+        self.cost_mode = app_config["COST_MODE"]
+        self.fixed_rates = app_config["FIXED_RATES"]
         self.linkCounts = [0 for satellite in self.satellites]
         self.linkStatus = [False for satellite in self.satellites]
         self.cumulativeCostBySat = {l: 0.00 for l in self.names}
@@ -387,7 +380,7 @@ class SatelliteStorage(Entity):
         """
         body = body.decode("utf-8")
         outageReport = OutageReport.model_validate_json(body)
-        self.grounds["operational"][outageReport.groundId] = False
+        self.grounds.loc[outageReport.groundId, "operational"] = False
         if outageReport.groundId == 11:
             for c, mode in enumerate(self.cost_mode):
                 self.cost_mode[c] = "discrete"
@@ -404,7 +397,7 @@ class SatelliteStorage(Entity):
         """
         body = body.decode("utf-8")
         outageRestore = OutageRestore.model_validate_json(body)
-        self.grounds["operational"][outageRestore.groundId] = True
+        self.grounds.loc[outageRestore.groundId, "operational"] = True
         if outageRestore.groundId == 11:
             for c, mode in enumerate(self.cost_mode):
                 self.cost_mode[c] = "both"
@@ -487,11 +480,14 @@ class SatStatePublisher(WallclockTimeIntervalPublisher):
 
 # name guard used to ensure script only executes if it is run as the __main__
 if __name__ == "__main__":
+    # Define the simulation parameters
+    NAME = "satelliteStorage"
+
     # Load config
     config = ConnectionConfig(yaml_file="downlink.yaml")
 
-    # Define the simulation parameters
-    NAME = "satelliteStorage"
+    # Get configuration for a specific application
+    app_config = config.get_app_specific_config(NAME)
 
     # create the managed application
     app = ManagedApplication(NAME)

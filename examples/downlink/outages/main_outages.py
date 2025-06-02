@@ -12,7 +12,6 @@ import random
 from datetime import datetime, timedelta, timezone
 
 import pandas as pd
-from outages_config_files.config import NAME, SCALE
 from outages_config_files.schemas import GroundLocation, OutageReport, OutageRestore
 
 from nost_tools.application_utils import ShutDownObserver
@@ -165,11 +164,14 @@ class Randomizer(ScenarioTimeIntervalPublisher):
 
 # name guard used to ensure script only executes if it is run as the __main__
 if __name__ == "__main__":
+    # Define the simulation parameters
+    NAME = "outage"
+
     # Load config
     config = ConnectionConfig(yaml_file="downlink.yaml")
 
-    # Define the simulation parameters
-    NAME = "outage"
+    # Get configuration for a specific application
+    app_config = config.get_app_specific_config(NAME)
 
     # create the managed application
     app = ManagedApplication(NAME)
@@ -206,7 +208,10 @@ if __name__ == "__main__":
             app,
             outageScheduler,
             0.03,
-            time_status_step=timedelta(seconds=1) * SCALE,
+            time_status_step=timedelta(seconds=1)
+            * config.rc.simulation_configuration.execution_parameters.managed_applications[
+                "outage"
+            ].time_scale_factor,
             time_status_init=datetime(2023, 1, 23, 7, 20, tzinfo=timezone.utc),
         )
     )
