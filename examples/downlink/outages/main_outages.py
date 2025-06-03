@@ -135,7 +135,7 @@ class Randomizer(ScenarioTimeIntervalPublisher):
                 randomDraw = random.random()
                 if randomDraw <= self.probOutage:
                     timeOutage = self.app.simulator.get_time()
-                    durationOutage = timedelta(hours=3)
+                    durationOutage = timedelta(minutes=30)
                     endOutage = timeOutage + durationOutage
                     new_outage = pd.DataFrame(
                         {
