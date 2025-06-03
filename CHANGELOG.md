@@ -32,7 +32,7 @@ Changed:
 - Fixed scaling of `time_status_step` in `ManagerConfig`, and `time_step` and `time_status_step` in `ManagedApplicationConfig`. The code now correctly parses hours, minutes, and seconds from the string format "HH:MM:SS" and calculates the total seconds accordingly. Total seconds are then correctly scaled by the `time_scale_factor`.
 
 ## 2.0.3
-Addded: 
+Added: 
 - GitHub Action for PyPi publishing
 
 Changed:
