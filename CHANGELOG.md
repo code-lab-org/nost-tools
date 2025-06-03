@@ -98,7 +98,8 @@ Added:
 
 Changed:
 - Updated documentation for FireSat+ and Science Event test suites.
-- Moved `self.establish_exchange()` from `self._execute_test_plan_impl()` to `self.start_up()` to prevent execution from starting before RabbitMQ exchanges have been declared.
+- Moved `self.establish_exchange()` from `self._execute_test_plan_impl()` to `self.start_up()` to prevent execution from starting before RabbitMQ exchanges have been declared and resulting in an error.
+- Removed conditional check for `self.app.channel.is_open` and `self.app.connection.is_open` before sending status messages; now assumes connection is always valid or managed externally.
 - Refactored the FireSat+, Downlink, Scalability, and scienceDash examples to:
   - Use a unified YAML configuration file per example
   - Define application-specific settings under the `execution.managed_applications.<application name>.configuration_parameters` field instead of the previous `config.py`
