@@ -60,6 +60,14 @@ execution:
       time_status_init: "2020-01-01T07:20:00+00:00"
       shut_down_when_terminated: True
       manager_app_name: "manager"
+      configuration_parameters:
+        FIELD_OF_REGARD:
+          - 110
+          - 110
+          - 112.56
+          - 112.56
+          - 20.6
+          - 20.6
     ground:
       time_scale_factor: 60
       time_step: "0:00:01"
@@ -70,3 +78,10 @@ execution:
       time_status_init: "2020-01-01T07:20:00+00:00"
       shut_down_when_terminated: True
       manager_app_name: "manager"
+      configuration_parameters:
+        stations:
+          - groundId: 0
+            latitude: 78.229772
+            longitude: 15.407786
+            elevAngle: 5.0
+            operational: true

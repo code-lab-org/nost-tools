@@ -140,14 +140,14 @@ def on_reported(ch, method, properties, body):
 
 
 if __name__ == "__main__":
-    # Load config
-    config = ConnectionConfig(yaml_file="firesat.yaml")
-
     # Define the simulation parameters
     NAME = "fire"
 
+    # Load config
+    config = ConnectionConfig(yaml_file="firesat.yaml", app_name=NAME)
+
     # create the managed application
-    app = ManagedApplication(NAME)
+    app = ManagedApplication(app_name=NAME)
 
     # import csv file from fire_scenarios subdirectory with scenario defining locations and ignition datetimes of fires
     csvFile = os.path.join("fires", "fire_scenarios", "first5days.csv")

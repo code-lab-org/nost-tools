@@ -8,7 +8,7 @@ The application contains one class, the :obj:`Environment` class, which waits fo
 
 import logging
 
-from ground_config_files.config import GROUND
+import pandas as pd
 from ground_config_files.schemas import GroundLocation
 
 from nost_tools.application_utils import ShutDownObserver
@@ -62,11 +62,23 @@ class Environment(Observer):
 
 
 if __name__ == "__main__":
-    # Load config
-    config = ConnectionConfig(yaml_file="firesat.yaml")
-
     # Define the simulation parameters
     NAME = "ground"
+
+    # Load config
+    config = ConnectionConfig(yaml_file="firesat.yaml", app_name=NAME)
+
+    # Get configuration for a specific application
+    stations = config.rc.application_configuration["stations"]
+    GROUND = pd.json_normalize(stations)[
+        [
+            "groundId",
+            "latitude",
+            "longitude",
+            "elevAngle",
+            "operational",
+        ]
+    ]
 
     # create the managed application
     app = ManagedApplication(NAME)

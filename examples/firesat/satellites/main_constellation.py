@@ -11,7 +11,6 @@ from datetime import timedelta
 
 import numpy as np
 import pandas as pd
-from constellation_config_files.config import FIELD_OF_REGARD
 from constellation_config_files.schemas import (
     FireDetected,
     FireReported,
@@ -207,7 +206,7 @@ class Constellation(Entity):
         self.min_elevations_fire = [
             compute_min_elevation(
                 wgs84.subpoint(satellite.at(satellite.epoch)).elevation.m,
-                FIELD_OF_REGARD[i],
+                config.rc.application_configuration["FIELD_OF_REGARD"][i],
             )
             for i, satellite in enumerate(self.satellites)
         ]
@@ -251,7 +250,8 @@ class Constellation(Entity):
         for i, satellite in enumerate(self.satellites):
             then = self.ts.from_datetime(self.get_time() + time_step)
             self.min_elevations_fire[i] = compute_min_elevation(
-                float(self.next_positions[i].elevation.m), FIELD_OF_REGARD[i]
+                float(self.next_positions[i].elevation.m),
+                config.rc.application_configuration["FIELD_OF_REGARD"][i],
             )
             for j, fire in enumerate(self.fires):
                 if self.detect[j][self.names[i]] is None:
@@ -526,11 +526,11 @@ class FireReportedObserver(Observer):
 
 
 if __name__ == "__main__":
-    # Load config
-    config = ConnectionConfig(yaml_file="firesat.yaml")
-
     # Define the simulation parameters
     NAME = "constellation"
+
+    # Load config
+    config = ConnectionConfig(yaml_file="firesat.yaml", app_name=NAME)
 
     # create the managed application
     app = ManagedApplication(NAME)
