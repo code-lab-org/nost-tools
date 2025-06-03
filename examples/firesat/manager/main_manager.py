@@ -26,11 +26,10 @@ if __name__ == "__main__":
     # add a shutdown observer to shut down after a single test case
     manager.simulator.add_observer(ShutDownObserver(manager))
 
-    # start up the manager on PREFIX from config file
+    # start up the manager
     manager.start_up(
         config.rc.simulation_configuration.execution_parameters.general.prefix,
         config,
-        True,
     )
 
     manager.execute_test_plan()

@@ -533,7 +533,7 @@ if __name__ == "__main__":
     config = ConnectionConfig(yaml_file="firesat.yaml", app_name=NAME)
 
     # create the managed application
-    app = ManagedApplication(NAME)
+    app = ManagedApplication(app_name=NAME)
 
     # load current TLEs for active satellites from Celestrak
     activesats_url = (
@@ -577,11 +577,10 @@ if __name__ == "__main__":
         PositionPublisher(app, constellation, timedelta(seconds=1))
     )
 
-    # start up the application on PREFIX, publish time status every 10 seconds of wallclock time
+    # start up the application
     app.start_up(
         config.rc.simulation_configuration.execution_parameters.general.prefix,
         config,
-        True,
     )
 
     # add message callbacks

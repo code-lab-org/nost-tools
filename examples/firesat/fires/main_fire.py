@@ -177,11 +177,10 @@ if __name__ == "__main__":
     # add a shutdown observer to shut down after a single test case
     app.simulator.add_observer(ShutDownObserver(app))
 
-    # start up the application on PREFIX, publish time status every 10 seconds of wallclock time
+    # start up the application
     app.start_up(
         config.rc.simulation_configuration.execution_parameters.general.prefix,
         config,
-        True,
     )
 
     # Add message callbacks for fire ignition, detection, and report

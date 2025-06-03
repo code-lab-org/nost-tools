@@ -68,7 +68,10 @@ if __name__ == "__main__":
     # Load config
     config = ConnectionConfig(yaml_file="firesat.yaml", app_name=NAME)
 
-    # Get configuration for a specific application
+    # create the managed application
+    app = ManagedApplication(app_name=NAME)
+
+    # Get the ground station information from the configuration
     stations = config.rc.application_configuration["stations"]
     GROUND = pd.json_normalize(stations)[
         [
@@ -80,20 +83,16 @@ if __name__ == "__main__":
         ]
     ]
 
-    # create the managed application
-    app = ManagedApplication(NAME)
-
     # add the environment observer to monitor simulation for switch to EXECUTING mode
     app.simulator.add_observer(Environment(app, GROUND))
 
     # add a shutdown observer to shut down after a single test case
     app.simulator.add_observer(ShutDownObserver(app))
 
-    # start up the application on PREFIX, publish time status every 10 seconds of wallclock time
+    # start up the application
     app.start_up(
         config.rc.simulation_configuration.execution_parameters.general.prefix,
         config,
-        True,
     )
 
     while True:
