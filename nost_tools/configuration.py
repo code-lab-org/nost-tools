@@ -60,6 +60,7 @@ class ConnectionConfig:
         virtual_host: str = None,
         is_tls: bool = True,
         yaml_file: str = None,
+        app_name: str = None,
     ):
         """
         Initializes a new connection configuration.
@@ -76,6 +77,7 @@ class ConnectionConfig:
             virtual_host (str): RabbitMQ virtual host
             is_tls (bool): True, if the connection uses TLS
             yaml_file (str): Path to the YAML configuration file
+            app_name (str): Name of the application to get specific configuration for
         """
         self.username = username
         self.password = password
@@ -94,6 +96,8 @@ class ConnectionConfig:
         self.yaml_file = yaml_file
         self.unique_exchanges = {}
         self.channel_configs = []
+        self.app_name = app_name
+        self.app_specific = None
 
         self.create_connection_config()
 
@@ -215,7 +219,7 @@ class ConnectionConfig:
 
         Args:
             app_name (str): Name of the application
-        
+
         Returns:
             dict: Application-specific configuration parameters if available, otherwise None.
         """
@@ -267,6 +271,9 @@ class ConnectionConfig:
                 ), "Application names do not match the channels defined in the configuration file."
             except ConfigAssertionError as e:
                 raise ValueError(f"Assertion error: {e}")
+            # Load app-specific configuration if app_name is provided
+            if self.app_name:
+                self.app_specific = self.get_app_specific_config(self.app_name)
         else:
             try:
                 self.yaml_config = Config(
@@ -325,4 +332,5 @@ class ConnectionConfig:
             credentials=self.credentials_config,
             server_configuration=server_config,
             simulation_configuration=self.simulation_config,
+            application_configuration=self.app_specific,
         )

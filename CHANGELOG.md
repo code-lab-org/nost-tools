@@ -93,6 +93,7 @@ Added:
       sim_update_time: "2020-01-01T08:20:00+00:00"
   ```
 - Introduced `get_app_specific_config()` in `configuration.py` that retrieves application-specific configuration from the `execution.managed_applications` section based on the application name.
+- Added `application_configuration` to `config.rc` (runtime configuration) at `configuration.py`, which contains user-provided, application-specific configurations. These application-specific configurations can be defined for each application within the YAML configuration file at the field `execution.managed_applications.<application name>.configuration_parameters`. This replaces `config.py` for each application in the NOS-T Tools examples.
 
 Changed:
 - Updated documentation for FireSat+ and Science Event test suites.

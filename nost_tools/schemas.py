@@ -536,3 +536,6 @@ class RuntimeConfig(BaseModel):
     simulation_configuration: SimulationConfig = Field(
         ..., description="Simulation configuration."
     )
+    application_configuration: Optional[Dict] = Field(
+        None, description="Application-specific, user-provided configuration."
+    )
