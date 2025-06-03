@@ -10,12 +10,30 @@ The installation phase involves:
 3. Configuring the necessary credentials to interact with the NOS-T infrastructure
 
 
+Integrated Development Environment
+----------------------------------
+
+.. start-ide-installation
+
+An Integrated Development Environment (IDE) will make developing applications and interacting with NOS-T much easier. Below is a list of recommended IDEs:
+
+- `Visual Studio Code (VS Code) <https://visualstudio.microsoft.com/>`__: Lightweight, highly customizable, supports many languages via extensions.
+- `IntelliJ IDEA <https://www.jetbrains.com/idea/>`__: Excellent for Java and Kotlin, with strong support for other JVM languages.
+- `Eclipse <https://eclipseide.org/>`__: Popular for Java development, also supports C/C++, Python, and more.
+- `PyCharm <https://www.jetbrains.com/pycharm/>`__: Feature-rich Python IDE by JetBrains, great for web development and data science.
+
+.. note:: 
+  Users are encouraged to use `VS Code <https://visualstudio.microsoft.com/>`__ due to its lightweight design, ease of setup, and strong community support. It also offers built-in support for Jupyter notebooks, making it especially helpful for getting started with NOS-T development.
+|
+
+.. end-ide-installation
+
 NOS-T Tools Installation
 ------------------------
 
 .. start-nos-t-installation
 
-To install the NOS-T tools library, you can use either ``pip`` or ``conda``. Below are the instructions for both methods.
+The NOS-T Tools library is available on `PyPi <https://pypi.org/project/nost-tools/>`__ and can be installed using ``pip``, the standard package manager for Python or ``conda``. Below are the instructions for both methods.
 
 Pip 
 ^^^
@@ -65,6 +83,11 @@ To install additional libraries required to run the examples:
 .. code-block:: bash
 
     python3 -m pip install "nost_tools[examples]"
+
+.. note:: 
+  Following the instructions above will install the Python packages that the test suite depends on to run. The details of these dependencies, including version numbers, can
+  otherwise be found in the `requirements file <https://github.com/code-lab-org/nost-tools/blob/main/pyproject.toml>`__.
+|
 
 .. end-nos-t-installation
 

@@ -1,6 +1,6 @@
 .. _instructionsScienceDash:
 
-Visualization Implementation Example
+Visualization Implementation Example: Science Event Dashboard Test Suite
 ====================================
 
 This example illustrates how to build a basic visualization tool using a publish-subscribe (pub/sub) architecture powered by a RabbitMQ event broker. It aims to help users understand how to visualize data flows within a test suite, with a focus on science event data.
@@ -33,35 +33,37 @@ as expected. A basic graphical representation of the data flow is shown below.
 Setup
 -----
 
-The setup phase involves:
+This section will show you how to set up NOS-T assuming you are a beginner to both coding and the testbed. The setup phase involves:
 
-1. Installing the NOS-T Tools library
-2. Setting up a RabbitMQ Event Broker
-3. Cloning the NOS-T Tools repository
+1. Integrated Development Environment Installation
+2. NOS-T Tools Installation
+3. Setting up a RabbitMQ Event Broker
+4. Cloning the NOS-T Tools repository
 
-.. note::
-   
+Integrated Development Environment Installation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /../../docs/source/installation/installation.rst
+  :start-after: start-ide-installation
+  :end-before: end-ide-installation
 
 NOS-T Tools Installation
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 Although the Science Event Test Suite code does not require the full NOS-T Tools library, it is recommended to install the library to simplify installation of dependencies for this test suite.
 
-The NOS-T Tools library is available on `PyPi <https://pypi.org/project/nost-tools/>`__ and can be installed using pip, the standard package manager for Python. The library is compatible with Python 3.8 and later versions.
-
 .. include:: /../../docs/source/installation/installation.rst
   :start-after: start-nos-t-installation
   :end-before: end-nos-t-installation
-
-.. note:: 
-  Following the instructions above will install the Python packages that the Science Event test suite depends on to run. The details of these dependencies, including version numbers, can
-  otherwise be found in the `requirements file <https://github.com/code-lab-org/nost-tools/blob/main/pyproject.toml>`__.
-
 
 Setting up a RabbitMQ Event Broker
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Refer to the :ref:`localBroker` guide for instructions on how to set up a RabbitMQ event broker locally.
+
+.. important::
+  The test suite uses a RabbitMQ event broker to facilitate communication between applications. Ensure that your RabbitMQ broker is running and accessible before proceeding with the test suite.
+|
 
 Repository Cloning
 ~~~~~~~~~~~~~~~~~~
@@ -92,7 +94,7 @@ name ``.env`` containing the following information:
 ::
 
   HOST="your event broker host URL"
-  PORT=8883 - your connection port
+  PORT="your connection port"
   USERNAME="your event broker username"
   PASSWORD="your event broker password"
 

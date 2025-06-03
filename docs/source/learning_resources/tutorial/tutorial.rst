@@ -1,6 +1,6 @@
 .. _tutorial:
 
-Hands-on Tutorial
+Hands-on Tutorial: FireSat+ Test Suite
 =================
 
 This tutorial contains information for those who are just starting out and builds up to show how complex test suites can be built.
@@ -27,33 +27,33 @@ Setup
 
 This section will show you how to set up NOS-T assuming you are a beginner to both coding and the testbed. The setup phase involves:
 
-1. Installing an Integrated Development Environment (IDE)
-2. Installing the NOS-T Tools library
+1. Integrated Development Environment Installation
+2. NOS-T Tools Installation
 3. Setting up a RabbitMQ Event Broker
 4. Cloning the NOS-T Tools repository
 
-Integrated Development Environment
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Integrated Development Environment Installation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-An IDE will make developing applications and interacting with the testbed much easier. The developers have mostly used Microsoft's `Visual Studio Code <https://visualstudio.microsoft.com/>`__. This tutorial will proceed under the assumption that you are using Visual Studio Code or a comparable IDE.
+.. include:: /../../docs/source/installation/installation.rst
+  :start-after: start-ide-installation
+  :end-before: end-ide-installation
 
 NOS-T Tools Installation
 ~~~~~~~~~~~~~~~~~~~~~~~~
-
-The NOS-T Tools library is available on `PyPi <https://pypi.org/project/nost-tools/>`__ and can be installed using pip, the standard package manager for Python. The library is compatible with Python 3.8 and later versions.
 
 .. include:: /../../docs/source/installation/installation.rst
   :start-after: start-nos-t-installation
   :end-before: end-nos-t-installation
 
-.. note:: 
-  Following the instructions above will install the Python packages that the FireSat+ test suite depends on to run. The details of these dependencies, including version numbers, can
-  otherwise be found in the `requirements file <https://github.com/code-lab-org/nost-tools/blob/main/pyproject.toml>`__.
-
 Setting up a RabbitMQ Event Broker
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Refer to the :ref:`localBroker` guide for instructions on how to set up a RabbitMQ event broker locally.
+
+.. important::
+  The test suite uses a RabbitMQ event broker to facilitate communication between applications. Ensure that your RabbitMQ broker is running and accessible before proceeding with the test suite.
+|
 
 Repository Cloning
 ~~~~~~~~~~~~~~~~~~
@@ -85,8 +85,8 @@ communication structure because each member application (client) only
 directly connects to the broker, rather than requiring each application
 to directly connect to every other application.
 
-The FireSat+ Test Suite
------------------------
+FireSat+ Test Suite Overview
+----------------------------
 
 From here, the tutorial will explain important functions using FireSat+, an example NOS-T test suite based on FireSat, the common space systems 
 engineering application case. The operational concept for FireSat+ is that one or several satellites are searching for fires. The fires are ignited following a historical dataset. When one of the satellites orbit above these locations, it will detect the fire. Finally, once that satellite is in range of a ground station, it will report the fire.
