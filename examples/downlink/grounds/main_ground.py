@@ -26,7 +26,7 @@ from nost_tools.observer import Observable, Observer  # type: ignore
 from nost_tools.simulator import Mode, Simulator  # type: ignore
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 # define an observer to manage ground updates
@@ -453,15 +453,17 @@ class LinkEndObserver(Observer):
 
 # name guard used to ensure script only executes if it is run as the __main__
 if __name__ == "__main__":
-    # Define the simulation parameters
+    # Define application name
     NAME = "ground"
 
     # Load config
-    config = ConnectionConfig(yaml_file="downlink.yaml")
+    config = ConnectionConfig(yaml_file="downlink.yaml", app_name=NAME)
 
-    # Get configuration for a specific application
-    app_config = config.get_app_specific_config(NAME)
-    stations = app_config["stations"]
+    # Create the managed application
+    app = ManagedApplication(app_name=NAME)
+
+    # Get the ground station information from the configuration
+    stations = config.rc.application_configuration["stations"]
     GROUND = pd.json_normalize(stations)[
         [
             "groundId",
@@ -475,30 +477,26 @@ if __name__ == "__main__":
         ]
     ]
 
-    # create the managed application
-    app = ManagedApplication(NAME)
-
-    # initialize the GroundNetwork Observable
+    # Initialize the GroundNetwork Observable
     groundNetwork = GroundNetwork(app, GROUND)
 
-    # add observers for in-range and out-of-range switches to the groundNetwork object class
+    # Add observers for in-range and out-of-range switches to the groundNetwork object class
     groundNetwork.add_observer(LinkStartObserver(app))
     groundNetwork.add_observer(LinkEndObserver(app))
 
-    # add the groundNetwork observer to monitor simulation for switch to EXECUTING mode
+    # Add the groundNetwork observer to monitor simulation for switch to EXECUTING mode
     app.simulator.add_observer(groundNetwork)
 
-    # add a shutdown observer to shut down after a single test case
+    # Add a shutdown observer to shut down after a single test case
     app.simulator.add_observer(ShutDownObserver(app))
 
-    # start up the application on PREFIX, publish time status every 10 seconds of wallclock time
+    # Start up the application
     app.start_up(
         config.rc.simulation_configuration.execution_parameters.general.prefix,
         config,
-        True,
     )
 
-    # add message callbacks for constellation messages
+    # Add message callbacks
     app.add_message_callback("constellation", "ready", groundNetwork.on_ready)
     app.add_message_callback("constellation", "allReady", groundNetwork.all_ready)
     app.add_message_callback("constellation", "location", groundNetwork.on_commRange)

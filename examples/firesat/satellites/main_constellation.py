@@ -526,16 +526,16 @@ class FireReportedObserver(Observer):
 
 
 if __name__ == "__main__":
-    # Define the simulation parameters
+    # Define application name
     NAME = "constellation"
 
     # Load config
     config = ConnectionConfig(yaml_file="firesat.yaml", app_name=NAME)
 
-    # create the managed application
+    # Create the managed application
     app = ManagedApplication(app_name=NAME)
 
-    # load current TLEs for active satellites from Celestrak
+    # Load current TLEs for active satellites from Celestrak
     activesats_url = (
         "https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle"
     )
@@ -559,31 +559,31 @@ if __name__ == "__main__":
         ES.append(by_name[name])
         indices.append(name_i)
 
-    # initialize the Constellation object class (in this example from EarthSatellite type)
+    # Initialize the Constellation object class (in this example from EarthSatellite type)
     constellation = Constellation("constellation", app, indices, names, ES)
 
-    # add observer classes to the Constellation object class
+    # Add observer classes to the Constellation object class
     constellation.add_observer(FireDetectedObserver(app))
     constellation.add_observer(FireReportedObserver(app))
 
-    # add the Constellation entity to the application's simulator
+    # Add the Constellation entity to the application's simulator
     app.simulator.add_entity(constellation)
 
-    # add a shutdown observer to shut down after a single test case
+    # Add a shutdown observer to shut down after a single test case
     app.simulator.add_observer(ShutDownObserver(app))
 
-    # add a position publisher to update satellite state every 5 seconds of wallclock time
+    # Add a position publisher to update satellite state every 5 seconds of wallclock time
     app.simulator.add_observer(
         PositionPublisher(app, constellation, timedelta(seconds=1))
     )
 
-    # start up the application
+    # Start up the application
     app.start_up(
         config.rc.simulation_configuration.execution_parameters.general.prefix,
         config,
     )
 
-    # add message callbacks
+    # Add message callbacks
     app.add_message_callback("fire", "location", constellation.on_fire)
     app.add_message_callback("ground", "location", constellation.on_ground)
 

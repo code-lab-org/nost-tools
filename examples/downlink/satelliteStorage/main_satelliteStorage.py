@@ -31,7 +31,7 @@ from nost_tools.managed_application import ManagedApplication  # type:ignore
 from nost_tools.publisher import WallclockTimeIntervalPublisher  # type:ignore
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 def get_elevation_angle(t, sat, loc):
@@ -135,11 +135,17 @@ class SatelliteStorage(Entity):
                     EarthSatellite(tle[0], tle[1], self.names[i], self.ts)
                 )
         self.positions = self.next_positions = [None for satellite in self.satellites]
-        self.ssr_capacity = app_config["SSR_CAPACITY"]  # in Gigabits
-        self.capacity_used = app_config["CAPACITY_USED"]  # fraction from 0 to 1
-        self.instrument_rates = app_config["INSTRUMENT_RATES"]  # in Gigabits/second
-        self.cost_mode = app_config["COST_MODE"]
-        self.fixed_rates = app_config["FIXED_RATES"]
+        self.ssr_capacity = config.rc.application_configuration[
+            "SSR_CAPACITY"
+        ]  # in Gigabits
+        self.capacity_used = config.rc.application_configuration[
+            "CAPACITY_USED"
+        ]  # fraction from 0 to 1
+        self.instrument_rates = config.rc.application_configuration[
+            "INSTRUMENT_RATES"
+        ]  # in Gigabits/second
+        self.cost_mode = config.rc.application_configuration["COST_MODE"]
+        self.fixed_rates = config.rc.application_configuration["FIXED_RATES"]
         self.linkCounts = [0 for satellite in self.satellites]
         self.linkStatus = [False for satellite in self.satellites]
         self.cumulativeCostBySat = {l: 0.00 for l in self.names}
@@ -283,7 +289,9 @@ class SatelliteStorage(Entity):
             self.grounds[self.grounds.groundId == location.groundId].costPerSecond = (
                 location.costPerSecond
             )
-            print(f"Station {location.groundId} updated at time {self.get_time()}.")
+            logger.info(
+                f"Station {location.groundId} updated at time {self.get_time()}."
+            )
         else:
             location = {
                 "groundId": location.groundId,
@@ -314,7 +322,7 @@ class SatelliteStorage(Entity):
         """
         body = body.decode("utf-8")
         downlinkStart = LinkStart.model_validate_json(body)
-        print(downlinkStart)
+        logger.info(f"Downlink start: {downlinkStart}")
         if downlinkStart.groundId != -1:
             self.groundTimes[downlinkStart.satName].append(
                 {
@@ -343,7 +351,7 @@ class SatelliteStorage(Entity):
         """
         body = body.decode("utf-8")
         downlinkCharge = LinkCharge.model_validate_json(body)
-        print(downlinkCharge)
+        logger.info(f"Downlink charge: {downlinkCharge}")
         if downlinkCharge.groundId != -1:
             self.groundTimes[downlinkCharge.satName][downlinkCharge.linkId][
                 "end"
@@ -480,19 +488,16 @@ class SatStatePublisher(WallclockTimeIntervalPublisher):
 
 # name guard used to ensure script only executes if it is run as the __main__
 if __name__ == "__main__":
-    # Define the simulation parameters
+    # Define application name
     NAME = "satelliteStorage"
 
     # Load config
-    config = ConnectionConfig(yaml_file="downlink.yaml")
+    config = ConnectionConfig(yaml_file="downlink.yaml", app_name=NAME)
 
-    # Get configuration for a specific application
-    app_config = config.get_app_specific_config(NAME)
+    # Create the managed application
+    app = ManagedApplication(app_name=NAME)
 
-    # create the managed application
-    app = ManagedApplication(NAME)
-
-    # load current TLEs for active satellites from Celestrak
+    # Load current TLEs for active satellites from Celestrak
     activesats_url = (
         "https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle"
     )
@@ -509,28 +514,27 @@ if __name__ == "__main__":
         ES.append(by_name[name])
         indices.append(name_i)
 
-    # initialize the Constellation object class (in this example from EarthSatellite type)
+    # Initialize the Constellation object class (in this example from EarthSatellite type)
     constellation = SatelliteStorage("constellation", app, [0, 1], names, ES)
 
-    # add the Constellation entity to the application's simulator
+    # Add the Constellation entity to the application's simulator
     app.simulator.add_entity(constellation)
 
-    # add a shutdown observer to shut down after a single test case
+    # Add a shutdown observer to shut down after a single test case
     app.simulator.add_observer(ShutDownObserver(app))
 
-    # add a position publisher to update satellite state every 5 seconds of wallclock time
+    # Add a position publisher to update satellite state every 5 seconds of wallclock time
     app.simulator.add_observer(
         SatStatePublisher(app, constellation, timedelta(seconds=1))
     )
 
-    # start up the application on PREFIX, publish time status every 10 seconds of wallclock time
+    # Start up the application
     app.start_up(
         config.rc.simulation_configuration.execution_parameters.general.prefix,
         config,
-        True,
     )
 
-    # add message callbacks
+    # Add message callbacks
     app.add_message_callback("ground", "location", constellation.on_ground)
     app.add_message_callback("ground", "linkStart", constellation.on_linkStart)
     app.add_message_callback("ground", "linkCharge", constellation.on_linkCharge)

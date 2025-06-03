@@ -21,7 +21,7 @@ from nost_tools.observer import Observer
 from nost_tools.publisher import ScenarioTimeIntervalPublisher
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 random.seed(72)
 
 
@@ -65,7 +65,7 @@ class Scheduler(Observer):
                 "costMode": location.costMode,
             }
         )
-        print(
+        logger.info(
             f"Station {location.groundId} registered at time {self.app.simulator.get_time()}."
         )
 
@@ -164,23 +164,21 @@ class Randomizer(ScenarioTimeIntervalPublisher):
 
 # name guard used to ensure script only executes if it is run as the __main__
 if __name__ == "__main__":
-    # Define the simulation parameters
+    # Define application name
     NAME = "outage"
 
     # Load config
-    config = ConnectionConfig(yaml_file="downlink.yaml")
+    config = ConnectionConfig(yaml_file="downlink.yaml", app_name=NAME)
 
-    # Get configuration for a specific application
-    app_config = config.get_app_specific_config(NAME)
+    # Create the managed application
+    app = ManagedApplication(app_name=NAME)
 
-    # create the managed application
-    app = ManagedApplication(NAME)
-
-    # import csv file from outages_scenarios subdirectory with scenario defining groundId and datetimes of outages
+    # Import CSV file from outages_scenarios subdirectory with scenario defining groundId and datetimes of outages
     csvFile = importlib.resources.open_text(
         "outages_scenarios", "only_random_outages.csv"
     )
-    # Read the csv file and convert to a DataFrame with initial column defining the index
+
+    # Read the CSV file and convert to a DataFrame with initial column defining the index
     df = pd.read_csv(csvFile, index_col=0)
     schedule = pd.DataFrame(
         data={
@@ -196,13 +194,13 @@ if __name__ == "__main__":
     # Initialize Outage Scheduler
     outageScheduler = Scheduler(app, NAME, schedule)
 
-    # add the Scheduler entity to the application's simulator
+    # Add the Scheduler entity to the application's simulator
     app.simulator.add_observer(outageScheduler)
 
-    # add a shutdown observer to shut down after a single test case
+    # Add a shutdown observer to shut down after a single test case
     app.simulator.add_observer(ShutDownObserver(app))
 
-    # add a ScenarioTimeIntervalPublisher for publishing random outages
+    # Add a ScenarioTimeIntervalPublisher for publishing random outages
     app.simulator.add_observer(
         Randomizer(
             app,
@@ -216,14 +214,13 @@ if __name__ == "__main__":
         )
     )
 
-    # start up the application on PREFIX, publish time status every 10 seconds of wallclock time
+    # Start up the application
     app.start_up(
         config.rc.simulation_configuration.execution_parameters.general.prefix,
         config,
-        True,
     )
 
-    # add message callbacks
+    # Add message callbacks
     app.add_message_callback("ground", "location", outageScheduler.on_ground)
 
     while True:

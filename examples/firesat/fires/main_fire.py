@@ -140,16 +140,16 @@ def on_reported(ch, method, properties, body):
 
 
 if __name__ == "__main__":
-    # Define the simulation parameters
+    # Define application name
     NAME = "fire"
 
     # Load config
     config = ConnectionConfig(yaml_file="firesat.yaml", app_name=NAME)
 
-    # create the managed application
+    # Create the managed application
     app = ManagedApplication(app_name=NAME)
 
-    # import csv file from fire_scenarios subdirectory with scenario defining locations and ignition datetimes of fires
+    # Import CSV file from fire_scenarios subdirectory with scenario defining locations and ignition datetimes of fires
     csvFile = os.path.join("fires", "fire_scenarios", "first5days.csv")
 
     # Read the csv file and convert to a DataFrame with initial column defining the index
@@ -171,19 +171,19 @@ if __name__ == "__main__":
     fires.insert(6, "reported_by", "Unreported")
     fires.insert(7, "reported_to", None)
 
-    # add the environment observer to monitor for fire status events
+    # Add the environment observer to monitor for fire status events
     app.simulator.add_observer(Environment(app, fires))
 
-    # add a shutdown observer to shut down after a single test case
+    # Add a shutdown observer to shut down after a single test case
     app.simulator.add_observer(ShutDownObserver(app))
 
-    # start up the application
+    # Start up the application
     app.start_up(
         config.rc.simulation_configuration.execution_parameters.general.prefix,
         config,
     )
 
-    # Add message callbacks for fire ignition, detection, and report
+    # Add message callbacks
     app.add_message_callback("fire", "location", on_fire)
     app.add_message_callback("constellation", "detected", on_detected)
     app.add_message_callback("constellation", "reported", on_reported)

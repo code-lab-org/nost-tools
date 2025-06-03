@@ -62,13 +62,13 @@ class Environment(Observer):
 
 
 if __name__ == "__main__":
-    # Define the simulation parameters
+    # Define application name
     NAME = "ground"
 
     # Load config
     config = ConnectionConfig(yaml_file="firesat.yaml", app_name=NAME)
 
-    # create the managed application
+    # Create the managed application
     app = ManagedApplication(app_name=NAME)
 
     # Get the ground station information from the configuration
@@ -83,13 +83,13 @@ if __name__ == "__main__":
         ]
     ]
 
-    # add the environment observer to monitor simulation for switch to EXECUTING mode
+    # Add the environment observer to monitor simulation for switch to EXECUTING mode
     app.simulator.add_observer(Environment(app, GROUND))
 
-    # add a shutdown observer to shut down after a single test case
+    # Add a shutdown observer to shut down after a single test case
     app.simulator.add_observer(ShutDownObserver(app))
 
-    # start up the application
+    # Start up the application
     app.start_up(
         config.rc.simulation_configuration.execution_parameters.general.prefix,
         config,

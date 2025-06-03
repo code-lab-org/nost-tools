@@ -21,17 +21,16 @@ if __name__ == "__main__":
     # Load config
     config = ConnectionConfig(yaml_file="downlink.yaml")
 
-    # create the manager application from the template in the tools library
+    # Create the manager application
     manager = Manager()
 
     # add a shutdown observer to shut down after a single test case
     manager.simulator.add_observer(ShutDownObserver(manager))
 
-    # start up the manager on PREFIX from config file
+    # Start up the manager
     manager.start_up(
         config.rc.simulation_configuration.execution_parameters.general.prefix,
         config,
-        True,
     )
 
     manager.execute_test_plan()
