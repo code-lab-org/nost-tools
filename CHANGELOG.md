@@ -92,9 +92,14 @@ Added:
     - time_scale_factor: 120.0
       sim_update_time: "2020-01-01T08:20:00+00:00"
   ```
+  > **_NOTE:_** An example is provided in [FireSat+ YAML configuration file](examples/firesat/firesat.yaml).
 - Introduced `get_app_specific_config()` in `configuration.py` that retrieves application-specific configuration from the `execution.managed_applications` section based on the application name.
 - Added `application_configuration` to `config.rc` (runtime configuration) at `configuration.py`, which contains user-provided, application-specific configurations. These application-specific configurations can be defined for each application within the YAML configuration file at the field `execution.managed_applications.<application name>.configuration_parameters`. This replaces `config.py` for each application in the NOS-T Tools examples.
 
 Changed:
 - Updated documentation for FireSat+ and Science Event test suites.
 - Moved `self.establish_exchange()` from `self._execute_test_plan_impl()` to `self.start_up()` to prevent execution from starting before RabbitMQ exchanges have been declared.
+- Refactored the FireSat+, Downlink, Scalability, and scienceDash examples to:
+  - Use a unified YAML configuration file per example
+  - Define application-specific settings under the `execution.managed_applications.<application name>.configuration_parameters` field instead of the previous `config.py`
+  - Improve general code structure for enhanced efficiency, readability, and user experience
