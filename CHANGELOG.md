@@ -97,10 +97,11 @@ Added:
 - Added `application_configuration` to `config.rc` (runtime configuration) at `configuration.py`, which contains user-provided, application-specific configurations. These application-specific configurations can be defined for each application within the YAML configuration file at the field `execution.managed_applications.<application name>.configuration_parameters`. This replaces `config.py` for each application in the NOS-T Tools examples.
 
 Changed:
-- Updated documentation for FireSat+ and Science Event test suites.
+
 - Moved `self.establish_exchange()` from `self._execute_test_plan_impl()` to `self.start_up()` to prevent execution from starting before RabbitMQ exchanges have been declared and resulting in an error.
 - Removed conditional check for `self.app.channel.is_open` and `self.app.connection.is_open` before sending status messages; now assumes connection is always valid or managed externally.
-- Refactored the FireSat+, Downlink, Scalability, and scienceDash examples to:
+- Refactored the FireSat+, Downlink, Scalability, and scienceDash test suites to:
   - Use a unified YAML configuration file per example
   - Define application-specific settings under the `execution.managed_applications.<application name>.configuration_parameters` field instead of the previous `config.py`
   - Improve general code structure for enhanced efficiency, readability, and user experience
+- Updated documentation for the FireSat+, Downlink, Scalability, and scienceDash test suites.
