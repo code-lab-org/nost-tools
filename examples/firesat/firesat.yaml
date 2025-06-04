@@ -10,6 +10,8 @@ servers:
     tls: False
     virtual_host: "/"
     message_expiration: "60000"
+    heartbeat: 600
+    blocked_connection_timeout: 300
 execution:
   general:
     prefix: greenfield
@@ -24,7 +26,7 @@ execution:
     time_status_step: "0:00:01"
     is_scenario_time_status_step: False
     time_status_init: "2020-01-01T07:21:00+00:00"
-    command_lead: "0:00:05"
+    command_lead: "0:00:00"
     required_apps:
       - manager
       - fire

@@ -10,6 +10,8 @@ servers:
     tls: False
     virtual_host: "/"
     message_expiration: "60000"
+    heartbeat: 600
+    blocked_connection_timeout: 300
 execution:
   general:
     prefix: downlink
