@@ -311,6 +311,19 @@ class GeneralConfig(BaseModel):
     prefix: str = Field("nost", description="Execution prefix.")
 
 
+class TimeScaleUpdateSchema(BaseModel):
+    """
+    Provides a scheduled update to the simulation time scale factor.
+    """
+
+    time_scale_factor: float = Field(
+        ..., description="Scenario seconds per wallclock second"
+    )
+    sim_update_time: datetime = Field(
+        ..., description="Scenario time that the update will occur"
+    )
+
+
 class ManagerConfig(BaseModel):
     sim_start_time: Optional[datetime] = Field(
         None, description="Simulation start time."
@@ -322,7 +335,7 @@ class ManagerConfig(BaseModel):
         description="Time step for the simulation.",
     )
     time_scale_factor: float = Field(1.0, description="Time scale factor.")
-    time_scale_updates: List[str] = Field(
+    time_scale_updates: List[TimeScaleUpdateSchema] = Field(
         default_factory=list, description="List of time scale updates."
     )
     time_status_step: Optional[timedelta] = Field(None, description="Time status step.")
@@ -437,6 +450,26 @@ class LoggerApplicationConfig(BaseModel):
     )
 
 
+class ApplicationConfig(BaseModel):
+    set_offset: Optional[bool] = Field(True, description="Set offset.")
+    time_scale_factor: Optional[float] = Field(1.0, description="Time scale factor.")
+    time_step: Optional[timedelta] = Field(
+        timedelta(seconds=1), description="Time step for swe_change."
+    )
+    time_status_step: Optional[timedelta] = Field(
+        timedelta(seconds=10), description="Time status step."
+    )
+    time_status_init: Optional[datetime] = Field(
+        datetime.now(), description="Time status init."
+    )
+    shut_down_when_terminated: Optional[bool] = Field(
+        False, description="Shut down when terminated."
+    )
+    manager_app_name: Optional[str] = Field(
+        "manager", description="Manager application name."
+    )
+
+
 class ExecConfig(BaseModel):
     general: GeneralConfig
     manager: Optional[ManagerConfig] = Field(None, description="Manager configuration.")
@@ -446,6 +479,9 @@ class ExecConfig(BaseModel):
     )
     logger_application: Optional[LoggerApplicationConfig] = Field(
         None, description="Logger application configuration."
+    )
+    application: Optional[ApplicationConfig] = Field(
+        None, description="Application configuration."
     )
 
 
@@ -499,4 +535,7 @@ class RuntimeConfig(BaseModel):
     )
     simulation_configuration: SimulationConfig = Field(
         ..., description="Simulation configuration."
+    )
+    application_configuration: Optional[Dict] = Field(
+        None, description="Application-specific, user-provided configuration."
     )

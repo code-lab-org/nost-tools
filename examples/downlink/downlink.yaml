@@ -1,0 +1,183 @@
+info:
+  title: Novel Observing Strategies Testbed (NOS-T) YAML Configuration
+  version: '1.0.0'
+  description: Version-controlled AsyncAPI document for RabbitMQ event broker with Keycloak authentication within NOS-T
+servers:
+  rabbitmq:
+    keycloak_authentication: False
+    host: "localhost"
+    port: 5672
+    tls: False
+    virtual_host: "/"
+    message_expiration: "60000"
+    heartbeat: 600
+    blocked_connection_timeout: 300
+execution:
+  general:
+    prefix: downlink
+  application:
+    shut_down_when_terminated: True
+  manager:
+    sim_start_time: "2023-01-23T07:20:00+00:00"
+    sim_stop_time: "2023-01-23T09:20:00+00:00"
+    start_time: 
+    time_step: "0:00:01"
+    time_scale_factor: 60
+    time_status_step: "0:00:01"
+    is_scenario_time_status_step: False
+    time_status_init: "2023-01-23T07:21:00+00:00"
+    command_lead: "0:00:05"
+    required_apps:
+      - manager
+      - satelliteStorage
+      - outage
+      - ground
+    init_retry_delay_s: 5
+    init_max_retry: 5
+    set_offset: True
+    shut_down_when_terminated: True
+  managed_applications:
+    satelliteStorage:
+      time_scale_factor: 60
+      time_step: "0:00:01"
+      is_scenario_time_step: False
+      set_offset: True
+      time_status_step: "0:00:10"
+      is_scenario_time_status_step: False
+      time_status_init: "2023-01-23T07:20:00+00:00"
+      shut_down_when_terminated: True
+      manager_app_name: "manager"
+      configuration_parameters:
+        SSR_CAPACITY: 
+          - 280
+          - 343
+        CAPACITY_USED:
+          - 0.30
+          - 0.25
+        INSTRUMENT_RATES:
+          - 0.0125
+          - 0.0125
+        COST_MODE:
+          - "discrete"
+          - "discrete"
+        FIXED_RATES:
+          - 0.09
+          - 0.09
+    outage:
+      time_scale_factor: 60
+      time_step: "0:00:01"
+      is_scenario_time_step: False
+      set_offset: True
+      time_status_step: "0:00:10"
+      is_scenario_time_status_step: False
+      time_status_init: "2023-01-23T07:30:00+00:00"
+      shut_down_when_terminated: True
+      manager_app_name: "manager"
+    ground:
+      time_scale_factor: 60
+      time_step: "0:00:01"
+      is_scenario_time_step: False
+      set_offset: True
+      time_status_step: "0:00:10"
+      is_scenario_time_status_step: False
+      time_status_init: "2023-01-23T07:30:00+00:00"
+      shut_down_when_terminated: True
+      manager_app_name: "manager"
+      configuration_parameters:
+        stations:
+          - groundId: 0
+            latitude: 40.1625
+            longitude: -83.21
+            elevAngle: 20.0
+            operational: true
+            downlinkRate: 0.78156
+            costPerSecond: 0.37
+            costMode: "discrete"
+          - groundId: 1
+            latitude: 43.8041
+            longitude: -120.5542
+            elevAngle: 20.0
+            operational: true
+            downlinkRate: 0.78156
+            costPerSecond: 0.37
+            costMode: "discrete"
+          - groundId: 2
+            latitude: 19.8968
+            longitude: -155.5828
+            elevAngle: 20.0
+            operational: true
+            downlinkRate: 0.78156
+            costPerSecond: 0.37
+            costMode: "discrete"
+          - groundId: 3
+            latitude: -33.8688
+            longitude: 151.2093
+            elevAngle: 20.0
+            operational: true
+            downlinkRate: 0.78156
+            costPerSecond: 0.37
+            costMode: "discrete"
+          - groundId: 4
+            latitude: 37.5665
+            longitude: 126.978
+            elevAngle: 20.0
+            operational: true
+            downlinkRate: 0.78156
+            costPerSecond: 0.37
+            costMode: "discrete"
+          - groundId: 5
+            latitude: 26.0667
+            longitude: 50.5577
+            elevAngle: 20.0
+            operational: true
+            downlinkRate: 0.78156
+            costPerSecond: 0.37
+            costMode: "discrete"
+          - groundId: 6
+            latitude: -33.9249
+            longitude: 18.4241
+            elevAngle: 20.0
+            operational: true
+            downlinkRate: 0.78156
+            costPerSecond: 0.37
+            costMode: "discrete"
+          - groundId: 7
+            latitude: 59.3293
+            longitude: 18.0686
+            elevAngle: 20.0
+            operational: true
+            downlinkRate: 0.78156
+            costPerSecond: 0.37
+            costMode: "discrete"
+          - groundId: 8
+            latitude: 53.1424
+            longitude: -7.6921
+            elevAngle: 20.0
+            operational: true
+            downlinkRate: 0.78156
+            costPerSecond: 0.37
+            costMode: "discrete"
+          - groundId: 9
+            latitude: -53.1638
+            longitude: -70.9171
+            elevAngle: 20.0
+            operational: true
+            downlinkRate: 0.78156
+            costPerSecond: 0.37
+            costMode: "discrete"
+          - groundId: 10
+            latitude: 1.2840
+            longitude: 103.8488
+            elevAngle: 20.0
+            operational: true
+            downlinkRate: 0.78156
+            costPerSecond: 0.37
+            costMode: "discrete"
+          # - groundId: 0
+          #   latitude: 78.229772
+          #   longitude: 15.407786
+          #   elevAngle: 5.0
+          #   operational: true
+          #   downlinkRate: 0.300
+          #   costPerSecond: 0.09
+          #   costMode: "continuous"

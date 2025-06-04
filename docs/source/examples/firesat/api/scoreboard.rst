@@ -20,12 +20,12 @@ After creating an account, you *must* add the Asset “Blue Marble Next Generati
 env.js file
 -----------
 
-The Scoreboard application pulls credentials from a JavaScript file. To set this up create a text file with the name "env.js" containing the following information:
+The Scoreboard application pulls credentials from a JavaScript file named "env.js" containing the following information:
 
 ::
 
   var HOST="your event broker host URL"
-  var PORT=8883 - your connection port
+  var PORT=15670
   var USERNAME="your event broker username"
   var PASSWORD="your event broker password"
   var TOKEN="your Cesium token (see Cesium installation instructions)"
@@ -48,5 +48,3 @@ The `CesiumJS documentation <https://cesium.com/learn/cesiumjs/ref-doc/index.htm
 
 The latter figure is an example view of the Scoreboard during a simulation. The yellow (detected) and red (ignited) dots represent fires.
 The pink dots and cones represent ground stations and their minimum elevation angles for establishing comms and data links. The blue dots represent the locations of the spacecraft and the blue circles projected on the Earth's surface show what is visible given the satellite instrument's field of view. The blue dots turn green when the satellite moves into view of a ground station.
-
-

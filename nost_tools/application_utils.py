@@ -253,10 +253,9 @@ class ModeStatusObserver(Observer):
             if not isinstance(self.app.prefix, str):
                 raise ValueError(f"Exchange ({self.app.prefix}) must be a string")
 
-            # Declare the topic exchange
-            if self.app.channel.is_open and self.app.connection.is_open:
-                self.app.send_message(
-                    app_name=self.app.app_name,
-                    app_topics="status.mode",
-                    payload=status.model_dump_json(by_alias=True, exclude_none=True),
-                )
+            # if self.app.channel.is_open and self.app.connection.is_open:
+            self.app.send_message(
+                app_name=self.app.app_name,
+                app_topics="status.mode",
+                payload=status.model_dump_json(by_alias=True, exclude_none=True),
+            )

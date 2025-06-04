@@ -152,3 +152,9 @@ de421.bsp
 
 # Ignore test
 testing/
+
+# Ignore example files
+**/delay_data_collection/
+
+# Ignore active satellites
+**/active.txt

@@ -1,40 +1,35 @@
 # -*- coding: utf-8 -*-
 """
-    *This application demonstrates a constellation of satellites for monitoring fires propagated from Two-Line Elements (TLEs).*
+*This application demonstrates a constellation of satellites for monitoring fires propagated from Two-Line Elements (TLEs).*
 
-    The application contains one :obj:`Constellation` (:obj:`Entity`) object class, one :obj:`PositionPublisher` (:obj:`WallclockTimeIntervalPublisher`) class, and two :obj:`Observer` object classes to monitor for :obj:`FireDetected` and :obj:`FireReported` events, respectively. The application also adds several methods outside of these classes containing standardized calculations sourced from Ch. 5 of *Space Mission Analysis and Design* by Wertz and Larson. The example also includes a startup script that demonstrates how to add each of these objects to the simulator before executing the test case, as well as how to map callback functions to the newly started client.
+The application contains one :obj:`Constellation` (:obj:`Entity`) object class, one :obj:`PositionPublisher` (:obj:`WallclockTimeIntervalPublisher`) class, and two :obj:`Observer` object classes to monitor for :obj:`FireDetected` and :obj:`FireReported` events, respectively. The application also adds several methods outside of these classes containing standardized calculations sourced from Ch. 5 of *Space Mission Analysis and Design* by Wertz and Larson. The example also includes a startup script that demonstrates how to add each of these objects to the simulator before executing the test case, as well as how to map callback functions to the newly started client.
 
 """
+import copy
 import logging
-from datetime import datetime, timezone, timedelta
-from dotenv import dotenv_values
+from datetime import timedelta
+
 import numpy as np
 import pandas as pd
-import copy
-from skyfield.api import load, wgs84, EarthSatellite
-
-from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
-from nost_tools.entity import Entity
-from nost_tools.observer import Observer
-from nost_tools.managed_application import ManagedApplication
-from nost_tools.publisher import WallclockTimeIntervalPublisher
-
 from constellation_config_files.schemas import (
-    FireStarted,
     FireDetected,
     FireReported,
-    SatelliteStatus,
+    FireStarted,
     GroundLocation,
+    SatelliteStatus,
 )
-from constellation_config_files.config import (
-    PREFIX,
-    NAME,
-    SCALE,
-    TLES,
-    FIELD_OF_REGARD,
-)
+from skyfield.api import EarthSatellite, load, wgs84
+
+from nost_tools.application_utils import ShutDownObserver
+from nost_tools.configuration import ConnectionConfig
+from nost_tools.entity import Entity
+from nost_tools.managed_application import ManagedApplication
+from nost_tools.observer import Observer
+from nost_tools.publisher import WallclockTimeIntervalPublisher
 
 logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 
 def compute_min_elevation(altitude, field_of_regard):
     """
@@ -211,7 +206,7 @@ class Constellation(Entity):
         self.min_elevations_fire = [
             compute_min_elevation(
                 wgs84.subpoint(satellite.at(satellite.epoch)).elevation.m,
-                FIELD_OF_REGARD[i],
+                config.rc.application_configuration["FIELD_OF_REGARD"][i],
             )
             for i, satellite in enumerate(self.satellites)
         ]
@@ -255,7 +250,8 @@ class Constellation(Entity):
         for i, satellite in enumerate(self.satellites):
             then = self.ts.from_datetime(self.get_time() + time_step)
             self.min_elevations_fire[i] = compute_min_elevation(
-                float(self.next_positions[i].elevation.m), FIELD_OF_REGARD[i]
+                float(self.next_positions[i].elevation.m),
+                config.rc.application_configuration["FIELD_OF_REGARD"][i],
             )
             for j, fire in enumerate(self.fires):
                 if self.detect[j][self.names[i]] is None:
@@ -316,17 +312,19 @@ class Constellation(Entity):
             self.report[i]["firstReport"] = False
         super().tock()
 
-    def on_fire(self, client, userdata, message):
+    def on_fire(self, ch, method, properties, body):  # , client, userdata, message):
         """
-        Callback function appends a dictionary of information for a new fire to fires :obj:`list` when message detected on the *PREFIX/fires/location* topic
+        Callback function appends a dictionary of information for a new fire to fires :obj:`list` when message detected on the *PREFIX.fires.location* topic
 
         Args:
-            client (:obj:`MQTT Client`): Client that connects application to the event broker using the MQTT protocol. Includes user credentials, tls certificates, and host server-port information.
-            userdata: User defined data of any type (not currently used)
-            message (:obj:`message`): Contains *topic* the client subscribed to and *payload* message content as attributes
-
+            ch (:obj:`Channel`): Channel object used to communicate with the event broker
+            method (:obj:`Method`): Method object containing information about the message delivery, such as delivery tag and exchange
+            properties (:obj:`Properties`): Properties object containing metadata about the message, such as content type and message ID
+            body (:obj:`bytes`): Contains the message content as a byte string, which is decoded to a UTF-8 string and then parsed into a :obj:`FireStarted` object
         """
-        started = FireStarted.parse_raw(message.payload)
+        body = body.decode("utf-8")
+
+        started = FireStarted.model_validate_json(body)  # message.payload)
         self.fires.append(
             {
                 "fireId": started.fireId,
@@ -338,9 +336,7 @@ class Constellation(Entity):
         satelliteDictionary = dict.fromkeys(
             self.names
         )  # Creates dictionary where keys are satellite names and values are defaulted to NoneType
-        satelliteDictionary[
-            "fireId"
-        ] = (
+        satelliteDictionary["fireId"] = (
             started.fireId
         )  # Adds fireId to dictionary, which will coordinate with position of dictionary in list of dictionaries
         detectDictionary = copy.deepcopy(satelliteDictionary)
@@ -352,44 +348,51 @@ class Constellation(Entity):
         reportDictionary["firstReporter"] = None
         reportDictionary["firstReportedTo"] = None
         self.report.append(reportDictionary)
+        # ch.connection.close()
+        # ch.basic_ack(delivery_tag=method.delivery_tag)
 
-    def on_ground(self, client, userdata, message):
+    def on_ground(self, ch, method, properties, body):  # client, userdata, message):
         """
         Callback function appends a dictionary of information for a new ground station to grounds :obj:`list` when message detected on the *PREFIX/ground/location* topic. Ground station information is published at beginning of simulation, and the :obj:`list` is converted to a :obj:`DataFrame` when the Constellation is initialized.
 
         Args:
-            client (:obj:`MQTT Client`): Client that connects application to the event broker using the MQTT protocol. Includes user credentials, tls certificates, and host server-port information.
-            userdata: User defined data of any type (not currently used)
-            message (:obj:`message`): Contains *topic* the client subscribed to and *payload* message content as attributes
-
+            ch (:obj:`Channel`): Channel object used to communicate with the event broker
+            method (:obj:`Method`): Method object containing information about the message delivery, such as delivery tag and exchange
+            properties (:obj:`Properties`): Properties object containing metadata about the message, such as content type and message ID
+            body (:obj:`bytes`): Contains the message content as a byte string, which is decoded to a UTF-8 string and then parsed into a :obj:`FireStarted` object
         """
-        location = GroundLocation.parse_raw(message.payload)
+        body = body.decode("utf-8")
+
+        location = GroundLocation.model_validate_json(body)  # message.payload)
+
         if location.groundId in self.grounds.groundId:
-            self.grounds[
-                self.grounds.groundId == location.groundId
-            ].latitude = location.latitude
-            self.grounds[
-                self.grounds.groundId == location.groundId
-            ].longitude = location.longitude
-            self.grounds[
-                self.grounds.groundId == location.groundId
-            ].elevAngle = location.elevAngle
-            self.grounds[
-                self.grounds.groundId == location.groundId
-            ].operational = location.operational
+            self.grounds[self.grounds.groundId == location.groundId].latitude = (
+                location.latitude
+            )
+            self.grounds[self.grounds.groundId == location.groundId].longitude = (
+                location.longitude
+            )
+            self.grounds[self.grounds.groundId == location.groundId].elevAngle = (
+                location.elevAngle
+            )
+            self.grounds[self.grounds.groundId == location.groundId].operational = (
+                location.operational
+            )
             print(f"Station {location.groundId} updated at time {self.get_time()}.")
         else:
-            self.grounds = self.grounds.append(
-                {
-                    "groundId": location.groundId,
-                    "latitude": location.latitude,
-                    "longitude": location.longitude,
-                    "elevAngle": location.elevAngle,
-                    "operational": location.operational,
-                },
-                ignore_index=True,
-            )
-            print(f"Station {location.groundId} registered at time {self.get_time()}.")
+            location = {
+                "groundId": location.groundId,
+                "latitude": location.latitude,
+                "longitude": location.longitude,
+                "elevAngle": location.elevAngle,
+                "operational": location.operational,
+            }
+
+            # Create a DataFrame from the location dictionary
+            new_data = pd.DataFrame([location])
+
+            # Concatenate the new data with the existing DataFrame
+            self.grounds = pd.concat([self.grounds, new_data], ignore_index=True)
 
 
 # define a publisher to report satellite status
@@ -436,6 +439,7 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
                 next_time, satellite, constellation.grounds
             )
             self.app.send_message(
+                self.app.app_name,
                 "location",
                 SatelliteStatus(
                     id=i,
@@ -446,7 +450,7 @@ class PositionPublisher(WallclockTimeIntervalPublisher):
                     radius=sensorRadius,
                     commRange=self.isInRange[i],
                     time=constellation.get_time(),
-                ).json(),
+                ).model_dump_json(),
             )
 
 
@@ -458,6 +462,9 @@ class FireDetectedObserver(Observer):
     Args:
         app (:obj:`ManagedApplication`): An application containing a test-run namespace, a name and description for the app, client credentials, and simulation timing instructions
 
+    .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
+        :pyobject: FireDetectedObserver.on_change
+        :lines: 8-
     """
 
     def __init__(self, app):
@@ -472,12 +479,13 @@ class FireDetectedObserver(Observer):
         """
         if property_name == Constellation.PROPERTY_FIRE_DETECTED:
             self.app.send_message(
+                self.app.app_name,
                 "detected",
                 FireDetected(
                     fireId=new_value["fireId"],
                     detected=new_value["detected"],
                     detected_by=new_value["detected_by"],
-                ).json(),
+                ).model_dump_json(),
             )
 
 
@@ -489,6 +497,9 @@ class FireReportedObserver(Observer):
     Args:
         app (:obj:`ManagedApplication`): An application containing a test-run namespace, a name and description for the app, client credentials, and simulation timing instructions
 
+    .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
+        :pyobject: FireReportedObserver.on_change
+        :lines: 8-
     """
 
     def __init__(self, app):
@@ -503,70 +514,76 @@ class FireReportedObserver(Observer):
         """
         if property_name == Constellation.PROPERTY_FIRE_REPORTED:
             self.app.send_message(
+                self.app.app_name,
                 "reported",
                 FireReported(
                     fireId=new_value["fireId"],
                     reported=new_value["reported"],
                     reported_by=new_value["reported_by"],
                     reported_to=new_value["reported_to"],
-                ).json(),
+                ).model_dump_json(),
             )
 
 
-# name guard used to ensure script only executes if it is run as the __main__
 if __name__ == "__main__":
-    # Note that these are loaded from a .env file in current working directory
-    credentials = dotenv_values(".env")
-    HOST, PORT = credentials["HOST"], int(credentials["PORT"])
-    USERNAME, PASSWORD = credentials["USERNAME"], credentials["PASSWORD"]
+    # Define application name
+    NAME = "constellation"
 
-    # set the client credentials
-    config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, True)
+    # Load config
+    config = ConnectionConfig(yaml_file="firesat.yaml", app_name=NAME)
 
-    # create the managed application
-    app = ManagedApplication(NAME)
+    # Create the managed application
+    app = ManagedApplication(app_name=NAME)
 
-    # load current TLEs for active satellites from Celestrak (NOTE: User has option to specify their own TLE instead)
-    activesats_url = "https://celestrak.com/NORAD/elements/active.txt"
-    activesats = load.tle_file(activesats_url, reload=True)
+    # Load current TLEs for active satellites from Celestrak
+    activesats_url = (
+        "https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle"
+    )
+    activesats = load.tle_file(
+        activesats_url, filename="satellites/active.txt", reload=True
+    )
+
     by_name = {sat.name: sat for sat in activesats}
-    names = ["AQUA", "TERRA", "SUOMI NPP", "NOAA 20", "SENTINEL-2A", "SENTINEL-2B"]
+    names = [
+        "AQUA",
+        "TERRA",
+        "SUOMI NPP",
+        "NOAA 20 (JPSS-1)",  # "NOAA 20",
+        "SENTINEL-2A",
+        "SENTINEL-2B",
+    ]
 
     ES = []
     indices = []
     for name_i, name in enumerate(names):
         ES.append(by_name[name])
         indices.append(name_i)
-    
-    # initialize the Constellation object class (in this example from EarthSatellite type)
+
+    # Initialize the Constellation object class (in this example from EarthSatellite type)
     constellation = Constellation("constellation", app, indices, names, ES)
 
-    # add observer classes to the Constellation object class
+    # Add observer classes to the Constellation object class
     constellation.add_observer(FireDetectedObserver(app))
     constellation.add_observer(FireReportedObserver(app))
 
-    # add the Constellation entity to the application's simulator
+    # Add the Constellation entity to the application's simulator
     app.simulator.add_entity(constellation)
 
-    # add a shutdown observer to shut down after a single test case
+    # Add a shutdown observer to shut down after a single test case
     app.simulator.add_observer(ShutDownObserver(app))
 
-    # add a position publisher to update satellite state every 5 seconds of wallclock time
+    # Add a position publisher to update satellite state every 5 seconds of wallclock time
     app.simulator.add_observer(
         PositionPublisher(app, constellation, timedelta(seconds=1))
     )
 
-    # start up the application on PREFIX, publish time status every 10 seconds of wallclock time
+    # Start up the application
     app.start_up(
-        PREFIX,
+        config.rc.simulation_configuration.execution_parameters.general.prefix,
         config,
-        True,
-        time_status_step=timedelta(seconds=10) * SCALE,
-        time_status_init=datetime(2020, 1, 1, 7, 20, tzinfo=timezone.utc),
-        time_step=timedelta(seconds=1) * SCALE,
     )
 
-    # add message callbacks
+    # Add message callbacks
     app.add_message_callback("fire", "location", constellation.on_fire)
     app.add_message_callback("ground", "location", constellation.on_ground)
 

@@ -1,7 +1,7 @@
 .. _scienceDashEX:
 
-NOS-T Science Event Test Suite
-==============================
+Science Event Dashboard
+=======================
 
 These two applications provide a basic demonstration on how to publish and
 subscribe to topics with NOS-T. This example does not require the usage of the
@@ -15,8 +15,6 @@ The second application, scienceEventDashboard, subcribes to this topic and
 then creates a visual dashboard to see the current "science utility" at each
 simulation time step. These dashboards have been helpful for the development
 team in ensuring that test behavior is as expected.
-
-
 
 .. toctree::
   :maxdepth: 1

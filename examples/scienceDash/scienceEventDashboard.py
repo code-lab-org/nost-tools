@@ -38,9 +38,6 @@ def on_message(ch, method, properties, body):
 def update_fig(n):
     """
     Updates the dashboard when new data is received.
-
-    Args:
-        n: The number of intervals that have passed.
     """
     if not eventLOD:  # Check if eventLOD is empty
         # Return the initial figure with empty data but defined columns
@@ -95,7 +92,7 @@ if __name__ == "__main__":
     channel = connection.channel()
 
     # Declare the exchange
-    exchange_name = "nost_example"
+    exchange_name = "science_event"
     channel.exchange_declare(exchange=exchange_name, exchange_type="topic")
 
     # Create a queue with a random name
@@ -156,4 +153,4 @@ if __name__ == "__main__":
         Output("Utility_Plot", "figure"), Input("interval-component", "n_intervals")
     )(update_fig)
 
-    app.run_server(debug=True)
+    app.run(debug=True)

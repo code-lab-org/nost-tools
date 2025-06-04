@@ -29,7 +29,7 @@ if __name__ == "__main__":
     channel = connection.channel()
 
     # Declare an exchange
-    exchange_name = "nost_example"
+    exchange_name = "science_event"
     channel.exchange_declare(exchange=exchange_name, exchange_type="topic")
 
     try:

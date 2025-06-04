@@ -32,7 +32,7 @@ Changed:
 - Fixed scaling of `time_status_step` in `ManagerConfig`, and `time_step` and `time_status_step` in `ManagedApplicationConfig`. The code now correctly parses hours, minutes, and seconds from the string format "HH:MM:SS" and calculates the total seconds accordingly. Total seconds are then correctly scaled by the `time_scale_factor`.
 
 ## 2.0.3
-Addded: 
+Added: 
 - GitHub Action for PyPi publishing
 
 Changed:
@@ -83,3 +83,24 @@ Changed:
 ## 2.1.1 
 Added:
 - Introduces a new boolean flags to explicitly define the time domain for time_step and time_status_step. These flags will determine whether the associated values are interpreted in ST (unscaled) or WCT (scaled by the time scale factor).
+
+## 2.2.0
+Added:
+- Introduced `TimeScaleUpdateSchema` in schemas.py, which allows users to define time scale updates in the YAML configuration file at `execution.manager.time_scale_updates`, each update can be defined by `time_scale_factor` and `sim_update_time`. For example:
+  ```yaml
+  time_scale_updates:
+    - time_scale_factor: 120.0
+      sim_update_time: "2020-01-01T08:20:00+00:00"
+  ```
+  > **_NOTE:_** An example is provided in [FireSat+ YAML configuration file](examples/firesat/firesat.yaml).
+- Introduced `get_app_specific_config()` in `configuration.py` that retrieves application-specific configuration from the `execution.managed_applications` section based on the application name.
+- Added `application_configuration` to `config.rc` (runtime configuration) at `configuration.py`, which contains user-provided, application-specific configurations. These application-specific configurations can be defined for each application within the YAML configuration file at the field `execution.managed_applications.<application name>.configuration_parameters`. This replaces `config.py` for each application in the NOS-T Tools examples.
+
+Changed:
+- Moved `self.establish_exchange()` from `self._execute_test_plan_impl()` to `self.start_up()` to prevent execution from starting before RabbitMQ exchanges have been declared and resulting in an error.
+- Removed conditional check for `self.app.channel.is_open` and `self.app.connection.is_open` in `application_utils.py` before sending status messages; now assumes connection is always valid or managed externally.
+- Refactored the FireSat+, Downlink, Scalability, and scienceDash test suites to:
+  - Use a unified YAML configuration file per example
+  - Define application-specific settings under the `execution.managed_applications.<application name>.configuration_parameters` field instead of the previous `config.py`
+  - Improve general code structure for enhanced efficiency, readability, and user experience
+- Updated documentation for the FireSat+, Downlink, Scalability, and scienceDash test suites.

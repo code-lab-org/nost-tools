@@ -25,6 +25,7 @@ from .schemas import (
 
 logger = logging.getLogger(__name__)
 
+
 class ConnectionConfig:
     """Connection configuration.
 
@@ -59,6 +60,7 @@ class ConnectionConfig:
         virtual_host: str = None,
         is_tls: bool = True,
         yaml_file: str = None,
+        app_name: str = None,
     ):
         """
         Initializes a new connection configuration.
@@ -75,6 +77,7 @@ class ConnectionConfig:
             virtual_host (str): RabbitMQ virtual host
             is_tls (bool): True, if the connection uses TLS
             yaml_file (str): Path to the YAML configuration file
+            app_name (str): Name of the application to get specific configuration for
         """
         self.username = username
         self.password = password
@@ -93,6 +96,8 @@ class ConnectionConfig:
         self.yaml_file = yaml_file
         self.unique_exchanges = {}
         self.channel_configs = []
+        self.app_name = app_name
+        self.app_specific = None
 
         self.create_connection_config()
 
@@ -208,6 +213,29 @@ class ConnectionConfig:
         except ValidationError as err:
             raise EnvironmentVariableError(f"Invalid environment variables: {err}")
 
+    def get_app_specific_config(self, app_name):
+        """
+        Get application-specific configuration from execution.managed_applications if available.
+
+        Args:
+            app_name (str): Name of the application
+
+        Returns:
+            dict: Application-specific configuration parameters if available, otherwise None.
+        """
+        if not os.path.exists(self.yaml_file):
+            raise ConfigurationError("Couldn't load config file (not found)")
+
+        with open(self.yaml_file, "r", encoding="utf-8") as f:
+            yaml_data = yaml.safe_load(f)
+
+            try:
+                return yaml_data["execution"]["managed_applications"][app_name][
+                    "configuration_parameters"
+                ]
+            except:
+                return None
+
     def load_yaml_config_file(self):
         """
         Loads a YAML configuration file and returns the parsed data.
@@ -243,6 +271,9 @@ class ConnectionConfig:
                 ), "Application names do not match the channels defined in the configuration file."
             except ConfigAssertionError as e:
                 raise ValueError(f"Assertion error: {e}")
+            # Load app-specific configuration if app_name is provided
+            if self.app_name:
+                self.app_specific = self.get_app_specific_config(self.app_name)
         else:
             try:
                 self.yaml_config = Config(
@@ -301,4 +332,5 @@ class ConnectionConfig:
             credentials=self.credentials_config,
             server_configuration=server_config,
             simulation_configuration=self.simulation_config,
+            application_configuration=self.app_specific,
         )

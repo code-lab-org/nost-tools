@@ -1,0 +1,47 @@
+info:
+  title: Novel Observing Strategies Testbed (NOS-T) YAML Configuration
+  version: '1.0.0'
+  description: Version-controlled AsyncAPI document for RabbitMQ event broker with Keycloak authentication within NOS-T
+servers:
+  rabbitmq:
+    keycloak_authentication: False
+    host: "localhost"
+    port: 5672
+    tls: False
+    virtual_host: "/"
+    message_expiration: "60000"
+execution:
+  general:
+    prefix: greenfield
+  manager:
+    sim_start_time: "2021-12-13T00:00:00+00:00"
+    sim_stop_time: "2021-12-13T00:01:00+00:00"
+    start_time: 
+    time_step: "0:00:01"
+    is_scenario_time_step: True
+    time_scale_factor: 1
+    time_scale_updates: []
+    # time_status_step: "0:00:12000000000000"
+    time_status_step: "3333333333:20:00"
+    is_scenario_time_status_step: False
+    time_status_init: "2021-12-14T02:00:00+00:00"
+    command_lead: "0:00:01"
+    required_apps:
+      - manager
+      - heartbeat
+    init_retry_delay_s: 5
+    init_max_retry: 5
+    set_offset: True
+    shut_down_when_terminated: True
+  managed_applications:
+    heartbeat:
+      time_scale_factor: 1
+      time_step: "0:00:01"
+      is_scenario_time_step: False
+      set_offset: True
+      # time_status_step: "0:00:24000000000"
+      time_status_step: "6666666:40:00"
+      is_scenario_time_status_step: True
+      time_status_init: "2021-12-14T00:00:00+00:00"
+      shut_down_when_terminated: True
+      manager_app_name: "manager"

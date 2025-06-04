@@ -1,28 +1,25 @@
 # -*- coding: utf-8 -*-
 """
-    *This application demonstrates a network of ground stations given geospatial locations, minimum elevation angle constraints, and operational status.*
+*This application models a ground stations at the Svalbard Satellite Station location with minimum elevation angle constraints.*
 
-    The application contains a single class, the :obj:`Environment` class, which waits for a message from the manager that indicates the beginning of the simulation execution. The application publishes all of the ground station information once, at the beginning of the simulation.
+The application contains one class, the :obj:`Environment` class, which waits for a message from the manager that indicates the beginning of the simulation execution. The application publishes the ground station information once, at the beginning of the simulation.
 
 """
 
 import logging
-from datetime import datetime, timezone, timedelta
-from dotenv import dotenv_values
 
-from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
-from nost_tools.simulator import Simulator, Mode
-from nost_tools.observer import Observer
-from nost_tools.managed_application import ManagedApplication
-
+import pandas as pd
 from ground_config_files.schemas import GroundLocation
-from ground_config_files.config import (
-    PREFIX,
-    SCALE,
-    GROUND,
-)
+
+from nost_tools.application_utils import ShutDownObserver
+from nost_tools.configuration import ConnectionConfig
+from nost_tools.managed_application import ManagedApplication
+from nost_tools.observer import Observer
+from nost_tools.simulator import Mode, Simulator
 
 logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 
 # define an observer to manage ground updates
 class Environment(Observer):
@@ -45,12 +42,14 @@ class Environment(Observer):
         In this instance, the callback function checks when the **PROPERTY_MODE** switches to **EXECUTING** to send a :obj:`GroundLocation` message to the *PREFIX/ground/location* topic:
 
             .. literalinclude:: /../../examples/firesat/grounds/main_ground.py
-                :lines: 51-62
-
+                :pyobject: Environment.on_change
+                :lines: 11-
         """
         if property_name == Simulator.PROPERTY_MODE and new_value == Mode.EXECUTING:
+            logger.info("Grounds are operational")
             for index, ground in self.grounds.iterrows():
                 self.app.send_message(
+                    self.app.app_name,
                     "location",
                     GroundLocation(
                         groundId=ground.groundId,
@@ -58,35 +57,43 @@ class Environment(Observer):
                         longitude=ground.longitude,
                         elevAngle=ground.elevAngle,
                         operational=ground.operational,
-                    ).json(),
+                    ).model_dump_json(),
                 )
 
 
-# name guard used to ensure script only executes if it is run as the __main__
 if __name__ == "__main__":
-    # Note that these are loaded from a .env file in current working directory
-    credentials = dotenv_values(".env")
-    HOST, PORT = credentials["HOST"], int(credentials["PORT"])
-    USERNAME, PASSWORD = credentials["USERNAME"], credentials["PASSWORD"]
+    # Define application name
+    NAME = "ground"
 
-    # set the client credentials
-    config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, True)
+    # Load config
+    config = ConnectionConfig(yaml_file="firesat.yaml", app_name=NAME)
 
-    # create the managed application
-    app = ManagedApplication("ground")
+    # Create the managed application
+    app = ManagedApplication(app_name=NAME)
 
-    # add the environment observer to monitor simulation for switch to EXECUTING mode
+    # Get the ground station information from the configuration
+    stations = config.rc.application_configuration["stations"]
+    GROUND = pd.json_normalize(stations)[
+        [
+            "groundId",
+            "latitude",
+            "longitude",
+            "elevAngle",
+            "operational",
+        ]
+    ]
+
+    # Add the environment observer to monitor simulation for switch to EXECUTING mode
     app.simulator.add_observer(Environment(app, GROUND))
 
-    # add a shutdown observer to shut down after a single test case
+    # Add a shutdown observer to shut down after a single test case
     app.simulator.add_observer(ShutDownObserver(app))
 
-    # start up the application on PREFIX, publish time status every 10 seconds of wallclock time
+    # Start up the application
     app.start_up(
-        PREFIX,
+        config.rc.simulation_configuration.execution_parameters.general.prefix,
         config,
-        True,
-        time_status_step=timedelta(seconds=10) * SCALE,
-        time_status_init=datetime(2020, 1, 1, 7, 20, tzinfo=timezone.utc),
-        time_step=timedelta(seconds=1) * SCALE,
     )
+
+    while True:
+        pass

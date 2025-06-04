@@ -239,7 +239,7 @@ class Application:
             self.config = config
             parameters = getattr(
                 self.config.rc.simulation_configuration.execution_parameters,
-                self.app_name,
+                "application",
                 None,
             )
             self.set_offset = parameters.set_offset

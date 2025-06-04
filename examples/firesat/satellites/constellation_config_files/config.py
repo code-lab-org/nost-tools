@@ -1,5 +1,5 @@
 import os
-# from skyfield.api import load
+from skyfield.api import load
 
 PREFIX = os.getenv("PREFIX", "greenfield")
 NAME = "constellation"
@@ -21,6 +21,10 @@ FIELD_OF_REGARD = [float(os.getenv("FIELD_OF_REGARD", 110)),
     float(os.getenv("FIELD_OF_REGARD", 112.56)),
     float(os.getenv("FIELD_OF_REGARD", 20.6)),
     float(os.getenv("FIELD_OF_REGARD", 20.6))
-]  # degrees (found max zenith angle for MODIS is 65-degrees, FoR = 2 * zenith angle, field-of-view for VIIRS = 112.56-degrees, field-of-view for MSI = 20.6-degrees)
+]  # degrees (found max zenith angle for MODIS is 65-degrees, FoR = 2 * zenith angle, field-of-view for VIIRS = 112.56-degrees)
+# MIN_ELEVATION_COMMS = float(
+#     os.getenv("MIN_ELEVATION_COMMS", 5.0)
+# )  # degrees (comms more forgiving than sensor, not currently used)
+# MIN_INTENSITY = float(os.getenv("MIN_INTENSITY", 10.0))  # square meters
 
 SCALE = 60							

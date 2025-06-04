@@ -6,7 +6,7 @@ NAME = os.getenv("NAME", "Grounds")
 LOG = f"\x1b[1m[\x1b[32m{NAME}\x1b[37m]\x1b[0m"
 HEADER = {
     "name": NAME,
-    "description": f'Broadcasts its location to the testbed on the "{PREFIX}/ground/location" topic.',
+    "description": f'Broadcasts it\'s location to the testbed on the "{PREFIX}/ground/location" topic.',
 }
 
 # Default location is Svalbard, Norway

@@ -33,11 +33,10 @@ Schema
 	
 |
 
-
 Startup Script
 --------------
 
 The following code demonstrates how the ground application is started up and how the :obj:`Environment` :obj:`Observer` object class is initialized and added to the simulator:
 
 .. literalinclude:: /../../examples/firesat/grounds/main_ground.py
-	:lines: 67-
+	:start-after: if __name__ == "__main__":
