@@ -3,7 +3,7 @@
 Downlink Test Suite
 ===================
 
-This tutorial will guide you through the Downlink test suite, which demonstrates satellite data downlink capabilities in NOS-T.
+This tutorial contains information for those who are just starting out and builds up to show how complex test suites can be built.
 
 
 Introduction

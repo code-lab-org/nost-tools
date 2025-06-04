@@ -106,18 +106,18 @@ A key component of the FireSat+ test suite is the **Satellite** application (``m
 The first section of the code includes import statements that bring in the necessary dependencies for building the application. The imports at the top are standard Python libraries, while those at the bottom are sourced from the :ref:`NOS-T tools library <nostTools>`.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-	:lines: 1-6,15-22
+	:lines: 8-10,12-13,21
 
-This next group of import statements is tailored for FireSat+, pulling in values from the constellation configuration files.  The first set brings in the ``FIELD_OF_REGARD`` parameter, which specifies the area on Earth visible to the satellite\’s instrument. The second set imports the message schema configuration, which defines the structure for how **Satellites** transmit data.
+The next section imports the message schema configuration, which defines the structure for how **Satellites** transmit data.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-	:lines: 7-14
+	:lines: 14-20
 
 A logger is initialized for monitoring the behavior and flow of the program. You can find more details about the different logging levels 
 `here <https://docs.python.org/3/howto/logging.html#when-to-use-logging>`__.
 
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
-  :lines: 24-25
+  :lines: 30-31
 
 Following that, the function ``compute_min_elevation`` calculates the minimum elevation angle necessary for a satellite to observe a specific point from its current position. It takes two parameters: ``altitude`` and ``field_of_regard``. These inputs are used in mathematical computations to determine and return the minimum elevation angle in degrees.
 
