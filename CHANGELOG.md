@@ -84,7 +84,7 @@ Changed:
 Added:
 - Introduces a new boolean flags to explicitly define the time domain for time_step and time_status_step. These flags will determine whether the associated values are interpreted in ST (unscaled) or WCT (scaled by the time scale factor).
 
-## 2.1.2
+## 2.2.0
 Added:
 - Introduced `TimeScaleUpdateSchema` in schemas.py, which allows users to define time scale updates in the YAML configuration file at `execution.manager.time_scale_updates`, each update can be defined by `time_scale_factor` and `sim_update_time`. For example:
   ```yaml
