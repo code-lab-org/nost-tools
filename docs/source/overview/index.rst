@@ -31,48 +31,34 @@ NOS-T adopts **RabbitMQ**, an open-source message broker implementing the Advanc
 * **Subscribers**: Applications that consume events
 * **Topics**: Categories for event types that applications can publish to or subscribe to
 
-.. graphviz::
-   :name: EDA_PubSub_Concept
-   :caption: Event-Driven Architecture with Centralized Broker
-   :align: center
+.. mermaid::
 
-   digraph MQTT_PubSub {
-      rankdir=LR;
-      
-      subgraph cluster0 {
-         style=dashed;
-         label="User Apps";
-         fontsize=16
-         fontname="Helvetica-Bold";
-         
-         UserApp1 [label="User App", shape=rect, style=filled, fillcolor=red, fontsize=16];
-         UserApp2 [label="User App", shape=rect, style=filled, fillcolor=blue, fontsize=16];
-         UserApp3 [label="User App", shape=rect, style=filled, fillcolor=green, fontsize=16];
-      }
-      
-      subgraph cluster1{
-         style=invis
-         Network [label="Network", shape=diamond, style=filled, fillcolor=gray, fontsize=16];
-      }
-      
-      UserApp1 -> Network [label="Publish", fontsize=12, fontcolor=red, color=red];
-      UserApp2 -> Network [style=invis]
-      UserApp3 -> Network [style=invis]
-      
-
-      Network -> UserApp1 [style=invis]
-      Network -> UserApp2 [label="Subscribe", fontsize=12, fontcolor=blue, color=blue, style=dashed];
-      Network -> UserApp3 [label="Subscribe", fontsize=12, fontcolor=blue, color=blue, style=dashed];
-      
-      subgraph cluster2 {
-         style=invis
-         EventBroker [label="Event Broker\n(AMQP Protocol)", shape=cloud, style=filled, fillcolor=darkorange1, fontsize=16];
-      }
-      
-      Network -> EventBroker [label="Publish", fontsize=12, fontcolor=red, color=red];
-      Network -> EventBroker [label="", color=red, style=invis];
-      EventBroker -> Network [label="Subscribe", fontsize=12, fontcolor=blue, color=blue, style=dashed];
-   }
+   ---
+   config:
+   theme: redux
+   ---
+   flowchart LR
+   subgraph User_Apps["User Apps"]
+      direction TB
+         UserApp1["User App 1"]
+         UserApp2["User App 2"]
+         UserApp3["User App 3"]
+   end
+      UserApp1 <-. Publish/Subscribe .-> Network["Network"]
+      UserApp2 <-. Publish/Subscribe .-> Network
+      UserApp3 <-. Publish/Subscribe .-> Network
+      Network -- Publish --> EventBroker["Event Broker<br>(AMQP Protocol)"]
+      EventBroker -. Subscribe .-> Network
+      UserApp1:::red
+      UserApp2:::blue
+      UserApp3:::green
+      Network:::gray
+      EventBroker:::darkorange1
+      classDef red fill:#ff0000,stroke:#000000,stroke-width:2px
+      classDef blue fill:dodgerblue,stroke:#000000,stroke-width:2px
+      classDef green fill:#00ff00,stroke:#000000,stroke-width:2px
+      classDef gray fill:#808080,stroke:#000000,stroke-width:2px
+      classDef darkorange1 fill:#ff8c00,stroke:#000000,stroke-width:2px
 
 System Components
 ----------------
@@ -93,71 +79,56 @@ NOS-T consists of two top-level system components:
    * Contains a manager application that orchestrates test runs
    * Ensures proper application synchronization, topic configuration, and consistent message structure
 
-.. graphviz::
-   :name: nos_t_concept
-   :caption: NOS-T Graphical Concept: Visual representation of the testbed architecture and operational flow
-   :align: center
+.. mermaid::
 
-   digraph NOST_concept {
-      rankdir=LR;
-      
-      subgraph cluster0 {
-         style=dashed;
-         label="User System";
-         labeljust="l";
-         fontsize=18;
-         fontname="Helvetica-Bold";
-         
-         PI1 [label="NOS PI", shape=rect, style=filled, fillcolor=red];
-         PI2 [label="NOS PI", shape=rect, style=filled, fillcolor=blue];
-         PI3 [label="NOS PI", shape=rect, style=filled, fillcolor=green];
-         
-         UserApp1 [label="User App", shape=rect, style=filled, fillcolor=red];
-         UserApp2 [label="User App", shape=rect, style=filled, fillcolor=blue];
-         UserApp3 [label="User App", shape=rect, style=filled, fillcolor=green];
-      }
-      
-      TestCase [label="NOS Test Case", shape=oval];
-      TestCase -> PI1;
-      TestCase -> PI2;
-      TestCase -> PI3;
-      
-      PI1 -> UserApp1;
-      PI2 -> UserApp2;
-      PI3 -> UserApp3;
-      
-      subgraph cluster1 {
-         style=dashed;
-         label="NOS-T System";
-         // labeljust="l";
-         fontsize=18;
-         fontname="Helvetica-Bold";
-         
-         Fill1 [style=invis]
-         NOSTInfrastructure [label="NOS-T Infrastructure", shape=oval, style=filled, fillcolor=orange];
-         Fill2 [style=invis]
-         
-         subgraph cluster2 {
-               style=dashed;
-               color=grey;
-               labeljust="l";
-               fontsize=10;
-               label="NOS-T Operator";
-               
-               EventBroker [label="Event Broker\n(AMQP Protocol)"];
-               // Fill [style=invis];
-               ManagerApplication [label="Manager Application"];
-         }
-      }
-      
-      UserApp1 -> NOSTInfrastructure;
-      UserApp2 -> NOSTInfrastructure;
-      UserApp3 -> NOSTInfrastructure;
-      
-      NOSTInfrastructure -> EventBroker;
-      // NOSTInfrastructure -> Fill [style=invis];
-      NOSTInfrastructure -> ManagerApplication;
-   }
+   ---
+   config:
+   theme: redux
+   ---
+   flowchart LR
+   subgraph cluster0["User System"]
+      direction TB
+         PI1["NOS PI"]
+         PI2["NOS PI"]
+         PI3["NOS PI"]
+         UserApp1["User Apps"]
+         UserApp2["User Apps"]
+         UserApp3["User Apps"]
+   end
+   subgraph cluster2["NOS-T Operator"]
+         EventBroker["Broker<br>(AMQP)"]
+         ManagerApplication["Manager"]
+         Monitor["Monitor"]
+   end
+   subgraph cluster1["NOS-T System"]
+      direction TB
+         NOSTInfrastructure["NOS-T Infrastructure"]
+         cluster2
+   end
+      PI1 --> UserApp1
+      PI2 --> UserApp2
+      PI3 --> UserApp3
+      UserApp1 --> NOSTInfrastructure
+      UserApp2 --> NOSTInfrastructure
+      UserApp3 --> NOSTInfrastructure
+      NOSTInfrastructure --> EventBroker & ManagerApplication & Monitor
+      TestCase["NOS Test Case"] --> PI1 & PI2 & PI3
+      PI1:::red
+      PI2:::blue
+      PI3:::green
+      UserApp1:::red
+      UserApp2:::blue
+      UserApp3:::green
+      NOSTInfrastructure:::orange
+      TestCase:::oval
+      classDef red fill:#ff0000,stroke:#000000,stroke-width:2px
+      classDef blue fill:dodgerblue,stroke:#000000,stroke-width:2px
+      classDef green fill:#00ff00,stroke:#000000,stroke-width:2px
+      classDef orange fill:orange,stroke:#333,stroke-width:2px
+      classDef oval shape:oval,fill:lightgrey,stroke:#333,stroke-width:2px
+
+   %% Increase the line width of all arrows and change color to black
+   linkStyle default stroke-width:3px, stroke:black;
 
 Development Tools
 ---------------
