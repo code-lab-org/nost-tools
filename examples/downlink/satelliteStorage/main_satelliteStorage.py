@@ -11,7 +11,7 @@ The application contains one :obj:`SatelliteStorage` (:obj:`Entity`) object clas
 import logging
 from datetime import timedelta
 
-import pandas as pd  # type:ignore
+import pandas as pd
 from satelliteStorage_config_files.schemas import (
     GroundLocation,
     LinkCharge,
@@ -22,13 +22,13 @@ from satelliteStorage_config_files.schemas import (
     SatelliteReady,
     SatelliteState,
 )
-from skyfield.api import EarthSatellite, load, wgs84  # type:ignore
+from skyfield.api import EarthSatellite, load, wgs84
 
 from nost_tools.application_utils import ShutDownObserver
 from nost_tools.configuration import ConnectionConfig
-from nost_tools.entity import Entity  # type:ignore
-from nost_tools.managed_application import ManagedApplication  # type:ignore
-from nost_tools.publisher import WallclockTimeIntervalPublisher  # type:ignore
+from nost_tools.entity import Entity
+from nost_tools.managed_application import ManagedApplication
+from nost_tools.publisher import WallclockTimeIntervalPublisher
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -486,7 +486,6 @@ class SatStatePublisher(WallclockTimeIntervalPublisher):
             )
 
 
-# name guard used to ensure script only executes if it is run as the __main__
 if __name__ == "__main__":
     # Define application name
     NAME = "satelliteStorage"

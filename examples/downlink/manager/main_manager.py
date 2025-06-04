@@ -16,7 +16,6 @@ from nost_tools.manager import Manager
 
 logging.basicConfig(level=logging.INFO)
 
-# name guard used to ensure script only executes if it is run as the __main__
 if __name__ == "__main__":
     # Load config
     config = ConnectionConfig(yaml_file="downlink.yaml")
