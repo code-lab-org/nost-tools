@@ -1,26 +1,47 @@
 .. _tutorial:
 
-Hands-on Tutorial: FireSat+ Test Suite
-=================
+FireSat+ Test Suite
+===================
 
 This tutorial contains information for those who are just starting out and builds up to show how complex test suites can be built.
 
 Introduction
 ------------
 
-The New Observing Strategies Testbed (NOS-T) is a computational environment to
-develop, test, mature, and socialize new operating concepts and technology for
-NOS. NOS-T provides infrastructure to integrate and orchestrate user-contributed
-applications for system-of-systems test cases with true distributed
-control over constituent systems. The overall concept, illustrated below, 
-interconnects individual user applications and a NOS-T manager
-application via common information system infrastructure to coordinate
-the execution of virtual Earth science missions. NOS-T enables principal
-investigators to conduct test runs in the same environment,
-systematically changing variables to assess the overall efficacy of the
-proposed new observing strategies. Recorded data and outcomes provide
-evidence to advance technology readiness level and improve or innovate
-upon existing Earth science measurement techniques.
+NOS-T
+~~~~~
+
+.. include:: /../../docs/source/learning_resources/nost_description.rst
+
+FireSat+ Test Suite
+~~~~~~~~~~~~~~~~~~
+
+The FireSat+ test suite is a hands-on example of how to use the NOS-T Tools library to create a test suite. It contains five applications:
+
+- **Fires**: Publishes historical fire data.
+- **Ground**: Models a ground station in Svalbard, Norway.
+- **Satellites**: Models a constellation of spacecraft observing and reporting the fires.
+- **Manager**: Orchestrates the simulation timing and execution
+- **Scoreboard**: Geospatial visualization tool that displays the data from the other applications.
+
+The operational concept for FireSat+ is that one or several satellites are searching for fires. The fires are ignited following a historical dataset. When one of the satellites orbit above these locations, it will detect the fire. Finally, once that satellite is in range of a ground station, it will report the fire.
+
+A graphical representation of the FireSat+ message flows and their payloads is shown below:
+
+.. image:: media/fireSatWorkflow.png
+   :width: 400
+   :align: center
+
+|
+
+.. seealso::
+  For more information on FireSat+, please refer to the following resources:
+
+  * The Interface Control Document has a high-level description of FireSat+ :ref:`here <ICDfireSat>`.
+  * A deeper dive into the applications and code is :ref:`here <fireSatExampleTop>`.
+  * A paper describing this test suite is `here <https://doi.org/10.1109/IGARSS46834.2022.9883290>`__.
+
+|
 
 Setup
 -----
@@ -29,8 +50,8 @@ This section will show you how to set up NOS-T assuming you are a beginner to bo
 
 1. Integrated Development Environment Installation
 2. NOS-T Tools Installation
-3. Setting up a RabbitMQ Event Broker
-4. Cloning the NOS-T Tools repository
+3. RabbitMQ Event Broker Setup
+4. Repository Cloning
 
 Integrated Development Environment Installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -46,8 +67,8 @@ NOS-T Tools Installation
   :start-after: start-nos-t-installation
   :end-before: end-nos-t-installation
 
-Setting up a RabbitMQ Event Broker
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+RabbitMQ Event Broker Setup
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Refer to the :ref:`localBroker` guide for instructions on how to set up a RabbitMQ event broker locally.
 
@@ -66,53 +87,21 @@ This will create a directory called ``nost-tools`` in your current working direc
 
 .. _tutorialSystemDescription:
 
-NOS-T System description
-------------------------
+Component Applications Overview
+-------------------------------
 
-The NOS-T system architecture follows a loosely coupled event-driven
-architecture (EDA) where member applications communicate state changes
-through events that are embodied as notification messages sent over a
-network. These event/message payloads contain the relevant data for communicating these state changes. EDA provides enhanced scalability and reliability over other software architectures by replicating event handling functions across
-infrastructure instances while maintaining modularity between
-applications through a simple event-handling interface. NOS-T can also
-be described as a service-oriented architecture (SOA) as applications
-trigger services in response to events.
+The FireSat+ test suite consists of several applications. Below is an overview of the main applications involved in the FireSat+ test suite: **Satellites** and **Manager**. 
 
-The NOS-T architecture relies on a centralized infrastructure component
-called an event broker (synonymous with message broker) to exchange
-event notifications between applications. A broker simplifies the
-communication structure because each member application (client) only
-directly connects to the broker, rather than requiring each application
-to directly connect to every other application.
-
-FireSat+ Test Suite Overview
-----------------------------
-
-From here, the tutorial will explain important functions using FireSat+, an example NOS-T test suite based on FireSat, the common space systems 
-engineering application case. The operational concept for FireSat+ is that one or several satellites are searching for fires. The fires are ignited following a historical dataset. When one of the satellites orbit above these locations, it will detect the fire. Finally, once that satellite is in range of a ground station, it will report the fire.
-
-This is a graphical representation of the FireSat+ message flows and their payloads. 
-
-.. image:: media/fireSatWorkflow.png
-   :width: 400
-   :align: center
-
+.. note::
+  The **Fires**, **Ground**, and **Scoreboard** applications are not covered in this tutorial, but you can find more information about them :ref:`here <fireSatExampleTop>`.
 |
-
-For more information on FireSat+, please see the following:
-
-* The Interface Control Document has a high-level description of FireSat+ :ref:`here <ICDfireSat>`.
-* A deeper dive into the applications and code is :ref:`here <fireSatExampleTop>`.
-* A paper describing this test suite is `here <https://doi.org/10.1109/IGARSS46834.2022.9883290>`__.
-
-NOS-T test suites are made up of applications communicating over the broker. Next, the tutorial will detail two of the FireSat+ apps to give you a better idea of how they work. 
 
 .. _tutorialSat:
 
-The **Satellites** application - main_constellation.py
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+**Satellites**
+~~~~~~~~~~~~~~
 
-A key component of the FireSat+ example case is the **Satellite** application. This application enables the user to generate a satellite constellation using the NOS-T Tools library, leveraging predefined templates to construct a model of a real-life constellation. You will be guided through the how each code block works, to help understand the purpose of different components in an application.
+A key component of the FireSat+ test suite is the **Satellite** application (``main_constellation.py``). This application enables the user to generate a satellite constellation using the NOS-T Tools library, leveraging predefined templates to construct a model of a real-life constellation. You will be guided through the how each code block works, to help understand the purpose of different components in an application.
 
 The first section of the code includes import statements that bring in the necessary dependencies for building the application. The imports at the top are standard Python libraries, while those at the bottom are sourced from the :ref:`NOS-T tools library <nostTools>`.
 
@@ -155,8 +144,8 @@ These two functions, ``check_in_view`` and ``check_in_range``, affirm if the ele
 
 .. _tutorialConstellation:
 
-Constellation class
-~~~~~~~~~~~~~~~~~~~
+``Constellation`` class
+^^^^^^^^^^^^^^^^^^^^^^^
 
 The next section of code blocks define the Constellation class. In object-oriented programming, a class is a replicable object that can be assigned unique parameters to generate a diverse collection of similar objects.
 The Constellation class leverages the NOS-T tools library 'Entity' object class to construct the constellation chain.
@@ -185,7 +174,7 @@ The final block of the Constellation class is next. It contains the ``on_ground`
   :pyobject: Constellation.on_ground
 
 Position Publisher Class
-~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 The next class in the **Satellites** application is the Position Publisher. This class takes the satellite location information from the Constellation class and publishes it over the NOS-T infrastructre. These messages are used for the **Scoreboard** application, which is a geospatial visualization tool.
 
@@ -193,7 +182,7 @@ The next class in the **Satellites** application is the Position Publisher. This
 	:pyobject: PositionPublisher
 
 Fire Observer Classes
-~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^
 
 The next code block contains two different fire observation classes. The first of these is for detecting fires and the second is for reporting fires. The concept of operations for FireSat+ is that fires are first *ignited*, then *detected* when a satellite passes over them. Finally, the fires are *reported* when the detecting satellite is in range of a ground station for the data downlink. The Fire Observer classes publish this over the testbed for postprocessing of results, and for **Scoreboard** visualization.
 
@@ -209,60 +198,44 @@ The final block of code in the **Satellites** app is for initializing data and a
 .. literalinclude:: /../../examples/firesat/satellites/main_constellation.py
   :start-at: __main__
 
-The **Manager** application - main_manager.py
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+**Manager**
+~~~~~~~~~~~
 
-Maintaining a consistent simulation clock is important for many NOS-T use cases. For test suites that need to run faster than real time,
-it is an absolute necessity. The NOS-T **Manager** application is a good way to orchestrate all of the pieces for these types of tests.
-The manager is included in the NOS-T Tools library and will ensure that compliant applications start at the same time, and use a consistent
-simulation clock throughout the test run. 
+Maintaining a consistent simulation clock is important for many NOS-T use cases. For test suites that need to run faster than real time, it is an absolute necessity. The NOS-T **Manager** application (``main_manager.py``) is a good way to orchestrate all of the pieces for these types of tests. The manager is included in the NOS-T Tools library and will ensure that compliant applications start at the same time, and use a consistent simulation clock throughout the test run.
 
-As above with the **Satellites** application, you should create a blank main_manager.py file in the examples/firesat_tutorial/manager folder. 
-NOTE: You *must* maintain the indentations you see in these code blocks when pasting them into the main_manager.py file.
-
-Next, we will go through the Manager code block-by-block to understand what it is doing. First, we have all of the import statements that the 
-**Manager** relies on. The first of these three are general Python dependencies, and the
-second two are drawn from the NOS-T tools library. The last imports come from a config file that you should adjust for any specific test suites.
-In that config file you will need to set your desired event message prefix, the time scale, and any time scale updates. 
+Next, we will go through the Manager code block-by-block to understand what it is doing. First, we have all of the import statements that the **Manager** relies on.
 
 .. literalinclude:: /../../examples/firesat/manager/main_manager.py
-	:end-at: basicConfig
-
-.. _timeScaleUpdate:
-
-The time scale is a simple multiplier, i.e. if :code:`SCALE = 60` then the time will be sped up by 60x -- meaning that each second of real time
-will be one minute of simulation time. The time scale updates are used when you want to change the time scale at any point during 
-the simulation. As for the updates, They take a form like this:
-
-:code:`UPDATE = [TimeScaleUpdate(120.0, datetime(2020, 1, 1, 8, 20, 0, tzinfo=timezone.utc))]` 
-
-The above command would change the time scale to 120x at the given datetime object in simulation time. If you do not wish to update the time scale
-during a test case, then you can set 
-
-:code:`UPDATE = []`
+  :start-at: import
+  :end-before: basicConfig
 
 Finally, the last line in the above code block sets up a logger to help you track what is going on. More info on the various levels can be found
 `here <https://docs.python.org/3/howto/logging.html#when-to-use-logging>`__.
 
-The next block of code starts with a name guard and credentials like the **Satellites** app above. These credentials will be drawn from an environment 
-file :ref:`described below<envSetUp>`. The next four lines of code follow their preceding comments. Using the various NOS-T tools from the library the connection is set, the manager application is created, it is set to shut down after the test case, and is commanded to start up.
+.. literalinclude:: /../../examples/firesat/manager/main_manager.py
+  :start-at: basicConfig
+  :end-before: __main__
+
+The next block of code loads configuration settings from a YAML configuration file. This file contains the parameters that will be used to run the test suite, such as the simulation duration, RabbitMQ connection details, and other application-specific settings. The YAML file is a convenient way to manage configuration settings without hardcoding them into the application code. The file is :ref:`described below <firesatYaml>`.
 
 .. literalinclude:: /../../examples/firesat/manager/main_manager.py
-  :start-at: main
+  :start-at: __main__
 
-Executing the FireSat+ Test Suite
----------------------------------
+Execution
+---------
 
-There are a total of five files you will need to run for FireSat+, four user applications, the NOS-T manager application,
+There are a total of five files you will need to run for the FireSat+ test suite: three user applications, the NOS-T manager application,
 and the **Scoreboard**, a geospatial data visualization tool.
 
-There are a few more steps necessary to run FireSat+. You need to create a Cesium token to run the **Scoreboard** and set up
+There are a few more steps necessary to run the FireSat+ test suite. You need to create a Cesium token to run the **Scoreboard** and set up
 environment files for each application.
+
+.. _firesatYaml:
 
 YAML Configuration File
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-Each application reads a YAML configuration file to set up the parameters for the test case. The configuration file is located in the ``examples/firesat/`` folder. The configuration file is named ``firesat.yaml`` and contains the following parameters:
+Each application reads a single YAML configuration file to access the parameters for the test case. The configuration file is located in the ``examples/firesat/`` folder. The configuration file is named ``firesat.yaml`` and contains the following parameters:
 
 .. literalinclude:: /../../examples/firesat/firesat.yaml
 
@@ -273,51 +246,21 @@ Each application reads a YAML configuration file to set up the parameters for th
 Cesium Access Token and Assets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The FireSat+ Scoreboard application uses the Cesium geospatial visualization tool which requires getting an access token
-and an 3D Earth map asset. You will get an access token by signing in at the following link:
-
-https://cesium.com/ion/signin/tokens
-
-After creating an account, you *must* add the Asset “Blue Marble Next Generation
-July, 2004” from the `Asset Depot (ID 3845) <https://ion.cesium.com/assetdepot/3845>`__ to your account assets to enable
-visualization.
-
-.. _envSetUp:
+.. include:: /../../docs/source/learning_resources/cesium_setup.rst
+  :start-after: start-access-key:
+  :end-before: end-access-key:
 
 Setting Up Environment Files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The Scoreboard application is in .html, and pulls in credentials from a JavaScript file. To do this create a text file with the name "env.js" containing the following information:
+.. include:: /../../docs/source/learning_resources/cesium_setup.rst
+  :start-after: start-env-setup:
+  :end-before: end-env-setup:
 
-::
+Executing the FireSat+ Test Suite
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  var HOST="your event broker host URL"
-  var PORT=15670
-  var USERNAME="your event broker username"
-  var PASSWORD="your event broker password"
-  var TOKEN="your Cesium token (see Cesium installation instructions)"
-
-For example, if you are running the test suite on your local computer using a local RabbitMQ event broker, you can set up the env.js file like this:
-::
-
-  var HOST="localhost"
-  var PORT=15670
-  var USERNAME="admin"
-  var PASSWORD="admin"
-  var TOKEN="your Cesium token (see Cesium installation instructions)"
-
-.. note::
-
-  For details on setting up a local RabbitMQ broker, refer to the :ref:`localBroker` guide.
-
-Executing FireSat+
-~~~~~~~~~~~~~~~~~~
-
-Finally, you need to run the five applications together in order to execute the FireSat+ test suite. These applications need to be
-logically separated when running. For the python scripts, this can be done by running them on separate computers, 
-by using separate consoles in Spyder, or separate terminals with VSCode. The **Scoreboard** is an .html file
-and can be run in a web browser, double-clicking the file should work.  Each folder in the FireSat+ test suite
-has a code you need to run, they are:
+Finally, you need to run the five applications together in order to execute the FireSat+ test suite. These applications need to be logically separated when running. For the Python scripts, this can be done by running them on separate computers, by using separate consoles in Spyder, or separate terminals with VSCode. The **Scoreboard** is an .html file and can be run in a web browser, double-clicking the file should work.  Each folder in the FireSat+ test suite has a code you need to run, they are:
 
 * main_fire.py - The **Fires** app publishes historical fire data.
 * main_ground.py - The **Ground** app models a ground station in Svalbard, Norway.
@@ -338,11 +281,10 @@ to below.
 Conclusion
 ----------
 
-This hands-on tutorial was developed to help users get started with NOS-T from a basic level. It begins with
-downloading an IDE for running scripts to interface with NOS-T and finishes with executing the FireSat+ example code. Some good next
-steps for learning other NOS-T functions and developing your own test suites can be found at the following links:
+This hands-on tutorial was developed to help users get started with NOS-T from a basic level. It begins with downloading an IDE for running scripts to interface with NOS-T and finishes with executing the FireSat+ example code. Some good next steps for learning other NOS-T functions and developing your own test suites can be found at the following links:
 
 * :ref:`Main FireSat+ documentation <fireSatExampleTop>`
-* :ref:`Science Event Dashboard test suite walkthrough <instructionsScienceDash>`
+* :ref:`Science Event Dashboard Test Suite <instructionsScienceDash>`
+* :ref:`Downlink Test Suite <downlinkTutorial>`
 * :ref:`NOS-T Tools API documentation <nostTools>`
 
