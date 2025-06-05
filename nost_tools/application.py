@@ -48,13 +48,19 @@ class Application:
         time_status_init (:obj:`datetime`): Scenario time of first time status message
     """
 
-    def __init__(self, app_name: str, app_description: str = None):
+    def __init__(
+        self,
+        app_name: str,
+        app_description: str = None,
+        setup_signal_handlers: bool = True,
+    ):
         """
         Initializes a new application.
 
         Args:
             app_name (str): application name
             app_description (str): application description (optional)
+            setup_signal_handlers (bool): whether to set up signal handlers (default: True)
         """
         self.simulator = Simulator()
         self.connection = None
@@ -86,7 +92,8 @@ class Application:
         self.token_refresh_interval = None
         self._reconnect_delay = None
         # Set up signal handlers for graceful shutdown
-        self._setup_signal_handlers()
+        if setup_signal_handlers:
+            self._setup_signal_handlers()
 
     def _setup_signal_handlers(self):
         """
@@ -203,14 +210,33 @@ class Application:
         """
         self.connection.update_secret(access_token, "secret")
 
+    def _get_parameters_from_config(self):
+        """
+        Gets application parameters from configuration or returns None if not available.
+        This method can be overridden by subclasses to customize parameter retrieval.
+
+        Returns:
+            object: Configuration parameters object or None
+        """
+        if self.config and self.config.rc.yaml_file:
+            try:
+                return getattr(
+                    self.config.rc.simulation_configuration.execution_parameters,
+                    "application",
+                    None,
+                )
+            except (AttributeError, KeyError):
+                return None
+        return None
+
     def start_up(
         self,
         prefix: str,
         config: ConnectionConfig,
-        set_offset: bool = None,  # True,
+        set_offset: bool = True,
         time_status_step: timedelta = None,
         time_status_init: datetime = None,
-        shut_down_when_terminated: bool = None,
+        shut_down_when_terminated: bool = False,
     ) -> None:
         """
         Starts up the application to prepare for scenario execution.
@@ -225,27 +251,41 @@ class Application:
             time_status_init (:obj:`datetime`): scenario time for first time status message
             shut_down_when_terminated (bool): True, if the application should shut down when the simulation is terminated
         """
-        if (
-            set_offset is not None
-            and time_status_step is not None
-            and time_status_init is not None
-            and shut_down_when_terminated is not None
-        ):
+        self.config = config
+
+        if self.config.rc.yaml_file:
+            logger.info(
+                f"Collecting start up parameters from YAML configuration file {self.config.rc.yaml_file}"
+            )
+            parameters = self._get_parameters_from_config()
+            if parameters:
+                self.set_offset = getattr(parameters, "set_offset", set_offset)
+                self.time_status_step = getattr(
+                    parameters, "time_status_step", time_status_step
+                )
+                self.time_status_init = getattr(
+                    parameters, "time_status_init", time_status_init
+                )
+                self.shut_down_when_terminated = getattr(
+                    parameters, "shut_down_when_terminated", shut_down_when_terminated
+                )
+            else:
+                logger.warning("No parameters found in configuration, using defaults")
+                self.set_offset = set_offset
+                self.time_status_step = time_status_step
+                self.time_status_init = time_status_init
+                self.shut_down_when_terminated = shut_down_when_terminated
+        else:
+            logger.info(f"Collecting parameters from user input or default values.")
             self.set_offset = set_offset
             self.time_status_step = time_status_step
             self.time_status_init = time_status_init
             self.shut_down_when_terminated = shut_down_when_terminated
-        else:
-            self.config = config
-            parameters = getattr(
-                self.config.rc.simulation_configuration.execution_parameters,
-                "application",
-                None,
-            )
-            self.set_offset = parameters.set_offset
-            self.time_status_step = parameters.time_status_step
-            self.time_status_init = parameters.time_status_init
-            self.shut_down_when_terminated = parameters.shut_down_when_terminated
+
+        logger.info("Set offset: " f"{self.set_offset}")
+        logger.info("Time status step: " f"{self.time_status_step}")
+        logger.info("Time status init: " f"{self.time_status_init}")
+        logger.info("Shut down when terminated: " f"{self.shut_down_when_terminated}")
 
         if self.set_offset:
             # Set the system clock offset
