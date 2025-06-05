@@ -110,7 +110,6 @@ Added:
 - Introduced a boolean `setup_signal_handlers` (default=True) parameter for Application() class, which makes `self._setup_signal_handlers()` conditional. This prevents errors in nost-manager-backend. 
   - Added `setup_signal_handlers` argument (default=True) to `__init__` of `Manager` and `ManagedApplication` classes.
 - Added `yaml_file` section to `RuntimeConfig` in both `schemas.py` and `configuration.py`. This attribute holds the path to YAML configuration file if provided; otherwise, it defaults to `None`.
-- Removed `self.simulator.set_end_time(sim_stop_time)` from `stop()` in `manager.py`
 - Introduced `_get_parameters_from_config()` in `Application`, `Manager`, and `ManagedApplication` to facilitate getting the application parameters from the YAML configuration or user-provided arguments based on `self.config.rc.yaml_file` being None or not. 
 
 Updated:
@@ -121,3 +120,4 @@ Updated:
   - `Application` class of `application.py`
   - `Manager` class of `manager.py`
   - `ManagedApplication` class of `managed_application.py` 
+- Updated `self.simulator.set_end_time(sim_stop_time)` from `stop()` in `manager.py` to run only if `self.simulator.get_mode() == Mode.EXECUTING`
