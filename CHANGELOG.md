@@ -104,3 +104,20 @@ Changed:
   - Define application-specific settings under the `execution.managed_applications.<application name>.configuration_parameters` field instead of the previous `config.py`
   - Improve general code structure for enhanced efficiency, readability, and user experience
 - Updated documentation for the FireSat+, Downlink, Scalability, and scienceDash test suites.
+
+## 2.2.1
+Added:
+- Introduced a boolean `setup_signal_handlers` (default=True) parameter for Application() class, which makes `self._setup_signal_handlers()` conditional. This prevents errors in nost-manager-backend. 
+  - Added `setup_signal_handlers` argument (default=True) to `__init__` of `Manager` and `ManagedApplication` classes.
+- Added `yaml_file` section to `RuntimeConfig` in both `schemas.py` and `configuration.py`. This attribute holds the path to YAML configuration file if provided; otherwise, it defaults to `None`.
+- Removed `self.simulator.set_end_time(sim_stop_time)` from `stop()` in `manager.py`
+- Introduced `_get_parameters_from_config()` in `Application`, `Manager`, and `ManagedApplication` to facilitate getting the application parameters from the YAML configuration or user-provided arguments based on `self.config.rc.yaml_file` being None or not. 
+
+Updated:
+- Made `general` section of `ExecConfig` optional in `schemas.py`for situations where YAML configuration file is not provided.
+- Made `client_id` and `client_secret_key` in `Credentials` default to None.
+- Changed `parameters.time_scale_updates` reference to `self.time_scale_updates` in `manager.py`.
+- Updated code in `start_up()` related to definition of parameters to use `_get_parameters_from_config()` in: 
+  - `Application` class of `application.py`
+  - `Manager` class of `manager.py`
+  - `ManagedApplication` class of `managed_application.py` 
