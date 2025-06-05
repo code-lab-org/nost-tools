@@ -333,4 +333,5 @@ class ConnectionConfig:
             server_configuration=server_config,
             simulation_configuration=self.simulation_config,
             application_configuration=self.app_specific,
+            yaml_file=self.yaml_file,
         )
