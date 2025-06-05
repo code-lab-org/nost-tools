@@ -165,8 +165,6 @@ class Manager(Application):
         time_status_step: timedelta = None,
         time_status_init: datetime = None,
         shut_down_when_terminated: bool = False,
-        # time_step: timedelta = None,
-        # manager_app_name: str = None,
     ) -> None:
         """
         Starts up the application by connecting to message broker, starting a background event loop,
@@ -179,8 +177,6 @@ class Manager(Application):
             time_status_step (:obj:`timedelta`): scenario duration between time status messages
             time_status_init (:obj:`datetime`): scenario time for first time status message
             shut_down_when_terminated (bool): True, if the application should shut down when the simulation is terminated
-            time_step (:obj:`timedelta`): scenario time step used in execution (Default: 1 second)
-            manager_app_name (str): manager application name (Default: manager)
         """
         self.config = config
 
@@ -248,7 +244,7 @@ class Manager(Application):
         """
         if self.config.rc.yaml_file:
             logger.info(
-                f"Collecting execution parameters from YAML configuration file {self.config.rc.yaml_file}"
+                f"Collecting execution parameters from YAML configuration file: {self.config.rc.yaml_file}"
             )
             parameters = getattr(
                 self.config.rc.simulation_configuration.execution_parameters,
