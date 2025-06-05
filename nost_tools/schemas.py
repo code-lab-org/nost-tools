@@ -471,7 +471,9 @@ class ApplicationConfig(BaseModel):
 
 
 class ExecConfig(BaseModel):
-    general: GeneralConfig
+    general: Optional[GeneralConfig] = Field(
+        None, description="General configuration for the execution."
+    )
     manager: Optional[ManagerConfig] = Field(None, description="Manager configuration.")
     managed_applications: Optional[Dict[str, ManagedApplicationConfig]] = Field(
         default_factory=lambda: {"default": ManagedApplicationConfig()},
@@ -511,9 +513,9 @@ class ChannelConfig(BaseModel):
 class Credentials(BaseModel):
     username: str = Field(..., description="Username for authentication.")
     password: str = Field(..., description="Password for authentication.")
-    client_id: Optional[str] = Field("", description="Client ID for authentication.")
+    client_id: Optional[str] = Field(None, description="Client ID for authentication.")
     client_secret_key: Optional[str] = Field(
-        "", description="Client secret key for authentication."
+        None, description="Client secret key for authentication."
     )
 
 
@@ -538,4 +540,7 @@ class RuntimeConfig(BaseModel):
     )
     application_configuration: Optional[Dict] = Field(
         None, description="Application-specific, user-provided configuration."
+    )
+    yaml_file: Optional[str] = Field(
+        None, description="Path to the YAML file containing the configuration."
     )
