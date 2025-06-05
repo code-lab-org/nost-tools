@@ -183,7 +183,7 @@ class HeartbeatDelayRecorder:
             print(self._wallclock_offset)
             self.sim_end_time = pd.to_datetime(
                 data["taskingParameters"]["simStopTime"]
-            )  # - timedelta(seconds=4)
+            )
         elif topic == f"{PREFIX}.heartbeat.settings":
             print("Heartbeat application settings detected")
             self.msg_periodicity = float(data["periodicity"])
@@ -197,9 +197,6 @@ class HeartbeatDelayRecorder:
                 if self.sim_end_time != None:
                     print("Checking if simulation end time has been reached.")
                     scenarioTime = pd.to_datetime(data["properties"]["simTime"])
-                    # scenarioTime += timedelta(seconds=4)
-                    print(scenarioTime)
-                    print(self.sim_end_time)
                     if scenarioTime >= self.sim_end_time:
                         if self.channel:
                             self.channel.stop_consuming()
@@ -264,8 +261,7 @@ if __name__ == "__main__":
     parameters = pika.ConnectionParameters(
         host=HOST,
         credentials=credentials,
-        # ssl=True,  # Enable SSL
-        port=PORT,  # Default AMQPS port
+        port=PORT,
     )
 
     connection = pika.BlockingConnection(parameters)
