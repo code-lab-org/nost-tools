@@ -122,3 +122,4 @@ Updated:
   - `Manager` class of `manager.py`
   - `ManagedApplication` class of `managed_application.py` 
 - Updated `self.simulator.set_end_time(sim_stop_time)` from `stop()` in `manager.py` to run only if `self.simulator.get_mode() == Mode.EXECUTING`
+- Removed `time_step` and `manager_app_name` arguments from `start_up()` in `Manager` class
