@@ -511,8 +511,8 @@ class ChannelConfig(BaseModel):
 
 
 class Credentials(BaseModel):
-    username: str = Field(..., description="Username for authentication.")
-    password: str = Field(..., description="Password for authentication.")
+    username: Optional[str] = Field("admin", description="Username for authentication.")
+    password: Optional[str] = Field("admin", description="Password for authentication.")
     client_id: Optional[str] = Field(None, description="Client ID for authentication.")
     client_secret_key: Optional[str] = Field(
         None, description="Client secret key for authentication."

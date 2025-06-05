@@ -276,7 +276,9 @@ class Application:
                 self.time_status_init = time_status_init
                 self.shut_down_when_terminated = shut_down_when_terminated
         else:
-            logger.info(f"Collecting parameters from user input or default values.")
+            logger.info(
+                f"Collecting start up parameters from user input or default values."
+            )
             self.set_offset = set_offset
             self.time_status_step = time_status_step
             self.time_status_init = time_status_init
