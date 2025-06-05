@@ -567,8 +567,17 @@ class Manager(Application):
             app_topics="stop",
             payload=command.model_dump_json(by_alias=True),
         )
-        # # update the execution end time
-        # self.simulator.set_end_time(sim_stop_time)
+
+        # Update the execution end time if simulator is in EXECUTING mode
+        if self.simulator.get_mode() == Mode.EXECUTING:
+            try:
+                self.simulator.set_end_time(sim_stop_time)
+            except RuntimeError as e:
+                logger.warning(f"Could not set simulator end time: {e}")
+        else:
+            logger.debug(
+                "Skipping setting simulator end time as simulator is not in EXECUTING mode"
+            )
 
     def update(self, time_scale_factor: float, sim_update_time: datetime) -> None:
         """
