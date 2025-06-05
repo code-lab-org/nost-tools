@@ -111,7 +111,8 @@ Added:
   - Added `setup_signal_handlers` argument (default=True) to `__init__` of `Manager` and `ManagedApplication` classes.
 - Added `yaml_file` section to `RuntimeConfig` in both `schemas.py` and `configuration.py`. This attribute holds the path to YAML configuration file if provided; otherwise, it defaults to `None`.
 - Introduced `_get_parameters_from_config()` in `Application`, `Manager`, and `ManagedApplication` to facilitate getting the application parameters from the YAML configuration or user-provided arguments based on `self.config.rc.yaml_file` being None or not. 
-
+- Added `keycloak_authentication` argument to `__init__()` of `ConnectionConfig` class (default=False).
+ 
 Updated:
 - Made `general` section of `ExecConfig` optional in `schemas.py`for situations where YAML configuration file is not provided.
 - Made `client_id` and `client_secret_key` in `Credentials` default to None.
