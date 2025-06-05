@@ -255,7 +255,7 @@ class Application:
 
         if self.config.rc.yaml_file:
             logger.info(
-                f"Collecting start up parameters from YAML configuration file {self.config.rc.yaml_file}"
+                f"Collecting start up parameters from YAML configuration file: {self.config.rc.yaml_file}"
             )
             parameters = self._get_parameters_from_config()
             if parameters:
@@ -283,11 +283,6 @@ class Application:
             self.time_status_step = time_status_step
             self.time_status_init = time_status_init
             self.shut_down_when_terminated = shut_down_when_terminated
-
-        logger.info("Set offset: " f"{self.set_offset}")
-        logger.info("Time status step: " f"{self.time_status_step}")
-        logger.info("Time status init: " f"{self.time_status_init}")
-        logger.info("Shut down when terminated: " f"{self.shut_down_when_terminated}")
 
         if self.set_offset:
             # Set the system clock offset
@@ -332,7 +327,6 @@ class Application:
             locale=config.rc.server_configuration.servers.rabbitmq.locale,
             blocked_connection_timeout=config.rc.server_configuration.servers.rabbitmq.blocked_connection_timeout,
         )
-        logger.info(parameters)
 
         # Configure transport layer security (TLS) if needed
         if self.config.rc.server_configuration.servers.rabbitmq.tls:
