@@ -67,12 +67,22 @@ class Manager(Application):
         required_apps_status (dict): Ready status for all required applications
     """
 
-    def __init__(self):
+    def __init__(
+        self,
+        app_name: str = "manager",
+        app_description: str = None,
+        setup_signal_handlers: bool = True,
+    ):
         """
         Initializes a new manager.
+
+        Attributes:
+            setup_signal_handlers (bool): whether to set up signal handlers (default: True)
         """
         # call super class constructor
-        super().__init__("manager")
+        super().__init__(
+            app_name, app_description, setup_signal_handlers=setup_signal_handlers
+        )
         self.required_apps_status = {}
 
         self.sim_start_time = None
@@ -129,16 +139,32 @@ class Manager(Application):
                     f"Heartbeat check: {remaining:.2f} seconds remaining in sleep"
                 )
 
+    def _get_parameters_from_config(self):
+        """
+        Override to get parameters specific to manager application
+
+        Returns:
+            object: Configuration parameters for the manager application
+        """
+        if self.config and self.config.rc.yaml_file:
+            try:
+                return getattr(
+                    self.config.rc.simulation_configuration.execution_parameters,
+                    "manager",
+                    None,
+                )
+            except (AttributeError, KeyError):
+                return None
+        return None
+
     def start_up(
         self,
         prefix: str,
         config: ConnectionConfig,
-        set_offset: bool = None,
+        set_offset: bool = True,
         time_status_step: timedelta = None,
         time_status_init: datetime = None,
-        shut_down_when_terminated: bool = None,
-        time_step: timedelta = None,
-        manager_app_name: str = None,
+        shut_down_when_terminated: bool = False,
     ) -> None:
         """
         Starts up the application by connecting to message broker, starting a background event loop,
@@ -151,45 +177,20 @@ class Manager(Application):
             time_status_step (:obj:`timedelta`): scenario duration between time status messages
             time_status_init (:obj:`datetime`): scenario time for first time status message
             shut_down_when_terminated (bool): True, if the application should shut down when the simulation is terminated
-            time_step (:obj:`timedelta`): scenario time step used in execution (Default: 1 second)
-            manager_app_name (str): manager application name (Default: manager)
         """
-        if (
-            set_offset is not None
-            and time_status_step is not None
-            and time_status_init is not None
-            and shut_down_when_terminated is not None
-            and time_step is not None
-            and manager_app_name is not None
-        ):
-            self.set_offset = set_offset
-            self.time_status_step = time_status_step
-            self.time_status_init = time_status_init
-            self.shut_down_when_terminated = shut_down_when_terminated
-            self.time_step = time_step
-            self.manager_app_name = manager_app_name
-        else:
-            self.config = config
-            parameters = (
-                self.config.rc.simulation_configuration.execution_parameters.manager
-            )
-            self.set_offset = parameters.set_offset
-            self.time_status_step = parameters.time_status_step
-            self.time_status_init = parameters.time_status_init
-            self.shut_down_when_terminated = parameters.shut_down_when_terminated
-            self.time_step = parameters.time_step
+        self.config = config
 
-        # start up base application
+        # Call base start_up to handle common parameters
         super().start_up(
             prefix,
             config,
-            self.set_offset,
-            self.time_status_step,
-            self.time_status_init,
-            self.shut_down_when_terminated,
+            set_offset,
+            time_status_step,
+            time_status_init,
+            shut_down_when_terminated,
         )
 
-        # Establish the exchange
+        # Additional manager-specific setup: establish the exchange
         self.establish_exchange()
 
     def execute_test_plan(self, *args, **kwargs) -> None:
@@ -241,8 +242,33 @@ class Manager(Application):
             init_retry_delay_s (float): number of seconds to wait between initialization commands while waiting for required applications
             init_max_retry (int): number of initialization commands while waiting for required applications before continuing to execution
         """
-        # Initialize parameters from arguments or config
-        if sim_start_time is not None and sim_stop_time is not None:
+        if self.config.rc.yaml_file:
+            logger.info(
+                f"Collecting execution parameters from YAML configuration file: {self.config.rc.yaml_file}"
+            )
+            parameters = getattr(
+                self.config.rc.simulation_configuration.execution_parameters,
+                self.app_name,
+                None,
+            )
+            self.sim_start_time = parameters.sim_start_time
+            self.sim_stop_time = parameters.sim_stop_time
+            self.start_time = parameters.start_time
+            self.time_step = parameters.time_step
+            self.time_scale_factor = parameters.time_scale_factor
+            self.time_scale_updates = parameters.time_scale_updates
+            self.time_status_step = parameters.time_status_step
+            self.time_status_init = parameters.time_status_init
+            self.command_lead = parameters.command_lead
+            self.required_apps = [
+                app for app in parameters.required_apps if app != self.app_name
+            ]
+            self.init_retry_delay_s = parameters.init_retry_delay_s
+            self.init_max_retry = parameters.init_max_retry
+        else:
+            logger.info(
+                f"Collecting execution parameters from user input or default values."
+            )
             self.sim_start_time = sim_start_time
             self.sim_stop_time = sim_stop_time
             self.start_time = start_time
@@ -255,36 +281,10 @@ class Manager(Application):
             self.required_apps = required_apps
             self.init_retry_delay_s = init_retry_delay_s
             self.init_max_retry = init_max_retry
-        else:
-            if self.config.rc:
-                logger.info("Retrieving execution parameters from YAML file.")
-                parameters = getattr(
-                    self.config.rc.simulation_configuration.execution_parameters,
-                    self.app_name,
-                    None,
-                )
-                self.sim_start_time = parameters.sim_start_time
-                self.sim_stop_time = parameters.sim_stop_time
-                self.start_time = parameters.start_time
-                self.time_step = parameters.time_step
-                self.time_scale_factor = parameters.time_scale_factor
-                self.time_scale_updates = parameters.time_scale_updates
-                self.time_status_step = parameters.time_status_step
-                self.time_status_init = parameters.time_status_init
-                self.command_lead = parameters.command_lead
-                self.required_apps = [
-                    app for app in parameters.required_apps if app != self.app_name
-                ]
-                self.init_retry_delay_s = parameters.init_retry_delay_s
-                self.init_max_retry = parameters.init_max_retry
-            else:
-                raise ValueError(
-                    "No configuration runtime. Please provide simulation start and stop times."
-                )
 
         # Convert TimeScaleUpdateSchema objects to TimeScaleUpdate objects
         converted_updates = []
-        for update_schema in parameters.time_scale_updates:
+        for update_schema in self.time_scale_updates:
             converted_updates.append(
                 TimeScaleUpdate(
                     time_scale_factor=update_schema.time_scale_factor,
@@ -563,8 +563,17 @@ class Manager(Application):
             app_topics="stop",
             payload=command.model_dump_json(by_alias=True),
         )
-        # update the execution end time
-        self.simulator.set_end_time(sim_stop_time)
+
+        # Update the execution end time if simulator is in EXECUTING mode
+        if self.simulator.get_mode() == Mode.EXECUTING:
+            try:
+                self.simulator.set_end_time(sim_stop_time)
+            except RuntimeError as e:
+                logger.warning(f"Could not set simulator end time: {e}")
+        else:
+            logger.debug(
+                "Skipping setting simulator end time as simulator is not in EXECUTING mode"
+            )
 
     def update(self, time_scale_factor: float, sim_update_time: datetime) -> None:
         """

@@ -180,10 +180,7 @@ class HeartbeatDelayRecorder:
             print("Manager initiated simulation")
         elif topic == f"{PREFIX}.manager.stop":
             print("Manager published stop message")
-            print(self._wallclock_offset)
-            self.sim_end_time = pd.to_datetime(
-                data["taskingParameters"]["simStopTime"]
-            )  # - timedelta(seconds=4)
+            self.sim_end_time = pd.to_datetime(data["taskingParameters"]["simStopTime"])
         elif topic == f"{PREFIX}.heartbeat.settings":
             print("Heartbeat application settings detected")
             self.msg_periodicity = float(data["periodicity"])
@@ -191,15 +188,10 @@ class HeartbeatDelayRecorder:
 
         for i, application in enumerate(self.names):
             if topic == f"{PREFIX}.status.{application}.time":
-                print("Heartbeat application time status message received")
                 msgId = len(self.msg_dictionaries[application])
                 timeStamp = pd.to_datetime(data["properties"]["time"])
                 if self.sim_end_time != None:
-                    print("Checking if simulation end time has been reached.")
                     scenarioTime = pd.to_datetime(data["properties"]["simTime"])
-                    # scenarioTime += timedelta(seconds=4)
-                    print(scenarioTime)
-                    print(self.sim_end_time)
                     if scenarioTime >= self.sim_end_time:
                         if self.channel:
                             self.channel.stop_consuming()
@@ -264,8 +256,7 @@ if __name__ == "__main__":
     parameters = pika.ConnectionParameters(
         host=HOST,
         credentials=credentials,
-        # ssl=True,  # Enable SSL
-        port=PORT,  # Default AMQPS port
+        port=PORT,
     )
 
     connection = pika.BlockingConnection(parameters)
@@ -294,7 +285,6 @@ if __name__ == "__main__":
 
     # Bind queue to all routing keys
     for routing_key in routing_keys:
-        print(routing_key)
         channel.queue_bind(
             exchange=exchange_name, queue=queue_name, routing_key=routing_key
         )

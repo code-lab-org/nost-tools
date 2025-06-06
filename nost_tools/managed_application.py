@@ -32,27 +32,57 @@ class ManagedApplication(Application):
         time_step (:obj:`timedelta`): scenario time step used in execution
     """
 
-    def __init__(self, app_name: str, app_description: str = None):
+    def __init__(
+        self,
+        app_name: str,
+        app_description: str = None,
+        setup_signal_handlers: bool = True,
+    ):
         """
         Initializes a new managed application.
 
         Args:
             app_name (str): application name
             app_description (str): application description
+            setup_signal_handlers (bool): whether to set up signal handlers (default: True)
         """
-        super().__init__(app_name, app_description)
+        super().__init__(
+            app_name, app_description, setup_signal_handlers=setup_signal_handlers
+        )
         self.time_step = None
         self._sim_start_time = None
         self._sim_stop_time = None
+
+    def _get_parameters_from_config(self):
+        """
+        Override to get parameters specific to managed applications
+
+        Returns:
+            object: Configuration parameters for this managed application
+        """
+        if self.config and self.config.rc.yaml_file:
+            try:
+                parameters = (
+                    self.config.rc.simulation_configuration.execution_parameters.managed_applications
+                )
+                try:
+                    # Try to get app-specific parameters
+                    return parameters[self.app_name]
+                except KeyError:
+                    # Fall back to default parameters
+                    return parameters.get("default")
+            except (AttributeError, KeyError):
+                return None
+        return None
 
     def start_up(
         self,
         prefix: str,
         config: ConnectionConfig,
-        set_offset: bool = None,
+        set_offset: bool = True,
         time_status_step: timedelta = None,
         time_status_init: datetime = None,
-        shut_down_when_terminated: bool = None,
+        shut_down_when_terminated: bool = False,
         time_step: timedelta = None,
         manager_app_name: str = None,
     ) -> None:
@@ -70,48 +100,27 @@ class ManagedApplication(Application):
             time_step (:obj:`timedelta`): scenario time step used in execution (Default: 1 second)
             manager_app_name (str): manager application name (Default: manager)
         """
-        if (
-            set_offset is not None
-            and time_status_step is not None
-            and time_status_init is not None
-            and shut_down_when_terminated is not None
-            and time_step is not None
-            and manager_app_name is not None
-        ):
-            self.set_offset = set_offset
-            self.time_status_step = time_status_step
-            self.time_status_init = time_status_init
-            self.shut_down_when_terminated = shut_down_when_terminated
-            self.time_step = time_step
-            self.manager_app_name = manager_app_name
-        else:
-            self.config = config
-            parameters = (
-                self.config.rc.simulation_configuration.execution_parameters.managed_applications
-            )
+        self.config = config
 
-            try:
-                parameters = parameters[self.app_name]
-            except KeyError:
-                parameters = parameters["default"]
-            self.set_offset = parameters.set_offset
-            self.time_status_step = parameters.time_status_step
-            self.time_status_init = parameters.time_status_init
-            self.shut_down_when_terminated = parameters.shut_down_when_terminated
-            self.time_step = parameters.time_step
-            self.manager_app_name = parameters.manager_app_name
-
-        # start up base application
+        # Call base start_up to handle common parameters
         super().start_up(
             prefix,
             config,
-            self.set_offset,
-            self.time_status_step,
-            self.time_status_init,
-            self.shut_down_when_terminated,
+            set_offset,
+            time_status_step,
+            time_status_init,
+            shut_down_when_terminated,
         )
-        self.time_step = self.time_step
-        self.manager_app_name = self.manager_app_name
+
+        # Get additional parameters specific to managed applications
+        if self.config.rc.yaml_file:
+            parameters = self._get_parameters_from_config()
+            if parameters:
+                self.time_step = parameters.time_step
+                self.manager_app_name = parameters.manager_app_name
+        else:
+            self.time_step = time_step
+            self.manager_app_name = manager_app_name
 
         # Register callback functions
         self.add_message_callback(

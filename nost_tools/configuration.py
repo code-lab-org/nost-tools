@@ -21,6 +21,7 @@ from .schemas import (
     RuntimeConfig,
     ServersConfig,
     SimulationConfig,
+    WallclockOffsetProperties,
 )
 
 logger = logging.getLogger(__name__)
@@ -52,6 +53,7 @@ class ConnectionConfig:
         password: str = None,
         rabbitmq_host: str = None,
         rabbitmq_port: int = None,
+        keycloak_authentication: bool = False,
         keycloak_host: str = None,
         keycloak_port: int = None,
         keycloak_realm: str = None,
@@ -70,6 +72,7 @@ class ConnectionConfig:
             password (str): client password, provided by NOS-T operator
             host (str): broker hostname
             rabbitmq_port (int): RabbitMQ broker port number
+            keycloak_authentication (bool): True, if Keycloak IAM authentication is used
             keycloak_port (int): Keycloak IAM port number
             keycloak_realm (str): Keycloak realm name
             client_id (str): Keycloak client ID
@@ -84,6 +87,7 @@ class ConnectionConfig:
         self.rabbitmq_host = rabbitmq_host
         self.keycloak_host = keycloak_host
         self.rabbitmq_port = rabbitmq_port
+        self.keycloak_authentication = keycloak_authentication
         self.keycloak_port = keycloak_port
         self.keycloak_realm = keycloak_realm
         self.client_id = client_id
@@ -283,6 +287,7 @@ class ConnectionConfig:
                             port=self.rabbitmq_port,
                             virtual_host=self.virtual_host,
                             tls=self.is_tls,
+                            keycloak_authentication=self.keycloak_authentication,
                         ),
                         keycloak=KeycloakConfig(
                             host=self.keycloak_host,
@@ -312,13 +317,8 @@ class ConnectionConfig:
             del server_config.execution
         self.server_config = server_config
 
-        if (
-            self.username is not None
-            and self.password is not None
-            and self.client_id is not None
-            and self.client_secret_key is not None
-        ):
-            logger.info("Using provided credentials.")
+        if self.username is not None and self.password is not None:
+            logger.info("Using user-provided credentials.")
             self.credentials_config = Credentials(
                 username=self.username,
                 password=self.password,
@@ -329,8 +329,10 @@ class ConnectionConfig:
             self.load_environment_variables()
 
         self.rc = RuntimeConfig(
+            wallclock_offset_properties=WallclockOffsetProperties(),
             credentials=self.credentials_config,
             server_configuration=server_config,
             simulation_configuration=self.simulation_config,
             application_configuration=self.app_specific,
+            yaml_file=self.yaml_file,
         )

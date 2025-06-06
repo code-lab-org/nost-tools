@@ -516,9 +516,7 @@ class Simulator(Observable):
         Args:
             wallclock_offset(:obj:`timedelta`): difference between system clock and trusted wallclock source
         """
-        if self._mode == Mode.EXECUTING:
-            raise RuntimeError("Cannot set wallclock offset: simulator is executing")
-        elif self._mode == Mode.TERMINATING:
+        if self._mode == Mode.TERMINATING:
             raise RuntimeError("Cannot set wallclock offset: simulator is terminating")
         self._wallclock_offset = wallclock_offset
 

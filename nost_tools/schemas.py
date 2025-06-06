@@ -307,8 +307,21 @@ class ServersConfig(BaseModel):
         return values
 
 
+class WallclockOffsetProperties(BaseModel):
+    """
+    Properties to report wallclock offset.
+    """
+
+    wallclock_offset_refresh_interval: Optional[int] = Field(
+        10800, description="Wallclock offset refresh interval, in seconds."
+    )
+    ntp_host: Optional[str] = Field(
+        "pool.ntp.org", description="NTP host for wallclock offset synchronization."
+    )
+
+
 class GeneralConfig(BaseModel):
-    prefix: str = Field("nost", description="Execution prefix.")
+    prefix: Optional[str] = Field("nost", description="Execution prefix.")
 
 
 class TimeScaleUpdateSchema(BaseModel):
@@ -352,6 +365,10 @@ class ManagerConfig(BaseModel):
     shut_down_when_terminated: bool = Field(
         False, description="Shut down when terminated."
     )
+    is_scenario_time_step: bool = Field(
+        True,
+        description="If True, time_step is in scenario time and won't be scaled. If False, time_step is in wallclock time and will be scaled by the time scale factor.",
+    )
     is_scenario_time_status_step: bool = Field(
         True,
         description="If True, time_status_step is in scenario time and won't be scaled. If False, time_status_step is in wallclock time and will be scaled by the time scale factor.",
@@ -360,6 +377,16 @@ class ManagerConfig(BaseModel):
     @model_validator(mode="before")
     def scale_time(cls, values):
         time_scale_factor = values.get("time_scale_factor", 1.0)
+
+        if "time_step" in values and not values.get("is_scenario_time_step", True):
+            time_step = values["time_step"]
+            if isinstance(time_step, str):
+                hours, minutes, seconds = map(int, time_step.split(":"))
+                time_step = timedelta(hours=hours, minutes=minutes, seconds=seconds)
+            if isinstance(time_step, timedelta):
+                values["time_step"] = timedelta(
+                    seconds=time_step.total_seconds() * time_scale_factor
+                )
 
         if "time_status_step" in values and not values.get(
             "is_scenario_time_status_step", True
@@ -440,7 +467,7 @@ class LoggerApplicationConfig(BaseModel):
         timedelta(seconds=10), description="Time status step."
     )
     time_status_init: Optional[datetime] = Field(
-        datetime(2019, 3, 1, 0, 0, 0), description="Time status init."
+        datetime.now(), description="Time status init."
     )
     shut_down_when_terminated: Optional[bool] = Field(
         False, description="Shut down when terminated."
@@ -471,7 +498,9 @@ class ApplicationConfig(BaseModel):
 
 
 class ExecConfig(BaseModel):
-    general: GeneralConfig
+    general: Optional[GeneralConfig] = Field(
+        None, description="General configuration for the execution."
+    )
     manager: Optional[ManagerConfig] = Field(None, description="Manager configuration.")
     managed_applications: Optional[Dict[str, ManagedApplicationConfig]] = Field(
         default_factory=lambda: {"default": ManagedApplicationConfig()},
@@ -509,11 +538,11 @@ class ChannelConfig(BaseModel):
 
 
 class Credentials(BaseModel):
-    username: str = Field(..., description="Username for authentication.")
-    password: str = Field(..., description="Password for authentication.")
-    client_id: Optional[str] = Field("", description="Client ID for authentication.")
+    username: Optional[str] = Field("admin", description="Username for authentication.")
+    password: Optional[str] = Field("admin", description="Password for authentication.")
+    client_id: Optional[str] = Field(None, description="Client ID for authentication.")
     client_secret_key: Optional[str] = Field(
-        "", description="Client secret key for authentication."
+        None, description="Client secret key for authentication."
     )
 
 
@@ -529,6 +558,9 @@ class SimulationConfig(BaseModel):
 
 
 class RuntimeConfig(BaseModel):
+    wallclock_offset_properties: WallclockOffsetProperties = Field(
+        ..., description="Properties for wallclock offset."
+    )
     credentials: Credentials = Field(..., description="Credentials for authentication.")
     server_configuration: Config = (
         Field(..., description="Simulation configuration."),
@@ -538,4 +570,7 @@ class RuntimeConfig(BaseModel):
     )
     application_configuration: Optional[Dict] = Field(
         None, description="Application-specific, user-provided configuration."
+    )
+    yaml_file: Optional[str] = Field(
+        None, description="Path to the YAML file containing the configuration."
     )
