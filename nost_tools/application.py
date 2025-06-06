@@ -91,6 +91,9 @@ class Application:
         self._token_refresh_thread = None
         self.token_refresh_interval = None
         self._reconnect_delay = None
+        # Offset
+        self._wallclock_refresh_thread = None
+        self.wallclock_offset_refresh_interval = None
         # Set up signal handlers for graceful shutdown
         if setup_signal_handlers:
             self._setup_signal_handlers()
@@ -201,6 +204,42 @@ class Application:
         self._token_refresh_thread.start()
         logger.debug("Starting refresh token thread successfully completed.")
 
+    def start_wallclock_refresh_thread(self):  # , interval=30, host="pool.ntp.org"):
+        """
+        Starts a background thread to refresh the wallclock offset periodically.
+
+        Args:
+            interval (int): Seconds between wallclock offset refreshes (default: 3600 seconds/1 hour)
+            host (str): NTP host to query (default: 'pool.ntp.org')
+        """
+        logger.debug("Starting wallclock offset refresh thread.")
+
+        def refresh_wallclock_periodically():
+            while not self._should_stop.wait(
+                timeout=self.config.rc.wallclock_offset_properties.wallclock_offset_refresh_interval
+            ):
+                logger.debug("Wallclock refresh thread is running.")
+                try:
+                    logger.info(
+                        f"Contacting {self.config.rc.wallclock_offset_properties.ntp_host} to retrieve wallclock offset."
+                    )
+                    response = ntplib.NTPClient().request(
+                        self.config.rc.wallclock_offset_properties.ntp_host,
+                        version=3,
+                        timeout=2,
+                    )
+                    offset = timedelta(seconds=response.offset)
+                    self.simulator.set_wallclock_offset(offset)
+                    logger.info(f"Wallclock offset updated to {offset}.")
+                except Exception as e:
+                    logger.debug(f"Failed to refresh wallclock offset: {e}")
+
+        self._wallclock_refresh_thread = threading.Thread(
+            target=refresh_wallclock_periodically
+        )
+        self._wallclock_refresh_thread.start()
+        logger.debug("Starting wallclock offset refresh thread successfully completed.")
+
     def update_connection_credentials(self, access_token):
         """
         Updates the connection credentials with the new access token.
@@ -285,8 +324,11 @@ class Application:
             self.shut_down_when_terminated = shut_down_when_terminated
 
         if self.set_offset:
-            # Set the system clock offset
-            self.set_wallclock_offset()
+            # Start periodic wallclock offset updates instead of one-time call
+            logger.info(
+                f"Wallclock offset will be set every {self.config.rc.wallclock_offset_properties.wallclock_offset_refresh_interval} seconds using {self.config.rc.wallclock_offset_properties.ntp_host}."
+            )
+            self.start_wallclock_refresh_thread()
 
         # Set the prefix and configuration parameters
         self.prefix = prefix
@@ -1384,33 +1426,25 @@ class Application:
                     )
                 else:
                     logger.info("Closing token refresh thread completed successfully")
-
+            # Also stop wallclock refresh thread if it exists
+            if (
+                hasattr(self, "_wallclock_refresh_thread")
+                and self._wallclock_refresh_thread
+                and self._wallclock_refresh_thread.is_alive()
+            ):
+                logger.info("Closing wallclock refresh thread.")
+                # Set a timeout to avoid hanging indefinitely
+                self._wallclock_refresh_thread.join(timeout=60.0)
+                # Check if it's still alive after timeout
+                if self._wallclock_refresh_thread.is_alive():
+                    logger.warning(
+                        "Closing wallclock refresh thread timed out after 60 seconds. "
+                    )
+                else:
+                    logger.info(
+                        "Closing wallclock refresh thread completed successfully"
+                    )
             logger.debug("Stop_application completed successfully.")
-
-    def set_wallclock_offset(
-        self, host="pool.ntp.org", retry_delay_s: int = 5, max_retry: int = 5
-    ) -> None:
-        """
-        Issues a Network Time Protocol (NTP) request to determine the system clock offset.
-
-        Args:
-            host (str): NTP host (default: 'pool.ntp.org')
-            retry_delay_s (int): number of seconds to wait before retrying
-            max_retry (int): maximum number of retries allowed
-        """
-        for i in range(max_retry):
-            try:
-                logger.info(f"Contacting {host} to retrieve wallclock offset.")
-                response = ntplib.NTPClient().request(host, version=3, timeout=2)
-                offset = timedelta(seconds=response.offset)
-                self.simulator.set_wallclock_offset(offset)
-                logger.info(f"Wallclock offset updated to {offset}.")
-                return
-            except ntplib.NTPException:
-                logger.warning(
-                    f"Could not connect to {host}, attempt #{i+1}/{max_retry} in {retry_delay_s} s."
-                )
-                time.sleep(retry_delay_s)
 
     def _create_time_status_publisher(
         self, time_status_step: timedelta, time_status_init: datetime
