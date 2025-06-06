@@ -119,7 +119,7 @@ Updated:
 - Made `general` section of `ExecConfig` optional in `schemas.py`for situations where YAML configuration file is not provided.
 - Made `client_id` and `client_secret_key` in `Credentials` default to None.
 - Changed `parameters.time_scale_updates` reference to `self.time_scale_updates` in `manager.py`.
-- Updated code in `start_up()` related to definition of parameters to use `_get_parameters_from_config()` subclasses to customize parameter retrieval in:
+- Updated code in `start_up()` related to the definition of parameters to use `_get_parameters_from_config()` subclasses to customize parameter retrieval in:
   - `Application` class of `application.py`
   - `Manager` class of `manager.py`
   - `ManagedApplication` class of `managed_application.py` 
