@@ -307,8 +307,21 @@ class ServersConfig(BaseModel):
         return values
 
 
+class WallclockOffsetProperties(BaseModel):
+    """
+    Properties to report wallclock offset.
+    """
+
+    wallclock_offset_refresh_interval: Optional[int] = Field(
+        10800, description="Wallclock offset refresh interval, in seconds."
+    )
+    ntp_host: Optional[str] = Field(
+        "pool.ntp.org", description="NTP host for wallclock offset synchronization."
+    )
+
+
 class GeneralConfig(BaseModel):
-    prefix: str = Field("nost", description="Execution prefix.")
+    prefix: Optional[str] = Field("nost", description="Execution prefix.")
 
 
 class TimeScaleUpdateSchema(BaseModel):
@@ -531,6 +544,9 @@ class SimulationConfig(BaseModel):
 
 
 class RuntimeConfig(BaseModel):
+    wallclock_offset_properties: WallclockOffsetProperties = Field(
+        ..., description="Properties for wallclock offset."
+    )
     credentials: Credentials = Field(..., description="Credentials for authentication.")
     server_configuration: Config = (
         Field(..., description="Simulation configuration."),
