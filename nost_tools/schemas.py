@@ -365,6 +365,10 @@ class ManagerConfig(BaseModel):
     shut_down_when_terminated: bool = Field(
         False, description="Shut down when terminated."
     )
+    is_scenario_time_step: bool = Field(
+        True,
+        description="If True, time_step is in scenario time and won't be scaled. If False, time_step is in wallclock time and will be scaled by the time scale factor.",
+    )
     is_scenario_time_status_step: bool = Field(
         True,
         description="If True, time_status_step is in scenario time and won't be scaled. If False, time_status_step is in wallclock time and will be scaled by the time scale factor.",
@@ -373,6 +377,16 @@ class ManagerConfig(BaseModel):
     @model_validator(mode="before")
     def scale_time(cls, values):
         time_scale_factor = values.get("time_scale_factor", 1.0)
+
+        if "time_step" in values and not values.get("is_scenario_time_step", True):
+            time_step = values["time_step"]
+            if isinstance(time_step, str):
+                hours, minutes, seconds = map(int, time_step.split(":"))
+                time_step = timedelta(hours=hours, minutes=minutes, seconds=seconds)
+            if isinstance(time_step, timedelta):
+                values["time_step"] = timedelta(
+                    seconds=time_step.total_seconds() * time_scale_factor
+                )
 
         if "time_status_step" in values and not values.get(
             "is_scenario_time_status_step", True
