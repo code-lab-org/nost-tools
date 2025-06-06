@@ -114,6 +114,7 @@ Added:
 - Added `keycloak_authentication` argument to `__init__()` of `ConnectionConfig` class (default=False).
 - Implemented `start_wallclock_refresh_thread()` which periodically updates the wallclock offset. 
 - Added `WallclockOffsetProperties` to `schemas.py` that contains `wallclock_offset_refresh_interval` and `ntp_host` fields used in `start_wallclock_refresh_thread()`
+- Implemented `is_scenario_time_step` in `ManagerConfig` class, similar to that of `ManagedApplicationConfig`
 
 Updated:
 - Made `general` section of `ExecConfig` optional in `schemas.py`for situations where YAML configuration file is not provided.
