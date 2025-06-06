@@ -453,7 +453,7 @@ class LoggerApplicationConfig(BaseModel):
         timedelta(seconds=10), description="Time status step."
     )
     time_status_init: Optional[datetime] = Field(
-        datetime(2019, 3, 1, 0, 0, 0), description="Time status init."
+        datetime.now(), description="Time status init."
     )
     shut_down_when_terminated: Optional[bool] = Field(
         False, description="Shut down when terminated."
