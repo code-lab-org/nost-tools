@@ -105,7 +105,7 @@ Changed:
   - Improve general code structure for enhanced efficiency, readability, and user experience
 - Updated documentation for the FireSat+, Downlink, Scalability, and scienceDash test suites.
 
-## 2.2.1
+## 2.3.0
 Added:
 - Introduced a boolean `setup_signal_handlers` (default=True) parameter for Application() class, which makes `self._setup_signal_handlers()` conditional. This prevents errors in nost-manager-backend. 
   - Added `setup_signal_handlers` argument (default=True) to `__init__` of `Manager` and `ManagedApplication` classes.
