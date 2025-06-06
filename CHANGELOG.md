@@ -126,3 +126,4 @@ Updated:
 - Updated `self.simulator.set_end_time(sim_stop_time)` from `stop()` in `manager.py` to run only if `self.simulator.get_mode() == Mode.EXECUTING`
 - Removed `time_step` and `manager_app_name` arguments from `start_up()` in `Manager` class
 - Modified `set_wallclock_offset()` in `simulator.py` to allow setting wallclock offset when in `Mode.EXECUTING`
+- Update default value of `time_status_init` to `datetime.now()` in `ApplicationConfig` class
