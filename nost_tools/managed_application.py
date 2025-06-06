@@ -122,11 +122,6 @@ class ManagedApplication(Application):
             self.time_step = time_step
             self.manager_app_name = manager_app_name
 
-        logger.info(
-            f"Managed application '{self.app_name}' started with time step: {self.time_step}, "
-            f"manager app name: {self.manager_app_name}"
-        )
-
         # Register callback functions
         self.add_message_callback(
             app_name=self.manager_app_name,
