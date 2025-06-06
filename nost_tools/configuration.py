@@ -21,6 +21,7 @@ from .schemas import (
     RuntimeConfig,
     ServersConfig,
     SimulationConfig,
+    WallclockOffsetProperties,
 )
 
 logger = logging.getLogger(__name__)
@@ -316,10 +317,7 @@ class ConnectionConfig:
             del server_config.execution
         self.server_config = server_config
 
-        if (
-            self.username is not None
-            and self.password is not None
-        ):
+        if self.username is not None and self.password is not None:
             logger.info("Using user-provided credentials.")
             self.credentials_config = Credentials(
                 username=self.username,
@@ -331,6 +329,7 @@ class ConnectionConfig:
             self.load_environment_variables()
 
         self.rc = RuntimeConfig(
+            wallclock_offset_properties=WallclockOffsetProperties(),
             credentials=self.credentials_config,
             server_configuration=server_config,
             simulation_configuration=self.simulation_config,
