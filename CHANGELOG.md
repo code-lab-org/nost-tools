@@ -112,7 +112,9 @@ Added:
 - Added `yaml_file` section to `RuntimeConfig` in both `schemas.py` and `configuration.py`. This attribute holds the path to YAML configuration file if provided; otherwise, it defaults to `None`.
 - Introduced `_get_parameters_from_config()` in `Application`, `Manager`, and `ManagedApplication` to facilitate getting the application parameters from the YAML configuration or user-provided arguments based on `self.config.rc.yaml_file` being None or not. 
 - Added `keycloak_authentication` argument to `__init__()` of `ConnectionConfig` class (default=False).
- 
+- Implemented `start_wallclock_refresh_thread()` which periodically updates the wallclock offset. 
+- Added `WallclockOffsetProperties` to `schemas.py` that contains `wallclock_offset_refresh_interval` and `ntp_host` fields used in `start_wallclock_refresh_thread()`
+
 Updated:
 - Made `general` section of `ExecConfig` optional in `schemas.py`for situations where YAML configuration file is not provided.
 - Made `client_id` and `client_secret_key` in `Credentials` default to None.
@@ -123,3 +125,4 @@ Updated:
   - `ManagedApplication` class of `managed_application.py` 
 - Updated `self.simulator.set_end_time(sim_stop_time)` from `stop()` in `manager.py` to run only if `self.simulator.get_mode() == Mode.EXECUTING`
 - Removed `time_step` and `manager_app_name` arguments from `start_up()` in `Manager` class
+- Modified `set_wallclock_offset()` in `simulator.py` to allow setting wallclock offset when in `Mode.EXECUTING`
