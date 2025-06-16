@@ -545,23 +545,26 @@ if __name__ == "__main__":
     )
 
     by_name = {sat.name: sat for sat in activesats}
-    names = [
-        "AQUA",
-        "TERRA",
-        "SUOMI NPP",
-        "NOAA 20 (JPSS-1)",  # "NOAA 20",
-        "SENTINEL-2A",
-        "SENTINEL-2B",
+    norads = [
+        39634,
+        40697,
+        41335,
+        42063,
+        42969,
+        43437,
     ]
 
     ES = []
     indices = []
-    for name_i, name in enumerate(names):
-        ES.append(by_name[name])
+    by_norad = {
+        sat.model.satnum: sat for sat in activesats if sat.model.satnum in norads
+    }
+    for name_i, norad in enumerate(norads):
+        ES.append(by_norad[norad])
         indices.append(name_i)
 
     # Initialize the Constellation object class (in this example from EarthSatellite type)
-    constellation = Constellation("constellation", app, indices, names, ES)
+    constellation = Constellation("constellation", app, indices, norads, ES)
 
     # Add observer classes to the Constellation object class
     constellation.add_observer(FireDetectedObserver(app))
