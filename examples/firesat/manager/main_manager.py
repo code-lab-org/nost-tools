@@ -8,6 +8,7 @@ This manager application leverages the manager template in the NOS-T tools libra
     :lines: 11-
 
 """
+
 import logging
 
 from nost_tools.application_utils import ShutDownObserver
@@ -18,7 +19,7 @@ logging.basicConfig(level=logging.INFO)
 
 if __name__ == "__main__":
     # Load config
-    config = ConnectionConfig(yaml_file="firesat.yaml")
+    config = ConnectionConfig(yaml_file="examples/firesat/firesat.yaml")
 
     # Create the manager application
     manager = Manager()

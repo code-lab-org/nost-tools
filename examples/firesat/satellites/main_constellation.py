@@ -5,6 +5,7 @@
 The application contains one :obj:`Constellation` (:obj:`Entity`) object class, one :obj:`PositionPublisher` (:obj:`WallclockTimeIntervalPublisher`) class, and two :obj:`Observer` object classes to monitor for :obj:`FireDetected` and :obj:`FireReported` events, respectively. The application also adds several methods outside of these classes containing standardized calculations sourced from Ch. 5 of *Space Mission Analysis and Design* by Wertz and Larson. The example also includes a startup script that demonstrates how to add each of these objects to the simulator before executing the test case, as well as how to map callback functions to the newly started client.
 
 """
+
 import copy
 import logging
 from datetime import timedelta
@@ -366,18 +367,18 @@ class Constellation(Entity):
         location = GroundLocation.model_validate_json(body)  # message.payload)
 
         if location.groundId in self.grounds.groundId:
-            self.grounds[self.grounds.groundId == location.groundId].latitude = (
-                location.latitude
-            )
-            self.grounds[self.grounds.groundId == location.groundId].longitude = (
-                location.longitude
-            )
-            self.grounds[self.grounds.groundId == location.groundId].elevAngle = (
-                location.elevAngle
-            )
-            self.grounds[self.grounds.groundId == location.groundId].operational = (
-                location.operational
-            )
+            self.grounds[
+                self.grounds.groundId == location.groundId
+            ].latitude = location.latitude
+            self.grounds[
+                self.grounds.groundId == location.groundId
+            ].longitude = location.longitude
+            self.grounds[
+                self.grounds.groundId == location.groundId
+            ].elevAngle = location.elevAngle
+            self.grounds[
+                self.grounds.groundId == location.groundId
+            ].operational = location.operational
             print(f"Station {location.groundId} updated at time {self.get_time()}.")
         else:
             location = {
@@ -530,7 +531,7 @@ if __name__ == "__main__":
     NAME = "constellation"
 
     # Load config
-    config = ConnectionConfig(yaml_file="firesat.yaml", app_name=NAME)
+    config = ConnectionConfig(yaml_file="examples/firesat/firesat.yaml", app_name=NAME)
 
     # Create the managed application
     app = ManagedApplication(app_name=NAME)
@@ -540,7 +541,7 @@ if __name__ == "__main__":
         "https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle"
     )
     activesats = load.tle_file(
-        activesats_url, filename="satellites/active.txt", reload=True
+        activesats_url, filename="examples/firesat/satellites/active.txt", reload=True
     )
 
     by_name = {sat.name: sat for sat in activesats}

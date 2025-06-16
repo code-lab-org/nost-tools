@@ -144,13 +144,13 @@ if __name__ == "__main__":
     NAME = "fire"
 
     # Load config
-    config = ConnectionConfig(yaml_file="firesat.yaml", app_name=NAME)
+    config = ConnectionConfig(yaml_file="examples/firesat/firesat.yaml", app_name=NAME)
 
     # Create the managed application
     app = ManagedApplication(app_name=NAME)
 
     # Import CSV file from fire_scenarios subdirectory with scenario defining locations and ignition datetimes of fires
-    csvFile = os.path.join("fires", "fire_scenarios", "first5days.csv")
+    csvFile = os.path.join("examples/firesat/fires", "fire_scenarios", "first5days.csv")
 
     # Read the csv file and convert to a DataFrame with initial column defining the index
     df = pd.read_csv(csvFile, index_col=0)

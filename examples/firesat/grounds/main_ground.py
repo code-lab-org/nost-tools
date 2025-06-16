@@ -66,7 +66,7 @@ if __name__ == "__main__":
     NAME = "ground"
 
     # Load config
-    config = ConnectionConfig(yaml_file="firesat.yaml", app_name=NAME)
+    config = ConnectionConfig(yaml_file="examples/firesat/firesat.yaml", app_name=NAME)
 
     # Create the managed application
     app = ManagedApplication(app_name=NAME)
