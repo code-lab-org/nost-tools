@@ -336,8 +336,32 @@ class TimeScaleUpdateSchema(BaseModel):
         ..., description="Scenario time that the update will occur"
     )
 
+class LoggingConfig(BaseModel):
+    """
+    Configuration for logging.
+    """
 
-class ManagerConfig(BaseModel):
+    enable_file_logging: Optional[bool] = Field(
+        False, description="Enable file logging."
+    )
+    log_file_path: Optional[str] = Field(
+        None, description="Path to the log file."
+    )
+    log_level: Optional[str] = Field(
+        "INFO", description="Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)."
+    )
+    max_bytes: Optional[int] = Field(
+        10 * 1024 * 1024, description="Maximum size of the log file in bytes. Default is 10MB."
+    )
+    backup_count: Optional[int] = Field(
+        5, description="Number of backup log files to keep."
+    )
+    log_format: Optional[str] = Field(
+        "%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+        description="Format of the log messages.",
+    )
+
+class ManagerConfig(BaseModel, LoggingConfig):
     sim_start_time: Optional[datetime] = Field(
         None, description="Simulation start time."
     )
