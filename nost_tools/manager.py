@@ -166,10 +166,7 @@ class Manager(Application):
         set_offset: bool = True,
         time_status_step: timedelta = None,
         time_status_init: datetime = None,
-        shut_down_when_terminated: bool = False,
-        # enable_file_logging: bool = False,
-        # log_file_path: str = None,
-        # log_level: str = "INFO",
+        shut_down_when_terminated: bool = False
     ) -> None:
         """
         Starts up the application by connecting to message broker, starting a background event loop,
@@ -182,9 +179,6 @@ class Manager(Application):
             time_status_step (:obj:`timedelta`): scenario duration between time status messages
             time_status_init (:obj:`datetime`): scenario time for first time status message
             shut_down_when_terminated (bool): True, if the application should shut down when the simulation is terminated
-            enable_file_logging (bool): True, if file logging should be enabled
-            log_file_path (str): Path to log file (optional, auto-generated if None)
-            log_level (str): Logging level for file output
         """
         self.config = config
 
