@@ -4,8 +4,6 @@ Provides a base manager that coordinates a distributed scenario execution.
 
 import json
 import logging
-import logging.handlers
-import os
 import threading
 import time
 import traceback
@@ -181,22 +179,6 @@ class Manager(Application):
             shut_down_when_terminated (bool): True, if the application should shut down when the simulation is terminated
         """
         self.config = config
-
-        parameters = getattr(
-            self.config.rc.simulation_configuration.execution_parameters,
-            self.app_name,
-            None,
-        )
-
-        # Configure file logging if requested
-        if parameters.enable_file_logging:
-            self.configure_file_logging(
-                log_file_path=parameters.log_file_path,
-                log_level=parameters.log_level,
-                max_bytes=parameters.max_bytes,
-                backup_count=parameters.backup_count,
-                log_format=parameters.log_format,
-            )
 
         # Call base start_up to handle common parameters
         super().start_up(
@@ -619,56 +601,3 @@ class Manager(Application):
         )
         # update the execution time scale factor
         self.simulator.set_time_scale_factor(time_scale_factor, sim_update_time)
-
-    def configure_file_logging(
-        self,
-        log_file_path: str,
-        log_level: str,
-        max_bytes: int,
-        backup_count: int,
-        log_format: str,
-    ) -> None:
-        """
-        Configure file logging for the manager application.
-
-        Args:
-            log_file_path (str): Path to the log file. If None, defaults to 'manager_<timestamp>.log'
-            log_level (str): Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-            max_bytes (int): Maximum size of log file before rotation (default: 10MB)
-            backup_count (int): Number of backup files to keep (default: 5)
-            log_format (str): Custom log format string. If None, uses default format.
-        """
-        # Set default log file path if not provided
-        if log_file_path is None:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            log_file_path = f"manager_{timestamp}.log"
-
-        # Ensure log directory exists
-        log_dir = os.path.dirname(log_file_path)
-        if log_dir and not os.path.exists(log_dir):
-            os.makedirs(log_dir, exist_ok=True)
-
-        # Set default format if not provided
-        if log_format is None:
-            log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-
-        # Create file handler with rotation
-        file_handler = logging.handlers.RotatingFileHandler(
-            log_file_path, maxBytes=max_bytes, backupCount=backup_count
-        )
-        file_handler.setLevel(getattr(logging, log_level.upper()))
-
-        # Create formatter
-        formatter = logging.Formatter(log_format)
-        file_handler.setFormatter(formatter)
-
-        # Add handler to the logger
-        logger.addHandler(file_handler)
-
-        # Also add to root logger to capture all logging from this application
-        root_logger = logging.getLogger()
-        root_logger.addHandler(file_handler)
-        if root_logger.level > getattr(logging, log_level.upper()):
-            root_logger.setLevel(getattr(logging, log_level.upper()))
-
-        logger.info(f"File logging configured: {log_file_path} (level: {log_level})")
