@@ -309,14 +309,16 @@ class Application:
                 self.shut_down_when_terminated = getattr(
                     parameters, "shut_down_when_terminated", shut_down_when_terminated
                 )
+                logger.info(f"Max bytes: {parameters.max_bytes}")
 
                 # Configure file logging if requested
                 if getattr(parameters, "enable_file_logging", False):
                     self.configure_file_logging(
-                        log_file_path=getattr(parameters, "log_file_path", None),
-                        log_level=getattr(parameters, "log_level", "INFO"),
-                        max_bytes=getattr(parameters, "max_bytes", 10 * 1024 * 1024),
-                        backup_count=getattr(parameters, "backup_count", 5),
+                        log_dir=getattr(parameters, "log_dir", None),
+                        log_filename=getattr(parameters, "log_filename", None),
+                        log_level=getattr(parameters, "log_level", None),
+                        max_bytes=getattr(parameters, "max_bytes", None),
+                        backup_count=getattr(parameters, "backup_count", None),
                         log_format=getattr(parameters, "log_format", None),
                     )
             else:
@@ -1495,38 +1497,39 @@ class Application:
 
     def configure_file_logging(
         self,
-        log_file_path: str = None,
-        log_level: str = "INFO",
-        max_bytes: int = 10 * 1024 * 1024,
-        backup_count: int = 5,
+        log_dir: str = None,
+        log_filename: str = None,
+        log_level: str = None,
+        max_bytes: int = None,
+        backup_count: int = None,
         log_format: str = None,
     ):
         """
         Configures file logging for the application.
 
         Args:
-            log_file_path (str): Path to the log file
+            log_dir (str): Directory where log files will be stored
+            log_filename (str): Name of the log file. If None, a timestamped filename will be used
             log_level (str): Logging level (e.g., 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL')
             max_bytes (int): Maximum file size in bytes before rotating
             backup_count (int): Number of backup files to keep
             log_format (str): Log message format
         """
         try:
-            if log_file_path is None:
-                logger.warning(
-                    "Log file path is not specified, skipping file logging configuration."
-                )
-                return
+            if log_filename is None:
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                log_filename = os.path.join(log_dir, f"{self.app_name}_{timestamp}.log")
+            else:
+                log_filename = os.path.join(log_dir, log_filename)
 
             # Create log directory if it doesn't exist
-            log_dir = os.path.dirname(log_file_path)
             if log_dir and not os.path.exists(log_dir):
                 os.makedirs(log_dir)
                 logger.info(f"Created log directory: {log_dir}")
 
             # Configure rotating file handler
             handler = logging.handlers.RotatingFileHandler(
-                log_file_path, maxBytes=max_bytes, backupCount=backup_count
+                log_filename, maxBytes=max_bytes, backupCount=backup_count
             )
 
             # Set log level
