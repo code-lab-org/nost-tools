@@ -1525,7 +1525,7 @@ class Application:
             # Create log directory if it doesn't exist
             if log_dir and not os.path.exists(log_dir):
                 os.makedirs(log_dir)
-                logger.info(f"Created log directory: {log_dir}")
+                logger.info(f"Log directory {log_dir} successfully created.")
 
             # Configure rotating file handler
             handler = logging.handlers.RotatingFileHandler(
@@ -1549,8 +1549,6 @@ class Application:
 
             # Add the handler to the root logger
             logging.getLogger().addHandler(handler)
-            logger.info(
-                f"File logging configured: {log_file_path} (level: {log_level})"
-            )
+            logger.info(f"File logging configured: {log_filename} (level: {log_level})")
         except Exception as e:
             logger.error(f"Error configuring file logging: {e}")
