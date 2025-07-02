@@ -309,7 +309,6 @@ class Application:
                 self.shut_down_when_terminated = getattr(
                     parameters, "shut_down_when_terminated", shut_down_when_terminated
                 )
-                logger.info(f"Max bytes: {parameters.max_bytes}")
 
                 # Configure file logging if requested
                 if getattr(parameters, "enable_file_logging", False):
