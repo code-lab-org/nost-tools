@@ -280,7 +280,7 @@ class KeycloakConfig(BaseModel):
     realm: str = Field("master", description="Keycloak realm.")
     tls: bool = Field(False, description="Keycloak TLS/SSL.")
     token_refresh_interval: int = Field(
-        60, description="Keycloak token refresh interval, in seconds."
+        240, description="Keycloak token refresh interval, in seconds."
     )
 
 
