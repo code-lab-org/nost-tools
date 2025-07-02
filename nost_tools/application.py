@@ -4,6 +4,7 @@ Provides a base application that publishes messages from a simulator to a broker
 
 import functools
 import logging
+import logging.handlers
 import os
 import signal
 import ssl
@@ -308,6 +309,17 @@ class Application:
                 self.shut_down_when_terminated = getattr(
                     parameters, "shut_down_when_terminated", shut_down_when_terminated
                 )
+
+                # Configure file logging if requested
+                if getattr(parameters, "enable_file_logging", False):
+                    self.configure_file_logging(
+                        log_dir=getattr(parameters, "log_dir", None),
+                        log_filename=getattr(parameters, "log_filename", None),
+                        log_level=getattr(parameters, "log_level", None),
+                        max_bytes=getattr(parameters, "max_bytes", None),
+                        backup_count=getattr(parameters, "backup_count", None),
+                        log_format=getattr(parameters, "log_format", None),
+                    )
             else:
                 logger.warning("No parameters found in configuration, using defaults")
                 self.set_offset = set_offset
@@ -1475,9 +1487,67 @@ class Application:
 
     def _create_shut_down_observer(self) -> None:
         """
-        Creates an observer to shut down the application when the simulation is terminated.
+        Creates a shut down observer to close the application when the simulator is terminated.
         """
         if self._shut_down_observer is not None:
             self.simulator.remove_observer(self._shut_down_observer)
         self._shut_down_observer = ShutDownObserver(self)
         self.simulator.add_observer(self._shut_down_observer)
+
+    def configure_file_logging(
+        self,
+        log_dir: str = None,
+        log_filename: str = None,
+        log_level: str = None,
+        max_bytes: int = None,
+        backup_count: int = None,
+        log_format: str = None,
+    ):
+        """
+        Configures file logging for the application.
+
+        Args:
+            log_dir (str): Directory where log files will be stored
+            log_filename (str): Name of the log file. If None, a timestamped filename will be used
+            log_level (str): Logging level (e.g., 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL')
+            max_bytes (int): Maximum file size in bytes before rotating
+            backup_count (int): Number of backup files to keep
+            log_format (str): Log message format
+        """
+        try:
+            if log_filename is None:
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                log_filename = os.path.join(log_dir, f"{self.app_name}_{timestamp}.log")
+            else:
+                log_filename = os.path.join(log_dir, log_filename)
+
+            # Create log directory if it doesn't exist
+            if log_dir and not os.path.exists(log_dir):
+                os.makedirs(log_dir)
+                logger.info(f"Log directory {log_dir} successfully created.")
+
+            # Configure rotating file handler
+            handler = logging.handlers.RotatingFileHandler(
+                log_filename, maxBytes=max_bytes, backupCount=backup_count
+            )
+
+            # Set log level
+            level = getattr(logging, log_level.upper(), logging.INFO)
+            handler.setLevel(level)
+
+            # Set log format
+            if log_format is not None:
+                formatter = logging.Formatter(log_format)
+                handler.setFormatter(formatter)
+            else:
+                # Default format
+                formatter = logging.Formatter(
+                    "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+                )
+                handler.setFormatter(formatter)
+
+            # Add the handler to the root logger
+            logging.getLogger().addHandler(handler)
+            logger.info(f"File logging configured: {log_filename} (level: {log_level})")
+        except Exception as e:
+            logger.error(f"Error configuring file logging: {e}")

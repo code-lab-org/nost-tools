@@ -164,7 +164,7 @@ class Manager(Application):
         set_offset: bool = True,
         time_status_step: timedelta = None,
         time_status_init: datetime = None,
-        shut_down_when_terminated: bool = False,
+        shut_down_when_terminated: bool = False
     ) -> None:
         """
         Starts up the application by connecting to message broker, starting a background event loop,
