@@ -128,3 +128,11 @@ Updated:
 - Removed `time_step` and `manager_app_name` arguments from `start_up()` in `Manager` class
 - Modified `set_wallclock_offset()` in `simulator.py` to allow setting wallclock offset when in `Mode.EXECUTING`
 - Update default value of `time_status_init` to `datetime.now()` in `ApplicationConfig` class
+
+## 2.4.0
+Added:
+- Introduced the `configure_file_logging()` method in the base `Application` class, automatically invoked during the `start_up()` process.
+- Added a `LoggingConfig` Pydantic model to encapsulate configuration parameters for the `configure_file_logging()` method.
+
+Updated:
+- Changed the default value of `token_refresh_interval` in the `KeycloakConfig` Pydantic class from 60 seconds (1 minute) to 240 seconds (4 minutes).

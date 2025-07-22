@@ -280,7 +280,7 @@ class KeycloakConfig(BaseModel):
     realm: str = Field("master", description="Keycloak realm.")
     tls: bool = Field(False, description="Keycloak TLS/SSL.")
     token_refresh_interval: int = Field(
-        60, description="Keycloak token refresh interval, in seconds."
+        240, description="Keycloak token refresh interval, in seconds."
     )
 
 
@@ -337,7 +337,35 @@ class TimeScaleUpdateSchema(BaseModel):
     )
 
 
-class ManagerConfig(BaseModel):
+class LoggingConfig(BaseModel):
+    """
+    Configuration for logging.
+    """
+
+    enable_file_logging: Optional[bool] = Field(
+        False, description="Enable file logging."
+    )
+    log_dir: Optional[str] = Field(
+        "logs", description="Directory path for log files."
+    )
+    log_filename: Optional[str] = Field(None, description="Path to the log file.")
+    log_level: Optional[str] = Field(
+        "INFO", description="Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)."
+    )
+    max_bytes: Optional[int] = Field(
+        10 * 1024 * 1024,
+        description="Maximum size of the log file in bytes. Default is 10MB.",
+    )
+    backup_count: Optional[int] = Field(
+        5, description="Number of backup log files to keep."
+    )
+    log_format: Optional[str] = Field(
+        "%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+        description="Format of the log messages.",
+    )
+
+
+class ManagerConfig(LoggingConfig):
     sim_start_time: Optional[datetime] = Field(
         None, description="Simulation start time."
     )
@@ -405,7 +433,7 @@ class ManagerConfig(BaseModel):
         return values
 
 
-class ManagedApplicationConfig(BaseModel):
+class ManagedApplicationConfig(LoggingConfig):
     time_scale_factor: float = Field(1.0, description="Time scale factor.")
     time_step: timedelta = Field(
         timedelta(seconds=1), description="Time step for swe_change."
