@@ -336,9 +336,6 @@ class Manager(Application):
                 )
             )
         self.freezes = converted_freezes
-        logger.info(
-            f"Time scale updates: {self.time_scale_updates}, Freezes: {self.freezes}"
-        )
 
         # Set up tracking of required applications
         self.required_apps_status = dict(
