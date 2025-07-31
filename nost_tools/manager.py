@@ -15,8 +15,10 @@ from pydantic import ValidationError
 from .application import Application
 from .application_utils import ConnectionConfig
 from .schemas import (
+    FreezeCommand,
     InitCommand,
     ReadyStatus,
+    ResumeCommand,
     StartCommand,
     StopCommand,
     TimeStatus,
@@ -47,6 +49,33 @@ class TimeScaleUpdate(object):
         """
         self.time_scale_factor = time_scale_factor
         self.sim_update_time = sim_update_time
+
+
+class Freeze(object):
+    """
+    Represents a scheduled freeze of the simulation.
+    """
+
+    def __init__(self, sim_freeze_time: datetime, freeze_duration: timedelta = None):
+        """
+        Instantiates a new freeze.
+
+        Args:
+            sim_freeze_time (:obj:`datetime`): scenario time that the freeze will occur
+            freeze_duration (:obj:`timedelta`, optional): wallclock time duration for which to freeze. If None, creates an indefinite freeze.
+        """
+        self.sim_freeze_time = sim_freeze_time
+        self.freeze_duration = freeze_duration
+
+    @property
+    def is_indefinite(self) -> bool:
+        """Returns True if this is an indefinite freeze (no duration specified)."""
+        return self.freeze_duration is None
+
+    @property
+    def is_timed(self) -> bool:
+        """Returns True if this is a timed freeze (duration specified)."""
+        return self.freeze_duration is not None
 
 
 class Manager(Application):
@@ -164,7 +193,7 @@ class Manager(Application):
         set_offset: bool = True,
         time_status_step: timedelta = None,
         time_status_init: datetime = None,
-        shut_down_when_terminated: bool = False
+        shut_down_when_terminated: bool = False,
     ) -> None:
         """
         Starts up the application by connecting to message broker, starting a background event loop,
@@ -215,6 +244,7 @@ class Manager(Application):
         time_step: timedelta = timedelta(seconds=1),
         time_scale_factor: float = 1.0,
         time_scale_updates: List[TimeScaleUpdate] = [],
+        freezes: List[Freeze] = [],
         time_status_step: timedelta = None,
         time_status_init: datetime = None,
         command_lead: timedelta = timedelta(seconds=0),
@@ -235,6 +265,7 @@ class Manager(Application):
             time_step (:obj:`timedelta`): scenario time step used in execution (default: 1 second)
             time_scale_factor (float): scenario seconds per wallclock second (default: 1.0)
             time_scale_updates (list(:obj:`TimeScaleUpdate`)): list of scheduled time scale updates (default: [])
+            freezes (list(:obj:`Freeze`)): list of scheduled freezes (default: [])
             time_status_step (:obj:`timedelta`): scenario duration between time status messages
             time_status_init (:obj:`datetime`): scenario time of first time status message
             command_lead (:obj:`timedelta`): wallclock lead time between command and action (default: 0 seconds)
@@ -257,6 +288,7 @@ class Manager(Application):
             self.time_step = parameters.time_step
             self.time_scale_factor = parameters.time_scale_factor
             self.time_scale_updates = parameters.time_scale_updates
+            self.freezes = parameters.freezes
             self.time_status_step = parameters.time_status_step
             self.time_status_init = parameters.time_status_init
             self.command_lead = parameters.command_lead
@@ -275,6 +307,7 @@ class Manager(Application):
             self.time_step = time_step
             self.time_scale_factor = time_scale_factor
             self.time_scale_updates = time_scale_updates
+            self.freezes = freezes
             self.time_status_step = time_status_step
             self.time_status_init = time_status_init
             self.command_lead = command_lead
@@ -292,6 +325,20 @@ class Manager(Application):
                 )
             )
         self.time_scale_updates = converted_updates
+
+        # Convert FreezeSchema objects to Freeze objects
+        converted_freezes = []
+        for freeze_schema in self.freezes:
+            converted_freezes.append(
+                Freeze(
+                    sim_freeze_time=freeze_schema.sim_freeze_time,
+                    freeze_duration=freeze_schema.freeze_duration,
+                )
+            )
+        self.freezes = converted_freezes
+        logger.info(
+            f"Time scale updates: {self.time_scale_updates}, Freezes: {self.freezes}"
+        )
 
         # Set up tracking of required applications
         self.required_apps_status = dict(
@@ -346,16 +393,34 @@ class Manager(Application):
         while self.simulator.get_mode() != Mode.EXECUTING:
             time.sleep(0.001)
 
-        # Process time scale updates
+        # Combine and sort time scale updates and freezes by their scheduled times
+        scheduled_events = []
+
+        # Add time scale updates
         for update in self.time_scale_updates:
-            update_time = self.simulator.get_wallclock_time_at_simulation_time(
-                update.sim_update_time
+            scheduled_events.append(("update", update.sim_update_time, update))
+
+        # Add freezes
+        for freeze in self.freezes:
+            scheduled_events.append(("freeze", freeze.sim_freeze_time, freeze))
+
+        # Sort events by scheduled time
+        scheduled_events.sort(key=lambda x: x[1])
+
+        # Track total freeze time to adjust final stop timing
+        total_freeze_time = timedelta(0)
+
+        # Process all scheduled events in chronological order
+        for event_type, event_time, event_obj in scheduled_events:
+            event_wallclock_time = self.simulator.get_wallclock_time_at_simulation_time(
+                event_time
             )
-            # Sleep until update time using heartbeat-safe approach
+
+            # Sleep until event time using heartbeat-safe approach
             sleep_seconds = max(
                 0,
                 (
-                    (update_time - self.simulator.get_wallclock_time())
+                    (event_wallclock_time - self.simulator.get_wallclock_time())
                     - self.command_lead
                 )
                 / timedelta(seconds=1),
@@ -364,15 +429,38 @@ class Manager(Application):
             # Use our heartbeat-safe sleep
             self._sleep_with_heartbeat(sleep_seconds)
 
-            # Issue the update command
-            self.update(update.time_scale_factor, update.sim_update_time)
+            if event_type == "update":
+                # Issue the update command
+                self.update(event_obj.time_scale_factor, event_obj.sim_update_time)
 
-            # Wait until update takes effect
-            while self.simulator.get_time_scale_factor() != update.time_scale_factor:
-                time.sleep(0.001)
+                # Wait until update takes effect
+                while (
+                    self.simulator.get_time_scale_factor()
+                    != event_obj.time_scale_factor
+                ):
+                    time.sleep(0.001)
 
-        end_time = self.simulator.get_wallclock_time_at_simulation_time(
-            self.simulator.get_end_time()
+            elif event_type == "freeze":
+                if event_obj.is_timed:
+                    # Timed freeze - will automatically resume after specified duration
+                    self.freeze(event_obj.freeze_duration, event_obj.sim_freeze_time)
+                    # Add the freeze duration to our total freeze time
+                    total_freeze_time += event_obj.freeze_duration
+                    self.resume()
+                else:
+                    # Indefinite freeze - requires manual resume
+                    logger.warning(
+                        f"Indefinite freeze scheduled at {event_obj.sim_freeze_time}. "
+                        "Manual resume required to continue execution."
+                    )
+                    self.freeze(None, event_obj.sim_freeze_time)
+
+        # Calculate end time accounting for freeze time
+        end_time = (
+            self.simulator.get_wallclock_time_at_simulation_time(
+                self.simulator.get_end_time()
+            )
+            + total_freeze_time
         )
 
         # Sleep until stop time using heartbeat-safe approach
@@ -601,3 +689,69 @@ class Manager(Application):
         )
         # update the execution time scale factor
         self.simulator.set_time_scale_factor(time_scale_factor, sim_update_time)
+
+    def freeze(
+        self, freeze_duration: timedelta = None, sim_freeze_time: datetime = None
+    ) -> None:
+        """
+        Command to freeze a test run execution by updating the execution freeze duration and publishing a freeze command.
+
+        Args:
+            freeze_duration (:obj:`timedelta`, optional): Duration for which to freeze execution.
+                                                        If None, creates an indefinite freeze.
+            sim_freeze_time (:obj:`datetime`, optional): Scenario time at which to freeze execution.
+                                                        If None, freezes immediately.
+        """
+        # publish a freeze command message
+        command_params = {"simFreezeTime": sim_freeze_time}
+        if freeze_duration is not None:
+            command_params["freezeDuration"] = freeze_duration
+
+        command = FreezeCommand.model_validate({"taskingParameters": command_params})
+
+        freeze_type = (
+            "indefinite" if freeze_duration is None else f"timed ({freeze_duration})"
+        )
+        logger.info(
+            f"Sending {freeze_type} freeze command {command.model_dump_json(by_alias=True)}."
+        )
+
+        self.send_message(
+            app_name=self.app_name,
+            app_topics="freeze",
+            payload=command.model_dump_json(by_alias=True),
+        )
+
+        # freeze simulation time
+        self.simulator.pause()
+
+        if freeze_duration is not None:
+            # Timed freeze - automatically resume after duration
+            time.sleep(freeze_duration.total_seconds())
+        else:
+            logger.info("Indefinite freeze active. Call resume() to continue.")
+            while self.simulator.get_mode() not in [Mode.EXECUTING, Mode.RESUMING]:
+                # Indefinite freeze - requires manual resume
+                self._sleep_with_heartbeat(0.001)
+
+    def resume(self) -> None:
+        """
+        Command to resume a test run execution by unpausing the simulator.
+        """
+        # resume the simulator execution
+        command = ResumeCommand.model_validate(
+            {
+                "taskingParameters": {
+                    "resumeTime": self.simulator.get_wallclock_time(),
+                    "simResumeTime": self.simulator.get_time(),
+                }
+            }
+        )
+        logger.info(f"Sending resume command {command.model_dump_json(by_alias=True)}.")
+        self.send_message(
+            app_name=self.app_name,
+            app_topics="resume",
+            payload=command.model_dump_json(by_alias=True),
+        )
+        # resume simulation time
+        self.simulator.resume()
