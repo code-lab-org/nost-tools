@@ -4,12 +4,20 @@ Provides a base application that manages communication between a simulator and b
 
 import logging
 import threading
+import time
 import traceback
 from datetime import datetime, timedelta
 
 from .application import Application
 from .application_utils import ConnectionConfig
-from .schemas import InitCommand, StartCommand, StopCommand, UpdateCommand
+from .schemas import (
+    FreezeCommand,
+    InitCommand,
+    ResumeCommand,
+    StartCommand,
+    StopCommand,
+    UpdateCommand,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -143,6 +151,17 @@ class ManagedApplication(Application):
             app_topic="update",
             user_callback=self.on_manager_update,
         )
+        self.add_message_callback(
+            app_name=self.manager_app_name,
+            app_topic="freeze",
+            user_callback=self.on_manager_freeze,
+        )
+
+        self.add_message_callback(
+            app_name=self.manager_app_name,
+            app_topic="resume",
+            user_callback=self.on_manager_resume,
+        )
 
     def shut_down(self) -> None:
         """
@@ -267,6 +286,54 @@ class ManagedApplication(Application):
             self.simulator.set_time_scale_factor(
                 params.time_scaling_factor, params.sim_update_time
             )
+        except Exception as e:
+            logger.error(
+                f"Exception (topic: {method.routing_key}, payload: {message}): {e}"
+            )
+            print(traceback.format_exc())
+
+    def on_manager_freeze(self, ch, method, properties, body) -> None:
+        """
+        Callback function for the managed application ('self') to respond to a freeze command sent from the manager.
+        Parses the freeze duration and simulation freeze time and updates the simulator.
+
+        Args:
+            ch (:obj:`pika.channel.Channel`): The channel object used to communicate with the RabbitMQ server.
+            method (:obj:`pika.spec.Basic.Deliver`): Delivery-related information such as delivery tag, exchange, and routing key.
+            properties (:obj:`pika.BasicProperties`): Message properties including content type, headers, and more.
+            body (bytes): The actual message body sent, containing the message payload.
+        """
+        try:
+            # Parse message payload
+            message = body.decode("utf-8")
+            params = FreezeCommand.model_validate_json(message).tasking_parameters
+            logger.info(f"Received freeze command {message}")
+            # freeze simulation time
+            self.simulator.pause()
+        except Exception as e:
+            logger.error(
+                f"Exception (topic: {method.routing_key}, payload: {message}): {e}"
+            )
+            print(traceback.format_exc())
+
+    def on_manager_resume(self, ch, method, properties, body) -> None:
+        """
+        Callback function for the managed application ('self') to respond to a resume command sent from the manager.
+        Resumes the simulator execution.
+
+        Args:
+            ch (:obj:`pika.channel.Channel`): The channel object used to communicate with the RabbitMQ server.
+            method (:obj:`pika.spec.Basic.Deliver`): Delivery-related information such as delivery tag, exchange, and routing key.
+            properties (:obj:`pika.BasicProperties`): Message properties including content type, headers, and more.
+            body (bytes): The actual message body sent, containing the message payload.
+        """
+        try:
+            # Parse message payload
+            message = body.decode("utf-8")
+            params = ResumeCommand.model_validate_json(message).tasking_parameters
+            logger.info(f"Received resume command {message}")
+            # resume simulation time
+            self.simulator.resume()
         except Exception as e:
             logger.error(
                 f"Exception (topic: {method.routing_key}, payload: {message}): {e}"
