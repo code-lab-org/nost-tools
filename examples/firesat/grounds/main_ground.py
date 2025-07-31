@@ -45,7 +45,11 @@ class Environment(Observer):
                 :pyobject: Environment.on_change
                 :lines: 11-
         """
-        if property_name == Simulator.PROPERTY_MODE and new_value == Mode.EXECUTING:
+        if (
+            property_name == Simulator.PROPERTY_MODE
+            and new_value == Mode.EXECUTING
+            and old_value != Mode.RESUMING
+        ):
             logger.info("Grounds are operational")
             for index, ground in self.grounds.iterrows():
                 self.app.send_message(
