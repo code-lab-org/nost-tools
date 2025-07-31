@@ -132,6 +132,69 @@ class UpdateCommand(BaseModel):
     )
 
 
+class FreezeTaskingParameters(BaseModel):
+    """
+    Tasking parameters to freeze an execution.
+    """
+
+    sim_freeze_time: datetime = Field(
+        ...,
+        gt=0,
+        description="Scenario time at which to freeze execution.",
+        alias="simFreezeTime",
+    )
+    freeze_duration: Optional[timedelta] = Field(
+        None,
+        # timedelta(seconds=60),
+        description="Wallclock time duration for which to freeze execution.",
+        alias="freezeDuration",
+    )
+
+
+class FreezeCommand(BaseModel):
+    """
+    Command message to freeze an execution.
+    """
+
+    tasking_parameters: FreezeTaskingParameters = Field(
+        ...,
+        description="Tasking parameters for the freeze command.",
+        alias="taskingParameters",
+    )
+
+
+class ResumeTaskingParameters(BaseModel):
+    """
+    Tasking parameters to resume an execution.
+    """
+
+    resume_time: datetime = Field(
+        ...,
+        gt=0,
+        description="Wallclock time at which to resume execution.",
+        alias="resumeTime",
+    )
+
+    sim_resume_time: datetime = Field(
+        ...,
+        gt=0,
+        description="Scenario time at which to resume execution.",
+        alias="simResumeTime",
+    )
+
+
+class ResumeCommand(BaseModel):
+    """
+    Command message to resume an execution.
+    """
+
+    tasking_parameters: ResumeTaskingParameters = Field(
+        ...,
+        description="Tasking parameters for the resume command.",
+        alias="taskingParameters",
+    )
+
+
 class TimeStatusProperties(BaseModel):
     """
     Properties to report time status.
@@ -337,6 +400,19 @@ class TimeScaleUpdateSchema(BaseModel):
     )
 
 
+class FreezeSchema(BaseModel):
+    """
+    Provides a scheduled freeze of the simulation.
+    """
+
+    sim_freeze_time: datetime = Field(
+        ..., description="Scenario time that the freeze will occur"
+    )
+    freeze_duration: Optional[timedelta] = Field(
+        None, description="Wallclock time duration for which to freeze"
+    )
+
+
 class LoggingConfig(BaseModel):
     """
     Configuration for logging.
@@ -345,9 +421,7 @@ class LoggingConfig(BaseModel):
     enable_file_logging: Optional[bool] = Field(
         False, description="Enable file logging."
     )
-    log_dir: Optional[str] = Field(
-        "logs", description="Directory path for log files."
-    )
+    log_dir: Optional[str] = Field("logs", description="Directory path for log files.")
     log_filename: Optional[str] = Field(None, description="Path to the log file.")
     log_level: Optional[str] = Field(
         "INFO", description="Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)."
@@ -378,6 +452,9 @@ class ManagerConfig(LoggingConfig):
     time_scale_factor: float = Field(1.0, description="Time scale factor.")
     time_scale_updates: List[TimeScaleUpdateSchema] = Field(
         default_factory=list, description="List of time scale updates."
+    )
+    freezes: List[FreezeSchema] = Field(
+        default_factory=list, description="List of freeze tasking parameters."
     )
     time_status_step: Optional[timedelta] = Field(None, description="Time status step.")
     time_status_init: Optional[datetime] = Field(None, description="Time status init.")
