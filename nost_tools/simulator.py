@@ -93,7 +93,9 @@ class Simulator(Observable):
             entity (:obj:`Entity`): entity to be added
         """
         if self._mode not in [Mode.UNDEFINED, Mode.INITIALIZED, Mode.TERMINATED]:
-            raise RuntimeError("Can only add entity from UNDEFINED, INITIALIZED, or TERMINATED modes.")
+            raise RuntimeError(
+                "Can only add entity from UNDEFINED, INITIALIZED, or TERMINATED modes."
+            )
         self._set_mode(Mode.UNDEFINED)
         self._entities.append(entity)
 
@@ -141,7 +143,9 @@ class Simulator(Observable):
             :obj:`Entity`: removed entity
         """
         if self._mode not in [Mode.UNDEFINED, Mode.INITIALIZED, Mode.TERMINATED]:
-            raise RuntimeError("Can only remove entity from UNDEFINED, INITIALIZED, or TERMINATED modes.")
+            raise RuntimeError(
+                "Can only remove entity from UNDEFINED, INITIALIZED, or TERMINATED modes."
+            )
         if entity in self._entities:
             self._set_mode(Mode.UNDEFINED)
             return self._entities.remove(entity)
@@ -169,7 +173,9 @@ class Simulator(Observable):
             time_scale_factor (float): number of scenario seconds per wallclock second (default: 1)
         """
         if self._mode not in [Mode.UNDEFINED, Mode.INITIALIZED, Mode.TERMINATED]:
-            raise RuntimeError("Can only initialize from UNDEFINED, INITIALIZED, or TERMINATED modes.")
+            raise RuntimeError(
+                "Can only initialize from UNDEFINED, INITIALIZED, or TERMINATED modes."
+            )
         self._set_mode(Mode.INITIALIZING)
         logger.info(
             f"Initializing simulator to time {init_time} (wallclock time {wallclock_epoch})"
@@ -224,9 +230,8 @@ class Simulator(Observable):
 
         logger.info("Starting main simulation loop.")
         while (
-            (self._mode == Mode.EXECUTING or self._mode == Mode.PAUSING)
-            and self.get_time() < self.get_init_time() + self.get_duration()
-        ):
+            self._mode == Mode.EXECUTING or self._mode == Mode.PAUSING
+        ) and self.get_time() < self.get_init_time() + self.get_duration():
             # compute time step (last step may be shorter)
             time_step = min(
                 self._time_step, self._init_time + self._duration - self._time
@@ -524,6 +529,7 @@ class Simulator(Observable):
         """
         Pauses the scenario execution. Requires that the simulator is in EXECUTING mode.
         """
+        logger.info("Pausing simulation execution.")
         if self._mode != Mode.EXECUTING:
             raise RuntimeError("Cannot pause: simulator is not executing.")
         self._set_mode(Mode.PAUSING)
