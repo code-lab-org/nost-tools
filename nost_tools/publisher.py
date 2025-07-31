@@ -125,6 +125,17 @@ class WallclockTimeIntervalPublisher(Observer, ABC):
             old_value (obj): old value of the named property
             new_value (obj): new value of the named property
         """
+        # Reset timing when resuming from pause
+        if (
+            property_name == Simulator.PROPERTY_MODE
+            and old_value == Mode.RESUMING
+            and new_value == Mode.EXECUTING
+        ):
+            self._next_time_status = self.app.simulator.get_wallclock_time()
+            if self.time_status_step is not None:
+                self._next_time_status += self.time_status_step
+            return
+
         if property_name == Simulator.PROPERTY_MODE and new_value == Mode.INITIALIZED:
             if self.time_status_init is None:
                 self._next_time_status = self.app.simulator.get_wallclock_time()
