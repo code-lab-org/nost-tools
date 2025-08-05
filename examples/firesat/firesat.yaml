@@ -26,7 +26,7 @@ execution:
     time_status_step: "0:00:01"
     is_scenario_time_status_step: False
     time_status_init: "2020-01-01T07:21:00+00:00"
-    command_lead: "0:00:00"
+    command_lead: "0:00:05"
     required_apps:
       - manager
       - fire
