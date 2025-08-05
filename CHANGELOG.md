@@ -140,9 +140,15 @@ Updated:
 ## 2.5.0
 Added:
 - Added comprehensive freeze time tracking system in `Manager` class to properly account for both scheduled and external freeze requests
-- Added `total_freeze_time` instance variable to track cumulative freeze duration across all freeze sources
-- Added `_freeze_time_updated` threading event and `_freeze_time_lock` for thread-safe freeze time coordination
-- Implemented dynamic end time calculation in `_execute_test_plan_impl()` that continuously monitors and adjusts for freeze time changes
+  - Added callbacks for freeze/resume from managed applications
+  - Added `on_freeze_request()` and `on_resume_request()` which freeze and resume scenario time, respectively, based on messages containing requests from managed applications
+  - Added `_handle_freeze_request()` that handles dynamic, distributed freeze requests
+  - Added `total_freeze_time` instance variable to track cumulative freeze duration across all freeze sources
+  - Added `_freeze_time_updated` threading event and `_freeze_time_lock` for thread-safe freeze time coordination
+  - Implemented dynamic end time calculation in `_execute_test_plan_impl()` that continuously monitors and adjusts for freeze time changes
+- Added freeze time requests in `ManagedApplication` to allow requests for a freeze in scenario time from the `Manager`
+  - `request_freeze()` sends a FreezeRequest message which is received by the `Manager`
+  - `request_resume()` sends a ResumeRequest message which is received by the `Manager`
 
 Changed:
 - Enhanced `_handle_freeze_request()` to properly track and signal freeze duration updates to the main execution thread
