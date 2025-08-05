@@ -4,7 +4,6 @@ Provides a base application that manages communication between a simulator and b
 
 import logging
 import threading
-import time
 import traceback
 from datetime import datetime, timedelta
 
@@ -12,8 +11,10 @@ from .application import Application
 from .application_utils import ConnectionConfig
 from .schemas import (
     FreezeCommand,
+    FreezeRequest,
     InitCommand,
     ResumeCommand,
+    ResumeRequest,
     StartCommand,
     StopCommand,
     UpdateCommand,
@@ -339,3 +340,58 @@ class ManagedApplication(Application):
                 f"Exception (topic: {method.routing_key}, payload: {message}): {e}"
             )
             print(traceback.format_exc())
+
+    def request_freeze(
+        self, freeze_duration: timedelta = None, sim_freeze_time: datetime = None
+    ) -> None:
+        """
+        Request a freeze from the manager.
+
+        Args:
+            freeze_duration (:obj:`timedelta`, optional): Duration for which to freeze execution.
+                                                        If None, creates an indefinite freeze.
+            sim_freeze_time (:obj:`datetime`, optional): Scenario time at which to freeze execution.
+                                                        If None, freezes immediately.
+        """
+        # Publish a freeze request message
+        request_params = {
+            "simFreezeTime": sim_freeze_time,
+            "requestingApp": self.app_name,
+        }
+        if freeze_duration is not None:
+            request_params["freezeDuration"] = freeze_duration
+
+        # Create the freeze request
+        request = FreezeRequest.model_validate({"taskingParameters": request_params})
+
+        freeze_type = (
+            "indefinite" if freeze_duration is None else f"timed ({freeze_duration})"
+        )
+        logger.info(
+            f"Requesting {freeze_type} freeze: {request.model_dump_json(by_alias=True)}"
+        )
+
+        # Send the request to the manager
+        self.send_message(
+            app_name=self.app_name,
+            app_topics="request.freeze",
+            payload=request.model_dump_json(by_alias=True),
+        )
+
+    def request_resume(self) -> None:
+        """
+        Request a resume from the manager.
+        """
+        # Create the resume request
+        request = ResumeRequest.model_validate(
+            {"taskingParameters": {"requestingApp": self.app_name}}
+        )
+
+        logger.info(f"Requesting resume: {request.model_dump_json(by_alias=True)}")
+
+        # Send the request to the manager
+        self.send_message(
+            app_name=self.app_name,
+            app_topics="request.resume",
+            payload=request.model_dump_json(by_alias=True),
+        )
