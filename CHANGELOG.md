@@ -136,3 +136,15 @@ Added:
 
 Updated:
 - Changed the default value of `token_refresh_interval` in the `KeycloakConfig` Pydantic class from 60 seconds (1 minute) to 240 seconds (4 minutes).
+
+## 2.5.0
+Added:
+- Added comprehensive freeze time tracking system in `Manager` class to properly account for both scheduled and external freeze requests
+- Added `total_freeze_time` instance variable to track cumulative freeze duration across all freeze sources
+- Added `_freeze_time_updated` threading event and `_freeze_time_lock` for thread-safe freeze time coordination
+- Implemented dynamic end time calculation in `_execute_test_plan_impl()` that continuously monitors and adjusts for freeze time changes
+
+Changed:
+- Enhanced `_handle_freeze_request()` to properly track and signal freeze duration updates to the main execution thread
+- Modified `_execute_test_plan_impl()` to use event-driven freeze time monitoring instead of fixed end time calculation
+- Improved thread synchronization between scheduled freezes and external freeze requests
