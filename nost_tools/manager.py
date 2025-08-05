@@ -16,9 +16,11 @@ from .application import Application
 from .application_utils import ConnectionConfig
 from .schemas import (
     FreezeCommand,
+    FreezeRequest,
     InitCommand,
     ReadyStatus,
     ResumeCommand,
+    ResumeRequest,
     StartCommand,
     StopCommand,
     TimeStatus,
@@ -113,6 +115,10 @@ class Manager(Application):
             app_name, app_description, setup_signal_handlers=setup_signal_handlers
         )
         self.required_apps_status = {}
+        # Add instance variable to track total freeze time
+        self.total_freeze_time = timedelta(0)
+        self._freeze_time_updated = threading.Event()
+        self._freeze_time_lock = threading.Lock()
 
         self.sim_start_time = None
         self.sim_stop_time = None
@@ -221,6 +227,111 @@ class Manager(Application):
 
         # Additional manager-specific setup: establish the exchange
         self.establish_exchange()
+
+        # Add callbacks for freeze/resume requests from managed applications
+        self.add_message_callback("*", "request.freeze", self.on_freeze_request)
+        self.add_message_callback("*", "request.resume", self.on_resume_request)
+
+    def on_freeze_request(self, ch, method, properties, body) -> None:
+        """
+        Callback to handle freeze requests from managed applications.
+
+        Args:
+            ch (:obj:`pika.channel.Channel`): The channel object used to communicate with the RabbitMQ server.
+            method (:obj:`pika.spec.Basic.Deliver`): Delivery-related information such as delivery tag, exchange, and routing key.
+            properties (:obj:`pika.BasicProperties`): Message properties including content type, headers, and more.
+            body (bytes): The actual message body sent, containing the message payload.
+        """
+        try:
+            # Parse the freeze request
+            message = body.decode("utf-8")
+            freeze_request = FreezeRequest.model_validate_json(message)
+            params = freeze_request.tasking_parameters
+
+            logger.info(
+                f"Received freeze request from {params.requesting_app}: {message}"
+            )
+
+            # Use a separate thread to handle the freeze to avoid blocking the callback
+            freeze_thread = threading.Thread(
+                target=self._handle_freeze_request,
+                args=(params.freeze_duration, params.sim_freeze_time),
+                daemon=True,
+            )
+            freeze_thread.start()
+
+        except ValidationError as e:
+            logger.error(f"Validation error in freeze request: {e}")
+        except Exception as e:
+            logger.error(
+                f"Exception handling freeze request (topic: {method.routing_key}, payload: {message}): {e}"
+            )
+            print(traceback.format_exc())
+
+    def _handle_freeze_request(
+        self, freeze_duration: timedelta = None, sim_freeze_time: datetime = None
+    ) -> None:
+        try:
+            if freeze_duration is not None:
+                logger.info(
+                    f"Handling timed freeze request for duration: {freeze_duration}, "
+                    f"sim_freeze_time: {sim_freeze_time}"
+                )
+
+                # Use the original freeze method with duration - it handles timing internally
+                self.freeze(freeze_duration, sim_freeze_time)
+
+                # The freeze method blocks until completion, so now we can safely resume
+                self.resume()
+
+                # Add the freeze duration to our total freeze time AFTER the freeze completes
+                with self._freeze_time_lock:
+                    self.total_freeze_time += freeze_duration
+                    self._freeze_time_updated.set()  # Signal that freeze time was updated
+
+                logger.info(
+                    f"Completed freeze of duration {freeze_duration}. Total freeze time now: {self.total_freeze_time}"
+                )
+
+            else:
+                # For indefinite freezes, just freeze (requires manual resume)
+                self.freeze(None, sim_freeze_time)
+                logger.info("Indefinite freeze requested - manual resume required")
+
+        except Exception as e:
+            logger.error(f"Error handling freeze request: {e}")
+            print(traceback.format_exc())
+
+    def on_resume_request(self, ch, method, properties, body) -> None:
+        """
+        Callback to handle resume requests from managed applications.
+
+        Args:
+            ch (:obj:`pika.channel.Channel`): The channel object used to communicate with the RabbitMQ server.
+            method (:obj:`pika.spec.Basic.Deliver`): Delivery-related information such as delivery tag, exchange, and routing key.
+            properties (:obj:`pika.BasicProperties`): Message properties including content type, headers, and more.
+            body (bytes): The actual message body sent, containing the message payload.
+        """
+        try:
+            # Parse the resume request
+            message = body.decode("utf-8")
+            resume_request = ResumeRequest.model_validate_json(message)
+            params = resume_request.tasking_parameters
+
+            logger.info(
+                f"Received resume request from {params.requesting_app}: {message}"
+            )
+
+            # Execute the resume command
+            self.resume()
+
+        except ValidationError as e:
+            logger.error(f"Validation error in resume request: {e}")
+        except Exception as e:
+            logger.error(
+                f"Exception handling resume request (topic: {method.routing_key}, payload: {message}): {e}"
+            )
+            print(traceback.format_exc())
 
     def execute_test_plan(self, *args, **kwargs) -> None:
         """
@@ -404,8 +515,8 @@ class Manager(Application):
         # Sort events by scheduled time
         scheduled_events.sort(key=lambda x: x[1])
 
-        # Track total freeze time to adjust final stop timing
-        total_freeze_time = timedelta(0)
+        # # Track total freeze time to adjust final stop timing
+        # self.total_freeze_time = timedelta(0)
 
         # Process all scheduled events in chronological order
         for event_type, event_time, event_obj in scheduled_events:
@@ -442,7 +553,7 @@ class Manager(Application):
                     # Timed freeze - will automatically resume after specified duration
                     self.freeze(event_obj.freeze_duration, event_obj.sim_freeze_time)
                     # Add the freeze duration to our total freeze time
-                    total_freeze_time += event_obj.freeze_duration
+                    self.total_freeze_time += event_obj.freeze_duration
                     self.resume()
                 else:
                     # Indefinite freeze - requires manual resume
@@ -452,26 +563,56 @@ class Manager(Application):
                     )
                     self.freeze(None, event_obj.sim_freeze_time)
 
-        # Calculate end time accounting for freeze time
-        end_time = (
-            self.simulator.get_wallclock_time_at_simulation_time(
-                self.simulator.get_end_time()
-            )
-            + total_freeze_time
+        base_end_time = self.simulator.get_wallclock_time_at_simulation_time(
+            self.simulator.get_end_time()
         )
 
-        # Sleep until stop time using heartbeat-safe approach
-        sleep_seconds = max(
-            0,
-            ((end_time - self.simulator.get_wallclock_time()) - self.command_lead)
-            / timedelta(seconds=1),
-        )
+        # Wait for stop time, checking for freeze time updates
+        while True:
+            with self._freeze_time_lock:
+                current_end_time = base_end_time + self.total_freeze_time
 
-        # Use our heartbeat-safe sleep
-        self._sleep_with_heartbeat(sleep_seconds)
+            current_time = self.simulator.get_wallclock_time()
+            time_until_stop = (
+                current_end_time - current_time - self.command_lead
+            ).total_seconds()
+
+            if time_until_stop <= 0:
+                break
+
+            # Wait for either the timeout or a freeze time update
+            timeout = min(30.0, time_until_stop)  # Check at least every 30 seconds
+            if self._freeze_time_updated.wait(timeout):
+                # Freeze time was updated, clear the event and recalculate
+                self._freeze_time_updated.clear()
+                continue
+
+            # Timeout occurred, check if we should stop
+            continue
 
         # Issue the stop command
         self.stop(self.sim_stop_time)
+
+        # # Calculate end time accounting for freeze time
+        # end_time = (
+        #     self.simulator.get_wallclock_time_at_simulation_time(
+        #         self.simulator.get_end_time()
+        #     )
+        #     + self.total_freeze_time
+        # )
+
+        # # Sleep until stop time using heartbeat-safe approach
+        # sleep_seconds = max(
+        #     0,
+        #     ((end_time - self.simulator.get_wallclock_time()) - self.command_lead)
+        #     / timedelta(seconds=1),
+        # )
+
+        # # Use our heartbeat-safe sleep
+        # self._sleep_with_heartbeat(sleep_seconds)
+
+        # # Issue the stop command
+        # self.stop(self.sim_stop_time)
 
     def on_app_ready_status(self, ch, method, properties, body) -> None:
         """
