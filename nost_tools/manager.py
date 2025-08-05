@@ -593,27 +593,6 @@ class Manager(Application):
         # Issue the stop command
         self.stop(self.sim_stop_time)
 
-        # # Calculate end time accounting for freeze time
-        # end_time = (
-        #     self.simulator.get_wallclock_time_at_simulation_time(
-        #         self.simulator.get_end_time()
-        #     )
-        #     + self.total_freeze_time
-        # )
-
-        # # Sleep until stop time using heartbeat-safe approach
-        # sleep_seconds = max(
-        #     0,
-        #     ((end_time - self.simulator.get_wallclock_time()) - self.command_lead)
-        #     / timedelta(seconds=1),
-        # )
-
-        # # Use our heartbeat-safe sleep
-        # self._sleep_with_heartbeat(sleep_seconds)
-
-        # # Issue the stop command
-        # self.stop(self.sim_stop_time)
-
     def on_app_ready_status(self, ch, method, properties, body) -> None:
         """
         Callback to handle a message containing an application ready status.
