@@ -195,6 +195,55 @@ class ResumeCommand(BaseModel):
     )
 
 
+class FreezeRequestParameters(BaseModel):
+    """
+    Parameters for requesting a freeze from a managed application.
+    """
+
+    sim_freeze_time: datetime = Field(
+        ...,
+        gt=0,
+        description="Scenario time at which to freeze execution.",
+        alias="simFreezeTime",
+    )
+    freeze_duration: Optional[timedelta] = Field(
+        None,
+        description="Wallclock time duration for which to freeze execution.",
+        alias="freezeDuration",
+    )
+    requesting_app: str = Field(
+        ...,
+        description="Name of the application requesting the freeze.",
+        alias="requestingApp",
+    )
+
+
+class FreezeRequest(BaseModel):
+    """
+    Request message for a managed application to request a freeze.
+    """
+
+    tasking_parameters: FreezeRequestParameters = Field(alias="taskingParameters")
+
+
+class ResumeRequestParameters(BaseModel):
+    """
+    Parameters for requesting a resume from a managed application.
+    """
+
+    requesting_app: str = Field(
+        description="Name of the application requesting the resume"
+    )
+
+
+class ResumeRequest(BaseModel):
+    """
+    Request message for a managed application to request a resume.
+    """
+
+    tasking_parameters: ResumeRequestParameters = Field(alias="taskingParameters")
+
+
 class TimeStatusProperties(BaseModel):
     """
     Properties to report time status.
