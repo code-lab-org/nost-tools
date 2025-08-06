@@ -13,8 +13,84 @@ import logging
 from nost_tools.application_utils import ShutDownObserver
 from nost_tools.configuration import ConnectionConfig
 from nost_tools.manager import Manager
+from nost_tools.observer import Observer
+from nost_tools.simulator import Mode, Simulator
 
 logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+class DailyTimeScaleUpdater(Observer):
+    """
+    Observer that automatically speeds up the time scale factor at the start of each day.
+    """
+
+    def __init__(
+        self,
+        manager: Manager,
+        day_time_scale: float = 120.0,
+        night_time_scale: float = 60.0,
+    ):
+        """
+        Initialize the daily time scale updater.
+
+        Args:
+            manager (Manager): The manager instance to send update requests
+            day_time_scale (float): Time scale factor for daytime (default: 120x)
+            night_time_scale (float): Time scale factor for nighttime (default: 60x)
+        """
+        self.manager = manager
+        self.day_time_scale = day_time_scale
+        self.night_time_scale = night_time_scale
+        self.last_day_checked = None
+        self.current_time_scale = None
+
+    def on_change(self, source, property_name, old_value, new_value):
+        """
+        Callback when simulation properties change.
+
+        Args:
+            source: The object that changed
+            property_name (str): Name of the property that changed
+            old_value: Previous value
+            new_value: New value
+        """
+        # Only respond to time changes when simulation is executing
+        if (
+            property_name == Simulator.PROPERTY_TIME
+            and source.get_mode() == Mode.EXECUTING
+            and new_value is not None
+        ):
+
+            current_sim_time = new_value
+            current_day = current_sim_time.date()
+            current_hour = current_sim_time.hour
+
+            # Determine desired time scale based on time of day
+            # Assume daytime is 6 AM to 6 PM, nighttime otherwise
+            if 6 <= current_hour < 18:
+                desired_time_scale = self.day_time_scale
+            else:
+                desired_time_scale = self.night_time_scale
+
+            # Check if we've crossed into a new day or need to change time scale
+            if (
+                self.last_day_checked != current_day
+                or self.current_time_scale != desired_time_scale
+            ):
+
+                logger.info(
+                    f"Time scale update needed at {current_sim_time}: "
+                    f"{self.current_time_scale} -> {desired_time_scale}"
+                )
+
+                # Request the time scale update from the manager
+                self.manager.update(desired_time_scale, current_sim_time)
+
+                # Update tracking variables
+                self.last_day_checked = current_day
+                self.current_time_scale = desired_time_scale
+
 
 if __name__ == "__main__":
     # Load config
@@ -22,6 +98,12 @@ if __name__ == "__main__":
 
     # Create the manager application
     manager = Manager()
+
+    # Add the daily time scale updater observer
+    daily_updater = DailyTimeScaleUpdater(
+        manager, day_time_scale=60.0, night_time_scale=120.0
+    )
+    manager.simulator.add_observer(daily_updater)
 
     # Add a shutdown observer to shut down after a single test case
     manager.simulator.add_observer(ShutDownObserver(manager))

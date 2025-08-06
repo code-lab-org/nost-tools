@@ -19,7 +19,8 @@ execution:
     shut_down_when_terminated: True
   manager:
     sim_start_time: "2020-01-01T07:20:00+00:00"
-    sim_stop_time: "2020-01-01T10:20:00+00:00"
+    # sim_stop_time: "2020-01-01T10:20:00+00:00"
+    sim_stop_time: "2020-01-01T23:20:00+00:00"
     start_time: 
     time_step: "0:00:01"
     time_scale_factor: 60
