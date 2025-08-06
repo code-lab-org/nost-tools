@@ -137,20 +137,26 @@ Added:
 Updated:
 - Changed the default value of `token_refresh_interval` in the `KeycloakConfig` Pydantic class from 60 seconds (1 minute) to 240 seconds (4 minutes).
 
-## 2.5.0
+## 3.0.0
 Added:
-- Added comprehensive freeze time tracking system in `Manager` class to properly account for both scheduled and external freeze requests
-  - Added callbacks for freeze/resume from managed applications
-  - Added `on_freeze_request()` and `on_resume_request()` which freeze and resume scenario time, respectively, based on messages containing requests from managed applications
+- Added comprehensive freeze time tracking system and callbacks in `Manager` class in `manager.py` to properly account for dynamic, distributed freezes, resumes, and updates to scenario time:
+  - Added `on_freeze_request()` callback which freezes scenario time based on messages containing requests from managed applications
   - Added `_handle_freeze_request()` that handles dynamic, distributed freeze requests
   - Added `total_freeze_time` instance variable to track cumulative freeze duration across all freeze sources
   - Added `_freeze_time_updated` threading event and `_freeze_time_lock` for thread-safe freeze time coordination
   - Implemented dynamic end time calculation in `_execute_test_plan_impl()` that continuously monitors and adjusts for freeze time changes
-- Added freeze time requests in `ManagedApplication` to allow requests for a freeze in scenario time from the `Manager`
-  - `request_freeze()` sends a FreezeRequest message which is received by the `Manager`
-  - `request_resume()` sends a ResumeRequest message which is received by the `Manager`
+  - Added `on_resume_request()` callback which resumes scenario time based on messages containing requests from managed applications
+  - Added `on_update_request()` callback which updates the time scale factor based on messages containing requests from managed applications
+- Added new methods to `ManagedApplication` class in `managed_application.py` to allow requests for a freeze in scenario time from the `Manager` class in `manager.py`
+  - `request_freeze()` sends a FreezeRequest message which is received by the `Manager` application
+  - `request_resume()` sends a ResumeRequest message which is received by the `Manager` application
+  - `request_update()` sends a UpdateRequest message which is received by the `Manager` application
+- Added `add_freeze_time()` to add freeze time to the total freeze time tracking and `get_total_freeze_time()` to get the total freeze time accumulated during execution to `Simulator` class in `simulator.py`
+- Added the following classes to `schemas.py`:
+  - `FreezeTaskingParameters`, `FreezeCommand`, `ResumeTaskingParameters`, `ResumeCommand`, `FreezeRequestParameters`, `FreezeRequest`, `ResumeRequestParameters`, `ResumeRequest`, `UpdateRequestParameters`, `UpdateRequest`
 
-Changed:
-- Enhanced `_handle_freeze_request()` to properly track and signal freeze duration updates to the main execution thread
-- Modified `_execute_test_plan_impl()` to use event-driven freeze time monitoring instead of fixed end time calculation
-- Improved thread synchronization between scheduled freezes and external freeze requests
+Updated:
+- Removed code related to scheduled time scale updates in `_execute_test_plan_impl()` of `Manager` application. Scheduled time scale factor updates, defined in the YAML configuration file, are no longer supported. They must now be requested by a `ManagedApplication` and processed by the `Manager` who maintains control of sending the `FreezeCommand` as defined in `schemas.py`
+- Removed `TimeScaleUpdate` class in `manager.py`
+- Removed `TimeScaleUpdateSchema` and `FreezeSchema` classes in `schemas.py`
+- Removed `time_scale_updates` and `freezes` fields from `ManagerConfig` class in `schemas.py`
