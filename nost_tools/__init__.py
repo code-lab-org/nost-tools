@@ -6,7 +6,7 @@ from .configuration import ConnectionConfig
 from .entity import Entity
 from .logger_application import LoggerApplication
 from .managed_application import ManagedApplication
-from .manager import Manager, TimeScaleUpdate
+from .manager import Manager
 from .observer import Observable, Observer
 from .publisher import ScenarioTimeIntervalPublisher, WallclockTimeIntervalPublisher
 from .schemas import (
