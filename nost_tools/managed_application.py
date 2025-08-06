@@ -18,6 +18,7 @@ from .schemas import (
     StartCommand,
     StopCommand,
     UpdateCommand,
+    UpdateRequest,
 )
 
 logger = logging.getLogger(__name__)
@@ -311,6 +312,17 @@ class ManagedApplication(Application):
             logger.info(f"Received freeze command {message}")
             # freeze simulation time
             self.simulator.pause()
+
+            # Track freeze time if duration is specified
+            if (
+                hasattr(params, "freeze_duration")
+                and params.freeze_duration is not None
+            ):
+                self.simulator.add_freeze_time(params.freeze_duration)
+                logger.debug(
+                    f"Added freeze time {params.freeze_duration} to simulator tracking"
+                )
+
         except Exception as e:
             logger.error(
                 f"Exception (topic: {method.routing_key}, payload: {message}): {e}"
@@ -393,5 +405,38 @@ class ManagedApplication(Application):
         self.send_message(
             app_name=self.app_name,
             app_topics="request.resume",
+            payload=request.model_dump_json(by_alias=True),
+        )
+
+    def request_update(
+        self, time_scale_factor: float, sim_update_time: datetime = None
+    ) -> None:
+        """
+        Request a time scale factor update from the manager.
+
+        Args:
+            time_scale_factor (float): scenario seconds per wallclock second
+            sim_update_time (:obj:`datetime`, optional): Scenario time at which to update.
+                                                        If None, updates immediately.
+        """
+        # Publish an update request message
+        request_params = {
+            "timeScalingFactor": time_scale_factor,
+            "requestingApp": self.app_name,
+        }
+        if sim_update_time is not None:
+            request_params["simUpdateTime"] = sim_update_time
+
+        # Create the update request
+        request = UpdateRequest.model_validate({"taskingParameters": request_params})
+
+        logger.info(
+            f"Requesting time scale factor update to {time_scale_factor}: {request.model_dump_json(by_alias=True)}"
+        )
+
+        # Send the request to the manager
+        self.send_message(
+            app_name=self.app_name,
+            app_topics="request.update",
             payload=request.model_dump_json(by_alias=True),
         )

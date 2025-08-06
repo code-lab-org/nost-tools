@@ -25,59 +25,11 @@ from .schemas import (
     StopCommand,
     TimeStatus,
     UpdateCommand,
+    UpdateRequest,
 )
 from .simulator import Mode
 
 logger = logging.getLogger(__name__)
-
-
-class TimeScaleUpdate(object):
-    """
-    Provides a scheduled update to the simulation time scale factor by sending a message at the designated sim_update_time
-    to change the time_scale_factor to the indicated value.
-
-    Attributes:
-        time_scale_factor (float): scenario seconds per wallclock second
-        sim_update_time (:obj:`datetime`): scenario time that the update will occur
-    """
-
-    def __init__(self, time_scale_factor: float, sim_update_time: datetime):
-        """
-        Instantiates a new time scale update.
-
-        Args:
-            time_scale_factor (float): scenario seconds per wallclock second
-            sim_update_time (:obj:`datetime`): scenario time that the update will occur
-        """
-        self.time_scale_factor = time_scale_factor
-        self.sim_update_time = sim_update_time
-
-
-class Freeze(object):
-    """
-    Represents a scheduled freeze of the simulation.
-    """
-
-    def __init__(self, sim_freeze_time: datetime, freeze_duration: timedelta = None):
-        """
-        Instantiates a new freeze.
-
-        Args:
-            sim_freeze_time (:obj:`datetime`): scenario time that the freeze will occur
-            freeze_duration (:obj:`timedelta`, optional): wallclock time duration for which to freeze. If None, creates an indefinite freeze.
-        """
-        self.sim_freeze_time = sim_freeze_time
-        self.freeze_duration = freeze_duration
-
-    @property
-    def is_indefinite(self) -> bool:
-        """Returns True if this is an indefinite freeze (no duration specified)."""
-        return self.freeze_duration is None
-
-    @property
-    def is_timed(self) -> bool:
-        """Returns True if this is a timed freeze (duration specified)."""
-        return self.freeze_duration is not None
 
 
 class Manager(Application):
@@ -115,23 +67,18 @@ class Manager(Application):
             app_name, app_description, setup_signal_handlers=setup_signal_handlers
         )
         self.required_apps_status = {}
-        # Add instance variable to track total freeze time
-        self.total_freeze_time = timedelta(0)
-        self._freeze_time_updated = threading.Event()
-        self._freeze_time_lock = threading.Lock()
-
         self.sim_start_time = None
         self.sim_stop_time = None
-        start_time = None
-        time_step = None
-        time_scale_factor = None
-        time_scale_updates = None
-        time_status_step = None
-        time_status_init = None
-        command_lead = None
-        required_apps = None
-        init_retry_delay_s = None
-        init_max_retry = None
+        self.start_time = None
+        self.time_step = None
+        self.time_scale_factor = None
+        self.time_status_step = None
+        self.time_status_init = None
+        self.command_lead = None
+        self.required_apps = None
+        self.init_retry_delay_s = None
+        self.init_max_retry = None
+        self.total_freeze_time = timedelta(0)
 
     def establish_exchange(self):
         """
@@ -225,12 +172,12 @@ class Manager(Application):
             shut_down_when_terminated,
         )
 
-        # Additional manager-specific setup: establish the exchange
+        # Establish the RabbitMQ exchange
         self.establish_exchange()
-
-        # Add callbacks for freeze/resume requests from managed applications
+        # Add callbacks for freeze, resume, and update requests from managed applications
         self.add_message_callback("*", "request.freeze", self.on_freeze_request)
         self.add_message_callback("*", "request.resume", self.on_resume_request)
+        self.add_message_callback("*", "request.update", self.on_update_request)
 
     def on_freeze_request(self, ch, method, properties, body) -> None:
         """
@@ -278,23 +225,14 @@ class Manager(Application):
                     f"sim_freeze_time: {sim_freeze_time}"
                 )
 
-                # Use the original freeze method with duration - it handles timing internally
                 self.freeze(freeze_duration, sim_freeze_time)
-
-                # The freeze method blocks until completion, so now we can safely resume
                 self.resume()
 
-                # Add the freeze duration to our total freeze time AFTER the freeze completes
-                with self._freeze_time_lock:
-                    self.total_freeze_time += freeze_duration
-                    self._freeze_time_updated.set()  # Signal that freeze time was updated
-
-                logger.info(
-                    f"Completed freeze of duration {freeze_duration}. Total freeze time now: {self.total_freeze_time}"
-                )
+                # Add freeze time to simulator's tracking
+                self.simulator.add_freeze_time(freeze_duration)
+                logger.info(f"Completed freeze of duration {freeze_duration}")
 
             else:
-                # For indefinite freezes, just freeze (requires manual resume)
                 self.freeze(None, sim_freeze_time)
                 logger.info("Indefinite freeze requested - manual resume required")
 
@@ -333,6 +271,54 @@ class Manager(Application):
             )
             print(traceback.format_exc())
 
+    def on_update_request(self, ch, method, properties, body) -> None:
+        """
+        Callback to handle update requests from managed applications.
+
+        Args:
+            ch (:obj:`pika.channel.Channel`): The channel object used to communicate with the RabbitMQ server.
+            method (:obj:`pika.spec.Basic.Deliver`): Delivery-related information such as delivery tag, exchange, and routing key.
+            properties (:obj:`pika.BasicProperties`): Message properties including content type, headers, and more.
+            body (bytes): The actual message body sent, containing the message payload.
+        """
+        try:
+            # Parse the update request
+            message = body.decode("utf-8")
+            update_request = UpdateRequest.model_validate_json(message)
+            params = update_request.tasking_parameters
+
+            logger.info(
+                f"Received update request from {params.requesting_app}: {message}"
+            )
+
+            # Handle update directly since it's typically fast
+            logger.info(
+                f"Handling update request for time scale factor: {params.time_scale_factor}, "
+                f"sim_update_time: {params.sim_update_time}"
+            )
+
+            # Issue the update command
+            self.update(
+                params.time_scale_factor,
+                params.sim_update_time or self.simulator.get_time(),
+            )
+
+            # Wait until update takes effect
+            while self.simulator.get_time_scale_factor() != params.time_scale_factor:
+                time.sleep(0.001)
+
+            logger.info(
+                f"Completed time scale factor update to {params.time_scale_factor}"
+            )
+
+        except ValidationError as e:
+            logger.error(f"Validation error in update request: {e}")
+        except Exception as e:
+            logger.error(
+                f"Exception handling update request (topic: {method.routing_key}, payload: {message}): {e}"
+            )
+            print(traceback.format_exc())
+
     def execute_test_plan(self, *args, **kwargs) -> None:
         """
         Starts the test plan execution in a background thread.
@@ -354,8 +340,6 @@ class Manager(Application):
         start_time: datetime = None,
         time_step: timedelta = timedelta(seconds=1),
         time_scale_factor: float = 1.0,
-        time_scale_updates: List[TimeScaleUpdate] = [],
-        freezes: List[Freeze] = [],
         time_status_step: timedelta = None,
         time_status_init: datetime = None,
         command_lead: timedelta = timedelta(seconds=0),
@@ -375,8 +359,6 @@ class Manager(Application):
             start_time (:obj:`datetime`): wallclock time at which to start execution (default: now)
             time_step (:obj:`timedelta`): scenario time step used in execution (default: 1 second)
             time_scale_factor (float): scenario seconds per wallclock second (default: 1.0)
-            time_scale_updates (list(:obj:`TimeScaleUpdate`)): list of scheduled time scale updates (default: [])
-            freezes (list(:obj:`Freeze`)): list of scheduled freezes (default: [])
             time_status_step (:obj:`timedelta`): scenario duration between time status messages
             time_status_init (:obj:`datetime`): scenario time of first time status message
             command_lead (:obj:`timedelta`): wallclock lead time between command and action (default: 0 seconds)
@@ -398,8 +380,6 @@ class Manager(Application):
             self.start_time = parameters.start_time
             self.time_step = parameters.time_step
             self.time_scale_factor = parameters.time_scale_factor
-            self.time_scale_updates = parameters.time_scale_updates
-            self.freezes = parameters.freezes
             self.time_status_step = parameters.time_status_step
             self.time_status_init = parameters.time_status_init
             self.command_lead = parameters.command_lead
@@ -417,36 +397,12 @@ class Manager(Application):
             self.start_time = start_time
             self.time_step = time_step
             self.time_scale_factor = time_scale_factor
-            self.time_scale_updates = time_scale_updates
-            self.freezes = freezes
             self.time_status_step = time_status_step
             self.time_status_init = time_status_init
             self.command_lead = command_lead
             self.required_apps = required_apps
             self.init_retry_delay_s = init_retry_delay_s
             self.init_max_retry = init_max_retry
-
-        # Convert TimeScaleUpdateSchema objects to TimeScaleUpdate objects
-        converted_updates = []
-        for update_schema in self.time_scale_updates:
-            converted_updates.append(
-                TimeScaleUpdate(
-                    time_scale_factor=update_schema.time_scale_factor,
-                    sim_update_time=update_schema.sim_update_time,
-                )
-            )
-        self.time_scale_updates = converted_updates
-
-        # Convert FreezeSchema objects to Freeze objects
-        converted_freezes = []
-        for freeze_schema in self.freezes:
-            converted_freezes.append(
-                Freeze(
-                    sim_freeze_time=freeze_schema.sim_freeze_time,
-                    freeze_duration=freeze_schema.freeze_duration,
-                )
-            )
-        self.freezes = converted_freezes
 
         # Set up tracking of required applications
         self.required_apps_status = dict(
@@ -501,94 +457,22 @@ class Manager(Application):
         while self.simulator.get_mode() != Mode.EXECUTING:
             time.sleep(0.001)
 
-        # Combine and sort time scale updates and freezes by their scheduled times
-        scheduled_events = []
-
-        # Add time scale updates
-        for update in self.time_scale_updates:
-            scheduled_events.append(("update", update.sim_update_time, update))
-
-        # Add freezes
-        for freeze in self.freezes:
-            scheduled_events.append(("freeze", freeze.sim_freeze_time, freeze))
-
-        # Sort events by scheduled time
-        scheduled_events.sort(key=lambda x: x[1])
-
-        # # Track total freeze time to adjust final stop timing
-        # self.total_freeze_time = timedelta(0)
-
-        # Process all scheduled events in chronological order
-        for event_type, event_time, event_obj in scheduled_events:
-            event_wallclock_time = self.simulator.get_wallclock_time_at_simulation_time(
-                event_time
-            )
-
-            # Sleep until event time using heartbeat-safe approach
-            sleep_seconds = max(
-                0,
-                (
-                    (event_wallclock_time - self.simulator.get_wallclock_time())
-                    - self.command_lead
-                )
-                / timedelta(seconds=1),
-            )
-
-            # Use our heartbeat-safe sleep
-            self._sleep_with_heartbeat(sleep_seconds)
-
-            if event_type == "update":
-                # Issue the update command
-                self.update(event_obj.time_scale_factor, event_obj.sim_update_time)
-
-                # Wait until update takes effect
-                while (
-                    self.simulator.get_time_scale_factor()
-                    != event_obj.time_scale_factor
-                ):
-                    time.sleep(0.001)
-
-            elif event_type == "freeze":
-                if event_obj.is_timed:
-                    # Timed freeze - will automatically resume after specified duration
-                    self.freeze(event_obj.freeze_duration, event_obj.sim_freeze_time)
-                    # Add the freeze duration to our total freeze time
-                    self.total_freeze_time += event_obj.freeze_duration
-                    self.resume()
-                else:
-                    # Indefinite freeze - requires manual resume
-                    logger.warning(
-                        f"Indefinite freeze scheduled at {event_obj.sim_freeze_time}. "
-                        "Manual resume required to continue execution."
-                    )
-                    self.freeze(None, event_obj.sim_freeze_time)
-
-        base_end_time = self.simulator.get_wallclock_time_at_simulation_time(
-            self.simulator.get_end_time()
-        )
-
-        # Wait for stop time, checking for freeze time updates
+        # Wait for stop time - simulator now handles freeze time internally
         while True:
-            with self._freeze_time_lock:
-                current_end_time = base_end_time + self.total_freeze_time
-
+            end_time = self.simulator.get_wallclock_time_at_simulation_time(
+                self.simulator.get_end_time()
+            )
             current_time = self.simulator.get_wallclock_time()
             time_until_stop = (
-                current_end_time - current_time - self.command_lead
+                end_time - current_time - self.command_lead
             ).total_seconds()
 
             if time_until_stop <= 0:
                 break
 
-            # Wait for either the timeout or a freeze time update
-            timeout = min(30.0, time_until_stop)  # Check at least every 30 seconds
-            if self._freeze_time_updated.wait(timeout):
-                # Freeze time was updated, clear the event and recalculate
-                self._freeze_time_updated.clear()
-                continue
-
-            # Timeout occurred, check if we should stop
-            continue
+            # Wait for timeout
+            timeout = min(30.0, time_until_stop)
+            time.sleep(timeout)
 
         # Issue the stop command
         self.stop(self.sim_stop_time)

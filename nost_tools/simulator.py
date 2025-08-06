@@ -84,6 +84,8 @@ class Simulator(Observable):
         self._time_scale_change_time = None
         # relationship between the wallclock time and simulation time
         self._time_scale_factor = self._next_time_scale_factor = 1
+        # track total freeze time for wallclock calculations
+        self._total_freeze_time = timedelta(0)
 
     def add_entity(self, entity: Entity) -> None:
         """
@@ -307,6 +309,8 @@ class Simulator(Observable):
             self._wallclock_epoch = self.get_wallclock_time()
             self._simulation_epoch = self._time
             self._set_mode(Mode.EXECUTING)
+            # # Return immediately after resume to avoid waiting
+            # return
         while (
             self._mode == Mode.EXECUTING
             and self.get_wallclock_time_at_simulation_time(self._next_time)
@@ -460,6 +464,27 @@ class Simulator(Observable):
                 self._wallclock_epoch
                 + (time - self.get_simulation_epoch()) / self._time_scale_factor
             )
+
+    def add_freeze_time(self, freeze_duration: timedelta) -> None:
+        """
+        Adds freeze time to the total freeze time tracking.
+
+        Args:
+            freeze_duration (:obj:`timedelta`): duration to add to total freeze time
+        """
+        self._total_freeze_time += freeze_duration
+        logger.debug(
+            f"Added freeze time {freeze_duration}. Total freeze time: {self._total_freeze_time}"
+        )
+
+    def get_total_freeze_time(self) -> timedelta:
+        """
+        Gets the total freeze time accumulated during execution.
+
+        Returns:
+            :obj:`timedelta`: total freeze time
+        """
+        return self._total_freeze_time
 
     def set_time_scale_factor(
         self, time_scale_factor: float, simulation_epoch: datetime = None

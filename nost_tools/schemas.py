@@ -244,6 +244,38 @@ class ResumeRequest(BaseModel):
     tasking_parameters: ResumeRequestParameters = Field(alias="taskingParameters")
 
 
+class UpdateRequestParameters(BaseModel):
+    """
+    Parameters for requesting an update from a managed application.
+    """
+
+    time_scale_factor: float = Field(
+        ...,
+        gt=0,
+        description="Time scaling factor (scenario seconds per wallclock second).",
+        alias="timeScalingFactor",
+    )
+    sim_update_time: Optional[datetime] = Field(
+        # ...,
+        None,
+        description="Scenario time at which to update the time scaling factor.",
+        alias="simUpdateTime",
+    )
+    requesting_app: str = Field(
+        ...,
+        description="Name of the application requesting the update.",
+        alias="requestingApp",
+    )
+
+
+class UpdateRequest(BaseModel):
+    """
+    Request message for a managed application to request an update.
+    """
+
+    tasking_parameters: UpdateRequestParameters = Field(alias="taskingParameters")
+
+
 class TimeStatusProperties(BaseModel):
     """
     Properties to report time status.
@@ -436,32 +468,6 @@ class GeneralConfig(BaseModel):
     prefix: Optional[str] = Field("nost", description="Execution prefix.")
 
 
-class TimeScaleUpdateSchema(BaseModel):
-    """
-    Provides a scheduled update to the simulation time scale factor.
-    """
-
-    time_scale_factor: float = Field(
-        ..., description="Scenario seconds per wallclock second"
-    )
-    sim_update_time: datetime = Field(
-        ..., description="Scenario time that the update will occur"
-    )
-
-
-class FreezeSchema(BaseModel):
-    """
-    Provides a scheduled freeze of the simulation.
-    """
-
-    sim_freeze_time: datetime = Field(
-        ..., description="Scenario time that the freeze will occur"
-    )
-    freeze_duration: Optional[timedelta] = Field(
-        None, description="Wallclock time duration for which to freeze"
-    )
-
-
 class LoggingConfig(BaseModel):
     """
     Configuration for logging.
@@ -499,12 +505,6 @@ class ManagerConfig(LoggingConfig):
         description="Time step for the simulation.",
     )
     time_scale_factor: float = Field(1.0, description="Time scale factor.")
-    time_scale_updates: List[TimeScaleUpdateSchema] = Field(
-        default_factory=list, description="List of time scale updates."
-    )
-    freezes: List[FreezeSchema] = Field(
-        default_factory=list, description="List of freeze tasking parameters."
-    )
     time_status_step: Optional[timedelta] = Field(None, description="Time status step.")
     time_status_init: Optional[datetime] = Field(None, description="Time status init.")
     command_lead: timedelta = Field(
