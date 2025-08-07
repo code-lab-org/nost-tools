@@ -7,6 +7,7 @@ The application contains one class, the :obj:`Environment` class, which waits fo
 """
 
 import logging
+from datetime import timedelta
 
 import pandas as pd
 from ground_config_files.schemas import GroundLocation
@@ -65,6 +66,65 @@ class Environment(Observer):
                 )
 
 
+class DailyFreeze(Observer):
+    """
+    Observer that automatically freezes the simulation at the start of each day.
+    """
+
+    def __init__(
+        self,
+        app: ManagedApplication,
+        fast_scale_factor: float = 120.0,
+        slow_scale_factor: float = 60.0,
+    ):
+        """
+        Initialize the daily time scale updater.
+
+        Args:
+            manager (Manager): The manager instance to send update requests
+            fast_scale_factor (float): Time scale factor for daytime (default 120.0)
+            slow_scale_factor (float): Time scale factor for nighttime (default 60.0)
+        """
+        self.app = app
+        self.slow_scale_factor = slow_scale_factor
+        self.fast_scale_factor = fast_scale_factor
+        self.last_day_checked = None
+        self.current_time_scale = None
+
+    def on_change(self, source, property_name, old_value, new_value):
+        """
+        Callback when simulation properties change.
+
+        Args:
+            source: The object that changed
+            property_name (str): Name of the property that changed
+            old_value: Previous value
+            new_value: New value
+        """
+        # Only respond to time changes when simulation is executing
+        if (
+            property_name == Simulator.PROPERTY_TIME
+            and source.get_mode() == Mode.EXECUTING
+            and new_value is not None
+        ):
+
+            current_sim_time = new_value
+            current_day = current_sim_time.date()
+
+            # Check if we've crossed into a new day or need to change time scale
+            if self.last_day_checked != current_day:
+
+                logger.info("Crossed into a new day, freezing for 2 hours.")
+                # Request the time scale update from the manager
+                self.app.request_freeze(
+                    freeze_duration=timedelta(minutes=1),
+                    sim_freeze_time=current_sim_time,
+                )
+
+                # Update tracking variables
+                self.last_day_checked = current_day
+
+
 if __name__ == "__main__":
     # Define application name
     NAME = "ground"
@@ -92,6 +152,14 @@ if __name__ == "__main__":
 
     # Add a shutdown observer to shut down after a single test case
     app.simulator.add_observer(ShutDownObserver(app))
+
+    # Add the daily time scale updater observer
+    daily_freeze = DailyFreeze(
+        app,
+        slow_scale_factor=config.rc.simulation_configuration.execution_parameters.manager.time_scale_factor,
+        fast_scale_factor=120.0,
+    )
+    app.simulator.add_observer(daily_freeze)
 
     # Start up the application
     app.start_up(

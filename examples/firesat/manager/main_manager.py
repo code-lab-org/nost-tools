@@ -67,7 +67,7 @@ class DailyTimeScaleUpdater(Observer):
             current_hour = current_sim_time.hour
 
             # Determine desired time scale based on time of day
-            if 0 <= current_hour < 10 or 17 <= current_hour < 24:
+            if 7 <= current_hour < 10 or 17 <= current_hour < 24:
                 desired_time_scale = self.slow_scale_factor
             else:
                 desired_time_scale = self.fast_scale_factor
