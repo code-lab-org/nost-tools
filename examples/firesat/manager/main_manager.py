@@ -28,20 +28,20 @@ class DailyTimeScaleUpdater(Observer):
     def __init__(
         self,
         manager: Manager,
-        day_time_scale: float = 120.0,
-        night_time_scale: float = 60.0,
+        fast_scale_factor: float = 120.0,
+        slow_scale_factor: float = 60.0,
     ):
         """
         Initialize the daily time scale updater.
 
         Args:
             manager (Manager): The manager instance to send update requests
-            day_time_scale (float): Time scale factor for daytime (default: 120x)
-            night_time_scale (float): Time scale factor for nighttime (default: 60x)
+            fast_scale_factor (float): Time scale factor for daytime (default 120.0)
+            slow_scale_factor (float): Time scale factor for nighttime (default 60.0)
         """
         self.manager = manager
-        self.day_time_scale = day_time_scale
-        self.night_time_scale = night_time_scale
+        self.slow_scale_factor = slow_scale_factor
+        self.fast_scale_factor = fast_scale_factor
         self.last_day_checked = None
         self.current_time_scale = None
 
@@ -67,11 +67,10 @@ class DailyTimeScaleUpdater(Observer):
             current_hour = current_sim_time.hour
 
             # Determine desired time scale based on time of day
-            # Assume daytime is 6 AM to 6 PM, nighttime otherwise
-            if 6 <= current_hour < 18:
-                desired_time_scale = self.day_time_scale
+            if 0 <= current_hour < 10 or 17 <= current_hour < 24:
+                desired_time_scale = self.slow_scale_factor
             else:
-                desired_time_scale = self.night_time_scale
+                desired_time_scale = self.fast_scale_factor
 
             # Check if we've crossed into a new day or need to change time scale
             if (
@@ -101,7 +100,9 @@ if __name__ == "__main__":
 
     # Add the daily time scale updater observer
     daily_updater = DailyTimeScaleUpdater(
-        manager, day_time_scale=60.0, night_time_scale=120.0
+        manager,
+        slow_scale_factor=config.rc.simulation_configuration.execution_parameters.manager.time_scale_factor,
+        fast_scale_factor=120.0,
     )
     manager.simulator.add_observer(daily_updater)
 
