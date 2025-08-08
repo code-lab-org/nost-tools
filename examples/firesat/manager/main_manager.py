@@ -99,12 +99,13 @@ if __name__ == "__main__":
     manager = Manager()
 
     # Add the daily time scale updater observer
-    daily_updater = DailyTimeScaleUpdater(
-        manager,
-        slow_scale_factor=config.rc.simulation_configuration.execution_parameters.manager.time_scale_factor,
-        fast_scale_factor=120.0,
+    manager.simulator.add_observer(
+        DailyTimeScaleUpdater(
+            manager,
+            slow_scale_factor=config.rc.simulation_configuration.execution_parameters.manager.time_scale_factor,
+            fast_scale_factor=120.0,
+        )
     )
-    manager.simulator.add_observer(daily_updater)
 
     # Add a shutdown observer to shut down after a single test case
     manager.simulator.add_observer(ShutDownObserver(manager))

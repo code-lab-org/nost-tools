@@ -72,22 +72,17 @@ class DailyFreeze(Observer):
     """
 
     def __init__(
-        self,
-        app: ManagedApplication,
-        fast_scale_factor: float = 120.0,
-        slow_scale_factor: float = 60.0,
+        self, app: ManagedApplication, freeze_duration: timedelta = timedelta(hours=2)
     ):
         """
         Initialize the daily time scale updater.
 
         Args:
             manager (Manager): The manager instance to send update requests
-            fast_scale_factor (float): Time scale factor for daytime (default 120.0)
-            slow_scale_factor (float): Time scale factor for nighttime (default 60.0)
+            freeze_duration (timedelta): Duration to freeze the simulation at the start of each day (default 2 wall clock hours)
         """
         self.app = app
-        self.slow_scale_factor = slow_scale_factor
-        self.fast_scale_factor = fast_scale_factor
+        self.freeze_duration = freeze_duration
         self.last_day_checked = None
         self.current_time_scale = None
 
@@ -114,10 +109,10 @@ class DailyFreeze(Observer):
             # Check if we've crossed into a new day or need to change time scale
             if self.last_day_checked != current_day:
 
-                logger.info("Crossed into a new day, freezing for 2 hours.")
+                logger.info("Crossed into a new day, freezing scenario time.")
                 # Request the time scale update from the manager
                 self.app.request_freeze(
-                    freeze_duration=timedelta(minutes=1),
+                    freeze_duration=self.freeze_duration,
                     sim_freeze_time=current_sim_time,
                 )
 
@@ -154,12 +149,7 @@ if __name__ == "__main__":
     app.simulator.add_observer(ShutDownObserver(app))
 
     # Add the daily time scale updater observer
-    daily_freeze = DailyFreeze(
-        app,
-        slow_scale_factor=config.rc.simulation_configuration.execution_parameters.manager.time_scale_factor,
-        fast_scale_factor=120.0,
-    )
-    app.simulator.add_observer(daily_freeze)
+    app.simulator.add_observer(DailyFreeze(app, freeze_duration=timedelta(minutes=1)))
 
     # Start up the application
     app.start_up(
