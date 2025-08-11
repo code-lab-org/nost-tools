@@ -232,7 +232,9 @@ class ResumeRequestParameters(BaseModel):
     """
 
     requesting_app: str = Field(
-        description="Name of the application requesting the resume"
+        ...,
+        description="Name of the application requesting the freeze.",
+        alias="requestingApp",
     )
 
 
