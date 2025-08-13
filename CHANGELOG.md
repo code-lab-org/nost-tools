@@ -140,18 +140,16 @@ Updated:
 ## 3.0.0
 Added:
 - Added comprehensive freeze time tracking system and callbacks in `Manager` class in `manager.py` to properly account for dynamic, distributed freezes, resumes, and updates to scenario time:
-  - Added `on_freeze_request()` callback which freezes scenario time based on messages containing requests from managed applications
+  - Added `on_freeze_request()` callback which freezes scenario time based on messages containing requests from managed applications, integrated this callback into `start_up()` method
   - Added `_handle_freeze_request()` that handles dynamic, distributed freeze requests
-  - Added `total_freeze_time` instance variable to track cumulative freeze duration across all freeze sources
-  - Added `_freeze_time_updated` threading event and `_freeze_time_lock` for thread-safe freeze time coordination
-  - Implemented dynamic end time calculation in `_execute_test_plan_impl()` that continuously monitors and adjusts for freeze time changes
-  - Added `on_resume_request()` callback which resumes scenario time based on messages containing requests from managed applications
-  - Added `on_update_request()` callback which updates the time scale factor based on messages containing requests from managed applications
+  - Added `on_resume_request()` callback which resumes scenario time based on messages containing requests from managed applications, integrated this callback into `start_up()` method
+  - Added `on_update_request()` callback which updates the time scale factor based on messages containing requests from managed applications, integrated this callback into `start_up()` method
 - Added new methods to `ManagedApplication` class in `managed_application.py` to allow requests for a freeze in scenario time from the `Manager` class in `manager.py`
-  - `request_freeze()` sends a FreezeRequest message which is received by the `Manager` application
-  - `request_resume()` sends a ResumeRequest message which is received by the `Manager` application
-  - `request_update()` sends a UpdateRequest message which is received by the `Manager` application
-- Added `add_freeze_time()` to add freeze time to the total freeze time tracking and `get_total_freeze_time()` to get the total freeze time accumulated during execution to `Simulator` class in `simulator.py`
+  - Added `request_freeze()` method that sends a FreezeRequest message which is received by the `Manager` application, added an associated `on_manager_freeze()` callback that responds to FreezeCommand messages from `Manger`
+  - Added `request_resume()` method that sends a ResumeRequest message which is received by the `Manager` application, added an associated `on_manager_resume()` callback that responds to ResumeCommand messages from `Manager`
+  - Added `request_update()` method that sends a UpdateRequest message which is received by the `Manager` application, added an associated `on_manager_update()` callback that responds to UpdateCommand messages from `Manager`
+- Added new freeze-tracking capabilities to `Simulator` class in `simulator.py`
+  - Added reset of wallclock and simulation epochs when mode switches to Mode.EXECUTING in `_wait_for_tock()` method
 - Added the following classes to `schemas.py`:
   - `FreezeTaskingParameters`, `FreezeCommand`, `ResumeTaskingParameters`, `ResumeCommand`, `FreezeRequestParameters`, `FreezeRequest`, `ResumeRequestParameters`, `ResumeRequest`, `UpdateRequestParameters`, `UpdateRequest`
 

@@ -313,16 +313,6 @@ class ManagedApplication(Application):
             # freeze simulation time
             self.simulator.pause()
 
-            # Track freeze time if duration is specified
-            if (
-                hasattr(params, "freeze_duration")
-                and params.freeze_duration is not None
-            ):
-                self.simulator.add_freeze_time(params.freeze_duration)
-                logger.debug(
-                    f"Added freeze time {params.freeze_duration} to simulator tracking"
-                )
-
         except Exception as e:
             logger.error(
                 f"Exception (topic: {method.routing_key}, payload: {message}): {e}"

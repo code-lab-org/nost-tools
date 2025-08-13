@@ -78,7 +78,6 @@ class Manager(Application):
         self.required_apps = None
         self.init_retry_delay_s = None
         self.init_max_retry = None
-        self.total_freeze_time = timedelta(0)
 
     def establish_exchange(self):
         """
@@ -174,7 +173,7 @@ class Manager(Application):
 
         # Establish the RabbitMQ exchange
         self.establish_exchange()
-        # Add callbacks for freeze, resume, and update requests from managed applications
+        # Register callbacks for freeze, resume, and update requests from managed applications
         self.add_message_callback("*", "request.freeze", self.on_freeze_request)
         self.add_message_callback("*", "request.resume", self.on_resume_request)
         self.add_message_callback("*", "request.update", self.on_update_request)
@@ -227,9 +226,6 @@ class Manager(Application):
 
                 self.freeze(freeze_duration, sim_freeze_time)
                 self.resume()
-
-                # Add freeze time to simulator's tracking
-                self.simulator.add_freeze_time(freeze_duration)
                 logger.info(f"Completed freeze of duration {freeze_duration}")
 
             else:
