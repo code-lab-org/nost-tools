@@ -84,10 +84,6 @@ class Simulator(Observable):
         self._time_scale_change_time = None
         # relationship between the wallclock time and simulation time
         self._time_scale_factor = self._next_time_scale_factor = 1
-        # # track total freeze time for wallclock calculations
-        # self._total_freeze_time = timedelta(0)
-        # # Add freeze start time tracking
-        # self._freeze_start_time = None
 
     def add_entity(self, entity: Entity) -> None:
         """
@@ -465,7 +461,6 @@ class Simulator(Observable):
             return (
                 self._wallclock_epoch
                 + (time - self.get_simulation_epoch()) / self._time_scale_factor
-                # + self._total_freeze_time
             )
 
     def set_time_scale_factor(
@@ -540,9 +535,6 @@ class Simulator(Observable):
         if self._mode != Mode.EXECUTING:
             raise RuntimeError("Cannot pause: simulator is not executing.")
 
-        # # Record when the freeze started
-        # self._freeze_start_time = self.get_wallclock_time()
-        # logger.info(f"Freeze started at wallclock time: {self._freeze_start_time}")
         self._set_mode(Mode.PAUSING)
 
     def resume(self) -> None:
@@ -551,18 +543,6 @@ class Simulator(Observable):
         """
         if self._mode not in [Mode.PAUSING, Mode.PAUSED]:
             raise RuntimeError("Cannot resume: simulator is not pausing or paused.")
-
-        # # Calculate and add freeze time if we have a start time
-        # if self._freeze_start_time is not None:
-        #     freeze_end_time = self.get_wallclock_time()
-        #     actual_freeze_duration = freeze_end_time - self._freeze_start_time
-        #     self._total_freeze_time += actual_freeze_duration
-        #     logger.info(
-        #         f"Added freeze time {actual_freeze_duration}. Total freeze time: {self._total_freeze_time}"
-        #     )
-        #     self._freeze_start_time = None
-
-        # Reset next_time to current time to avoid waiting for stale future time
         self._next_time = self._time
         logger.info(f"Next time: {self._next_time}\nCurrent time: {self._time}")
 
