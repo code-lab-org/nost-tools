@@ -356,23 +356,25 @@ class ManagedApplication(Application):
                                                         If None, freezes immediately.
         """
         # Publish a freeze request message
+        wallclock_time = self.simulator.get_wallclock_time_at_simulation_time(
+            sim_freeze_time
+        )
         request_params = {
             "simFreezeTime": sim_freeze_time,
+            "freezeTime": wallclock_time,
             "requestingApp": self.app_name,
         }
         if freeze_duration is not None:
             request_params["freezeDuration"] = freeze_duration
-
+            request_params["resumeTime"] = wallclock_time + freeze_duration
         # Create the freeze request
         request = FreezeRequest.model_validate({"taskingParameters": request_params})
-
         freeze_type = (
             "indefinite" if freeze_duration is None else f"timed ({freeze_duration})"
         )
         logger.info(
             f"Requesting {freeze_type} freeze: {request.model_dump_json(by_alias=True)}"
         )
-
         # Send the request to the manager
         self.send_message(
             app_name=self.app_name,

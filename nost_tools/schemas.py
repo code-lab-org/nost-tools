@@ -206,10 +206,20 @@ class FreezeRequestParameters(BaseModel):
         description="Scenario time at which to freeze execution.",
         alias="simFreezeTime",
     )
+    freezeTime: datetime = Field(
+        ...,
+        description="Wallclock time at which to freeze execution.",
+        alias="freezeTime",
+    )
     freeze_duration: Optional[timedelta] = Field(
         None,
         description="Wallclock time duration for which to freeze execution.",
         alias="freezeDuration",
+    )
+    resume_time: Optional[datetime] = Field(
+        None,
+        description="Scenario time at which to resume execution.",
+        alias="resumeTime",
     )
     requesting_app: str = Field(
         ...,

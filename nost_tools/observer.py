@@ -247,6 +247,16 @@ class WallclockTimeIntervalCallback(Observer):
     ):
         from nost_tools.simulator import Mode, Simulator
 
+        # Reset timing when resuming
+        if (
+            property_name == Simulator.PROPERTY_MODE
+            and old_value == Mode.RESUMING
+            and new_value == Mode.EXECUTING
+        ):
+            wallclock_now = self.simulator.get_wallclock_time()
+            self._next_time = wallclock_now + (self.time_interval if self.time_interval is not None else timedelta())
+            return
+
         if property_name == Simulator.PROPERTY_MODE and new_value == Mode.INITIALIZED:
             self._next_time = self.time_init
         elif property_name == Simulator.PROPERTY_TIME:

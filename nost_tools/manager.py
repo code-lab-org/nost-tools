@@ -201,7 +201,11 @@ class Manager(Application):
             # Use a separate thread to handle the freeze to avoid blocking the callback
             freeze_thread = threading.Thread(
                 target=self._handle_freeze_request,
-                args=(params.freeze_duration, params.sim_freeze_time),
+                args=(
+                    params.freeze_duration,
+                    params.sim_freeze_time,
+                    params.resume_time,
+                ),
                 daemon=True,
             )
             freeze_thread.start()
@@ -215,21 +219,17 @@ class Manager(Application):
             print(traceback.format_exc())
 
     def _handle_freeze_request(
-        self, freeze_duration: timedelta = None, sim_freeze_time: datetime = None
+        self,
+        freeze_duration: timedelta = None,
+        sim_freeze_time: datetime = None,
+        resume_time: datetime = None,
     ) -> None:
         try:
             if freeze_duration is not None:
-                logger.info(
-                    f"Handling timed freeze request for duration: {freeze_duration}, "
-                    f"sim_freeze_time: {sim_freeze_time}"
-                )
-
-                self.freeze(freeze_duration, sim_freeze_time)
+                self.freeze(freeze_duration, sim_freeze_time, resume_time)
                 self.resume()
-                logger.info(f"Completed freeze of duration {freeze_duration}")
-
             else:
-                self.freeze(None, sim_freeze_time)
+                self.freeze(None, sim_freeze_time, None)
                 logger.info("Indefinite freeze requested - manual resume required")
 
         except Exception as e:
@@ -251,11 +251,9 @@ class Manager(Application):
             message = body.decode("utf-8")
             resume_request = ResumeRequest.model_validate_json(message)
             params = resume_request.tasking_parameters
-
             logger.info(
                 f"Received resume request from {params.requesting_app}: {message}"
             )
-
             # Execute the resume command
             self.resume()
 
@@ -282,31 +280,17 @@ class Manager(Application):
             message = body.decode("utf-8")
             update_request = UpdateRequest.model_validate_json(message)
             params = update_request.tasking_parameters
-
             logger.info(
                 f"Received update request from {params.requesting_app}: {message}"
             )
-
-            # Handle update directly since it's typically fast
-            logger.info(
-                f"Handling update request for time scale factor: {params.time_scale_factor}, "
-                f"sim_update_time: {params.sim_update_time}"
-            )
-
             # Issue the update command
             self.update(
                 params.time_scale_factor,
                 params.sim_update_time or self.simulator.get_time(),
             )
-
             # Wait until update takes effect
             while self.simulator.get_time_scale_factor() != params.time_scale_factor:
                 time.sleep(0.001)
-
-            logger.info(
-                f"Completed time scale factor update to {params.time_scale_factor}"
-            )
-
         except ValidationError as e:
             logger.error(f"Validation error in update request: {e}")
         except Exception as e:
@@ -363,7 +347,7 @@ class Manager(Application):
             init_max_retry (int): number of initialization commands while waiting for required applications before continuing to execution
         """
         if self.config.rc.yaml_file:
-            logger.info(
+            logger.debug(
                 f"Collecting execution parameters from YAML configuration file: {self.config.rc.yaml_file}"
             )
             parameters = getattr(
@@ -385,7 +369,7 @@ class Manager(Application):
             self.init_retry_delay_s = parameters.init_retry_delay_s
             self.init_max_retry = parameters.init_max_retry
         else:
-            logger.info(
+            logger.debug(
                 f"Collecting execution parameters from user input or default values."
             )
             self.sim_start_time = sim_start_time
@@ -688,7 +672,10 @@ class Manager(Application):
         self.simulator.set_time_scale_factor(time_scale_factor, sim_update_time)
 
     def freeze(
-        self, freeze_duration: timedelta = None, sim_freeze_time: datetime = None
+        self,
+        freeze_duration: timedelta = None,
+        sim_freeze_time: datetime = None,
+        resume_time: datetime = None,
     ) -> None:
         """
         Command to freeze a test run execution by updating the execution freeze duration and publishing a freeze command.
@@ -703,28 +690,31 @@ class Manager(Application):
         command_params = {"simFreezeTime": sim_freeze_time}
         if freeze_duration is not None:
             command_params["freezeDuration"] = freeze_duration
-
         command = FreezeCommand.model_validate({"taskingParameters": command_params})
-
         freeze_type = (
             "indefinite" if freeze_duration is None else f"timed ({freeze_duration})"
         )
         logger.info(
             f"Sending {freeze_type} freeze command {command.model_dump_json(by_alias=True)}."
         )
-
         self.send_message(
             app_name=self.app_name,
             app_topics="freeze",
             payload=command.model_dump_json(by_alias=True),
         )
-
         # freeze simulation time
         self.simulator.pause()
 
         if freeze_duration is not None:
-            # Timed freeze - automatically resume after duration
-            time.sleep(freeze_duration.total_seconds())
+            # Timed freeze - sleep until resume_time
+            # resume_time = self.simulator.get_wallclock_time() + freeze_duration
+            while True:
+                # Wait until the resume time
+                now = self.simulator.get_wallclock_time()
+                remaining = (resume_time - now).total_seconds()
+                if remaining <= 0:
+                    break
+                self._sleep_with_heartbeat(min(0.05, max(0.001, remaining)))
         else:
             logger.info("Indefinite freeze active. Call resume() to continue.")
             while self.simulator.get_mode() not in [Mode.EXECUTING, Mode.RESUMING]:

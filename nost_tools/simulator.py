@@ -216,6 +216,11 @@ class Simulator(Observable):
                 initial scenario time, None uses the current wallclock time (default: None)
             time_scale_factor (float): number of scenario seconds per wallclock second (default value: 1)
         """
+        if self._mode not in [Mode.UNDEFINED, Mode.INITIALIZED, Mode.TERMINATED]:
+            raise RuntimeError(
+                f"Cannot execute: simulator is {self._mode}. Wait for TERMINATED or terminate the current run."
+            )
+
         if self._mode != Mode.INITIALIZED:
             self.initialize(init_time, wallclock_epoch, time_scale_factor)
 
@@ -544,8 +549,6 @@ class Simulator(Observable):
         if self._mode not in [Mode.PAUSING, Mode.PAUSED]:
             raise RuntimeError("Cannot resume: simulator is not pausing or paused.")
         self._next_time = self._time
-        logger.info(f"Next time: {self._next_time}\nCurrent time: {self._time}")
-
         self._set_mode(Mode.RESUMING)
 
     def terminate(self) -> None:
