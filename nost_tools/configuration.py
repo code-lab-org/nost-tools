@@ -21,7 +21,6 @@ from .schemas import (
     RuntimeConfig,
     ServersConfig,
     SimulationConfig,
-    WallclockOffsetProperties,
 )
 
 logger = logging.getLogger(__name__)
@@ -329,7 +328,6 @@ class ConnectionConfig:
             self.load_environment_variables()
 
         self.rc = RuntimeConfig(
-            wallclock_offset_properties=WallclockOffsetProperties(),
             credentials=self.credentials_config,
             server_configuration=server_config,
             simulation_configuration=self.simulation_config,

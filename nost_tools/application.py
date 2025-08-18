@@ -217,15 +217,15 @@ class Application:
 
         def refresh_wallclock_periodically():
             while not self._should_stop.wait(
-                timeout=self.config.rc.wallclock_offset_properties.wallclock_offset_refresh_interval
+                timeout=self.config.rc.simulation_configuration.execution_parameters.general.wallclock_offset_refresh_interval
             ):
                 logger.debug("Wallclock refresh thread is running.")
                 try:
-                    logger.info(
-                        f"Contacting {self.config.rc.wallclock_offset_properties.ntp_host} to retrieve wallclock offset."
+                    logger.debug(
+                        f"Contacting {self.config.rc.simulation_configuration.execution_parameters.general.ntp_host} to retrieve wallclock offset."
                     )
                     response = ntplib.NTPClient().request(
-                        self.config.rc.wallclock_offset_properties.ntp_host,
+                        self.config.rc.simulation_configuration.execution_parameters.general.ntp_host,
                         version=3,
                         timeout=2,
                     )
@@ -338,7 +338,7 @@ class Application:
         if self.set_offset:
             # Start periodic wallclock offset updates instead of one-time call
             logger.info(
-                f"Wallclock offset will be set every {self.config.rc.wallclock_offset_properties.wallclock_offset_refresh_interval} seconds using {self.config.rc.wallclock_offset_properties.ntp_host}."
+                f"Wallclock offset will be set every {self.config.rc.simulation_configuration.execution_parameters.general.wallclock_offset_refresh_interval} seconds using {self.config.rc.simulation_configuration.execution_parameters.general.ntp_host}."
             )
             self.start_wallclock_refresh_thread()
 

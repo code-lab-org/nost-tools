@@ -706,19 +706,31 @@ class Manager(Application):
         self.simulator.pause()
 
         if freeze_duration is not None:
-            # Timed freeze - sleep until resume_time
-            # resume_time = self.simulator.get_wallclock_time() + freeze_duration
+            # Compute target resume time in wallclock and poll until reached
+            calculated_resume_time = (
+                self.simulator.get_wallclock_time() + freeze_duration
+            )
+            logger.info(
+                f"Resume Time: {resume_time} Calculated Resume Time: {calculated_resume_time} Difference: {abs(calculated_resume_time - resume_time)} seconds"
+            )
             while True:
-                # Wait until the resume time
+                # Exit early if manager/sim is resuming or terminating
+                if self.simulator.get_mode() in [
+                    Mode.EXECUTING,
+                    Mode.RESUMING,
+                    Mode.TERMINATING,
+                    Mode.TERMINATED,
+                ]:
+                    break
                 now = self.simulator.get_wallclock_time()
-                remaining = (resume_time - now).total_seconds()
+                remaining = (calculated_resume_time - now).total_seconds()
                 if remaining <= 0:
                     break
-                self._sleep_with_heartbeat(min(0.05, max(0.001, remaining)))
+                # Sleep in short chunks to keep heartbeats and be responsive
+                self._sleep_with_heartbeat(min(1.0, max(0.01, remaining)))
         else:
             logger.info("Indefinite freeze active. Call resume() to continue.")
             while self.simulator.get_mode() not in [Mode.EXECUTING, Mode.RESUMING]:
-                # Indefinite freeze - requires manual resume
                 self._sleep_with_heartbeat(0.001)
 
     def resume(self) -> None:
