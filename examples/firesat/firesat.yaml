@@ -15,6 +15,8 @@ servers:
 execution:
   general:
     prefix: greenfield
+    wallclock_offset_refresh_interval: 60
+    ntp_host: "time.nist.gov"
   application:
     shut_down_when_terminated: True
   manager:
