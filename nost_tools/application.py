@@ -231,7 +231,7 @@ class Application:
                     )
                     offset = timedelta(seconds=response.offset)
                     self.simulator.set_wallclock_offset(offset)
-                    logger.info(f"Wallclock offset updated to {offset}.")
+                    logger.debug(f"Wallclock offset updated to {offset}.")
                 except Exception as e:
                     logger.debug(f"Failed to refresh wallclock offset: {e}")
 
