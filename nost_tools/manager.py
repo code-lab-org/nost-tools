@@ -704,17 +704,26 @@ class Manager(Application):
         )
         # freeze simulation time
         self.simulator.pause()
+        # Wait until the simulator is paused to anchor the resume time
+        while self.simulator.get_mode() == Mode.PAUSING:
+            time.sleep(0.001)
+        while self.simulator.get_mode() != Mode.PAUSED:
+            time.sleep(0.001)
+        # Snapshot wallclock time at the moment of freeze
+        base = self.simulator.get_wallclock_time()
 
         if freeze_duration is not None:
-            # Compute target resume time in wallclock and poll until reached
-            calculated_resume_time = (
-                self.simulator.get_wallclock_time() + freeze_duration
-            )
+            # Compute authoritative resume time from current wallclock
+            target_resume_time = base + freeze_duration
+
+            # (Optional) advertise the target to peers on a separate channel if needed
             logger.info(
-                f"Resume Time: {resume_time} Calculated Resume Time: {calculated_resume_time} Difference: {abs(calculated_resume_time - resume_time)} seconds"
+                f"Resume Time: requested={resume_time} calculated={target_resume_time} "
+                f"delta={abs((target_resume_time - (resume_time or target_resume_time)).total_seconds())}s"
             )
+
+            # Poll until we reach the target, allowing early exit and heartbeats
             while True:
-                # Exit early if manager/sim is resuming or terminating
                 if self.simulator.get_mode() in [
                     Mode.EXECUTING,
                     Mode.RESUMING,
@@ -722,11 +731,12 @@ class Manager(Application):
                     Mode.TERMINATED,
                 ]:
                     break
-                now = self.simulator.get_wallclock_time()
-                remaining = (calculated_resume_time - now).total_seconds()
+                # Recompute remaining using current wallclock each iteration
+                remaining = (
+                    target_resume_time - self.simulator.get_wallclock_time()
+                ).total_seconds()
                 if remaining <= 0:
                     break
-                # Sleep in short chunks to keep heartbeats and be responsive
                 self._sleep_with_heartbeat(min(1.0, max(0.01, remaining)))
         else:
             logger.info("Indefinite freeze active. Call resume() to continue.")
