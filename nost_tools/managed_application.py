@@ -4,8 +4,11 @@ Provides a base application that manages communication between a simulator and b
 
 import logging
 import threading
+import time
 import traceback
 from datetime import datetime, timedelta
+
+from nost_tools.simulator import Mode
 
 from .application import Application
 from .application_utils import ConnectionConfig
@@ -280,14 +283,25 @@ class ManagedApplication(Application):
             body (bytes): The actual message body sent, containing the message payload.
         """
         try:
-            # Parse message payload
             message = body.decode("utf-8")
-            params = UpdateCommand.model_validate_json(message).tasking_parameters
+            update_cmd = UpdateCommand.model_validate_json(message)
+            params = update_cmd.tasking_parameters
+            tcf = params.time_scaling_factor
+            sim_epoch = params.sim_update_time
+
             logger.info(f"Received update command {message}")
-            # update execution time scale factor
-            self.simulator.set_time_scale_factor(
-                params.time_scaling_factor, params.sim_update_time
-            )
+
+            def _apply_when_executing():
+                while self.simulator.get_mode() != Mode.EXECUTING:
+                    time.sleep(0.01)
+                # Apply update once executing
+                self.simulator.set_time_scale_factor(tcf, sim_epoch)
+
+            if self.simulator.get_mode() != Mode.EXECUTING:
+                logger.debug("Deferring time scale update until EXECUTING")
+                threading.Thread(target=_apply_when_executing, daemon=True).start()
+            else:
+                self.simulator.set_time_scale_factor(tcf, sim_epoch)
         except Exception as e:
             logger.error(
                 f"Exception (topic: {method.routing_key}, payload: {message}): {e}"
