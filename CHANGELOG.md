@@ -161,3 +161,4 @@ Updated:
 - Prevent re-entrant execution in `Simulator.execute()` by adding an explicit mode guard; now raises a clear `RuntimeError` when called outside `UNDEFINED`, `INITIALIZED`, or `TERMINATED` modes: `Cannot execute: simulator is {self._mode}. Wait for TERMINATED or terminate the current run.`
 - Removed `WallclockOffsetProperties` class and `wallclock_offset_properties` section from `RuntimeConfig` in `schemas.py` and `configuration.py`.
 - Added `wallclock_offset_refresh_interval` and `ntp_host` to `GeneralConfig` class in `schemas.py`
+- Updated `freeze()` and `on_update_request()` in `manager.py` and `on_manager_update()` in `managed_application.py` to prevent issues in which mode does not allow intended actions. 
