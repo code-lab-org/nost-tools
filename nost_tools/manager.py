@@ -278,21 +278,33 @@ class Manager(Application):
             body (bytes): The actual message body sent, containing the message payload.
         """
         try:
-            # Parse the update request
             message = body.decode("utf-8")
             update_request = UpdateRequest.model_validate_json(message)
             params = update_request.tasking_parameters
             logger.info(
                 f"Received update request from {params.requesting_app}: {message}"
             )
-            # Issue the update command
-            self.update(
-                params.time_scale_factor,
-                params.sim_update_time or self.simulator.get_time(),
-            )
-            # Wait until update takes effect
-            while self.simulator.get_time_scale_factor() != params.time_scale_factor:
-                time.sleep(0.001)
+
+            def _apply_update_when_executing():
+                while self.simulator.get_mode() != Mode.EXECUTING:
+                    self._sleep_with_heartbeat(0.01)
+                self.update(
+                    params.time_scale_factor,
+                    params.sim_update_time or self.simulator.get_time(),
+                )
+                # Wait until update takes effect
+                while (
+                    self.simulator.get_time_scale_factor() != params.time_scale_factor
+                ):
+                    self._sleep_with_heartbeat(0.01)
+
+            # Defer if not executing yet
+            if self.simulator.get_mode() != Mode.EXECUTING:
+                threading.Thread(
+                    target=_apply_update_when_executing, daemon=True
+                ).start()
+            else:
+                _apply_update_when_executing()
         except ValidationError as e:
             logger.error(f"Validation error in update request: {e}")
         except Exception as e:
