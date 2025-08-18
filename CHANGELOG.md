@@ -159,3 +159,6 @@ Updated:
 - Removed `TimeScaleUpdateSchema` and `FreezeSchema` classes in `schemas.py`
 - Removed `time_scale_updates` and `freezes` fields from `ManagerConfig` class in `schemas.py`
 - Prevent re-entrant execution in `Simulator.execute()` by adding an explicit mode guard; now raises a clear `RuntimeError` when called outside `UNDEFINED`, `INITIALIZED`, or `TERMINATED` modes: `Cannot execute: simulator is {self._mode}. Wait for TERMINATED or terminate the current run.`
+- Updated `create_connection_config()` in `configuration.py` to read `general` section in YAML configuration file.
+- Removed `WallclockOffsetProperties` class and `wallclock_offset_properties` section from `RuntimeConfig` in `schemas.py` and `configuration.py`
+- 
