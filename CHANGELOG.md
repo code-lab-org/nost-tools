@@ -142,8 +142,10 @@ Added:
 - Added comprehensive freeze time tracking system and callbacks in `Manager` class in `manager.py` to properly account for dynamic, distributed freezes, resumes, and updates to scenario time:
   - Added `on_freeze_request()` callback which freezes scenario time based on messages containing requests from managed applications, integrated this callback into `start_up()` method
   - Added `_handle_freeze_request()` that handles dynamic, distributed freeze requests
+  - Added `freeze()` that issues freeze command, integrated this into the `_handle_freeze_request()`
   - Added `on_resume_request()` callback which resumes scenario time based on messages containing requests from managed applications, integrated this callback into `start_up()` method
   - Added `on_update_request()` callback which updates the time scale factor based on messages containing requests from managed applications, integrated this callback into `start_up()` method
+  - Added `update()` that issues update command, integrated this into the `on_update_request()` method
 - Added new methods to `ManagedApplication` class in `managed_application.py` to allow requests for a freeze in scenario time from the `Manager` class in `manager.py`
   - Added `request_freeze()` method that sends a FreezeRequest message which is received by the `Manager` application, added an associated `on_manager_freeze()` callback that responds to FreezeCommand messages from `Manger`
   - Added `request_resume()` method that sends a ResumeRequest message which is received by the `Manager` application, added an associated `on_manager_resume()` callback that responds to ResumeCommand messages from `Manager`
@@ -161,4 +163,4 @@ Updated:
 - Prevent re-entrant execution in `Simulator.execute()` by adding an explicit mode guard; now raises a clear `RuntimeError` when called outside `UNDEFINED`, `INITIALIZED`, or `TERMINATED` modes: `Cannot execute: simulator is {self._mode}. Wait for TERMINATED or terminate the current run.`
 - Removed `WallclockOffsetProperties` class and `wallclock_offset_properties` section from `RuntimeConfig` in `schemas.py` and `configuration.py`.
 - Added `wallclock_offset_refresh_interval` and `ntp_host` to `GeneralConfig` class in `schemas.py`
-- Updated `freeze()` and `on_update_request()` in `manager.py` and `on_manager_update()` in `managed_application.py` to prevent issues in which mode does not allow intended actions. 
+- Updated FireSat test suite to show examples of time scale updates and scenario time freezes.
