@@ -4,12 +4,25 @@ Provides a base application that manages communication between a simulator and b
 
 import logging
 import threading
+import time
 import traceback
 from datetime import datetime, timedelta
 
+from nost_tools.simulator import Mode
+
 from .application import Application
 from .application_utils import ConnectionConfig
-from .schemas import InitCommand, StartCommand, StopCommand, UpdateCommand
+from .schemas import (
+    FreezeCommand,
+    FreezeRequest,
+    InitCommand,
+    ResumeCommand,
+    ResumeRequest,
+    StartCommand,
+    StopCommand,
+    UpdateCommand,
+    UpdateRequest,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -143,6 +156,17 @@ class ManagedApplication(Application):
             app_topic="update",
             user_callback=self.on_manager_update,
         )
+        self.add_message_callback(
+            app_name=self.manager_app_name,
+            app_topic="freeze",
+            user_callback=self.on_manager_freeze,
+        )
+
+        self.add_message_callback(
+            app_name=self.manager_app_name,
+            app_topic="resume",
+            user_callback=self.on_manager_resume,
+        )
 
     def shut_down(self) -> None:
         """
@@ -259,16 +283,166 @@ class ManagedApplication(Application):
             body (bytes): The actual message body sent, containing the message payload.
         """
         try:
-            # Parse message payload
             message = body.decode("utf-8")
-            params = UpdateCommand.model_validate_json(message).tasking_parameters
+            update_cmd = UpdateCommand.model_validate_json(message)
+            params = update_cmd.tasking_parameters
+            tcf = params.time_scaling_factor
+            sim_epoch = params.sim_update_time
+
             logger.info(f"Received update command {message}")
-            # update execution time scale factor
-            self.simulator.set_time_scale_factor(
-                params.time_scaling_factor, params.sim_update_time
-            )
+
+            def _apply_when_executing():
+                while self.simulator.get_mode() != Mode.EXECUTING:
+                    time.sleep(0.01)
+                # Apply update once executing
+                self.simulator.set_time_scale_factor(tcf, sim_epoch)
+
+            if self.simulator.get_mode() != Mode.EXECUTING:
+                logger.debug("Deferring time scale update until EXECUTING")
+                threading.Thread(target=_apply_when_executing, daemon=True).start()
+            else:
+                self.simulator.set_time_scale_factor(tcf, sim_epoch)
         except Exception as e:
             logger.error(
                 f"Exception (topic: {method.routing_key}, payload: {message}): {e}"
             )
             print(traceback.format_exc())
+
+    def on_manager_freeze(self, ch, method, properties, body) -> None:
+        """
+        Callback function for the managed application ('self') to respond to a freeze command sent from the manager.
+        Parses the freeze duration and simulation freeze time and updates the simulator.
+
+        Args:
+            ch (:obj:`pika.channel.Channel`): The channel object used to communicate with the RabbitMQ server.
+            method (:obj:`pika.spec.Basic.Deliver`): Delivery-related information such as delivery tag, exchange, and routing key.
+            properties (:obj:`pika.BasicProperties`): Message properties including content type, headers, and more.
+            body (bytes): The actual message body sent, containing the message payload.
+        """
+        try:
+            # Parse message payload
+            message = body.decode("utf-8")
+            params = FreezeCommand.model_validate_json(message).tasking_parameters
+            logger.info(f"Received freeze command {message}")
+            # freeze simulation time
+            self.simulator.pause()
+
+        except Exception as e:
+            logger.error(
+                f"Exception (topic: {method.routing_key}, payload: {message}): {e}"
+            )
+            print(traceback.format_exc())
+
+    def on_manager_resume(self, ch, method, properties, body) -> None:
+        """
+        Callback function for the managed application ('self') to respond to a resume command sent from the manager.
+        Resumes the simulator execution.
+
+        Args:
+            ch (:obj:`pika.channel.Channel`): The channel object used to communicate with the RabbitMQ server.
+            method (:obj:`pika.spec.Basic.Deliver`): Delivery-related information such as delivery tag, exchange, and routing key.
+            properties (:obj:`pika.BasicProperties`): Message properties including content type, headers, and more.
+            body (bytes): The actual message body sent, containing the message payload.
+        """
+        try:
+            # Parse message payload
+            message = body.decode("utf-8")
+            params = ResumeCommand.model_validate_json(message).tasking_parameters
+            logger.info(f"Received resume command {message}")
+            # resume simulation time
+            self.simulator.resume()
+        except Exception as e:
+            logger.error(
+                f"Exception (topic: {method.routing_key}, payload: {message}): {e}"
+            )
+            print(traceback.format_exc())
+
+    def request_freeze(
+        self, freeze_duration: timedelta = None, sim_freeze_time: datetime = None
+    ) -> None:
+        """
+        Request a freeze from the manager.
+
+        Args:
+            freeze_duration (:obj:`timedelta`, optional): Duration for which to freeze execution.
+                                                        If None, creates an indefinite freeze.
+            sim_freeze_time (:obj:`datetime`, optional): Scenario time at which to freeze execution.
+                                                        If None, freezes immediately.
+        """
+        # Publish a freeze request message
+        wallclock_time = self.simulator.get_wallclock_time_at_simulation_time(
+            sim_freeze_time
+        )
+        request_params = {
+            "simFreezeTime": sim_freeze_time,
+            "freezeTime": wallclock_time,
+            "requestingApp": self.app_name,
+        }
+        if freeze_duration is not None:
+            request_params["freezeDuration"] = freeze_duration
+            request_params["resumeTime"] = wallclock_time + freeze_duration
+        # Create the freeze request
+        request = FreezeRequest.model_validate({"taskingParameters": request_params})
+        freeze_type = (
+            "indefinite" if freeze_duration is None else f"timed ({freeze_duration})"
+        )
+        logger.info(
+            f"Requesting {freeze_type} freeze: {request.model_dump_json(by_alias=True)}"
+        )
+        # Send the request to the manager
+        self.send_message(
+            app_name=self.app_name,
+            app_topics="request.freeze",
+            payload=request.model_dump_json(by_alias=True),
+        )
+
+    def request_resume(self) -> None:
+        """
+        Request a resume from the manager.
+        """
+        # Create the resume request
+        request = ResumeRequest.model_validate(
+            {"taskingParameters": {"requestingApp": self.app_name}}
+        )
+
+        logger.info(f"Requesting resume: {request.model_dump_json(by_alias=True)}")
+
+        # Send the request to the manager
+        self.send_message(
+            app_name=self.app_name,
+            app_topics="request.resume",
+            payload=request.model_dump_json(by_alias=True),
+        )
+
+    def request_update(
+        self, time_scale_factor: float, sim_update_time: datetime = None
+    ) -> None:
+        """
+        Request a time scale factor update from the manager.
+
+        Args:
+            time_scale_factor (float): scenario seconds per wallclock second
+            sim_update_time (:obj:`datetime`, optional): Scenario time at which to update.
+                                                        If None, updates immediately.
+        """
+        # Publish an update request message
+        request_params = {
+            "timeScalingFactor": time_scale_factor,
+            "requestingApp": self.app_name,
+        }
+        if sim_update_time is not None:
+            request_params["simUpdateTime"] = sim_update_time
+
+        # Create the update request
+        request = UpdateRequest.model_validate({"taskingParameters": request_params})
+
+        logger.info(
+            f"Requesting time scale factor update to {time_scale_factor}: {request.model_dump_json(by_alias=True)}"
+        )
+
+        # Send the request to the manager
+        self.send_message(
+            app_name=self.app_name,
+            app_topics="request.update",
+            payload=request.model_dump_json(by_alias=True),
+        )

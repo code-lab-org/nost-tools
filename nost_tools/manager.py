@@ -15,38 +15,21 @@ from pydantic import ValidationError
 from .application import Application
 from .application_utils import ConnectionConfig
 from .schemas import (
+    FreezeCommand,
+    FreezeRequest,
     InitCommand,
     ReadyStatus,
+    ResumeCommand,
+    ResumeRequest,
     StartCommand,
     StopCommand,
     TimeStatus,
     UpdateCommand,
+    UpdateRequest,
 )
 from .simulator import Mode
 
 logger = logging.getLogger(__name__)
-
-
-class TimeScaleUpdate(object):
-    """
-    Provides a scheduled update to the simulation time scale factor by sending a message at the designated sim_update_time
-    to change the time_scale_factor to the indicated value.
-
-    Attributes:
-        time_scale_factor (float): scenario seconds per wallclock second
-        sim_update_time (:obj:`datetime`): scenario time that the update will occur
-    """
-
-    def __init__(self, time_scale_factor: float, sim_update_time: datetime):
-        """
-        Instantiates a new time scale update.
-
-        Args:
-            time_scale_factor (float): scenario seconds per wallclock second
-            sim_update_time (:obj:`datetime`): scenario time that the update will occur
-        """
-        self.time_scale_factor = time_scale_factor
-        self.sim_update_time = sim_update_time
 
 
 class Manager(Application):
@@ -84,19 +67,17 @@ class Manager(Application):
             app_name, app_description, setup_signal_handlers=setup_signal_handlers
         )
         self.required_apps_status = {}
-
         self.sim_start_time = None
         self.sim_stop_time = None
-        start_time = None
-        time_step = None
-        time_scale_factor = None
-        time_scale_updates = None
-        time_status_step = None
-        time_status_init = None
-        command_lead = None
-        required_apps = None
-        init_retry_delay_s = None
-        init_max_retry = None
+        self.start_time = None
+        self.time_step = None
+        self.time_scale_factor = None
+        self.time_status_step = None
+        self.time_status_init = None
+        self.command_lead = None
+        self.required_apps = None
+        self.init_retry_delay_s = None
+        self.init_max_retry = None
 
     def establish_exchange(self):
         """
@@ -164,7 +145,7 @@ class Manager(Application):
         set_offset: bool = True,
         time_status_step: timedelta = None,
         time_status_init: datetime = None,
-        shut_down_when_terminated: bool = False
+        shut_down_when_terminated: bool = False,
     ) -> None:
         """
         Starts up the application by connecting to message broker, starting a background event loop,
@@ -190,8 +171,147 @@ class Manager(Application):
             shut_down_when_terminated,
         )
 
-        # Additional manager-specific setup: establish the exchange
+        # Establish the RabbitMQ exchange
         self.establish_exchange()
+        # Register callbacks for freeze, resume, and update requests from managed applications
+        self.add_message_callback("*", "request.freeze", self.on_freeze_request)
+        self.add_message_callback("*", "request.resume", self.on_resume_request)
+        self.add_message_callback("*", "request.update", self.on_update_request)
+
+    def on_freeze_request(self, ch, method, properties, body) -> None:
+        """
+        Callback to handle freeze requests from managed applications.
+
+        Args:
+            ch (:obj:`pika.channel.Channel`): The channel object used to communicate with the RabbitMQ server.
+            method (:obj:`pika.spec.Basic.Deliver`): Delivery-related information such as delivery tag, exchange, and routing key.
+            properties (:obj:`pika.BasicProperties`): Message properties including content type, headers, and more.
+            body (bytes): The actual message body sent, containing the message payload.
+        """
+        try:
+            # Parse the freeze request
+            message = body.decode("utf-8")
+            freeze_request = FreezeRequest.model_validate_json(message)
+            params = freeze_request.tasking_parameters
+
+            logger.info(
+                f"Received freeze request from {params.requesting_app}: {message}"
+            )
+
+            # Use a separate thread to handle the freeze to avoid blocking the callback
+            freeze_thread = threading.Thread(
+                target=self._handle_freeze_request,
+                args=(
+                    params.freeze_duration,
+                    params.sim_freeze_time,
+                    params.resume_time,
+                ),
+                daemon=True,
+            )
+            freeze_thread.start()
+
+        except ValidationError as e:
+            logger.error(f"Validation error in freeze request: {e}")
+        except Exception as e:
+            logger.error(
+                f"Exception handling freeze request (topic: {method.routing_key}, payload: {message}): {e}"
+            )
+            print(traceback.format_exc())
+
+    def _handle_freeze_request(
+        self,
+        freeze_duration: timedelta = None,
+        sim_freeze_time: datetime = None,
+        resume_time: datetime = None,
+    ) -> None:
+        try:
+            if freeze_duration is not None:
+                self.freeze(freeze_duration, sim_freeze_time, resume_time)
+                # Only resume if we are still paused and not terminating
+                if self.simulator.get_mode() == Mode.PAUSED:
+                    self.resume()
+            else:
+                self.freeze(None, sim_freeze_time, None)
+                logger.info("Indefinite freeze requested - manual resume required")
+
+        except Exception as e:
+            logger.error(f"Error handling freeze request: {e}")
+            print(traceback.format_exc())
+
+    def on_resume_request(self, ch, method, properties, body) -> None:
+        """
+        Callback to handle resume requests from managed applications.
+
+        Args:
+            ch (:obj:`pika.channel.Channel`): The channel object used to communicate with the RabbitMQ server.
+            method (:obj:`pika.spec.Basic.Deliver`): Delivery-related information such as delivery tag, exchange, and routing key.
+            properties (:obj:`pika.BasicProperties`): Message properties including content type, headers, and more.
+            body (bytes): The actual message body sent, containing the message payload.
+        """
+        try:
+            # Parse the resume request
+            message = body.decode("utf-8")
+            resume_request = ResumeRequest.model_validate_json(message)
+            params = resume_request.tasking_parameters
+            logger.info(
+                f"Received resume request from {params.requesting_app}: {message}"
+            )
+            # Execute the resume command
+            self.resume()
+
+        except ValidationError as e:
+            logger.error(f"Validation error in resume request: {e}")
+        except Exception as e:
+            logger.error(
+                f"Exception handling resume request (topic: {method.routing_key}, payload: {message}): {e}"
+            )
+            print(traceback.format_exc())
+
+    def on_update_request(self, ch, method, properties, body) -> None:
+        """
+        Callback to handle update requests from managed applications.
+
+        Args:
+            ch (:obj:`pika.channel.Channel`): The channel object used to communicate with the RabbitMQ server.
+            method (:obj:`pika.spec.Basic.Deliver`): Delivery-related information such as delivery tag, exchange, and routing key.
+            properties (:obj:`pika.BasicProperties`): Message properties including content type, headers, and more.
+            body (bytes): The actual message body sent, containing the message payload.
+        """
+        try:
+            message = body.decode("utf-8")
+            update_request = UpdateRequest.model_validate_json(message)
+            params = update_request.tasking_parameters
+            logger.info(
+                f"Received update request from {params.requesting_app}: {message}"
+            )
+
+            def _apply_update_when_executing():
+                while self.simulator.get_mode() != Mode.EXECUTING:
+                    self._sleep_with_heartbeat(0.01)
+                self.update(
+                    params.time_scale_factor,
+                    params.sim_update_time or self.simulator.get_time(),
+                )
+                # Wait until update takes effect
+                while (
+                    self.simulator.get_time_scale_factor() != params.time_scale_factor
+                ):
+                    self._sleep_with_heartbeat(0.01)
+
+            # Defer if not executing yet
+            if self.simulator.get_mode() != Mode.EXECUTING:
+                threading.Thread(
+                    target=_apply_update_when_executing, daemon=True
+                ).start()
+            else:
+                _apply_update_when_executing()
+        except ValidationError as e:
+            logger.error(f"Validation error in update request: {e}")
+        except Exception as e:
+            logger.error(
+                f"Exception handling update request (topic: {method.routing_key}, payload: {message}): {e}"
+            )
+            print(traceback.format_exc())
 
     def execute_test_plan(self, *args, **kwargs) -> None:
         """
@@ -214,7 +334,6 @@ class Manager(Application):
         start_time: datetime = None,
         time_step: timedelta = timedelta(seconds=1),
         time_scale_factor: float = 1.0,
-        time_scale_updates: List[TimeScaleUpdate] = [],
         time_status_step: timedelta = None,
         time_status_init: datetime = None,
         command_lead: timedelta = timedelta(seconds=0),
@@ -234,7 +353,6 @@ class Manager(Application):
             start_time (:obj:`datetime`): wallclock time at which to start execution (default: now)
             time_step (:obj:`timedelta`): scenario time step used in execution (default: 1 second)
             time_scale_factor (float): scenario seconds per wallclock second (default: 1.0)
-            time_scale_updates (list(:obj:`TimeScaleUpdate`)): list of scheduled time scale updates (default: [])
             time_status_step (:obj:`timedelta`): scenario duration between time status messages
             time_status_init (:obj:`datetime`): scenario time of first time status message
             command_lead (:obj:`timedelta`): wallclock lead time between command and action (default: 0 seconds)
@@ -243,7 +361,7 @@ class Manager(Application):
             init_max_retry (int): number of initialization commands while waiting for required applications before continuing to execution
         """
         if self.config.rc.yaml_file:
-            logger.info(
+            logger.debug(
                 f"Collecting execution parameters from YAML configuration file: {self.config.rc.yaml_file}"
             )
             parameters = getattr(
@@ -256,7 +374,6 @@ class Manager(Application):
             self.start_time = parameters.start_time
             self.time_step = parameters.time_step
             self.time_scale_factor = parameters.time_scale_factor
-            self.time_scale_updates = parameters.time_scale_updates
             self.time_status_step = parameters.time_status_step
             self.time_status_init = parameters.time_status_init
             self.command_lead = parameters.command_lead
@@ -266,7 +383,7 @@ class Manager(Application):
             self.init_retry_delay_s = parameters.init_retry_delay_s
             self.init_max_retry = parameters.init_max_retry
         else:
-            logger.info(
+            logger.debug(
                 f"Collecting execution parameters from user input or default values."
             )
             self.sim_start_time = sim_start_time
@@ -274,24 +391,12 @@ class Manager(Application):
             self.start_time = start_time
             self.time_step = time_step
             self.time_scale_factor = time_scale_factor
-            self.time_scale_updates = time_scale_updates
             self.time_status_step = time_status_step
             self.time_status_init = time_status_init
             self.command_lead = command_lead
             self.required_apps = required_apps
             self.init_retry_delay_s = init_retry_delay_s
             self.init_max_retry = init_max_retry
-
-        # Convert TimeScaleUpdateSchema objects to TimeScaleUpdate objects
-        converted_updates = []
-        for update_schema in self.time_scale_updates:
-            converted_updates.append(
-                TimeScaleUpdate(
-                    time_scale_factor=update_schema.time_scale_factor,
-                    sim_update_time=update_schema.sim_update_time,
-                )
-            )
-        self.time_scale_updates = converted_updates
 
         # Set up tracking of required applications
         self.required_apps_status = dict(
@@ -346,44 +451,22 @@ class Manager(Application):
         while self.simulator.get_mode() != Mode.EXECUTING:
             time.sleep(0.001)
 
-        # Process time scale updates
-        for update in self.time_scale_updates:
-            update_time = self.simulator.get_wallclock_time_at_simulation_time(
-                update.sim_update_time
+        # Wait for stop time - simulator now handles freeze time internally
+        while True:
+            end_time = self.simulator.get_wallclock_time_at_simulation_time(
+                self.simulator.get_end_time()
             )
-            # Sleep until update time using heartbeat-safe approach
-            sleep_seconds = max(
-                0,
-                (
-                    (update_time - self.simulator.get_wallclock_time())
-                    - self.command_lead
-                )
-                / timedelta(seconds=1),
-            )
+            current_time = self.simulator.get_wallclock_time()
+            time_until_stop = (
+                end_time - current_time - self.command_lead
+            ).total_seconds()
 
-            # Use our heartbeat-safe sleep
-            self._sleep_with_heartbeat(sleep_seconds)
+            if time_until_stop <= 0:
+                break
 
-            # Issue the update command
-            self.update(update.time_scale_factor, update.sim_update_time)
-
-            # Wait until update takes effect
-            while self.simulator.get_time_scale_factor() != update.time_scale_factor:
-                time.sleep(0.001)
-
-        end_time = self.simulator.get_wallclock_time_at_simulation_time(
-            self.simulator.get_end_time()
-        )
-
-        # Sleep until stop time using heartbeat-safe approach
-        sleep_seconds = max(
-            0,
-            ((end_time - self.simulator.get_wallclock_time()) - self.command_lead)
-            / timedelta(seconds=1),
-        )
-
-        # Use our heartbeat-safe sleep
-        self._sleep_with_heartbeat(sleep_seconds)
+            # Wait for timeout
+            timeout = min(30.0, time_until_stop)
+            time.sleep(timeout)
 
         # Issue the stop command
         self.stop(self.sim_stop_time)
@@ -601,3 +684,134 @@ class Manager(Application):
         )
         # update the execution time scale factor
         self.simulator.set_time_scale_factor(time_scale_factor, sim_update_time)
+
+    def freeze(
+        self,
+        freeze_duration: timedelta = None,
+        sim_freeze_time: datetime = None,
+        resume_time: datetime = None,
+    ) -> None:
+        """
+        Command to freeze a test run execution by updating the execution freeze duration and publishing a freeze command.
+
+        Args:
+            freeze_duration (:obj:`timedelta`, optional): Duration for which to freeze execution.
+                                                        If None, creates an indefinite freeze.
+            sim_freeze_time (:obj:`datetime`, optional): Scenario time at which to freeze execution.
+                                                        If None, freezes immediately.
+        """
+        # publish a freeze command message
+        command_params = {"simFreezeTime": sim_freeze_time}
+        if freeze_duration is not None:
+            command_params["freezeDuration"] = freeze_duration
+        command = FreezeCommand.model_validate({"taskingParameters": command_params})
+        freeze_type = (
+            "indefinite" if freeze_duration is None else f"timed ({freeze_duration})"
+        )
+        logger.info(
+            f"Sending {freeze_type} freeze command {command.model_dump_json(by_alias=True)}."
+        )
+        self.send_message(
+            app_name=self.app_name,
+            app_topics="freeze",
+            payload=command.model_dump_json(by_alias=True),
+        )
+
+        # If a future scenario freeze time is specified, wait until that time before pausing
+        if sim_freeze_time is not None:
+            try:
+                if self.simulator.get_time() < sim_freeze_time:
+                    target_wc = self.simulator.get_wallclock_time_at_simulation_time(
+                        sim_freeze_time
+                    )
+                    delay = (
+                        target_wc - self.simulator.get_wallclock_time()
+                    ).total_seconds()
+                    if delay > 0:
+                        self._sleep_with_heartbeat(delay)
+            except Exception as e:
+                logger.warning(
+                    f"Could not align to simFreezeTime={sim_freeze_time}: {e}"
+                )
+
+        # Freeze simulation time (skip if already paused/pausing)
+        if self.simulator.get_mode() not in (Mode.PAUSED, Mode.PAUSING):
+            self.simulator.pause()
+        # Wait until the simulator is paused to anchor the resume time
+        while self.simulator.get_mode() == Mode.PAUSING:
+            self._sleep_with_heartbeat(0.01)
+        while self.simulator.get_mode() != Mode.PAUSED:
+            if self.simulator.get_mode() in (Mode.TERMINATING, Mode.TERMINATED):
+                logger.info("Abort freeze wait due to termination")
+                return
+            self._sleep_with_heartbeat(0.01)
+
+        # Snapshot wallclock time at the moment of freeze
+        base = self.simulator.get_wallclock_time()
+
+        if freeze_duration is not None:
+            # Validate duration
+            if freeze_duration.total_seconds() <= 0:
+                logger.warning(
+                    f"Ignoring non-positive freeze duration: {freeze_duration}"
+                )
+                return
+
+            # Compute authoritative resume time
+            target_resume_time = base + freeze_duration
+            # Optionally honor requested resume_time if it's later than base
+            if resume_time is not None and resume_time > base:
+                # Keep the earlier of the two if you want to minimize drift across nodes,
+                # or the later if you prefer never resuming before a requested time.
+                # Here we choose the later to avoid early resume vs. a peer's expectation.
+                target_resume_time = max(target_resume_time, resume_time)
+
+            logger.info(
+                f"Resume Time: requested={resume_time} calculated={target_resume_time} "
+                f"delta={abs((target_resume_time - (resume_time or target_resume_time)).total_seconds())}s"
+            )
+
+            # Poll until we reach the target, allowing early exit and heartbeats
+            while True:
+                mode = self.simulator.get_mode()
+                if mode in (
+                    Mode.EXECUTING,
+                    Mode.RESUMING,
+                    Mode.TERMINATING,
+                    Mode.TERMINATED,
+                ):
+                    break
+                remaining = (
+                    target_resume_time - self.simulator.get_wallclock_time()
+                ).total_seconds()
+                if remaining <= 0:
+                    break
+                self._sleep_with_heartbeat(min(1.0, max(0.01, remaining)))
+        else:
+            logger.info("Indefinite freeze active. Call resume() to continue.")
+            while self.simulator.get_mode() not in (Mode.EXECUTING, Mode.RESUMING):
+                if self.simulator.get_mode() in (Mode.TERMINATING, Mode.TERMINATED):
+                    break
+                self._sleep_with_heartbeat(0.01)
+
+    def resume(self) -> None:
+        """
+        Command to resume a test run execution by unpausing the simulator.
+        """
+        # resume the simulator execution
+        command = ResumeCommand.model_validate(
+            {
+                "taskingParameters": {
+                    "resumeTime": self.simulator.get_wallclock_time(),
+                    "simResumeTime": self.simulator.get_time(),
+                }
+            }
+        )
+        logger.info(f"Sending resume command {command.model_dump_json(by_alias=True)}.")
+        self.send_message(
+            app_name=self.app_name,
+            app_topics="resume",
+            payload=command.model_dump_json(by_alias=True),
+        )
+        # resume simulation time
+        self.simulator.resume()

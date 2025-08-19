@@ -7,6 +7,7 @@ The application contains one class, the :obj:`Environment` class, which waits fo
 """
 
 import logging
+from datetime import timedelta
 
 import pandas as pd
 from ground_config_files.schemas import GroundLocation
@@ -45,7 +46,11 @@ class Environment(Observer):
                 :pyobject: Environment.on_change
                 :lines: 11-
         """
-        if property_name == Simulator.PROPERTY_MODE and new_value == Mode.EXECUTING:
+        if (
+            property_name == Simulator.PROPERTY_MODE
+            and new_value == Mode.EXECUTING
+            and old_value != Mode.RESUMING
+        ):
             logger.info("Grounds are operational")
             for index, ground in self.grounds.iterrows():
                 self.app.send_message(
@@ -59,6 +64,60 @@ class Environment(Observer):
                         operational=ground.operational,
                     ).model_dump_json(),
                 )
+
+
+class DailyFreeze(Observer):
+    """
+    Observer that automatically freezes the simulation at the start of each day.
+    """
+
+    def __init__(
+        self, app: ManagedApplication, freeze_duration: timedelta = timedelta(hours=2)
+    ):
+        """
+        Initialize the daily time scale updater.
+
+        Args:
+            manager (Manager): The manager instance to send update requests
+            freeze_duration (timedelta): Duration to freeze the simulation at the start of each day (default 2 wall clock hours)
+        """
+        self.app = app
+        self.freeze_duration = freeze_duration
+        self.last_day_checked = None
+        self.current_time_scale = None
+
+    def on_change(self, source, property_name, old_value, new_value):
+        """
+        Callback when simulation properties change.
+
+        Args:
+            source: The object that changed
+            property_name (str): Name of the property that changed
+            old_value: Previous value
+            new_value: New value
+        """
+        # Only respond to time changes when simulation is executing
+        if (
+            property_name == Simulator.PROPERTY_TIME
+            and source.get_mode() == Mode.EXECUTING
+            and new_value is not None
+        ):
+
+            current_sim_time = new_value
+            current_day = current_sim_time.date()
+
+            # Check if we've crossed into a new day or need to change time scale
+            if self.last_day_checked != current_day:
+
+                logger.info("Crossed into a new day, freezing scenario time.")
+                # Request the time scale update from the manager
+                self.app.request_freeze(
+                    freeze_duration=self.freeze_duration,
+                    sim_freeze_time=current_sim_time,
+                )
+
+                # Update tracking variables
+                self.last_day_checked = current_day
 
 
 if __name__ == "__main__":
@@ -88,6 +147,9 @@ if __name__ == "__main__":
 
     # Add a shutdown observer to shut down after a single test case
     app.simulator.add_observer(ShutDownObserver(app))
+
+    # Add the daily time scale updater observer
+    app.simulator.add_observer(DailyFreeze(app, freeze_duration=timedelta(minutes=1)))
 
     # Start up the application
     app.start_up(

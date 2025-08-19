@@ -132,6 +132,162 @@ class UpdateCommand(BaseModel):
     )
 
 
+class FreezeTaskingParameters(BaseModel):
+    """
+    Tasking parameters to freeze an execution.
+    """
+
+    sim_freeze_time: datetime = Field(
+        ...,
+        gt=0,
+        description="Scenario time at which to freeze execution.",
+        alias="simFreezeTime",
+    )
+    freeze_duration: Optional[timedelta] = Field(
+        None,
+        # timedelta(seconds=60),
+        description="Wallclock time duration for which to freeze execution.",
+        alias="freezeDuration",
+    )
+
+
+class FreezeCommand(BaseModel):
+    """
+    Command message to freeze an execution.
+    """
+
+    tasking_parameters: FreezeTaskingParameters = Field(
+        ...,
+        description="Tasking parameters for the freeze command.",
+        alias="taskingParameters",
+    )
+
+
+class ResumeTaskingParameters(BaseModel):
+    """
+    Tasking parameters to resume an execution.
+    """
+
+    resume_time: datetime = Field(
+        ...,
+        gt=0,
+        description="Wallclock time at which to resume execution.",
+        alias="resumeTime",
+    )
+
+    sim_resume_time: datetime = Field(
+        ...,
+        gt=0,
+        description="Scenario time at which to resume execution.",
+        alias="simResumeTime",
+    )
+
+
+class ResumeCommand(BaseModel):
+    """
+    Command message to resume an execution.
+    """
+
+    tasking_parameters: ResumeTaskingParameters = Field(
+        ...,
+        description="Tasking parameters for the resume command.",
+        alias="taskingParameters",
+    )
+
+
+class FreezeRequestParameters(BaseModel):
+    """
+    Parameters for requesting a freeze from a managed application.
+    """
+
+    sim_freeze_time: datetime = Field(
+        ...,
+        gt=0,
+        description="Scenario time at which to freeze execution.",
+        alias="simFreezeTime",
+    )
+    freezeTime: datetime = Field(
+        ...,
+        description="Wallclock time at which to freeze execution.",
+        alias="freezeTime",
+    )
+    freeze_duration: Optional[timedelta] = Field(
+        None,
+        description="Wallclock time duration for which to freeze execution.",
+        alias="freezeDuration",
+    )
+    resume_time: Optional[datetime] = Field(
+        None,
+        description="Scenario time at which to resume execution.",
+        alias="resumeTime",
+    )
+    requesting_app: str = Field(
+        ...,
+        description="Name of the application requesting the freeze.",
+        alias="requestingApp",
+    )
+
+
+class FreezeRequest(BaseModel):
+    """
+    Request message for a managed application to request a freeze.
+    """
+
+    tasking_parameters: FreezeRequestParameters = Field(alias="taskingParameters")
+
+
+class ResumeRequestParameters(BaseModel):
+    """
+    Parameters for requesting a resume from a managed application.
+    """
+
+    requesting_app: str = Field(
+        ...,
+        description="Name of the application requesting the freeze.",
+        alias="requestingApp",
+    )
+
+
+class ResumeRequest(BaseModel):
+    """
+    Request message for a managed application to request a resume.
+    """
+
+    tasking_parameters: ResumeRequestParameters = Field(alias="taskingParameters")
+
+
+class UpdateRequestParameters(BaseModel):
+    """
+    Parameters for requesting an update from a managed application.
+    """
+
+    time_scale_factor: float = Field(
+        ...,
+        gt=0,
+        description="Time scaling factor (scenario seconds per wallclock second).",
+        alias="timeScalingFactor",
+    )
+    sim_update_time: Optional[datetime] = Field(
+        # ...,
+        None,
+        description="Scenario time at which to update the time scaling factor.",
+        alias="simUpdateTime",
+    )
+    requesting_app: str = Field(
+        ...,
+        description="Name of the application requesting the update.",
+        alias="requestingApp",
+    )
+
+
+class UpdateRequest(BaseModel):
+    """
+    Request message for a managed application to request an update.
+    """
+
+    tasking_parameters: UpdateRequestParameters = Field(alias="taskingParameters")
+
+
 class TimeStatusProperties(BaseModel):
     """
     Properties to report time status.
@@ -307,33 +463,13 @@ class ServersConfig(BaseModel):
         return values
 
 
-class WallclockOffsetProperties(BaseModel):
-    """
-    Properties to report wallclock offset.
-    """
-
+class GeneralConfig(BaseModel):
+    prefix: Optional[str] = Field("nost", description="Execution prefix.")
     wallclock_offset_refresh_interval: Optional[int] = Field(
         10800, description="Wallclock offset refresh interval, in seconds."
     )
     ntp_host: Optional[str] = Field(
         "pool.ntp.org", description="NTP host for wallclock offset synchronization."
-    )
-
-
-class GeneralConfig(BaseModel):
-    prefix: Optional[str] = Field("nost", description="Execution prefix.")
-
-
-class TimeScaleUpdateSchema(BaseModel):
-    """
-    Provides a scheduled update to the simulation time scale factor.
-    """
-
-    time_scale_factor: float = Field(
-        ..., description="Scenario seconds per wallclock second"
-    )
-    sim_update_time: datetime = Field(
-        ..., description="Scenario time that the update will occur"
     )
 
 
@@ -345,9 +481,7 @@ class LoggingConfig(BaseModel):
     enable_file_logging: Optional[bool] = Field(
         False, description="Enable file logging."
     )
-    log_dir: Optional[str] = Field(
-        "logs", description="Directory path for log files."
-    )
+    log_dir: Optional[str] = Field("logs", description="Directory path for log files.")
     log_filename: Optional[str] = Field(None, description="Path to the log file.")
     log_level: Optional[str] = Field(
         "INFO", description="Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)."
@@ -376,9 +510,6 @@ class ManagerConfig(LoggingConfig):
         description="Time step for the simulation.",
     )
     time_scale_factor: float = Field(1.0, description="Time scale factor.")
-    time_scale_updates: List[TimeScaleUpdateSchema] = Field(
-        default_factory=list, description="List of time scale updates."
-    )
     time_status_step: Optional[timedelta] = Field(None, description="Time status step.")
     time_status_init: Optional[datetime] = Field(None, description="Time status init.")
     command_lead: timedelta = Field(
@@ -586,9 +717,6 @@ class SimulationConfig(BaseModel):
 
 
 class RuntimeConfig(BaseModel):
-    wallclock_offset_properties: WallclockOffsetProperties = Field(
-        ..., description="Properties for wallclock offset."
-    )
     credentials: Credentials = Field(..., description="Credentials for authentication.")
     server_configuration: Config = (
         Field(..., description="Simulation configuration."),

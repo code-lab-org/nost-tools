@@ -33,6 +33,9 @@ class Mode(str, Enum):
     INITIALIZING = "INITIALIZING"
     INITIALIZED = "INITIALIZED"
     EXECUTING = "EXECUTING"
+    PAUSING = "PAUSING"
+    PAUSED = "PAUSED"
+    RESUMING = "RESUMING"
     TERMINATING = "TERMINATING"
     TERMINATED = "TERMINATED"
 
@@ -89,12 +92,10 @@ class Simulator(Observable):
         Args:
             entity (:obj:`Entity`): entity to be added
         """
-        if self._mode == Mode.INITIALIZING:
-            raise RuntimeError("Cannot add entity: simulator is initializing")
-        elif self._mode == Mode.EXECUTING:
-            raise RuntimeError("Cannot add entity: simulator is executing")
-        elif self._mode == Mode.TERMINATING:
-            raise RuntimeError("Cannot add entity: simulator is terminating")
+        if self._mode not in [Mode.UNDEFINED, Mode.INITIALIZED, Mode.TERMINATED]:
+            raise RuntimeError(
+                "Can only add entity from UNDEFINED, INITIALIZED, or TERMINATED modes."
+            )
         self._set_mode(Mode.UNDEFINED)
         self._entities.append(entity)
 
@@ -141,12 +142,10 @@ class Simulator(Observable):
         Returns:
             :obj:`Entity`: removed entity
         """
-        if self._mode == Mode.INITIALIZING:
-            raise RuntimeError("Cannot add entity: simulator is initializing")
-        elif self._mode == Mode.EXECUTING:
-            raise RuntimeError("Cannot add entity: simulator is executing")
-        elif self._mode == Mode.TERMINATING:
-            raise RuntimeError("Cannot add entity: simulator is terminating")
+        if self._mode not in [Mode.UNDEFINED, Mode.INITIALIZED, Mode.TERMINATED]:
+            raise RuntimeError(
+                "Can only remove entity from UNDEFINED, INITIALIZED, or TERMINATED modes."
+            )
         if entity in self._entities:
             self._set_mode(Mode.UNDEFINED)
             return self._entities.remove(entity)
@@ -173,12 +172,10 @@ class Simulator(Observable):
                 initial scenario time, None uses the current wallclock time (default: None)
             time_scale_factor (float): number of scenario seconds per wallclock second (default: 1)
         """
-        if self._mode == Mode.INITIALIZING:
-            raise RuntimeError("Cannot initialize: simulator is initializing.")
-        elif self._mode == Mode.EXECUTING:
-            raise RuntimeError("Cannot initialize: simulator is executing.")
-        elif self._mode == Mode.TERMINATING:
-            raise RuntimeError("Cannot initialize: simulator is terminating.")
+        if self._mode not in [Mode.UNDEFINED, Mode.INITIALIZED, Mode.TERMINATED]:
+            raise RuntimeError(
+                "Can only initialize from UNDEFINED, INITIALIZED, or TERMINATED modes."
+            )
         self._set_mode(Mode.INITIALIZING)
         logger.info(
             f"Initializing simulator to time {init_time} (wallclock time {wallclock_epoch})"
@@ -219,6 +216,11 @@ class Simulator(Observable):
                 initial scenario time, None uses the current wallclock time (default: None)
             time_scale_factor (float): number of scenario seconds per wallclock second (default value: 1)
         """
+        if self._mode not in [Mode.UNDEFINED, Mode.INITIALIZED, Mode.TERMINATED]:
+            raise RuntimeError(
+                f"Cannot execute: simulator is {self._mode}. Wait for TERMINATED or terminate the current run."
+            )
+
         if self._mode != Mode.INITIALIZED:
             self.initialize(init_time, wallclock_epoch, time_scale_factor)
 
@@ -233,9 +235,8 @@ class Simulator(Observable):
 
         logger.info("Starting main simulation loop.")
         while (
-            self._mode == Mode.EXECUTING
-            and self.get_time() < self.get_init_time() + self.get_duration()
-        ):
+            self._mode == Mode.EXECUTING or self._mode == Mode.PAUSING
+        ) and self.get_time() < self.get_init_time() + self.get_duration():
             # compute time step (last step may be shorter)
             time_step = min(
                 self._time_step, self._init_time + self._duration - self._time
@@ -302,6 +303,17 @@ class Simulator(Observable):
         """
         Waits until the wallclock time matches the next time step interval.
         """
+        if self._mode == Mode.PAUSING:
+            self._set_mode(Mode.PAUSED)
+        while self._mode == Mode.PAUSED:
+            time.sleep(0.01)
+        if self._mode == Mode.RESUMING:
+            # reset the wallclock and simulation epochs
+            self._wallclock_epoch = self.get_wallclock_time()
+            self._simulation_epoch = self._time
+            self._set_mode(Mode.EXECUTING)
+            # Return immediately after resume to avoid waiting
+            return
         while (
             self._mode == Mode.EXECUTING
             and self.get_wallclock_time_at_simulation_time(self._next_time)
@@ -519,6 +531,25 @@ class Simulator(Observable):
         if self._mode == Mode.TERMINATING:
             raise RuntimeError("Cannot set wallclock offset: simulator is terminating")
         self._wallclock_offset = wallclock_offset
+
+    def pause(self) -> None:
+        """
+        Pauses the scenario execution. Requires that the simulator is in EXECUTING mode.
+        """
+        logger.info("Pausing simulation execution.")
+        if self._mode != Mode.EXECUTING:
+            raise RuntimeError("Cannot pause: simulator is not executing.")
+
+        self._set_mode(Mode.PAUSING)
+
+    def resume(self) -> None:
+        """
+        Resumes the scenario execution. Requires that the simulator is in PAUSING or PAUSED mode.
+        """
+        if self._mode not in [Mode.PAUSING, Mode.PAUSED]:
+            raise RuntimeError("Cannot resume: simulator is not pausing or paused.")
+        self._next_time = self._time
+        self._set_mode(Mode.RESUMING)
 
     def terminate(self) -> None:
         """

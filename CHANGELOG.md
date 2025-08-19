@@ -136,3 +136,31 @@ Added:
 
 Updated:
 - Changed the default value of `token_refresh_interval` in the `KeycloakConfig` Pydantic class from 60 seconds (1 minute) to 240 seconds (4 minutes).
+
+## 3.0.0
+Added:
+- Added comprehensive freeze time tracking system and callbacks in `Manager` class in `manager.py` to properly account for dynamic, distributed freezes, resumes, and updates to scenario time:
+  - Added `on_freeze_request()` callback which freezes scenario time based on messages containing requests from managed applications, integrated this callback into `start_up()` method
+  - Added `_handle_freeze_request()` that handles dynamic, distributed freeze requests
+  - Added `freeze()` that issues freeze command, integrated this into the `_handle_freeze_request()`
+  - Added `on_resume_request()` callback which resumes scenario time based on messages containing requests from managed applications, integrated this callback into `start_up()` method
+  - Added `on_update_request()` callback which updates the time scale factor based on messages containing requests from managed applications, integrated this callback into `start_up()` method
+  - Added `update()` that issues update command, integrated this into the `on_update_request()` method
+- Added new methods to `ManagedApplication` class in `managed_application.py` to allow requests for a freeze in scenario time from the `Manager` class in `manager.py`
+  - Added `request_freeze()` method that sends a FreezeRequest message which is received by the `Manager` application, added an associated `on_manager_freeze()` callback that responds to FreezeCommand messages from `Manger`
+  - Added `request_resume()` method that sends a ResumeRequest message which is received by the `Manager` application, added an associated `on_manager_resume()` callback that responds to ResumeCommand messages from `Manager`
+  - Added `request_update()` method that sends a UpdateRequest message which is received by the `Manager` application, added an associated `on_manager_update()` callback that responds to UpdateCommand messages from `Manager`
+- Added new freeze-tracking capabilities to `Simulator` class in `simulator.py`
+  - Added reset of wallclock and simulation epochs when mode switches to Mode.EXECUTING in `_wait_for_tock()` method
+- Added the following classes to `schemas.py`:
+  - `FreezeTaskingParameters`, `FreezeCommand`, `ResumeTaskingParameters`, `ResumeCommand`, `FreezeRequestParameters`, `FreezeRequest`, `ResumeRequestParameters`, `ResumeRequest`, `UpdateRequestParameters`, `UpdateRequest`
+
+Updated:
+- Removed code related to scheduled time scale updates in `_execute_test_plan_impl()` of `Manager` application. Scheduled time scale factor updates, defined in the YAML configuration file, are no longer supported. They must now be requested by a `ManagedApplication` and processed by the `Manager` who maintains control of sending the `FreezeCommand` as defined in `schemas.py`
+- Removed `TimeScaleUpdate` class in `manager.py`
+- Removed `TimeScaleUpdateSchema` and `FreezeSchema` classes in `schemas.py`
+- Removed `time_scale_updates` and `freezes` fields from `ManagerConfig` class in `schemas.py`
+- Prevent re-entrant execution in `Simulator.execute()` by adding an explicit mode guard; now raises a clear `RuntimeError` when called outside `UNDEFINED`, `INITIALIZED`, or `TERMINATED` modes: `Cannot execute: simulator is {self._mode}. Wait for TERMINATED or terminate the current run.`
+- Removed `WallclockOffsetProperties` class and `wallclock_offset_properties` section from `RuntimeConfig` in `schemas.py` and `configuration.py`.
+- Added `wallclock_offset_refresh_interval` and `ntp_host` to `GeneralConfig` class in `schemas.py`
+- Updated FireSat test suite to show examples of time scale updates and scenario time freezes.
