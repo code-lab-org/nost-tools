@@ -164,6 +164,7 @@ Updated:
 - Removed `WallclockOffsetProperties` class and `wallclock_offset_properties` section from `RuntimeConfig` in `schemas.py` and `configuration.py`.
 - Added `wallclock_offset_refresh_interval` and `ntp_host` to `GeneralConfig` class in `schemas.py`
 - Updated FireSat test suite to show examples of time scale updates and scenario time freezes.
+
 ## 3.0.1
 Updated:
 - Removed the calculation of `target_resume_time` from the `freeze()` method in `manager.py`.
