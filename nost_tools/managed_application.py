@@ -324,7 +324,27 @@ class ManagedApplication(Application):
             message = body.decode("utf-8")
             params = FreezeCommand.model_validate_json(message).tasking_parameters
             logger.info(f"Received freeze command {message}")
-            # freeze simulation time
+
+            sim_freeze_time = params.sim_freeze_time
+            if sim_freeze_time is not None:
+                try:
+                    # Only wait if we haven't reached the requested sim time yet
+                    if self.simulator.get_time() < sim_freeze_time:
+                        target_wc = self.simulator.get_wallclock_time_at_simulation_time(sim_freeze_time)
+                        # Sleep in short intervals to keep responsiveness
+                        while True:
+                            now_wc = self.simulator.get_wallclock_time()
+                            remaining = (target_wc - now_wc).total_seconds()
+                            if remaining <= 0:
+                                break
+                            # Exit early if execution is stopping
+                            if self.simulator.get_mode() in (Mode.TERMINATING, Mode.TERMINATED):
+                                return
+                            time.sleep(min(0.5, max(0.01, remaining)))
+                except Exception as e:
+                    logger.warning(f"Could not align to simFreezeTime={sim_freeze_time}: {e}")
+
+            # Freeze simulation time
             self.simulator.pause()
 
         except Exception as e:

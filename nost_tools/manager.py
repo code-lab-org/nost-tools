@@ -757,20 +757,6 @@ class Manager(Application):
                 )
                 return
 
-            # Compute authoritative resume time
-            target_resume_time = base + freeze_duration
-            # Optionally honor requested resume_time if it's later than base
-            if resume_time is not None and resume_time > base:
-                # Keep the earlier of the two if you want to minimize drift across nodes,
-                # or the later if you prefer never resuming before a requested time.
-                # Here we choose the later to avoid early resume vs. a peer's expectation.
-                target_resume_time = max(target_resume_time, resume_time)
-
-            logger.info(
-                f"Resume Time: requested={resume_time} calculated={target_resume_time} "
-                f"delta={abs((target_resume_time - (resume_time or target_resume_time)).total_seconds())}s"
-            )
-
             # Poll until we reach the target, allowing early exit and heartbeats
             while True:
                 mode = self.simulator.get_mode()
@@ -782,8 +768,11 @@ class Manager(Application):
                 ):
                     break
                 remaining = (
-                    target_resume_time - self.simulator.get_wallclock_time()
+                    resume_time - self.simulator.get_wallclock_time()
                 ).total_seconds()
+                logger.info(
+                    f"Resume Time: {resume_time} Current Scenario Time: {self.simulator.get_time()} Current Wall Clock Time: {self.simulator.get_wallclock_time()} Remaining time: {remaining}"
+                )
                 if remaining <= 0:
                     break
                 self._sleep_with_heartbeat(min(1.0, max(0.01, remaining)))

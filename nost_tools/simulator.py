@@ -312,8 +312,6 @@ class Simulator(Observable):
             self._wallclock_epoch = self.get_wallclock_time()
             self._simulation_epoch = self._time
             self._set_mode(Mode.EXECUTING)
-            # Return immediately after resume to avoid waiting
-            return
         while (
             self._mode == Mode.EXECUTING
             and self.get_wallclock_time_at_simulation_time(self._next_time)
@@ -536,7 +534,7 @@ class Simulator(Observable):
         """
         Pauses the scenario execution. Requires that the simulator is in EXECUTING mode.
         """
-        logger.info("Pausing simulation execution.")
+        logger.info(f"Pausing simulation execution at {self._time}.")
         if self._mode != Mode.EXECUTING:
             raise RuntimeError("Cannot pause: simulator is not executing.")
 

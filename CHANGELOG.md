@@ -164,3 +164,10 @@ Updated:
 - Removed `WallclockOffsetProperties` class and `wallclock_offset_properties` section from `RuntimeConfig` in `schemas.py` and `configuration.py`.
 - Added `wallclock_offset_refresh_interval` and `ntp_host` to `GeneralConfig` class in `schemas.py`
 - Updated FireSat test suite to show examples of time scale updates and scenario time freezes.
+
+## 3.0.1
+Updated:
+- Removed the calculation of `target_resume_time` from the `freeze()` method in `manager.py`.
+A freeze event now persists until the resume time specified in the `FreezeCommand` message payload is reached. Previously, the resume time was calculated from the scenario time at which the `FreezeRequest` message was received by the manager (scenario time at message receipt + freeze duration), which could cause time drift.
+- Prevented a one-step early advance after RESUMING by ensuring the `_wait_for_tock()` method in `simulator.py` re-anchors epochs and waits until the next tick before advancing.
+- Updated the `on_manager_freeze()` method in `managed_application.py` to honor `simFreezeTime` from a `FreezeCommand`, aligning to the requested scenario time (via wallclock mapping) before calling `pause()` so all apps freeze at the same scenario time.
