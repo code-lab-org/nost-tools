@@ -546,7 +546,6 @@ class Simulator(Observable):
         """
         if self._mode not in [Mode.PAUSING, Mode.PAUSED]:
             raise RuntimeError("Cannot resume: simulator is not pausing or paused.")
-        self._next_time = self._time
         self._set_mode(Mode.RESUMING)
 
     def terminate(self) -> None:
