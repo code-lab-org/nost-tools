@@ -171,3 +171,8 @@ Updated:
 A freeze event now persists until the resume time specified in the `FreezeCommand` message payload is reached. Previously, the resume time was calculated from the scenario time at which the `FreezeRequest` message was received by the manager (scenario time at message receipt + freeze duration), which could cause time drift.
 - Prevented a one-step early advance after RESUMING by ensuring the `_wait_for_tock()` method in `simulator.py` re-anchors epochs and waits until the next tick before advancing.
 - Updated the `on_manager_freeze()` method in `managed_application.py` to honor `simFreezeTime` from a `FreezeCommand`, aligning to the requested scenario time (via wallclock mapping) before calling `pause()` so all apps freeze at the same scenario time.
+
+## 3.0.2
+Updated:
+- Removed `self._next_time = self._time` from `resume()` in `simulator.py`, which was causing a drift of approximately 1 second per simulated day.
+- Changed a log statement in `freeze()` within `manager.py` from log.info to log.debug to reduce verbosity. The affected line reports the remaining time during a freeze.
