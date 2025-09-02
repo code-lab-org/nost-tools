@@ -770,7 +770,7 @@ class Manager(Application):
                 remaining = (
                     resume_time - self.simulator.get_wallclock_time()
                 ).total_seconds()
-                logger.info(
+                logger.debug(
                     f"Resume Time: {resume_time} Current Scenario Time: {self.simulator.get_time()} Current Wall Clock Time: {self.simulator.get_wallclock_time()} Remaining time: {remaining}"
                 )
                 if remaining <= 0:
