@@ -182,31 +182,38 @@ class ConnectionConfig:
             logger.warning(
                 "Checking for credentials in the system environment variables."
             )
+        # Load credentials from environment variables
+        # For Keycloak authentication, we support two modes:
+        # 1. User account: USERNAME + PASSWORD + CLIENT_ID + CLIENT_SECRET_KEY
+        # 2. Service account: CLIENT_ID + CLIENT_SECRET_KEY only
         if self.server_config.servers.rabbitmq.keycloak_authentication:
-            required_fields = [
-                "USERNAME",
-                "PASSWORD",
-                "CLIENT_ID",
-                "CLIENT_SECRET_KEY",
-            ]
+            env_data = {
+                "USERNAME": os.getenv("USERNAME"),
+                "PASSWORD": os.getenv("PASSWORD"),
+                "CLIENT_ID": os.getenv("CLIENT_ID"),
+                "CLIENT_SECRET_KEY": os.getenv("CLIENT_SECRET_KEY"),
+            }
         else:
-            required_fields = ["USERNAME", "PASSWORD"]
-
-        env_data = {field: os.getenv(field) for field in required_fields}
-
-        missing_fields = [field for field, value in env_data.items() if value is None]
-        if missing_fields:
-            raise EnvironmentVariableError(
-                f"Missing required fields in .env file: {', '.join(missing_fields)}"
-            )
+            # Non-Keycloak authentication requires username and password
+            env_data = {
+                "USERNAME": os.getenv("USERNAME"),
+                "PASSWORD": os.getenv("PASSWORD"),
+            }
+            # Check required fields for non-Keycloak auth
+            missing_fields = [field for field, value in env_data.items() if value is None]
+            if missing_fields:
+                raise EnvironmentVariableError(
+                    f"Missing required fields in .env file: {', '.join(missing_fields)}"
+                )
 
         try:
             if self.server_config.servers.rabbitmq.keycloak_authentication:
+                # Let Credentials validator handle authentication mode detection and validation
                 self.credentials_config = Credentials(
-                    username=env_data["USERNAME"],
-                    password=env_data["PASSWORD"],
-                    client_id=env_data["CLIENT_ID"],
-                    client_secret_key=env_data["CLIENT_SECRET_KEY"],
+                    username=env_data.get("USERNAME"),
+                    password=env_data.get("PASSWORD"),
+                    client_id=env_data.get("CLIENT_ID"),
+                    client_secret_key=env_data.get("CLIENT_SECRET_KEY"),
                 )
             else:
                 self.credentials_config = Credentials(
