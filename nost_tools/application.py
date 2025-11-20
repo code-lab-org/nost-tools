@@ -130,14 +130,24 @@ class Application:
             payload=status.model_dump_json(by_alias=True, exclude_none=True),
         )
 
-    def new_access_token(self, refresh_token=None):
+    def new_access_token(self, refresh_token=None, otp=None):
         """
         Obtains a new access token and refresh token from Keycloak. If a refresh token is provided,
         the access token is refreshed using the refresh token. Otherwise, the access token is obtained
-        using the username and password provided in the configuration.
+        using either:
+        - User authentication: username and password (with optional OTP)
+        - Service account: client credentials only
+
+        The authentication mode is automatically detected based on whether username/password are provided.
+
+        OTP/TOTP Handling:
+        - If OTP is required but not provided, the user will be prompted to enter it interactively
+        - OTP requirement is intelligently detected from Keycloak error responses
+        - If credentials are incorrect, a clear error is raised without prompting for OTP
 
         Args:
             refresh_token (str): refresh token (optional)
+            otp (str): one-time password for 2FA/MFA if required (optional)
         """
         logger.debug(
             "Acquiring access token."
@@ -155,21 +165,77 @@ class Application:
             if refresh_token:
                 token = keycloak_openid.refresh_token(refresh_token)
             else:
-                try:
-                    token = keycloak_openid.token(
-                        grant_type="password",
-                        username=self.config.rc.credentials.username,
-                        password=self.config.rc.credentials.password,
-                    )
-                except KeycloakAuthenticationError as e:
-                    logger.error(f"Authentication error without OTP: {e}")
-                    otp = input("Enter OTP: ")
-                    token = keycloak_openid.token(
-                        grant_type="password",
-                        username=self.config.rc.credentials.username,
-                        password=self.config.rc.credentials.password,
-                        totp=otp,
-                    )
+                # Detect authentication mode based on presence of username/password
+                has_username = self.config.rc.credentials.username is not None
+                has_password = self.config.rc.credentials.password is not None
+
+                if has_username and has_password:
+                    # User authentication mode with username/password
+                    logger.debug("Using user authentication (username/password)")
+                    try:
+                        # Try authentication with OTP if provided, otherwise without
+                        token_kwargs = {
+                            "grant_type": "password",
+                            "username": self.config.rc.credentials.username,
+                            "password": self.config.rc.credentials.password,
+                        }
+                        if otp:
+                            token_kwargs["totp"] = otp
+
+                        token = keycloak_openid.token(**token_kwargs)
+                    except KeycloakAuthenticationError as e:
+                        # Check if the error indicates OTP is required
+                        error_msg = str(e).lower()
+                        error_body = ""
+                        if hasattr(e, 'response_body') and e.response_body:
+                            try:
+                                error_body = e.response_body.decode('utf-8').lower()
+                            except:
+                                pass
+
+                        # Look for OTP/TOTP requirement indicators in error message or response body
+                        otp_indicators = ['otp', 'totp', 'one-time', 'two-factor', '2fa', 'mfa']
+                        is_otp_required = any(indicator in error_msg or indicator in error_body
+                                             for indicator in otp_indicators)
+
+                        if is_otp_required:
+                            # OTP is required but wasn't provided or was incorrect
+                            if otp:
+                                # OTP was provided but is incorrect
+                                logger.error(f"Authentication failed with provided OTP: {e}")
+                                raise Exception(
+                                    f"Authentication failed. The provided OTP may be incorrect or expired. "
+                                    f"Error: {e}"
+                                )
+                            else:
+                                # OTP wasn't provided, prompt for it
+                                logger.info("OTP/TOTP is required for this account")
+                                otp_input = input("Enter OTP: ")
+                                try:
+                                    token = keycloak_openid.token(
+                                        grant_type="password",
+                                        username=self.config.rc.credentials.username,
+                                        password=self.config.rc.credentials.password,
+                                        totp=otp_input,
+                                    )
+                                except KeycloakAuthenticationError as otp_error:
+                                    logger.error(f"Authentication failed with OTP: {otp_error}")
+                                    raise Exception(
+                                        f"Authentication failed. Please check your credentials and OTP. "
+                                        f"Error: {otp_error}"
+                                    )
+                        else:
+                            # Credentials are likely incorrect
+                            logger.error(f"Authentication failed: {e}")
+                            raise Exception(
+                                f"Authentication failed. Please check your username and password. "
+                                f"Error: {e}"
+                            )
+                else:
+                    # Service account authentication mode with client credentials
+                    logger.debug("Using service account authentication (client credentials)")
+                    token = keycloak_openid.token(grant_type=["client_credentials"])
+
             if "access_token" in token:
                 logger.debug(
                     "Acquiring access token successfully completed."

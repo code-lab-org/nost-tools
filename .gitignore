@@ -137,6 +137,7 @@ de421.bsp
 
 # Ignore .env files
 **/.env
+**/.env.*
 
 # Ignore env.js files
 **/env.js
@@ -158,3 +159,7 @@ testing/
 
 # Ignore active satellites
 **/active.txt
+
+# Ignore documentation files
+CLAUDE.md
+*.yaml

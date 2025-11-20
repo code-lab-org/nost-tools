@@ -176,3 +176,37 @@ A freeze event now persists until the resume time specified in the `FreezeComman
 Updated:
 - Removed `self._next_time = self._time` from `resume()` in `simulator.py`, which was causing a drift of approximately 1 second per simulated day.
 - Changed a log statement in `freeze()` within `manager.py` from log.info to log.debug to reduce verbosity. The affected line reports the remaining time during a freeze.
+
+## 3.0.3
+Added:
+- **Service Account Authentication Support**: Applications can now authenticate with Keycloak using service accounts (client credentials only) without requiring username and password. This is ideal for automated systems, scripts, and long-running processes.
+- **Dual Authentication Modes**: The system now supports two Keycloak authentication modes:
+  - **User Account**: Requires `USERNAME`, `PASSWORD`, `CLIENT_ID`, and `CLIENT_SECRET_KEY`
+  - **Service Account**: Requires only `CLIENT_ID` and `CLIENT_SECRET_KEY`
+- **Intelligent OTP Detection**: Added smart OTP/TOTP requirement detection in `new_access_token()` method that:
+  - Analyzes Keycloak error responses for OTP-related keywords (`otp`, `totp`, `two-factor`, `2fa`, `mfa`)
+  - Only prompts for OTP when Keycloak explicitly indicates it's required
+  - Prevents false OTP prompts when username/password are incorrect
+  - Provides clear, context-specific error messages for different failure scenarios
+- **Programmatic OTP Support**: Added optional `otp` parameter to `new_access_token()` method to support automation with OTP-enabled accounts
+- **Credentials Validation**: Added `validate_authentication_mode()` validator in `Credentials` schema that enforces valid credential combinations and provides clear error messages for invalid configurations
+- **Comprehensive Test Suite**: Added `tests/test_credentials.py` with 7 tests covering both authentication modes and validation scenarios
+- **Documentation**:
+  - Created `KEYCLOAK_AUTH_MODES.md` with detailed guide on both authentication modes, setup instructions, and error handling
+  - Created `OTP_IMPROVEMENTS.md` documenting intelligent OTP handling improvements
+  - Created `.env.example` template showing both authentication modes
+  - Created `.env.sos.example` specific template for sos.yaml configuration
+
+Changed:
+- **Credentials Schema** (`schemas.py`): Changed default values for `username` and `password` from `"admin"` to `None` to make them optional for service account authentication
+- **Environment Variable Loading** (`configuration.py`): Updated `load_environment_variables()` method to support optional username/password when Keycloak authentication is enabled, allowing service account mode
+- **Authentication Method** (`application.py`): Updated `new_access_token()` method to:
+  - Automatically detect authentication mode based on presence of username/password
+  - Use `grant_type="password"` for user authentication
+  - Use `grant_type=["client_credentials"]` for service account authentication
+  - Intelligently handle OTP requirements with proper error detection
+  - Log which authentication mode is being used for debugging
+- **Error Messages**: Improved authentication error messages to clearly indicate:
+  - "Authentication failed. Please check your username and password" for wrong credentials
+  - "OTP/TOTP is required for this account" when OTP is needed
+  - "The provided OTP may be incorrect or expired" for wrong OTP

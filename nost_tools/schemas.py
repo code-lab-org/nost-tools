@@ -697,12 +697,50 @@ class ChannelConfig(BaseModel):
 
 
 class Credentials(BaseModel):
-    username: Optional[str] = Field("admin", description="Username for authentication.")
-    password: Optional[str] = Field("admin", description="Password for authentication.")
+    username: Optional[str] = Field(None, description="Username for user authentication.")
+    password: Optional[str] = Field(None, description="Password for user authentication.")
     client_id: Optional[str] = Field(None, description="Client ID for authentication.")
     client_secret_key: Optional[str] = Field(
         None, description="Client secret key for authentication."
     )
+
+    @model_validator(mode="after")
+    def validate_authentication_mode(self):
+        """
+        Validates that either user credentials (username + password) or
+        service account credentials (client_id + client_secret_key only) are provided.
+
+        Two valid authentication modes:
+        1. User account: username + password + client_id + client_secret_key
+        2. Service account: client_id + client_secret_key (no username/password)
+        """
+        has_username = self.username is not None
+        has_password = self.password is not None
+        has_client_id = self.client_id is not None
+        has_client_secret = self.client_secret_key is not None
+
+        # Service account mode: client credentials only
+        if has_client_id and has_client_secret and not has_username and not has_password:
+            return self
+
+        # User account mode: all credentials required
+        if has_username and has_password and has_client_id and has_client_secret:
+            return self
+
+        # Invalid combinations
+        if (has_username or has_password) and not (has_username and has_password):
+            raise ValueError(
+                "Both username and password must be provided together for user authentication."
+            )
+
+        if not has_client_id or not has_client_secret:
+            raise ValueError(
+                "client_id and client_secret_key are required for authentication. "
+                "For service account: provide only client_id and client_secret_key. "
+                "For user account: provide username, password, client_id, and client_secret_key."
+            )
+
+        return self
 
 
 class SimulationConfig(BaseModel):
