@@ -79,17 +79,6 @@ class Manager(Application):
         self.init_retry_delay_s = None
         self.init_max_retry = None
 
-    def establish_exchange(self):
-        """
-        Establishes the exchange for the manager application.
-        """
-        self.channel.exchange_declare(
-            exchange=self.prefix,
-            exchange_type="topic",
-            durable=True,
-            auto_delete=True,
-        )
-
     def _sleep_with_heartbeat(self, total_seconds):
         """
         Sleep for a specified number of seconds while allowing connection heartbeats.
@@ -171,8 +160,6 @@ class Manager(Application):
             shut_down_when_terminated,
         )
 
-        # Establish the RabbitMQ exchange
-        self.establish_exchange()
         # Register callbacks for freeze, resume, and update requests from managed applications
         self.add_message_callback("*", "request.freeze", self.on_freeze_request)
         self.add_message_callback("*", "request.resume", self.on_resume_request)
@@ -232,7 +219,7 @@ class Manager(Application):
                     self.resume()
             else:
                 self.freeze(None, sim_freeze_time, None)
-                logger.info("Indefinite freeze requested - manual resume required")
+                logger.info("Indefinite freeze has ended")
 
         except Exception as e:
             logger.error(f"Error handling freeze request: {e}")
@@ -256,8 +243,14 @@ class Manager(Application):
             logger.info(
                 f"Received resume request from {params.requesting_app}: {message}"
             )
-            # Execute the resume command
-            self.resume()
+
+            # Use a separate thread to handle the resume to avoid blocking the callback
+            resume_thread = threading.Thread(
+                target=self._handle_resume_request,
+                args=(params.sim_resume_time, params.tolerance),
+                daemon=True,
+            )
+            resume_thread.start()
 
         except ValidationError as e:
             logger.error(f"Validation error in resume request: {e}")
@@ -265,6 +258,68 @@ class Manager(Application):
             logger.error(
                 f"Exception handling resume request (topic: {method.routing_key}, payload: {message}): {e}"
             )
+            print(traceback.format_exc())
+
+    def _handle_resume_request(
+        self, sim_resume_time: datetime = None, tolerance: timedelta = None
+    ) -> None:
+        """
+        Handle resume request with optional scenario time and tolerance.
+
+        Args:
+            sim_resume_time (:obj:`datetime`, optional): Scenario time at which to resume.
+                If None, resumes immediately.
+            tolerance (:obj:`timedelta`, optional): Time tolerance for resume. If provided,
+                ResumeCommand is sent only if current scenario time is within tolerance
+                of sim_resume_time. If not provided, ResumeCommand is sent immediately.
+        """
+        try:
+            # If no tolerance is provided, resume immediately
+            if tolerance is None:
+                logger.info("No tolerance specified. Resuming execution immediately.")
+                self.resume()
+                return
+
+            # If tolerance is provided but no sim_resume_time, resume immediately
+            if sim_resume_time is None:
+                logger.info(
+                    "Tolerance specified but no sim_resume_time provided. "
+                    "Resuming execution immediately."
+                )
+                self.resume()
+                return
+
+            # Both tolerance and sim_resume_time are provided
+            current_time = self.simulator.get_time()
+
+            # Normalize timezone awareness for comparison
+            if current_time.tzinfo is None and sim_resume_time.tzinfo is not None:
+                sim_resume_time = sim_resume_time.replace(tzinfo=None)
+            elif current_time.tzinfo is not None and sim_resume_time.tzinfo is None:
+                sim_resume_time = sim_resume_time.replace(tzinfo=current_time.tzinfo)
+
+            # Calculate the time difference
+            time_diff = abs((current_time - sim_resume_time).total_seconds())
+            tolerance_seconds = tolerance.total_seconds()
+
+            # Check if within tolerance
+            if time_diff <= tolerance_seconds:
+                logger.info(
+                    f"Current scenario time ({current_time}) is within tolerance "
+                    f"({tolerance}) of requested time ({sim_resume_time}). "
+                    f"Time difference: {timedelta(seconds=time_diff)}. Resuming execution."
+                )
+                self.resume()
+            else:
+                logger.info(
+                    f"Current scenario time ({current_time}) is outside tolerance "
+                    f"({tolerance}) of requested time ({sim_resume_time}). "
+                    f"Time difference: {timedelta(seconds=time_diff)}. "
+                    f"Ignoring request and waiting for ResumeRequest within tolerance."
+                )
+
+        except Exception as e:
+            logger.error(f"Error handling resume request: {e}")
             print(traceback.format_exc())
 
     def on_update_request(self, ch, method, properties, body) -> None:

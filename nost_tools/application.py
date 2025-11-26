@@ -526,6 +526,10 @@ class Application:
         self.channel = channel
         self.add_on_channel_close_callback()
 
+        # Establish the exchange for this application
+        if self.prefix:
+            self.establish_exchange()
+
         # Signal that connection is established
         self._is_connected.set()
 
@@ -540,6 +544,18 @@ class Application:
         if hasattr(self, "_message_queue") and self._message_queue:
             # Schedule message processing to happen after all initialization
             self.connection.ioloop.call_later(0.1, self._process_message_queue)
+
+    def establish_exchange(self):
+        """
+        Establishes the exchange for the application.
+        """
+        logger.debug(f"Declaring exchange: {self.prefix}")
+        self.channel.exchange_declare(
+            exchange=self.prefix,
+            exchange_type="topic",
+            durable=True,
+            auto_delete=True,
+        )
 
     def add_on_channel_close_callback(self):
         """This method tells pika to call the on_channel_closed method if
@@ -844,6 +860,48 @@ class Application:
         except Exception as e:
             logger.warning(f"Error during resource cleanup: {e}")
 
+    def _build_basic_properties(self) -> pika.BasicProperties:
+        """
+        Build BasicProperties for message publishing, only including non-None values.
+        This prevents protocol errors when None values are passed to RabbitMQ.
+
+        Returns:
+            pika.BasicProperties: Properties object with only non-None values
+        """
+        properties_dict = {}
+        rabbitmq_config = self.config.rc.server_configuration.servers.rabbitmq
+
+        if rabbitmq_config.content_type is not None:
+            properties_dict['content_type'] = rabbitmq_config.content_type
+        if rabbitmq_config.content_encoding is not None:
+            properties_dict['content_encoding'] = rabbitmq_config.content_encoding
+        if rabbitmq_config.headers is not None:
+            properties_dict['headers'] = rabbitmq_config.headers
+        if rabbitmq_config.delivery_mode is not None:
+            properties_dict['delivery_mode'] = rabbitmq_config.delivery_mode
+        if rabbitmq_config.priority is not None:
+            properties_dict['priority'] = rabbitmq_config.priority
+        if rabbitmq_config.correlation_id is not None:
+            properties_dict['correlation_id'] = rabbitmq_config.correlation_id
+        if rabbitmq_config.reply_to is not None:
+            properties_dict['reply_to'] = rabbitmq_config.reply_to
+        if rabbitmq_config.message_expiration is not None:
+            properties_dict['expiration'] = rabbitmq_config.message_expiration
+        if rabbitmq_config.message_id is not None:
+            properties_dict['message_id'] = rabbitmq_config.message_id
+        if rabbitmq_config.timestamp is not None:
+            properties_dict['timestamp'] = rabbitmq_config.timestamp
+        if rabbitmq_config.type is not None:
+            properties_dict['type'] = rabbitmq_config.type
+        if rabbitmq_config.user_id is not None:
+            properties_dict['user_id'] = rabbitmq_config.user_id
+        if rabbitmq_config.app_id is not None:
+            properties_dict['app_id'] = rabbitmq_config.app_id
+        if rabbitmq_config.cluster_id is not None:
+            properties_dict['cluster_id'] = rabbitmq_config.cluster_id
+
+        return pika.BasicProperties(**properties_dict)
+
     def send_message(self, app_name, app_topics, payload: str) -> None:
         """
         Sends a message to the broker. If the connection is down, the message is queued
@@ -892,22 +950,7 @@ class Application:
                     exchange=self.prefix,
                     routing_key=routing_key,
                     body=payload,
-                    properties=pika.BasicProperties(
-                        content_type=self.config.rc.server_configuration.servers.rabbitmq.content_type,
-                        content_encoding=self.config.rc.server_configuration.servers.rabbitmq.content_encoding,
-                        headers=self.config.rc.server_configuration.servers.rabbitmq.headers,
-                        delivery_mode=self.config.rc.server_configuration.servers.rabbitmq.delivery_mode,
-                        priority=self.config.rc.server_configuration.servers.rabbitmq.priority,
-                        correlation_id=self.config.rc.server_configuration.servers.rabbitmq.correlation_id,
-                        reply_to=self.config.rc.server_configuration.servers.rabbitmq.reply_to,
-                        expiration=self.config.rc.server_configuration.servers.rabbitmq.message_expiration,
-                        message_id=self.config.rc.server_configuration.servers.rabbitmq.message_id,
-                        timestamp=self.config.rc.server_configuration.servers.rabbitmq.timestamp,
-                        type=self.config.rc.server_configuration.servers.rabbitmq.type,
-                        user_id=self.config.rc.server_configuration.servers.rabbitmq.user_id,
-                        app_id=self.config.rc.server_configuration.servers.rabbitmq.app_id,
-                        cluster_id=self.config.rc.server_configuration.servers.rabbitmq.cluster_id,
-                    ),
+                    properties=self._build_basic_properties(),
                 )
                 logger.debug(
                     f"Successfully sent message '{payload}' to topic '{routing_key}'."
@@ -950,22 +993,7 @@ class Application:
                     exchange=self.prefix,
                     routing_key=routing_key,
                     body=payload,
-                    properties=pika.BasicProperties(
-                        content_type=self.config.rc.server_configuration.servers.rabbitmq.content_type,
-                        content_encoding=self.config.rc.server_configuration.servers.rabbitmq.content_encoding,
-                        headers=self.config.rc.server_configuration.servers.rabbitmq.headers,
-                        delivery_mode=self.config.rc.server_configuration.servers.rabbitmq.delivery_mode,
-                        priority=self.config.rc.server_configuration.servers.rabbitmq.priority,
-                        correlation_id=self.config.rc.server_configuration.servers.rabbitmq.correlation_id,
-                        reply_to=self.config.rc.server_configuration.servers.rabbitmq.reply_to,
-                        expiration=self.config.rc.server_configuration.servers.rabbitmq.message_expiration,
-                        message_id=self.config.rc.server_configuration.servers.rabbitmq.message_id,
-                        timestamp=self.config.rc.server_configuration.servers.rabbitmq.timestamp,
-                        type=self.config.rc.server_configuration.servers.rabbitmq.type,
-                        user_id=self.config.rc.server_configuration.servers.rabbitmq.user_id,
-                        app_id=self.config.rc.server_configuration.servers.rabbitmq.app_id,
-                        cluster_id=self.config.rc.server_configuration.servers.rabbitmq.cluster_id,
-                    ),
+                    properties=self._build_basic_properties(),
                 )
                 success_count += 1
             except Exception as e:

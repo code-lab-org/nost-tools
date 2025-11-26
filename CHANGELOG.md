@@ -222,6 +222,14 @@ Added:
   - **Keycloak Service Account**: `CLIENT_ID` + `CLIENT_SECRET_KEY` only
   - **Keycloak User Account**: `USERNAME` + `PASSWORD` + `CLIENT_ID` + `CLIENT_SECRET_KEY`
 - **Comprehensive Three-Mode Testing**: Added `test_basic_auth_mode_valid()` test to verify localhost authentication works correctly
+- **Optional Scenario Time and Tolerance for ResumeRequest**: Added optional fields to `ResumeRequestParameters` in `schemas.py`:
+  - `sim_resume_time`: Allows managed applications to specify target scenario time for resume
+  - `tolerance`: Time tolerance (timedelta) for matching scenario time to requested time
+  - Both fields are optional and maintain backward compatibility (default to `None`)
+  - Uses `simResumeTime` and `tolerance` aliases for JSON serialization consistency
+- **Tolerance-Based Resume Command Logic**: Added `_handle_resume_request()` method in `manager.py` to handle tolerance-based resume requests:
+  - Runs in a separate thread to avoid blocking message callbacks
+  - Default tolerance of 12 hours can be specified by managed applications
 
 Changed:
 - **Credentials Validator** (`schemas.py`): Enhanced validation logic to recognize basic authentication as a valid mode alongside Keycloak authentication modes
@@ -230,3 +238,24 @@ Changed:
   - Updated test assertions to match new error messages
   - Now testing 8 scenarios (was 7) including basic auth mode
 - **Error Messages**: Updated validation error messages to include all three authentication modes for better troubleshooting
+- **Resume Request Handling** (`manager.py`): Modified `on_resume_request()` to delegate to `_handle_resume_request()` for tolerance-based handling:
+  - **If `tolerance` is NOT provided**: `ResumeCommand` is sent immediately (regardless of `sim_resume_time`)
+  - **If `tolerance` IS provided**:
+    - **Both `tolerance` and `sim_resume_time` provided**: Checks if current scenario time is within tolerance of requested time
+      - **Within tolerance**: `ResumeCommand` is sent immediately
+      - **Outside tolerance**: Request is ignored with informative log message showing time difference
+    - **Only `tolerance` provided (no `sim_resume_time`)**: `ResumeCommand` is sent immediately
+  - This tolerance-based approach allows managed applications to send multiple `ResumeRequest` messages with the Manager only acting when scenario time is within the specified tolerance window
+- **Exchange Declaration** (`application.py`): Moved `establish_exchange()` method from `Manager` class to base `Application` class:
+  - All applications (unmanaged Application, ManagedApplication, and Manager) now automatically declare the exchange when channel opens
+  - Fixes "NOT_FOUND - no exchange" errors when unmanaged applications try to publish messages
+  - Exchange is declared in `on_channel_open()` callback, ensuring it exists before any message operations
+  - Eliminates requirement for Manager to run first before other applications can send messages
+- **Freeze Request Logging** (`manager.py`): Fixed misleading log message in `_handle_freeze_request()`:
+  - "Indefinite freeze requested - manual resume required" now logs before freeze starts (not after)
+  - Added "Indefinite freeze has ended" log message after freeze completes
+- **BasicProperties Handling** (`application.py`): Fixed RabbitMQ protocol error "UNEXPECTED_FRAME - expected content header for class 60":
+  - Added `_build_basic_properties()` helper method that filters out `None` values before creating `pika.BasicProperties`
+  - Updated `send_message()` and `_process_message_queue()` to use the new helper
+  - Prevents protocol errors when YAML configuration has undefined/None BasicProperties fields
+  - Resolves random connection drops with error code 505 (UNEXPECTED_FRAME)
