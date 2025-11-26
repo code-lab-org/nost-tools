@@ -79,17 +79,6 @@ class Manager(Application):
         self.init_retry_delay_s = None
         self.init_max_retry = None
 
-    def establish_exchange(self):
-        """
-        Establishes the exchange for the manager application.
-        """
-        self.channel.exchange_declare(
-            exchange=self.prefix,
-            exchange_type="topic",
-            durable=True,
-            auto_delete=True,
-        )
-
     def _sleep_with_heartbeat(self, total_seconds):
         """
         Sleep for a specified number of seconds while allowing connection heartbeats.
@@ -171,8 +160,6 @@ class Manager(Application):
             shut_down_when_terminated,
         )
 
-        # Establish the RabbitMQ exchange
-        self.establish_exchange()
         # Register callbacks for freeze, resume, and update requests from managed applications
         self.add_message_callback("*", "request.freeze", self.on_freeze_request)
         self.add_message_callback("*", "request.resume", self.on_resume_request)
