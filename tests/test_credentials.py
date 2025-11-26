@@ -1,5 +1,5 @@
 """
-Tests for Credentials validation with user account and service account modes.
+Tests for Credentials validation with basic auth, user account, and service account modes.
 """
 
 import unittest
@@ -9,6 +9,17 @@ from nost_tools.schemas import Credentials
 
 class TestCredentials(unittest.TestCase):
     """Test Credentials authentication mode validation."""
+
+    def test_basic_auth_mode_valid(self):
+        """Test that basic auth mode works with only username and password (localhost)."""
+        creds = Credentials(
+            username="testuser",
+            password="testpass"
+        )
+        self.assertEqual(creds.username, "testuser")
+        self.assertEqual(creds.password, "testpass")
+        self.assertIsNone(creds.client_id)
+        self.assertIsNone(creds.client_secret_key)
 
     def test_service_account_mode_valid(self):
         """Test that service account mode works with only client credentials."""
@@ -21,8 +32,8 @@ class TestCredentials(unittest.TestCase):
         self.assertIsNone(creds.username)
         self.assertIsNone(creds.password)
 
-    def test_user_account_mode_valid(self):
-        """Test that user account mode works with all credentials."""
+    def test_keycloak_user_account_mode_valid(self):
+        """Test that Keycloak user account mode works with all credentials."""
         creds = Credentials(
             username="testuser",
             password="testpass",
@@ -40,7 +51,7 @@ class TestCredentials(unittest.TestCase):
             Credentials(
                 client_secret_key="client-secret"
             )
-        self.assertIn("client_id", str(context.exception))
+        self.assertIn("client_id and client_secret_key must be provided together", str(context.exception))
 
     def test_missing_client_secret_fails(self):
         """Test that missing client_secret_key raises validation error."""
@@ -48,7 +59,7 @@ class TestCredentials(unittest.TestCase):
             Credentials(
                 client_id="client-id"
             )
-        self.assertIn("client_secret_key", str(context.exception))
+        self.assertIn("client_id and client_secret_key must be provided together", str(context.exception))
 
     def test_username_without_password_fails(self):
         """Test that username without password raises validation error."""
@@ -74,7 +85,7 @@ class TestCredentials(unittest.TestCase):
         """Test that no credentials at all raises validation error."""
         with self.assertRaises(ValidationError) as context:
             Credentials()
-        self.assertIn("client_id and client_secret_key are required", str(context.exception))
+        self.assertIn("No credentials provided", str(context.exception))
 
 
 if __name__ == "__main__":

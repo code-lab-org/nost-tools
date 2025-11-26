@@ -707,37 +707,66 @@ class Credentials(BaseModel):
     @model_validator(mode="after")
     def validate_authentication_mode(self):
         """
-        Validates that either user credentials (username + password) or
-        service account credentials (client_id + client_secret_key only) are provided.
+        Validates that valid credential combinations are provided.
 
-        Two valid authentication modes:
-        1. User account: username + password + client_id + client_secret_key
-        2. Service account: client_id + client_secret_key (no username/password)
+        Three valid authentication modes:
+        1. Basic auth (localhost): username + password only
+        2. Keycloak user account: username + password + client_id + client_secret_key
+        3. Keycloak service account: client_id + client_secret_key only
         """
         has_username = self.username is not None
         has_password = self.password is not None
         has_client_id = self.client_id is not None
         has_client_secret = self.client_secret_key is not None
 
+        # Basic auth mode (localhost): username + password only
+        if has_username and has_password and not has_client_id and not has_client_secret:
+            return self
+
         # Service account mode: client credentials only
         if has_client_id and has_client_secret and not has_username and not has_password:
             return self
 
-        # User account mode: all credentials required
+        # User account mode (Keycloak): all credentials required
         if has_username and has_password and has_client_id and has_client_secret:
             return self
 
         # Invalid combinations
         if (has_username or has_password) and not (has_username and has_password):
             raise ValueError(
-                "Both username and password must be provided together for user authentication."
+                "Both username and password must be provided together for authentication."
             )
 
-        if not has_client_id or not has_client_secret:
+        # If we have username/password but only one of client_id/client_secret
+        if has_username and has_password and (has_client_id != has_client_secret):
             raise ValueError(
-                "client_id and client_secret_key are required for authentication. "
-                "For service account: provide only client_id and client_secret_key. "
-                "For user account: provide username, password, client_id, and client_secret_key."
+                "If using Keycloak authentication with username/password, both client_id and "
+                "client_secret_key must be provided. For basic auth (localhost), omit both "
+                "client_id and client_secret_key."
+            )
+
+        # If we have client credentials but only one of username/password
+        if (has_client_id or has_client_secret) and (has_username != has_password):
+            raise ValueError(
+                "Invalid credential combination. Valid modes: "
+                "(1) Basic auth: username + password only, "
+                "(2) Keycloak user: username + password + client_id + client_secret_key, "
+                "(3) Service account: client_id + client_secret_key only."
+            )
+
+        # If we only have partial client credentials
+        if (has_client_id and not has_client_secret) or (not has_client_id and has_client_secret):
+            raise ValueError(
+                "Both client_id and client_secret_key must be provided together."
+            )
+
+        # No credentials at all
+        if not has_username and not has_password and not has_client_id and not has_client_secret:
+            raise ValueError(
+                "No credentials provided. Valid modes: "
+                "(1) Basic auth: username + password, "
+                "(2) Keycloak user: username + password + client_id + client_secret_key, "
+                "(3) Service account: client_id + client_secret_key."
             )
 
         return self

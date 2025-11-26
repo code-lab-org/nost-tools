@@ -210,3 +210,23 @@ Changed:
   - "Authentication failed. Please check your username and password" for wrong credentials
   - "OTP/TOTP is required for this account" when OTP is needed
   - "The provided OTP may be incorrect or expired" for wrong OTP
+
+## 3.0.4
+Added:
+- **Basic Authentication Mode**: Added support for localhost/development connections without Keycloak authentication
+  - Allows `USERNAME` + `PASSWORD` only (no client credentials required)
+  - Ideal for local RabbitMQ development without Keycloak infrastructure
+  - System now supports three distinct authentication modes instead of two
+- **Enhanced Credentials Validation**: Updated `validate_authentication_mode()` in `Credentials` schema to support three authentication modes:
+  - **Basic Auth (localhost)**: `USERNAME` + `PASSWORD` only
+  - **Keycloak Service Account**: `CLIENT_ID` + `CLIENT_SECRET_KEY` only
+  - **Keycloak User Account**: `USERNAME` + `PASSWORD` + `CLIENT_ID` + `CLIENT_SECRET_KEY`
+- **Comprehensive Three-Mode Testing**: Added `test_basic_auth_mode_valid()` test to verify localhost authentication works correctly
+
+Changed:
+- **Credentials Validator** (`schemas.py`): Enhanced validation logic to recognize basic authentication as a valid mode alongside Keycloak authentication modes
+- **Test Suite** (`tests/test_credentials.py`):
+  - Renamed `test_user_account_mode_valid()` to `test_keycloak_user_account_mode_valid()` for clarity
+  - Updated test assertions to match new error messages
+  - Now testing 8 scenarios (was 7) including basic auth mode
+- **Error Messages**: Updated validation error messages to include all three authentication modes for better troubleshooting
