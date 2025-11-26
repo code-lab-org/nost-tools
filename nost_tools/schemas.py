@@ -246,6 +246,16 @@ class ResumeRequestParameters(BaseModel):
         description="Name of the application requesting the freeze.",
         alias="requestingApp",
     )
+    sim_resume_time: Optional[datetime] = Field(
+        None,
+        description="Scenario time at which to resume execution. If not provided, resume immediately.",
+        alias="simResumeTime",
+    )
+    tolerance: Optional[timedelta] = Field(
+        None,
+        description="Time tolerance for resume. If provided, ResumeCommand is sent only if current scenario time is within tolerance of sim_resume_time. If not provided, ResumeCommand is sent immediately.",
+        alias="tolerance",
+    )
 
 
 class ResumeRequest(BaseModel):
