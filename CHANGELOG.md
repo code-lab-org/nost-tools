@@ -246,3 +246,16 @@ Changed:
       - **Outside tolerance**: Request is ignored with informative log message showing time difference
     - **Only `tolerance` provided (no `sim_resume_time`)**: `ResumeCommand` is sent immediately
   - This tolerance-based approach allows managed applications to send multiple `ResumeRequest` messages with the Manager only acting when scenario time is within the specified tolerance window
+- **Exchange Declaration** (`application.py`): Moved `establish_exchange()` method from `Manager` class to base `Application` class:
+  - All applications (unmanaged Application, ManagedApplication, and Manager) now automatically declare the exchange when channel opens
+  - Fixes "NOT_FOUND - no exchange" errors when unmanaged applications try to publish messages
+  - Exchange is declared in `on_channel_open()` callback, ensuring it exists before any message operations
+  - Eliminates requirement for Manager to run first before other applications can send messages
+- **Freeze Request Logging** (`manager.py`): Fixed misleading log message in `_handle_freeze_request()`:
+  - "Indefinite freeze requested - manual resume required" now logs before freeze starts (not after)
+  - Added "Indefinite freeze has ended" log message after freeze completes
+- **BasicProperties Handling** (`application.py`): Fixed RabbitMQ protocol error "UNEXPECTED_FRAME - expected content header for class 60":
+  - Added `_build_basic_properties()` helper method that filters out `None` values before creating `pika.BasicProperties`
+  - Updated `send_message()` and `_process_message_queue()` to use the new helper
+  - Prevents protocol errors when YAML configuration has undefined/None BasicProperties fields
+  - Resolves random connection drops with error code 505 (UNEXPECTED_FRAME)
