@@ -416,24 +416,6 @@ class ManagedApplication(Application):
             payload=request.model_dump_json(by_alias=True),
         )
 
-    def request_resume(self) -> None:
-        """
-        Request a resume from the manager.
-        """
-        # Create the resume request
-        request = ResumeRequest.model_validate(
-            {"taskingParameters": {"requestingApp": self.app_name}}
-        )
-
-        logger.info(f"Requesting resume: {request.model_dump_json(by_alias=True)}")
-
-        # Send the request to the manager
-        self.send_message(
-            app_name=self.app_name,
-            app_topics="request.resume",
-            payload=request.model_dump_json(by_alias=True),
-        )
-
     def request_update(
         self, time_scale_factor: float, sim_update_time: datetime = None
     ) -> None:
