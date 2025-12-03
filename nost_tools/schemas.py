@@ -481,6 +481,9 @@ class GeneralConfig(BaseModel):
     ntp_host: Optional[str] = Field(
         "pool.ntp.org", description="NTP host for wallclock offset synchronization."
     )
+    resume_tolerance: Optional[timedelta] = Field(
+        timedelta(hours=12), description="Default time tolerance for resume requests (HH:MM:SS format in YAML)."
+    )
 
 
 class LoggingConfig(BaseModel):
@@ -664,6 +667,9 @@ class ApplicationConfig(BaseModel):
     manager_app_name: Optional[str] = Field(
         "manager", description="Manager application name."
     )
+    configuration_parameters: Optional[Dict] = Field(
+        None, description="Application-specific configuration parameters."
+    )
 
 
 class ExecConfig(BaseModel):
@@ -678,8 +684,9 @@ class ExecConfig(BaseModel):
     logger_application: Optional[LoggerApplicationConfig] = Field(
         None, description="Logger application configuration."
     )
-    application: Optional[ApplicationConfig] = Field(
-        None, description="Application configuration."
+    applications: Optional[Dict[str, ApplicationConfig]] = Field(
+        default_factory=lambda: {"default": ApplicationConfig()},
+        description="Dictionary of unmanaged application configurations, keyed by application name.",
     )
 
 

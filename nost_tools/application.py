@@ -326,11 +326,14 @@ class Application:
         """
         if self.config and self.config.rc.yaml_file:
             try:
-                return getattr(
+                applications_dict = getattr(
                     self.config.rc.simulation_configuration.execution_parameters,
-                    "application",
+                    "applications",
                     None,
                 )
+                if applications_dict and self.app_name in applications_dict:
+                    return applications_dict[self.app_name]
+                return None
             except (AttributeError, KeyError):
                 return None
         return None
@@ -1645,3 +1648,47 @@ class Application:
             logger.info(f"File logging configured: {log_filename} (level: {log_level})")
         except Exception as e:
             logger.error(f"Error configuring file logging: {e}")
+
+    def request_resume(
+        self, sim_resume_time: datetime = None, tolerance: timedelta = None
+    ) -> None:
+        """
+        Request a resume from the manager with optional scenario time and tolerance.
+
+        Args:
+            sim_resume_time (:obj:`datetime`, optional): Scenario time at which to resume.
+                If None, resume immediately.
+            tolerance (:obj:`timedelta`, optional): Time tolerance for resume. If not provided,
+                uses default from configuration_parameters['resume_tolerance'] if available.
+                If tolerance is None (not provided and not in config), resume immediately.
+        """
+        from .schemas import ResumeRequest
+
+        # If tolerance not provided, get default from general config (defaults to 12 hours)
+        if tolerance is None and self.config and self.config.rc.yaml_file:
+            try:
+                general_config = self.config.rc.simulation_configuration.execution_parameters.general
+                if general_config and general_config.resume_tolerance:
+                    tolerance = general_config.resume_tolerance
+            except (AttributeError, KeyError):
+                # If not in config, will remain None and resume immediately
+                pass
+
+        # Build request parameters
+        request_params = {"requestingApp": self.app_name}
+        if sim_resume_time is not None:
+            request_params["simResumeTime"] = sim_resume_time
+        if tolerance is not None:
+            request_params["tolerance"] = tolerance
+
+        # Create the resume request
+        request = ResumeRequest.model_validate({"taskingParameters": request_params})
+
+        logger.info(f"Requesting resume: {request.model_dump_json(by_alias=True)}")
+
+        # Send the request to the manager
+        self.send_message(
+            app_name=self.app_name,
+            app_topics="request.resume",
+            payload=request.model_dump_json(by_alias=True),
+        )
