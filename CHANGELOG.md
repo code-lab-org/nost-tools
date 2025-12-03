@@ -259,3 +259,25 @@ Changed:
   - Updated `send_message()` and `_process_message_queue()` to use the new helper
   - Prevents protocol errors when YAML configuration has undefined/None BasicProperties fields
   - Resolves random connection drops with error code 505 (UNEXPECTED_FRAME)
+
+## 3.0.5
+Added:
+- **Application Configuration Support**: Added `configuration_parameters` support for unmanaged `Application` class:
+  - Updated `ExecConfig` in `schemas.py` to include `applications` dictionary (similar to `managed_applications`)
+  - Updated `ApplicationConfig` in `schemas.py` to include `configuration_parameters` field
+  - Updated `get_app_specific_config()` in `configuration.py` to accept `app_type` parameter ("applications" or "managed_applications")
+  - Updated `Application._get_parameters_from_config()` to retrieve app-specific config from `applications` section
+  - Updated `ConnectionConfig` to populate `application_configuration` from both `applications` and `managed_applications` sections
+  - Enables custom per-application configuration parameters in YAML
+- **Resume Tolerance Configuration**: Added global `resume_tolerance` parameter to `GeneralConfig`:
+  - Added `request_resume()` method to `Application` class that sends `ResumeRequest` messages with optional `sim_resume_time` and `tolerance` parameters
+  - Removed duplicate `request_resume()` from `ManagedApplication` - now inherits enhanced version from `Application`
+  - Default tolerance of 12 hours can be configured globally in `execution.general.resume_tolerance`
+  - Can be overridden per-request by passing `tolerance` parameter to `request_resume()`
+  - Example YAML structure:
+    ```yaml
+    execution:
+      general:
+        prefix: nost
+        resume_tolerance: "12:00:00"  # Global default for all applications
+    ```
