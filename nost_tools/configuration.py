@@ -223,12 +223,13 @@ class ConnectionConfig:
         except ValidationError as err:
             raise EnvironmentVariableError(f"Invalid environment variables: {err}")
 
-    def get_app_specific_config(self, app_name):
+    def get_app_specific_config(self, app_name, app_type="managed_applications"):
         """
-        Get application-specific configuration from execution.managed_applications if available.
+        Get application-specific configuration from execution.managed_applications or execution.applications if available.
 
         Args:
             app_name (str): Name of the application
+            app_type (str): Type of application - "managed_applications" or "applications" (default: "managed_applications")
 
         Returns:
             dict: Application-specific configuration parameters if available, otherwise None.
@@ -240,7 +241,7 @@ class ConnectionConfig:
             yaml_data = yaml.safe_load(f)
 
             try:
-                return yaml_data["execution"]["managed_applications"][app_name][
+                return yaml_data["execution"][app_type][app_name][
                     "configuration_parameters"
                 ]
             except:
@@ -283,7 +284,10 @@ class ConnectionConfig:
                 raise ValueError(f"Assertion error: {e}")
             # Load app-specific configuration if app_name is provided
             if self.app_name:
-                self.app_specific = self.get_app_specific_config(self.app_name)
+                # Try applications section first, then managed_applications
+                self.app_specific = self.get_app_specific_config(self.app_name, app_type="applications")
+                if not self.app_specific:
+                    self.app_specific = self.get_app_specific_config(self.app_name, app_type="managed_applications")
         else:
             try:
                 self.yaml_config = Config(
