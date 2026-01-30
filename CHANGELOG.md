@@ -281,3 +281,18 @@ Added:
         prefix: nost
         resume_tolerance: "12:00:00"  # Global default for all applications
     ```
+
+## 3.0.6
+Changed:
+- **Consumer Cleanup on Shutdown** (`application.py`): Removed redundant `stop_consuming()` call in `stop_application()`:
+  - Queue deletion already implicitly cancels all consumers attached to those queues via RabbitMQ's standard behavior
+  - Eliminates "pika.channel: basic_cancel - consumer not found" warning during application shutdown
+  - Reduces unnecessary RPC calls during cleanup sequence
+
+- **Reconnection Logic** (`application.py`): Fixed network reconnection failing when applications are in frozen/paused state:
+  - Removed duplicate `_io_thread` creation in `reconnect()` method that caused two threads to compete for the same ioloop
+  - Now stops the old ioloop explicitly after creating the new connection, allowing `_start_io_loop`'s while loop to pick up the new
+  connection naturally
+  - Changed error handler to use `threading.Timer` instead of `ioloop.call_later()` for retry scheduling, since ioloop state may be
+inconsistent during failures
+  - Reconnection now works reliably regardless of simulator mode (executing, paused, etc.)
