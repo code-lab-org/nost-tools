@@ -702,6 +702,9 @@ class Application:
                         )
                         # Continue with existing token, it might still work
 
+                # Save reference to old connection's ioloop before creating new one
+                old_ioloop = self.connection.ioloop if self.connection else None
+
                 self.connection = pika.SelectConnection(
                     parameters=self._connection_parameters,
                     on_open_callback=self.on_connection_open,
@@ -709,17 +712,20 @@ class Application:
                     on_close_callback=self.on_connection_closed,
                 )
 
-                # Start the I/O loop in a separate thread
-                self._io_thread = threading.Thread(target=self._start_io_loop)
-                self._io_thread.start()
-                self._is_connected.wait()
+                # Stop the old ioloop so _start_io_loop's while loop can continue
+                # with the new connection. Don't start a new thread.
+                if old_ioloop:
+                    old_ioloop.stop()
                 logger.info(
-                    "Attempting to reconnect to RabbitMQ completed successfully."
+                    "Reconnection initiated, new connection will be processed by existing IO thread."
                 )
 
             except Exception as e:
                 logger.error(f"Reconnection attempt failed: {e}")
-                self.connection.ioloop.call_later(self._reconnect_delay, self.reconnect)
+                # Use Timer instead of call_later since ioloop may be stopped/inconsistent
+                timer = threading.Timer(self._reconnect_delay, self.reconnect)
+                timer.daemon = True
+                timer.start()
 
     def shut_down(self) -> None:
         """
@@ -1509,13 +1515,6 @@ class Application:
                 logger.info("Cleaning up queues completed successfully.")
             else:
                 logger.warning("Cleaning up queues timed out after 10 seconds.")
-
-            # Stop consuming messages if we were consuming
-            if self._consuming:
-                try:
-                    self.stop_consuming()
-                except Exception as e:
-                    logger.error(f"Error stopping consumer: {e}")
 
             # Also stop token refresh thread if it exists
             if hasattr(self, "_should_stop"):
