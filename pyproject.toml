@@ -29,7 +29,7 @@ dependencies = [
     "pika >= 1",
     "python-dotenv",
     "pyyaml",
-    "python-keycloak >= 5"
+    "python-keycloak >=5, <7"
 ]
 dynamic = ["version"]
 
