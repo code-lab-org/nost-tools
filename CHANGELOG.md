@@ -296,3 +296,10 @@ Changed:
   - Changed error handler to use `threading.Timer` instead of `ioloop.call_later()` for retry scheduling, since ioloop state may be
 inconsistent during failures
   - Reconnection now works reliably regardless of simulator mode (executing, paused, etc.)
+
+## 3.0.7
+Changed:
+- **Python-Keycloak Version Constraint**: Pinned `python-keycloak` dependency to `>=5, <7` in `pyproject.toml`:
+  - Version 7.0.0+ uses PEP 604 union type syntax (`str | Role`) which requires Python 3.10+
+  - This constraint maintains compatibility with Python 3.9 (`requires-python = ">=3.9"`)
+  - Can be relaxed when `nost_tools` drops Python 3.9 support or upstream adds `from __future__ import annotations`
