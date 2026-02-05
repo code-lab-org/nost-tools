@@ -508,6 +508,12 @@ class Manager(Application):
 
         # Wait for stop time - simulator now handles freeze time internally
         while True:
+            # Skip stop time calculation if simulator is paused/pausing
+            # The epochs will be stale until resume, so wait for resume first
+            if self.simulator.get_mode() in (Mode.PAUSED, Mode.PAUSING):
+                time.sleep(0.1)
+                continue
+
             end_time = self.simulator.get_wallclock_time_at_simulation_time(
                 self.simulator.get_end_time()
             )
