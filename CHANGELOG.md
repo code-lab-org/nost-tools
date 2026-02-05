@@ -303,3 +303,11 @@ Changed:
   - Version 7.0.0+ uses PEP 604 union type syntax (`str | Role`) which requires Python 3.10+
   - This constraint maintains compatibility with Python 3.9 (`requires-python = ">=3.9"`)
   - Can be relaxed when `nost_tools` drops Python 3.9 support or upstream adds `from __future__ import annotations`
+
+## 3.0.8
+Fixed:
+- **Manager Stop Command Timing During Freezes** (`manager.py`): Fixed bug where Manager sent Stop command at the originally expected time instead of accounting for freeze duration:
+  - Added pause mode check in `_execute_test_plan_impl()` waiting loop to skip stop time calculations while simulator is in `PAUSED` or `PAUSING` mode
+  - Prevents race condition where stale `_wallclock_epoch` and `_simulation_epoch` values caused incorrect stop time calculations during freezes
+  - Stop command now correctly sent at `original_expected_time + freeze_duration` (e.g., 10 minutes total wallclock time for 5-minute execution + 5-minute freeze)
+  - Ensures proper synchronization between Manager's waiting logic and Simulator's freeze/resume cycle
