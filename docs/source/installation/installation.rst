@@ -111,7 +111,13 @@ If the above fails, you can also try the HTTPS version:
 Credentials
 -----------
 
-Credentials required by the NOS-T infrastructure can be defined in your bashrc file or using a .env file.
+Credentials required by the NOS-T infrastructure can be defined in your bashrc file or using a ``.env`` file. The required credentials depend on the authentication mode. NOS-T supports three modes:
+
+1. **Basic Auth** (localhost/development): ``USERNAME`` + ``PASSWORD`` only
+2. **Keycloak Service Account** (automated systems): ``CLIENT_ID`` + ``CLIENT_SECRET_KEY`` only
+3. **Keycloak User Account** (interactive users): ``USERNAME`` + ``PASSWORD`` + ``CLIENT_ID`` + ``CLIENT_SECRET_KEY``
+
+See :ref:`authModes` for full details on each mode.
 
 Bashrc
 ^^^^^^
@@ -122,7 +128,7 @@ Open your bashrc file:
 
     vim ~/.bashrc
 
-Add the following lines:
+Add the lines appropriate for your authentication mode. For example, for Keycloak user account:
 
 .. code-block:: bash
 
@@ -140,24 +146,27 @@ Source the changes:
 .env
 ^^^^
 
-You can create a .env file using the same values as listed above:
+You can create a ``.env`` file using the same values as listed above:
 
 .. code-block:: bash
 
     vim .env
 
-Add the following lines:
+Add the lines appropriate for your authentication mode. For example:
 
 .. code-block:: bash
 
-    USERNAME=<NOS-T Keycloak Username>
-    PASSWORD=<NOS-T Keycloak Password>
-    CLIENT_ID=<Ask NOS-T Operator>
-    CLIENT_SECRET_KEY=<Ask NOS-T Operator>
+    # Basic Auth (localhost) - only username and password
+    USERNAME="admin"
+    PASSWORD="admin"
+
+    # For Keycloak modes, also add:
+    # CLIENT_ID=<Ask NOS-T Operator>
+    # CLIENT_SECRET_KEY=<Ask NOS-T Operator>
 
 .. important::
 
-    Restart your computer after defining environmental variables in your ~/.bashrc file.
+    Restart your computer after defining environmental variables in your ``~/.bashrc`` file.
 
 Dependencies and Requirements
 ------------------------------

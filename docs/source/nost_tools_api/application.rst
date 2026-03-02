@@ -3,7 +3,7 @@
 Application Objects
 ===================
 
-These object classes manage communication between a simulator and broker using the MQTT messaging protocol.
+These object classes manage communication between a simulator and broker using the AMQP messaging protocol.
 
 
 Utilities
@@ -47,7 +47,7 @@ Publishers define patterns for publishing messages on regularly spaced time-inte
 Applications
 ------------
 
-These applications serve as templates or wrappers of basic MQTT client functionality and synchronization for simulation.
+These applications serve as templates or wrappers of basic AMQP client functionality and synchronization for simulation.
 
 .. autoclass:: nost_tools.application.Application
   :members:
@@ -56,10 +56,6 @@ These applications serve as templates or wrappers of basic MQTT client functiona
 .. _toolsMgdApp:
 
 .. autoclass:: nost_tools.managed_application.ManagedApplication
-  :members:
-  :show-inheritance:
-
-.. autoclass:: nost_tools.manager.TimeScaleUpdate
   :members:
   :show-inheritance:
 

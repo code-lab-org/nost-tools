@@ -12,26 +12,41 @@ servers:
     message_expiration: "60000"
     delivery_mode: 2
     content_type: "text/plain"
-    heartbeat: 30
+    heartbeat: 600
     connection_attempts: 3
     retry_delay: 5
+    reconnect_delay: 10
+    blocked_connection_timeout: 300
+    queue_max_size: 1000
+    frame_max: 131072
+    socket_timeout: 10.0
+    stack_timeout: 15.0
   keycloak:
     host: "nost.smce.nasa.gov"
     port: 8443
     tls: True
-    token_refresh_interval: 10
+    token_refresh_interval: 240
     realm: "NOS-T"
 execution:
   general:
     prefix: sos
+    wallclock_offset_refresh_interval: 10800
+    ntp_host: "pool.ntp.org"
+    resume_tolerance: "12:00:00"
+  applications:
+    dashboard:
+      set_offset: False
+      shut_down_when_terminated: True
+      configuration_parameters:
+        refresh_rate: 5
   manager:
     sim_start_time: "2019-03-01T23:59:59+00:00"
     sim_stop_time: "2019-03-10T23:59:59+00:00"
     start_time:
     time_step: "0:00:01"
     time_scale_factor: 288
-    time_scale_updates: []
-    time_status_step: "0:00:01" # 1 second * time scale factor
+    time_status_step: "0:00:01"
+    is_scenario_time_status_step: False
     time_status_init: "2019-03-01T23:59:59+00:00"
     command_lead: "0:00:05"
     required_apps:
@@ -43,16 +58,29 @@ execution:
     init_max_retry: 5
     set_offset: True
     shut_down_when_terminated: False
-  managed_application:
-    time_scale_factor: 288
-    time_step: "0:00:01" # 1 second * time scale factor 
-    set_offset: True
-    time_status_step: "0:00:10" # 10 seconds * time scale factor
-    time_status_init: "2019-03-01T00:00:00+00:00"
-    shut_down_when_terminated: False
-    manager_app_name: "manager"
+  managed_applications:
+    planner:
+      time_scale_factor: 288
+      time_step: "0:00:01"
+      is_scenario_time_step: False
+      set_offset: True
+      time_status_step: "0:00:10"
+      is_scenario_time_status_step: False
+      shut_down_when_terminated: False
+      manager_app_name: "manager"
+      configuration_parameters:
+        planning_horizon: 3600
+    simulator:
+      time_scale_factor: 288
+      time_step: "0:00:01"
+      is_scenario_time_step: False
+      set_offset: True
+      time_status_step: "0:00:10"
+      is_scenario_time_status_step: False
+      shut_down_when_terminated: False
+      manager_app_name: "manager"
 channels:
-  satellite: 
+  satellite:
     location:
       address: 'sos.constellation.location'
       bindings:
@@ -137,7 +165,7 @@ channels:
             durable: false
             autoDelete: true
             vhost: /
-          bindingVersion: 0.3.0             
+          bindingVersion: 0.3.0
     status.mode:
       address: 'sos.manager.status.mode'
       bindings:

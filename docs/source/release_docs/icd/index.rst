@@ -3,6 +3,10 @@
 Interface Control Document
 ==========================
 
+.. warning::
+
+   This ICD was written for NOS-T v1.0 (February 2022) using the MQTT protocol with Solace PubSub+ as the message broker. The current version of NOS-T uses the **AMQP protocol with RabbitMQ** and includes additional command types (**Freeze** and **Resume**) not covered in this document. See the :ref:`API Reference <nostTools>` for current documentation.
+
 .. list-table:: Release History
   :widths: 10 20 70
   :header-rows: 1

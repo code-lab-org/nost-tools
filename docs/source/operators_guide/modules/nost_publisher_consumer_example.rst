@@ -51,7 +51,6 @@ First, create a file named ``sos.yaml`` with the following content:
         start_time:
         time_step: "0:00:01"
         time_scale_factor: 288 # 1 simulation day = 5 wallclock minutes
-        time_scale_updates: []
         time_status_step: "0:00:01" # 1 second * time scale factor
         time_status_init: "2019-03-01T23:59:59+00:00"
         command_lead: "0:00:05"
@@ -64,21 +63,31 @@ First, create a file named ``sos.yaml`` with the following content:
         init_max_retry: 5
         set_offset: True
         shut_down_when_terminated: False
-      managed_application:
-        time_scale_factor: 288 # 1 simulation day = 5 wallclock minutes
-        time_step: "0:00:01" # 1 second * time scale factor 
-        set_offset: True
-        time_status_step: "0:00:10" # 10 seconds * time scale factor
-        time_status_init: "2019-03-01T00:00:00+00:00"
-        shut_down_when_terminated: False
-        manager_app_name: "manager"
+      managed_applications:
+        publisher:
+          time_scale_factor: 288 # 1 simulation day = 5 wallclock minutes
+          time_step: "0:00:01" # 1 second * time scale factor
+          set_offset: True
+          time_status_step: "0:00:10" # 10 seconds * time scale factor
+          time_status_init: "2019-03-01T00:00:00+00:00"
+          shut_down_when_terminated: False
+          manager_app_name: "manager"
 
-Then, create a ``.env`` file with the following content:
+Then, create a ``.env`` file with the following content. The required environment variables depend on your authentication mode (see :ref:`authModes` for details):
 
 .. code-block:: bash
-    
+
+    # Basic Auth (localhost development) - username and password only
     USERNAME="admin"
     PASSWORD="admin"
+
+    # Keycloak User Account - add these for Keycloak authentication
+    # CLIENT_ID="your-client-id"
+    # CLIENT_SECRET_KEY="your-client-secret"
+
+    # Keycloak Service Account - client credentials only (no username/password)
+    # CLIENT_ID="your-client-id"
+    # CLIENT_SECRET_KEY="your-client-secret"
 
 Creating a Publisher
 -------------------
@@ -87,7 +96,7 @@ Create a file named ``nost_publisher.py`` with the following content:
 
 .. code-block:: python
 
-    from nost_tools.config import ConnectionConfig
+    from nost_tools.configuration import ConnectionConfig
     from nost_tools.managed_application import ManagedApplication
     import time
     import logging
@@ -143,7 +152,7 @@ Create a file named ``nost_consumer.py`` with the following content:
 
 .. code-block:: python
 
-    from nost_tools.config import ConnectionConfig
+    from nost_tools.configuration import ConnectionConfig
     from nost_tools.managed_application import ManagedApplication
     import logging
     import time

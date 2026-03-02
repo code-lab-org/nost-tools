@@ -9,3 +9,4 @@ This section contains information of the Advanced Message Queuing Protocol (AMQP
    amqpProtocol
    localBroker
    examples
+   authentication_modes
