@@ -37,6 +37,9 @@ execution:
     dashboard:
       set_offset: False
       shut_down_when_terminated: True
+      enable_file_logging: True
+      log_dir: "logs"
+      log_level: "INFO"
       configuration_parameters:
         refresh_rate: 5
   manager:
@@ -58,6 +61,11 @@ execution:
     init_max_retry: 5
     set_offset: True
     shut_down_when_terminated: False
+    enable_file_logging: True
+    log_dir: "logs"
+    log_level: "DEBUG"
+    max_bytes: 10485760
+    backup_count: 5
   managed_applications:
     planner:
       time_scale_factor: 288
@@ -68,6 +76,11 @@ execution:
       is_scenario_time_status_step: False
       shut_down_when_terminated: False
       manager_app_name: "manager"
+      enable_file_logging: True
+      log_dir: "logs"
+      log_level: "INFO"
+      max_bytes: 5242880
+      backup_count: 3
       configuration_parameters:
         planning_horizon: 3600
     simulator:
