@@ -146,7 +146,7 @@ Example:
 ..            refresh_rate: 5
 
 .. literalinclude:: example.yml
-	:lines: 36-41
+	:lines: 36-44
 
 Manager Configuration
 """""""""""""""""""""
@@ -181,7 +181,7 @@ Example:
 ..        shut_down_when_terminated: False             # Automatically shut down when simulation ends
 
 .. literalinclude:: example.yml
-	:lines: 42-60
+	:lines: 45-68
 
 Managed Application Configuration
 """""""""""""""""""""""""""""""""
@@ -211,28 +211,31 @@ Example:
 ..            planning_horizon: 3600
 
 .. literalinclude:: example.yml
-	:lines: 60-82
+	:lines: 69-94
 
 Logging Configuration
 """""""""""""""""""""
 
-File logging can be enabled per-application through the YAML configuration. Logging parameters are inherited by ``ManagerConfig`` and ``ManagedApplicationConfig``. When ``enable_file_logging`` is set to ``True``, the ``configure_file_logging()`` method is automatically called during ``start_up()``.
+File logging can be enabled per-application through the YAML configuration. Logging parameters are inherited by ``ManagerConfig``, ``ManagedApplicationConfig``, and ``ApplicationConfig``. When ``enable_file_logging`` is set to ``True``, the ``configure_file_logging()`` method is automatically called during ``start_up()``.
 
 .. autopydantic_model:: nost_tools.schemas.LoggingConfig
   :members:
   :inherited-members: BaseModel
 
-Example:
+Unmanaged application logging example:
 
-.. code-block:: yaml
+.. literalinclude:: example.yml
+	:lines: 36-37, 40-42
 
-   execution:
-     manager:
-       enable_file_logging: True
-       log_dir: "logs"
-       log_level: "DEBUG"
-       max_bytes: 10485760        # 10 MB
-       backup_count: 5
+Manager logging example:
+
+.. literalinclude:: example.yml
+	:lines: 45, 64-68
+
+Managed application logging example:
+
+.. literalinclude:: example.yml
+	:lines: 69-70, 79-83
 
 Channels Section
 ^^^^^^^^^^^^^^^^
@@ -260,7 +263,7 @@ Channels follow this structure:
 Example:
 
 .. literalinclude:: example.yml
-	:lines: 83-
+	:lines: 95-
 
 In this example YAML file, the configuration includes predefined channels for:
 
