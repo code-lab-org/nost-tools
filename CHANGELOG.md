@@ -311,3 +311,11 @@ Fixed:
   - Prevents race condition where stale `_wallclock_epoch` and `_simulation_epoch` values caused incorrect stop time calculations during freezes
   - Stop command now correctly sent at `original_expected_time + freeze_duration` (e.g., 10 minutes total wallclock time for 5-minute execution + 5-minute freeze)
   - Ensures proper synchronization between Manager's waiting logic and Simulator's freeze/resume cycle
+
+## 3.0.9
+Changed:
+- **ScenarioTimeIntervalCallback Initial Offset** (`observer.py`): Added optional `time_init` parameter to `ScenarioTimeIntervalCallback` to decouple the initial trigger offset from the repeating interval:
+  - Previously, the initial offset and repeating interval were always the same value, causing cumulative drift when the interval was not exactly 24 hours (e.g., `timedelta(hours=23, minutes=55)` drifted 5 minutes earlier each day)
+  - New `time_init` parameter sets the offset for the first trigger independently from `time_interval`
+  - When omitted, defaults to `time_interval` (backward compatible)
+  - Example: `ScenarioTimeIntervalCallback(callback, timedelta(days=1), time_init=timedelta(hours=23, minutes=55))` fires at 23:55 daily without drift
