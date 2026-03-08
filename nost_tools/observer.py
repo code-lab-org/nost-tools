@@ -207,10 +207,14 @@ class ScenarioTimeIntervalCallback(Observer):
     """
 
     def __init__(
-        self, callback: Callable[[object, datetime], None], time_inteval: timedelta
+        self,
+        callback: Callable[[object, datetime], None],
+        time_inteval: timedelta,
+        time_init: Optional[timedelta] = None,
     ):
         self.callback = callback
         self.time_interval = time_inteval
+        self.time_init = time_init
         self._next_time = None
 
     def on_change(
@@ -218,7 +222,8 @@ class ScenarioTimeIntervalCallback(Observer):
     ):
         if property_name == source.PROPERTY_TIME:
             if self._next_time is None:
-                self._next_time = old_value + self.time_interval
+                init = self.time_init if self.time_init is not None else self.time_interval
+                self._next_time = old_value + init
             while self._next_time <= new_value:
                 self.callback(source, self._next_time)
                 self._next_time = self._next_time + self.time_interval
