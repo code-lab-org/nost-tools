@@ -85,6 +85,9 @@ class Application:
         self.declared_exchanges = set()
         self.predefined_exchanges_queues = False
         self._callbacks_per_topic = {}
+        # Message queue for when connection is down
+        self._message_queue = []
+        self._queue_lock = threading.Lock()
         # Token
         self.refresh_token = None
         self._token_refresh_thread = None
@@ -571,7 +574,7 @@ class Application:
                 self.add_message_callback(app_name, app_topic, user_callback)
 
         # Process any queued messages now that we're connected
-        if hasattr(self, "_message_queue") and self._message_queue:
+        if self._message_queue:
             # Schedule message processing to happen after all initialization
             self.connection.ioloop.call_later(0.1, self._process_message_queue)
 
@@ -963,6 +966,43 @@ class Application:
 
         return pika.BasicProperties(**properties_dict)
 
+    def _do_publish(self, app_name, app_topic, routing_key, payload):
+        """
+        Performs basic_publish on the IO thread. If it fails, re-queues the message.
+        This method must only be called on the IO thread (via add_callback_threadsafe).
+        """
+        if self.channel is None or not self._is_connected.is_set():
+            with self._queue_lock:
+                if len(self._message_queue) < self._queue_max_size:
+                    self._message_queue.append(
+                        (time.time(), app_name, app_topic, payload)
+                    )
+                    logger.warning(
+                        f"Connection lost before publish, re-queued message for {routing_key}"
+                    )
+            return
+
+        try:
+            self.channel.basic_publish(
+                exchange=self.prefix,
+                routing_key=routing_key,
+                body=payload,
+                properties=self._build_basic_properties(),
+            )
+            logger.debug(
+                f"Successfully sent message '{payload}' to topic '{routing_key}'."
+            )
+        except Exception as e:
+            logger.warning(f"Failed to publish message to {routing_key}: {e}")
+            with self._queue_lock:
+                if len(self._message_queue) < self._queue_max_size:
+                    self._message_queue.append(
+                        (time.time(), app_name, app_topic, payload)
+                    )
+                    logger.info(
+                        f"Queued failed message for retry (queue size: {len(self._message_queue)})"
+                    )
+
     def send_message(self, app_name, app_topics, payload: str) -> None:
         """
         Sends a message to the broker. If the connection is down, the message is queued
@@ -973,11 +1013,6 @@ class Application:
             app_topics (str or list): topic name or list of topic names
             payload (str): message payload
         """
-        # Initialize message queue if it doesn't exist
-        if not hasattr(self, "_message_queue"):
-            self._message_queue = []
-            # self._queue_max_size = 1000  # Limit queue size to prevent memory issues
-
         if isinstance(app_topics, str):
             app_topics = [app_topics]
 
@@ -985,66 +1020,66 @@ class Application:
         if self.channel is None or not self._is_connected.is_set():
             logger.warning(f"Connection down, queueing message for later delivery")
 
-            # Queue the message if there's space available
-            if len(self._message_queue) < self._queue_max_size:
-                # Add timestamp to each message for FIFO ordering
-                timestamp = time.time()
-                for app_topic in app_topics:
-                    self._message_queue.append(
-                        (timestamp, app_name, app_topic, payload)
+            with self._queue_lock:
+                if len(self._message_queue) < self._queue_max_size:
+                    timestamp = time.time()
+                    for app_topic in app_topics:
+                        self._message_queue.append(
+                            (timestamp, app_name, app_topic, payload)
+                        )
+                        logger.info(
+                            f"Queued message for topic {app_topic} (queue size: {len(self._message_queue)})"
+                        )
+                else:
+                    logger.error(
+                        f"Message queue full, dropping message for {app_topics}"
                     )
-                    logger.info(
-                        f"Queued message for topic {app_topic} (queue size: {len(self._message_queue)})"
-                    )
-            else:
-                logger.error(f"Message queue full, dropping message for {app_topics}")
             return
 
-        # Try to send any queued messages first
-        self._process_message_queue()
+        # Schedule queued message processing on the IO thread
+        if self._message_queue:
+            try:
+                self.connection.ioloop.add_callback_threadsafe(
+                    self._process_message_queue
+                )
+            except Exception:
+                pass
 
-        # Now send the current message
+        # Schedule each publish on the IO thread
         for app_topic in app_topics:
             routing_key = self.create_routing_key(app_name=app_name, topic=app_topic)
             try:
-                self.channel.basic_publish(
-                    exchange=self.prefix,
-                    routing_key=routing_key,
-                    body=payload,
-                    properties=self._build_basic_properties(),
-                )
-                logger.debug(
-                    f"Successfully sent message '{payload}' to topic '{routing_key}'."
+                self.connection.ioloop.add_callback_threadsafe(
+                    functools.partial(
+                        self._do_publish, app_name, app_topic, routing_key, payload
+                    )
                 )
             except Exception as e:
-                logger.warning(f"Failed to publish message to {routing_key}: {e}")
-                # Queue the failed message if there's space available
-                if len(self._message_queue) < self._queue_max_size:
-                    timestamp = time.time()
-                    self._message_queue.append(
-                        (timestamp, app_name, app_topic, payload)
-                    )
-                    logger.info(
-                        f"Queued failed message for retry (queue size: {len(self._message_queue)})"
-                    )
+                logger.warning(f"Failed to schedule publish for {routing_key}: {e}")
+                with self._queue_lock:
+                    if len(self._message_queue) < self._queue_max_size:
+                        self._message_queue.append(
+                            (time.time(), app_name, app_topic, payload)
+                        )
 
     def _process_message_queue(self):
         """
         Process queued messages when connection is available.
         Attempts to send all queued messages in order of oldest first.
+        This method runs on the IO thread.
         """
-        if not hasattr(self, "_message_queue") or not self._message_queue:
-            return  # No messages to process
+        with self._queue_lock:
+            if not self._message_queue:
+                return
+            sorted_messages = sorted(self._message_queue, key=lambda x: x[0])
+            self._message_queue.clear()
 
         if self.channel is None or not self._is_connected.is_set():
-            return  # Still no connection
+            with self._queue_lock:
+                self._message_queue.extend(sorted_messages)
+            return
 
-        # Process the queue in timestamp order (oldest first)
-        logger.info(f"Processing message queue ({len(self._message_queue)} messages)")
-
-        # Sort messages by timestamp (oldest first)
-        sorted_messages = sorted(self._message_queue, key=lambda x: x[0])
-        self._message_queue.clear()
+        logger.info(f"Processing message queue ({len(sorted_messages)} messages)")
 
         success_count = 0
         for timestamp, app_name, app_topic, payload in sorted_messages:
@@ -1058,18 +1093,22 @@ class Application:
                 )
                 success_count += 1
             except Exception as e:
-                # If sending still fails, put it back in the queue with original timestamp
-                # to preserve ordering
-                logger.warning(f"Failed to resend queued message to {routing_key}: {e}")
-                self._message_queue.append((timestamp, app_name, app_topic, payload))
+                logger.warning(
+                    f"Failed to resend queued message to {routing_key}: {e}"
+                )
+                with self._queue_lock:
+                    self._message_queue.append(
+                        (timestamp, app_name, app_topic, payload)
+                    )
 
         if success_count > 0:
             logger.info(f"Successfully sent {success_count} queued messages")
 
-        if self._message_queue:
-            logger.info(
-                f"{len(self._message_queue)} messages remain queued for later delivery"
-            )
+        with self._queue_lock:
+            if self._message_queue:
+                logger.info(
+                    f"{len(self._message_queue)} messages remain queued for later delivery"
+                )
 
     def routing_key_matches_pattern(self, routing_key, pattern):
         """
