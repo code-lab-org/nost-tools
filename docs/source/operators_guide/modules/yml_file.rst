@@ -124,6 +124,32 @@ Example:
 .. literalinclude:: example.yml
 	:lines: 30-35
 
+.. _logging-configuration:
+
+Logging Configuration
+"""""""""""""""""""""
+
+File logging can be enabled per-application through the YAML configuration. Logging parameters are inherited by ``ApplicationConfig``, ``ManagerConfig``, and ``ManagedApplicationConfig``. When ``enable_file_logging`` is set to ``True``, the ``configure_file_logging()`` method is automatically called during ``start_up()``.
+
+.. autopydantic_model:: nost_tools.schemas.LoggingConfig
+  :members:
+  :inherited-members: BaseModel
+
+Unmanaged application logging example:
+
+.. literalinclude:: example.yml
+	:lines: 36-37, 40-42
+
+Manager logging example:
+
+.. literalinclude:: example.yml
+	:lines: 45, 64-68
+
+Managed application logging example:
+
+.. literalinclude:: example.yml
+	:lines: 69-70, 79-83
+
 Application Configuration
 """""""""""""""""""""""""
 
@@ -212,30 +238,6 @@ Example:
 
 .. literalinclude:: example.yml
 	:lines: 69-94
-
-Logging Configuration
-"""""""""""""""""""""
-
-File logging can be enabled per-application through the YAML configuration. Logging parameters are inherited by ``ManagerConfig``, ``ManagedApplicationConfig``, and ``ApplicationConfig``. When ``enable_file_logging`` is set to ``True``, the ``configure_file_logging()`` method is automatically called during ``start_up()``.
-
-.. autopydantic_model:: nost_tools.schemas.LoggingConfig
-  :members:
-  :inherited-members: BaseModel
-
-Unmanaged application logging example:
-
-.. literalinclude:: example.yml
-	:lines: 36-37, 40-42
-
-Manager logging example:
-
-.. literalinclude:: example.yml
-	:lines: 45, 64-68
-
-Managed application logging example:
-
-.. literalinclude:: example.yml
-	:lines: 69-70, 79-83
 
 Channels Section
 ^^^^^^^^^^^^^^^^
