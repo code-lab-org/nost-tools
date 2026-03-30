@@ -1,4 +1,4 @@
-__version__ = "3.0.8"
+__version__ = "3.0.9"
 
 from .application import Application
 from .application_utils import ConnectionConfig, ModeStatusObserver, TimeStatusPublisher
