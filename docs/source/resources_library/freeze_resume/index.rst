@@ -16,17 +16,25 @@ The system follows a request-command pattern:
 
 This design ensures that all applications freeze and resume in a coordinated manner, with the Manager maintaining control of the simulation timeline.
 
-.. code-block:: text
+.. mermaid::
 
-   ManagedApplication                Manager                    All Applications
-         |                              |                              |
-         |--- FreezeRequest ----------->|                              |
-         |                              |--- FreezeCommand ----------->|
-         |                              |                              | (all pause)
-         |                              |                              |
-         |--- ResumeRequest ----------->|                              |
-         |                              |--- ResumeCommand ----------->|
-         |                              |                              | (all resume)
+    ---
+    config:
+        theme: neutral
+        look: neo
+    ---
+    sequenceDiagram
+        participant MA as ManagedApplication
+        participant M as Manager
+        participant All as All Applications
+
+        MA->>M: FreezeRequest
+        M->>All: FreezeCommand
+        Note over All: All pause
+
+        MA->>M: ResumeRequest
+        M->>All: ResumeCommand
+        Note over All: All resume
 
 Requesting a Freeze
 -------------------
