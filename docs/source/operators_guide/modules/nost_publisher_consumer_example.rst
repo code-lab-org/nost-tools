@@ -19,66 +19,42 @@ First, create a file named ``sos.yaml`` with the following content:
 
 .. code-block:: yaml
 
-    info:
-      title: Novel Observing Strategies Testbed (NOS-T) YAML Configuration
-      version: '1.0.0'
-      description: Version-controlled AsyncAPI document for RabbitMQ event broker with Keycloak authentication within NOS-T
-    servers:
-      rabbitmq:
-        keycloak_authentication: False
-        host: "localhost"
-        port: 5672
-        tls: False
-        virtual_host: "/"
-        message_expiration: "60000" # in milliseconds, message expiration time
-        delivery_mode: 2 # 1=transient, 2=durable
-        content_type: "text/plain"
-        heartbeat: 30 # in seconds
-        connection_attempts: 3
-        retry_delay: 5 # in seconds
-      keycloak:
-        host: "nost.smce.nasa.gov"
-        port: 8443
-        tls: True
-        token_refresh_interval: 10 #in seconds
-        realm: "NOS-T"
-    execution:
-      general:
-        prefix: sos
-      manager:
-        sim_start_time: "2019-03-01T23:59:59+00:00"
-        sim_stop_time: "2019-03-10T23:59:59+00:00"
-        start_time:
-        time_step: "0:00:01"
-        time_scale_factor: 288 # 1 simulation day = 5 wallclock minutes
-        time_scale_updates: []
-        time_status_step: "0:00:01" # 1 second * time scale factor
-        time_status_init: "2019-03-01T23:59:59+00:00"
-        command_lead: "0:00:05"
-        required_apps:
-          - manager
-          - planner
-          - appender
-          - simulator
-        init_retry_delay_s: 5
-        init_max_retry: 5
-        set_offset: True
-        shut_down_when_terminated: False
-      managed_application:
-        time_scale_factor: 288 # 1 simulation day = 5 wallclock minutes
-        time_step: "0:00:01" # 1 second * time scale factor 
-        set_offset: True
-        time_status_step: "0:00:10" # 10 seconds * time scale factor
-        time_status_init: "2019-03-01T00:00:00+00:00"
-        shut_down_when_terminated: False
-        manager_app_name: "manager"
+  info:
+    title: Novel Observing Strategies Testbed (NOS-T) YAML Configuration
+    version: '1.0.0'
+    description: Version-controlled AsyncAPI document for RabbitMQ event broker
+  servers:
+    rabbitmq:
+      keycloak_authentication: False
+      host: "localhost"
+      port: 5672
+      tls: False
+      virtual_host: "/"
+      message_expiration: "60000" # in milliseconds, message expiration time
+      delivery_mode: 2 # 1=transient, 2=durable
+      content_type: "text/plain"
+      heartbeat: 30 # in seconds
+      connection_attempts: 3
+      retry_delay: 5 # in seconds
+  execution:
+    general:
+      prefix: sos
 
-Then, create a ``.env`` file with the following content:
+Then, create a ``.env`` file with the following content. The required environment variables depend on your authentication mode (see :ref:`authModes` for details):
 
 .. code-block:: bash
-    
+
+    # Basic Auth (localhost development) - username and password only
     USERNAME="admin"
     PASSWORD="admin"
+
+    # Keycloak User Account - add these for Keycloak authentication
+    # CLIENT_ID="your-client-id"
+    # CLIENT_SECRET_KEY="your-client-secret"
+
+    # Keycloak Service Account - client credentials only (no username/password)
+    # CLIENT_ID="your-client-id"
+    # CLIENT_SECRET_KEY="your-client-secret"
 
 Creating a Publisher
 -------------------
@@ -87,11 +63,12 @@ Create a file named ``nost_publisher.py`` with the following content:
 
 .. code-block:: python
 
-    from nost_tools.config import ConnectionConfig
-    from nost_tools.managed_application import ManagedApplication
-    import time
     import logging
     import random
+    import time
+
+    from nost_tools.application import Application
+    from nost_tools.configuration import ConnectionConfig
 
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger()
@@ -103,38 +80,36 @@ Create a file named ``nost_publisher.py`` with the following content:
     NAME = "publisher"
 
     # Create the managed application
-    app = ManagedApplication(NAME)
+    app = Application(NAME)
 
     # Start up the application
     app.start_up(
-        config.rc.simulation_configuration.execution_parameters.general.prefix,
-        config
+        config.rc.simulation_configuration.execution_parameters.general.prefix, config
     )
 
     # Send messages in a loop
     try:
         message_count = 0
         logger.info("Starting to publish messages. Press CTRL+C to stop.")
-        
+
         while True:
             message_count += 1
-            message = f"This is test message #{message_count} with value: {random.random():.4f}"
-            
-            # Send a message
-            app.send_message(
-                app_name="publisher",
-                app_topics="test",
-                payload=message
+            message = (
+                f"This is test message #{message_count} with value: {random.random():.4f}"
             )
-            
+
+            # Send a message
+            app.send_message(app_name=NAME, app_topics="test", payload=message)
+
             logger.info(f"Published message: {message}")
             time.sleep(2)  # Publish a message every 2 seconds
-            
+
     except KeyboardInterrupt:
         logger.info("Stopping publisher...")
     finally:
         # Clean shutdown would go here
         logger.info("Publisher stopped")
+
 
 Creating a Consumer
 --------------------
@@ -143,40 +118,38 @@ Create a file named ``nost_consumer.py`` with the following content:
 
 .. code-block:: python
 
-    from nost_tools.config import ConnectionConfig
-    from nost_tools.managed_application import ManagedApplication
     import logging
     import time
 
+    from nost_tools.application import Application
+    from nost_tools.configuration import ConnectionConfig
+
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger()
+
 
     def callback(ch, method, properties, body):
         """Process received messages"""
         body = body.decode("utf-8")
         logger.info(f"Received message: {body}")
 
+
     # Load connection configuration from YAML
     config = ConnectionConfig(yaml_file="sos.yaml")
 
     # Define application name
-    NAME = "observer1"
+    NAME = "consumer"
 
     # Create the managed application
-    app = ManagedApplication(NAME)
+    app = Application(NAME)
 
     # Start up the application
     app.start_up(
-        config.rc.simulation_configuration.execution_parameters.general.prefix,
-        config
+        config.rc.simulation_configuration.execution_parameters.general.prefix, config
     )
 
     # Register callback for messages from publisher
-    app.add_message_callback(
-        app_name="publisher",
-        app_topic="test",
-        user_callback=callback
-    )
+    app.add_message_callback(app_name="publisher", app_topic="test", user_callback=callback)
 
     logger.info("Consumer started. Waiting for messages. Press CTRL+C to stop.")
 

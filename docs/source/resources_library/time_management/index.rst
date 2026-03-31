@@ -30,7 +30,6 @@ There are sets of time paramters in both the NOS-T manager and example codes tha
         start_time: datetime = None,
         time_step: timedelta = timedelta(seconds=1),
         time_scale_factor: float = 1.0,
-        time_scale_updates: List[TimeScaleUpdate] = [],
         time_status_step: timedelta = None,
         time_status_init: datetime = None,
         command_lead: timedelta = timedelta(seconds=0),
@@ -55,8 +54,6 @@ There are sets of time paramters in both the NOS-T manager and example codes tha
      - The iteration of time per the tick/tock methods. The standard in 1 second, that is then scaled through the time_scale_factor.
    * - time_scale_factor
      - A multiplication factor that scales the time step of a function. For example, a factor of 60  mean that one second of real time is 60 seconds (one minute) of simulation time. This factor can be used in non-real-time scenarios to progress through long periods of time quickly.e
-   * - time_scale_updates
-     - This variable is an optional list of timestamps, at which the scale factor can be updated to a specified amount. This is used to 'fast-forward' through parts of the simulation, or slow down for further analysis.
    * - time_status_step
      - This is the interval at which the time of the application will be published, an important step for checking consistency and debugging.
    * - time_status_init
@@ -71,6 +68,10 @@ There are sets of time paramters in both the NOS-T manager and example codes tha
      - This variable sets the retry limit for a test plan
 
 
+
+.. note::
+
+   As of version 3.0.0, time scale updates are no longer configured statically in the YAML file. Instead, managed applications can dynamically request time scale updates, freezes, and resumes during execution using ``request_update()``, ``request_freeze()``, and ``request_resume()``. See :ref:`freezeResume` for details.
 
 The Tick and Tock Methods
 ^^^^^^^^^^^^^^^^^^^^^^^^^

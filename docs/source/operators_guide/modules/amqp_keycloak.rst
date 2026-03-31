@@ -1,6 +1,10 @@
 AMQP with Keycloak
 ==================
 
+.. note::
+
+   This guide covers the full Keycloak OTP/2FA user account setup workflow. NOS-T also supports **service account authentication** (client credentials only) and **basic authentication** (localhost, no Keycloak). See :ref:`authModes` for details on all three authentication modes.
+
 Authentication Workflow
 -----------------------
 

@@ -20,53 +20,49 @@ Create a file named ``publisher.py`` with the following content:
 .. code-block:: python
 
     #!/usr/bin/env python
-    import pika
-    import time
     import json
+    import time
     from datetime import datetime
 
+    import pika
+
     # Connection parameters
-    credentials = pika.PlainCredentials('admin', 'admin')
-    parameters = pika.ConnectionParameters('localhost',
-                                          5672,
-                                          '/',
-                                          credentials)
+    credentials = pika.PlainCredentials("admin", "admin")
+    parameters = pika.ConnectionParameters("localhost", 5672, "/", credentials)
 
     # Establish connection to RabbitMQ
     connection = pika.BlockingConnection(parameters)
     channel = connection.channel()
 
     # Declare an exchange
-    exchange_name = 'nost_example'
-    channel.exchange_declare(exchange=exchange_name, exchange_type='topic')
+    exchange_name = "example"
+    channel.exchange_declare(exchange=exchange_name, exchange_type="topic")
 
     # Publish messages
     try:
         message_count = 0
         print("Starting to publish messages. Press CTRL+C to stop.")
-        
+
         while True:
             message_count += 1
             timestamp = datetime.now().isoformat()
-            
+
             message = {
                 "sequence": message_count,
                 "timestamp": timestamp,
-                "data": f"Test message {message_count}"
+                "data": f"Test message {message_count}",
             }
-            
-            routing_key = 'nost.example.data'
+
+            routing_key = "example.data"
             message_body = json.dumps(message)
-            
+
             channel.basic_publish(
-                exchange=exchange_name,
-                routing_key=routing_key,
-                body=message_body
+                exchange=exchange_name, routing_key=routing_key, body=message_body
             )
-            
+
             print(f"Published message {message_count}: {message_body}")
             time.sleep(2)  # Publish a message every 2 seconds
-            
+
     except KeyboardInterrupt:
         print("Stopping publisher...")
     finally:
@@ -81,53 +77,47 @@ Create a file named ``consumer.py`` with the following content:
 .. code-block:: python
 
     #!/usr/bin/env python
-    import pika
     import json
 
+    import pika
+
     # Connection parameters
-    credentials = pika.PlainCredentials('admin', 'admin')
-    parameters = pika.ConnectionParameters('localhost',
-                                          5672,
-                                          '/',
-                                          credentials)
+    credentials = pika.PlainCredentials("admin", "admin")
+    parameters = pika.ConnectionParameters("localhost", 5672, "/", credentials)
 
     # Establish connection to RabbitMQ
     connection = pika.BlockingConnection(parameters)
     channel = connection.channel()
 
     # Declare the same exchange as the publisher
-    exchange_name = 'nost_example'
-    channel.exchange_declare(exchange=exchange_name, exchange_type='topic')
+    exchange_name = "example"
+    channel.exchange_declare(exchange=exchange_name, exchange_type="topic")
 
     # Create a queue with a random name
-    result = channel.queue_declare('', exclusive=True)
+    result = channel.queue_declare("", exclusive=True)
     queue_name = result.method.queue
 
     # Bind the queue to the exchange with a routing key
-    binding_key = 'nost.example.*'
-    channel.queue_bind(
-        exchange=exchange_name,
-        queue=queue_name,
-        routing_key=binding_key
-    )
+    binding_key = "example.*"
+    channel.queue_bind(exchange=exchange_name, queue=queue_name, routing_key=binding_key)
 
     print(f"Subscribed to {exchange_name} with binding key {binding_key}")
     print("Waiting for messages. To exit press CTRL+C")
+
 
     # Define a callback function to be called when a message is received
     def callback(ch, method, properties, body):
         try:
             message = json.loads(body)
-            print(f"Received message {message['sequence']}: {message['data']} (sent at {message['timestamp']})")
+            print(
+                f"Received message {message['sequence']}: {message['data']} (sent at {message['timestamp']})"
+            )
         except json.JSONDecodeError:
             print(f"Received message (non-JSON): {body}")
 
+
     # Set up the consumer
-    channel.basic_consume(
-        queue=queue_name,
-        on_message_callback=callback,
-        auto_ack=True
-    )
+    channel.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack=True)
 
     # Start consuming messages
     channel.start_consuming()
@@ -140,27 +130,27 @@ Running the Example
 
    .. code-block:: console
 
-       >>> python3 consumer.py
-       Subscribed to nost_example with binding key nost.example.*
-       Waiting for messages. To exit press CTRL+C
+        >>> python3 consumer.py
+        Subscribed to example with binding key example.*
+        Waiting for messages. To exit press CTRL+C
 
 3. In the second terminal, start the publisher:
 
    .. code-block:: console
 
-       >>> python3 publisher.py
-       Starting to publish messages. Press CTRL+C to stop.
-       Published message 1: {"sequence": 1, "timestamp": "2023-06-02T12:34:56.789012", "data": "Test message 1"}
-       Published message 2: {"sequence": 2, "timestamp": "2023-06-02T12:34:58.789012", "data": "Test message 2"}
-       ...
+        >>> python3 publisher.py
+        Starting to publish messages. Press CTRL+C to stop.
+        Published message 1: {"sequence": 1, "timestamp": "2026-03-27T15:54:36.831856", "data": "Test message 1"}
+        Published message 2: {"sequence": 2, "timestamp": "2026-03-27T15:54:38.833948", "data": "Test message 2"}
+        ...
 
 4. Observe the messages being received in the consumer terminal:
 
    .. code-block:: console
 
-       Received message 1: Test message 1 (sent at 2023-06-02T12:34:56.789012)
-       Received message 2: Test message 2 (sent at 2023-06-02T12:34:58.789012)
-       ...
+        Received message 1: Test message 1 (sent at 2026-03-27T15:54:36.831856)
+        Received message 2: Test message 2 (sent at 2026-03-27T15:54:38.833948)
+        ...
 
 Understanding the Example
 ------------------------

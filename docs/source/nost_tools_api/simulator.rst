@@ -34,6 +34,26 @@ Timing options during initialization and execution specify the starting and endi
   :members:
   :show-inheritance:
 
+.. autoclass:: nost_tools.observer.MessageObserver
+  :members:
+  :show-inheritance:
+
+.. autoclass:: nost_tools.observer.MessageObservable
+  :members:
+  :show-inheritance:
+
+.. autoclass:: nost_tools.observer.PropertyChangeCallback
+  :members:
+  :show-inheritance:
+
+.. autoclass:: nost_tools.observer.ScenarioTimeIntervalCallback
+  :members:
+  :show-inheritance:
+
+.. autoclass:: nost_tools.observer.WallclockTimeIntervalCallback
+  :members:
+  :show-inheritance:
+
 .. autoclass:: nost_tools.entity.Entity
   :members:
   :show-inheritance:

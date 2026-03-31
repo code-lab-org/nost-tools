@@ -649,7 +649,7 @@ class LoggerApplicationConfig(BaseModel):
     )
 
 
-class ApplicationConfig(BaseModel):
+class ApplicationConfig(LoggingConfig):
     set_offset: Optional[bool] = Field(True, description="Set offset.")
     time_scale_factor: Optional[float] = Field(1.0, description="Time scale factor.")
     time_step: Optional[timedelta] = Field(

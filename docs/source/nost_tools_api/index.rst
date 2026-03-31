@@ -10,19 +10,21 @@ The tools library implements the event-driven architecture described in the syst
 * **Message Schemas**:
   Define the information carried in common message payloads and the format that information should take using the Pydantic data validation library.
   
-  * *Command messages*: Used by the manager to control time-managed scenarios. These include ``InitCommand``, ``StartCommand``, ``StopCommand``, and ``UpdateCommand`` classes. Further described in :ref:`this section <controlEvents>` of the Interface Control Document (ICD).
-  
+  * *Command messages*: Used by the manager to control time-managed scenarios. These include ``InitCommand``, ``StartCommand``, ``StopCommand``, ``UpdateCommand``, ``FreezeCommand``, and ``ResumeCommand`` classes. Further described in :ref:`this section <controlEvents>` of the Interface Control Document (ICD).
+
+  * *Request messages*: Used by managed applications to request freeze, resume, or time scale updates from the manager. These include ``FreezeRequest``, ``ResumeRequest``, and ``UpdateRequest`` classes.
+
   * *Status messages*: Used by all constituent applications to update simulation time and modes. These include ``ModeStatus``, ``TimeStatus``, and ``ReadyStatus`` classes. Further described in :ref:`this section <statusEvents>` of the ICD.
 
 * **Simulator Objects**:
   Manage state changes and internal clocks for simulation applications.
 
-  * *Observer Objects*: Implement patterns for loosely coupling observables and observers. The ``Observable`` base class allows objects to notify registered ``Observer`` instances of state changes, enabling decoupled event notification.
+  * *Observer Objects*: Implement patterns for loosely coupling observables and observers. The ``Observable`` base class allows objects to notify registered ``Observer`` instances of state changes, enabling decoupled event notification. Callback convenience classes include ``PropertyChangeCallback``, ``ScenarioTimeIntervalCallback``, and ``WallclockTimeIntervalCallback``.
   
   * *Scenario Objects*: Define states and methods for executing a simulation. The ``Simulator`` class manages simulation state and entities, while the ``Mode`` enumeration defines possible simulation states (IDLE, INIT, EXECUTE, etc.).
 
 * **Applications Objects**:
-  Help constituent applications connect to the MQTT message broker and communicate with the MQTT messaging protocol.
+  Help constituent applications connect to the AMQP message broker and communicate with the AMQP messaging protocol.
   
   * *Utilities*: Monitor and report on application connections, modes, and time statuses. Includes ``ConnectionConfig`` for broker connection management, ``ModeStatusObserver`` for tracking mode changes, and ``TimeStatusPublisher`` for simulation time updates.
   

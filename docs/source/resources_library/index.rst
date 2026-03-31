@@ -14,4 +14,6 @@ This library contains information for NOS-T test suite issues and functionality.
    white_papers/index
    application_templates/index
    time_management/index
+   freeze_resume/index
+   file_logging/index
    
