@@ -135,6 +135,8 @@ class Manager(Application):
         time_status_step: timedelta = None,
         time_status_init: datetime = None,
         shut_down_when_terminated: bool = False,
+        access_token: str = None,
+        refresh_token: str = None,
     ) -> None:
         """
         Starts up the application by connecting to message broker, starting a background event loop,
@@ -147,6 +149,8 @@ class Manager(Application):
             time_status_step (:obj:`timedelta`): scenario duration between time status messages
             time_status_init (:obj:`datetime`): scenario time for first time status message
             shut_down_when_terminated (bool): True, if the application should shut down when the simulation is terminated
+            access_token (str): pre-acquired Keycloak access token (optional; requires refresh_token)
+            refresh_token (str): pre-acquired Keycloak refresh token (required when access_token is provided)
         """
         self.config = config
 
@@ -158,6 +162,8 @@ class Manager(Application):
             time_status_step,
             time_status_init,
             shut_down_when_terminated,
+            access_token=access_token,
+            refresh_token=refresh_token,
         )
 
         # Register callbacks for freeze, resume, and update requests from managed applications
