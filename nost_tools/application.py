@@ -346,11 +346,22 @@ class Application:
         time_status_step: timedelta = None,
         time_status_init: datetime = None,
         shut_down_when_terminated: bool = False,
+        access_token: str = None,
+        refresh_token: str = None,
     ) -> None:
         """
         Starts up the application to prepare for scenario execution.
         Connects to the message broker and starts a background event loop by establishing the simulation prefix,
         the connection configuration, and the intervals for publishing time status messages.
+
+        Three Keycloak authentication modes are supported:
+        1. User authentication: username + password in ConnectionConfig credentials.
+        2. Service account: client_id + client_secret_key in ConnectionConfig credentials.
+        3. Pre-acquired token: access_token + refresh_token passed here directly.
+           Use this mode when tokens were obtained elsewhere (e.g., forwarded from
+           a frontend login). The refresh thread will keep the session alive by
+           calling the Keycloak refresh endpoint using the configured client_id.
+           For public clients, no client_secret_key is required.
 
         Args:
             prefix (str): messaging namespace (prefix)
@@ -359,6 +370,8 @@ class Application:
             time_status_step (:obj:`timedelta`): scenario duration between time status messages
             time_status_init (:obj:`datetime`): scenario time for first time status message
             shut_down_when_terminated (bool): True, if the application should shut down when the simulation is terminated
+            access_token (str): pre-acquired Keycloak access token (optional; requires refresh_token)
+            refresh_token (str): pre-acquired Keycloak refresh token (required when access_token is provided)
         """
         self.config = config
 
@@ -424,9 +437,19 @@ class Application:
             logger.info(
                 f"Keycloak authentication is enabled. Access token will be refreshed every {self.token_refresh_interval} seconds"
             )
-            access_token, _ = self.new_access_token()
+            if access_token is not None:
+                if refresh_token is None:
+                    raise ValueError(
+                        "refresh_token is required when access_token is provided "
+                        "so the refresh thread can renew the session."
+                    )
+                logger.info("Using pre-acquired access + refresh tokens; skipping Keycloak grant.")
+                self.refresh_token = refresh_token
+                initial_access_token = access_token
+            else:
+                initial_access_token, self.refresh_token = self.new_access_token()
             self.start_token_refresh_thread()
-            credentials = pika.PlainCredentials("", access_token)
+            credentials = pika.PlainCredentials("", initial_access_token)
         else:
             # Set up credentials
             credentials = pika.PlainCredentials(
