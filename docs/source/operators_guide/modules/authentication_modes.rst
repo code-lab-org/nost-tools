@@ -3,7 +3,7 @@
 Authentication Modes
 ====================
 
-NOS-T supports three authentication modes for connecting to the RabbitMQ message broker. The mode is automatically detected based on the credentials provided in the ``.env`` file and the ``keycloak_authentication`` setting in the YAML configuration.
+NOS-T supports four authentication modes for connecting to the RabbitMQ message broker. The first three are automatically detected based on the credentials provided in the ``.env`` file and the ``keycloak_authentication`` setting in the YAML configuration. The fourth (pre-acquired tokens) is selected by passing tokens directly to ``start_up()`` and is intended for server-side components acting on behalf of an already-authenticated end user.
 
 Overview
 --------
@@ -27,6 +27,10 @@ Overview
    * - Keycloak User Account
      - Interactive users with OTP/2FA
      - ``USERNAME`` + ``PASSWORD`` + ``CLIENT_ID`` + ``CLIENT_SECRET_KEY``
+     - ``True``
+   * - Keycloak Pre-acquired Tokens
+     - Server-side delegation (act on behalf of an authenticated user)
+     - ``CLIENT_ID`` + ``access_token`` + ``refresh_token`` (passed to ``start_up()``)
      - ``True``
 
 Basic Auth (Localhost/Development)
@@ -116,6 +120,45 @@ For programmatic OTP support, pass the ``otp`` parameter to ``new_access_token()
 .. code-block:: python
 
    app.new_access_token(otp="123456")
+
+Keycloak Pre-acquired Tokens
+----------------------------
+
+For server-side components (e.g., a backend API) that receive tokens from an already-authenticated end user and need to act on behalf of that user against RabbitMQ. In this mode, ``nost_tools`` does not perform a Keycloak grant itself; instead, it uses tokens obtained elsewhere (typically forwarded from a frontend that completed an Authorization Code flow).
+
+This preserves per-user RabbitMQ scope enforcement end-to-end: every publish performed by the server-side ``Application`` or ``Manager`` is authenticated with the original user's token, so RabbitMQ's OAuth2 plugin applies the user's group-based permissions (e.g., ``rabbitmq.configure:*/sos*/sos*``) to each operation.
+
+**YAML configuration:** Same as Service Account (above).
+
+**.env file:**
+
+.. code-block:: bash
+
+   CLIENT_ID="nost_monitor_nodejs"
+
+Set ``CLIENT_ID`` to the Keycloak client that originally issued the forwarded tokens (the refresh endpoint requires the ``client_id`` to match). For public clients, ``CLIENT_SECRET_KEY`` is not required. ``USERNAME`` and ``PASSWORD`` are not used in this mode.
+
+**Usage:**
+
+Pass the forwarded tokens as keyword arguments to ``start_up()``:
+
+.. code-block:: python
+
+   manager = Manager()
+   manager.start_up(
+       prefix="my_scenario",
+       config=config,
+       access_token=user_access_token,
+       refresh_token=user_refresh_token,
+   )
+
+The background refresh thread renews the session by calling Keycloak's refresh endpoint with the provided refresh token on the normal ``token_refresh_interval`` cadence, so long-running scenarios (hours, days, or longer — bounded by Keycloak's SSO session settings) remain continuously authenticated without further action from the caller.
+
+**Requirements:**
+
+- Both ``access_token`` and ``refresh_token`` must be provided. Passing ``access_token`` alone raises ``ValueError`` at startup, because the refresh thread cannot keep the session alive without a refresh token.
+- The Keycloak client identified by ``CLIENT_ID`` must permit refresh via ``grant_type=refresh_token`` (default for public clients issued via Authorization Code flow).
+- The user whose tokens are forwarded must have whatever RabbitMQ scopes the scenario requires, projected into the token's ``extra_scope`` claim through the usual Keycloak mapper configuration.
 
 Credentials Validation
 ----------------------

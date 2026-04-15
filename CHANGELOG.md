@@ -319,3 +319,18 @@ Changed:
   - New `time_init` parameter sets the offset for the first trigger independently from `time_interval`
   - When omitted, defaults to `time_interval` (backward compatible)
   - Example: `ScenarioTimeIntervalCallback(callback, timedelta(days=1), time_init=timedelta(hours=23, minutes=55))` fires at 23:55 daily without drift
+
+## 3.1.0
+Added:
+- **Pre-acquired Token Authentication Mode** (`application.py`, `manager.py`, `managed_application.py`): Added optional `access_token` and `refresh_token` keyword arguments to `Application.start_up()`, `Manager.start_up()`, and `ManagedApplication.start_up()`:
+  - Enables a third Keycloak authentication mode, complementing existing user (username/password) and service account (client_credentials) modes
+  - When both tokens are provided, `start_up()` skips the Keycloak grant and uses the pre-acquired tokens directly to authenticate the RabbitMQ connection
+  - The existing background refresh thread continues to renew the session by calling Keycloak's refresh endpoint with the forwarded refresh token — works for public clients without a `client_secret_key`
+  - Intended for server-side components (e.g., a backend API) that receive user tokens from an authenticated frontend and need to act on behalf of that user against RabbitMQ, preserving per-user broker scope enforcement
+  - Raises `ValueError` if `access_token` is provided without `refresh_token`, since the refresh thread requires a refresh token to keep the session alive
+  - Fully backwards-compatible: existing callers that do not pass the new kwargs retain identical behavior
+
+Changed:
+- **Initial Refresh Token Capture** (`application.py`): In the default Keycloak authentication path, `start_up()` now captures the refresh token returned from the initial `new_access_token()` call and stores it on `self.refresh_token` before starting the refresh thread:
+  - Previously, the returned refresh token was discarded, causing the refresh thread's first tick to perform a redundant full grant
+  - No behavior change for callers; removes one unnecessary Keycloak round-trip during startup
