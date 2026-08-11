@@ -386,6 +386,14 @@ class RabbitMQConfig(BaseModel):
         False, description="Keycloak authentication for RabbitMQ."
     )
     tls: bool = Field(False, description="RabbitMQ TLS/SSL.")
+    tls_ca_cert: Optional[str] = Field(
+        None,
+        description="Path to a certificate or CA bundle used to verify the "
+        "RabbitMQ server. Leave unset to use the system trust store, which "
+        "covers publicly-trusted certificates. Set this only for a self-hosted "
+        "server with a self-signed or privately-signed certificate; the file "
+        "then replaces the system trust store for this connection.",
+    )
     reconnect_delay: int = Field(10, description="Reconnection delay, in seconds.")
     queue_max_size: int = Field(5000, description="Maximum size of the RabbitMQ queue.")
     # BasicProperties
@@ -445,6 +453,14 @@ class KeycloakConfig(BaseModel):
     port: int = Field(8080, description="Keycloak port.")
     realm: str = Field("master", description="Keycloak realm.")
     tls: bool = Field(False, description="Keycloak TLS/SSL.")
+    tls_ca_cert: Optional[str] = Field(
+        None,
+        description="Path to a certificate or CA bundle used to verify the "
+        "Keycloak server. Leave unset to use the system trust store, which "
+        "covers publicly-trusted certificates. Set this only for a self-hosted "
+        "server with a self-signed or privately-signed certificate; the file "
+        "then replaces the system trust store for this connection.",
+    )
     token_refresh_interval: int = Field(
         240, description="Keycloak token refresh interval, in seconds."
     )

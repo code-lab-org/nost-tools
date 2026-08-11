@@ -334,3 +334,27 @@ Changed:
 - **Initial Refresh Token Capture** (`application.py`): In the default Keycloak authentication path, `start_up()` now captures the refresh token returned from the initial `new_access_token()` call and stores it on `self.refresh_token` before starting the refresh thread:
   - Previously, the returned refresh token was discarded, causing the refresh thread's first tick to perform a redundant full grant
   - No behavior change for callers; removes one unnecessary Keycloak round-trip during startup
+
+## 3.2.0
+Fixed:
+- **TLS Certificate Verification** (`application.py`, `schemas.py`): TLS connections to RabbitMQ and Keycloak now verify the server's certificate against the system trust store and confirm that it matches the configured host. Upgrading is recommended for all deployments that connect over TLS.
+
+Added:
+- **`tls_ca_cert` Configuration Field** (`schemas.py`): Added optional `tls_ca_cert` to `RabbitMQConfig` and `KeycloakConfig` for self-hosted servers presenting self-signed or privately-signed certificates:
+  - When unset, the system trust store is used, which covers publicly-trusted certificates and requires no configuration
+  - When set, the named file replaces the system trust store for that connection; a self-signed certificate may be supplied directly, since it is its own trust anchor
+  - Applied per server, so a self-hosted RabbitMQ broker and a NASA-hosted Keycloak server are configured independently
+- **Certificate Failure Guidance** (`application.py`): `on_connection_error()` now detects certificate verification failures and logs the `tls_ca_cert` setting to add, the `subjectAltName` requirement, and an `openssl` command that generates a matching certificate
+
+Changed:
+- **RabbitMQ SSL Context** (`application.py`): Rebuilt the SSL context using `ssl.create_default_context()`, and now passes `server_hostname` to `pika.SSLOptions` to enable Server Name Indication (SNI) and hostname verification:
+  - TLS 1.3 is now negotiated where the server supports it; connections were previously pinned to TLS 1.2
+  - Removed a cipher restriction that excluded servers presenting ECDSA certificates and had no effect on TLS 1.3 cipher suites
+- **TLS Startup Log** (`application.py`): The `Using TLS/SSL.` message now names the trust anchor in use, either the system trust store or the configured `tls_ca_cert` path
+
+Removed:
+- **Global Warning Suppression** (`application.py`): Removed a module-level `urllib3` warning filter that silenced insecure-request warnings process-wide for every library loaded alongside NOS-T Tools
+
+Upgrade Notes:
+- No configuration change is required for the NOS-T broker, the NASA-hosted Keycloak server, or a local broker running without TLS
+- A self-hosted server presenting a self-signed or privately-signed certificate requires `tls_ca_cert`; see the TLS Certificate Verification section of the YAML configuration documentation
