@@ -98,6 +98,53 @@ Example:
 .. literalinclude:: example.yml
 	:lines: 24-29
 
+TLS Certificate Verification
+""""""""""""""""""""""""""""
+
+When ``tls`` is enabled, NOS-T Tools verifies the server's certificate against the
+system trust store and confirms that the certificate matches the configured
+``host``. Servers presenting publicly-trusted certificates, including the NOS-T
+broker at ``nost.smce.nasa.gov`` and the Keycloak server at
+``auth.sciencecloud.nasa.gov``, require no additional configuration. Verification
+is applied independently to each server, so a self-hosted RabbitMQ broker and a
+NASA-hosted Keycloak server are configured separately.
+
+A self-hosted server with a self-signed or privately-signed certificate is not
+covered by the system trust store. Set ``tls_ca_cert`` to the path of that
+certificate, or of the certificate authority (CA) that signed it:
+
+.. code-block:: yaml
+
+   servers:
+     rabbitmq:
+       host: "broker.myuniversity.edu"
+       port: 5671
+       tls: True
+       tls_ca_cert: "/home/user/certs/broker-cert.pem"
+
+The certificate must list the configured ``host`` in its ``subjectAltName``
+extension, otherwise verification fails even when ``tls_ca_cert`` is set. Generate
+a certificate carrying a matching name with:
+
+.. code-block:: console
+
+   openssl req -x509 -newkey rsa:2048 -nodes -days 825 \
+     -keyout key.pem -out certificate.pem \
+     -subj "/CN=broker.myuniversity.edu" \
+     -addext "subjectAltName=DNS:broker.myuniversity.edu"
+
+.. note::
+
+   ``tls_ca_cert`` replaces the system trust store for that connection rather than
+   adding to it. Remove the setting before connecting to a server with a
+   publicly-trusted certificate, otherwise verification fails.
+
+.. warning::
+
+   Do not disable ``tls`` to work around a certificate error. Doing so removes
+   encryption entirely and exposes the Keycloak access token, which is transmitted
+   to RabbitMQ as the connection password.
+
 Execution Section
 ^^^^^^^^^^^^^^^^^
 

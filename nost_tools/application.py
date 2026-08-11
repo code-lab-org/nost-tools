@@ -15,7 +15,6 @@ from typing import Callable
 
 import ntplib
 import pika
-import urllib3
 from keycloak.exceptions import KeycloakAuthenticationError
 from keycloak.keycloak_openid import KeycloakOpenID
 
@@ -30,7 +29,6 @@ from .simulator import Simulator
 
 logging.captureWarnings(True)
 logger = logging.getLogger(__name__)
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class Application:
@@ -159,7 +157,8 @@ class Application:
             client_id=self.config.rc.credentials.client_id,
             realm_name=self.config.rc.server_configuration.servers.keycloak.realm,
             client_secret_key=self.config.rc.credentials.client_secret_key,
-            verify=False,
+            verify=self.config.rc.server_configuration.servers.keycloak.tls_ca_cert
+            or True,
         )
         try:
             if refresh_token:
@@ -475,14 +474,19 @@ class Application:
         )
 
         # Configure transport layer security (TLS) if needed
-        if self.config.rc.server_configuration.servers.rabbitmq.tls:
-            logger.info("Using TLS/SSL.")
-            # SSL Context for TLS configuration of Amazon MQ for RabbitMQ
-            ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
-            ssl_context.check_hostname = False
-            ssl_context.verify_mode = ssl.CERT_NONE
-            ssl_context.set_ciphers("ECDHE+AESGCM:!ECDSA")
-            parameters.ssl_options = pika.SSLOptions(context=ssl_context)
+        rabbitmq_config = self.config.rc.server_configuration.servers.rabbitmq
+        if rabbitmq_config.tls:
+            logger.info(
+                "Using TLS/SSL (trust anchor: "
+                f"{rabbitmq_config.tls_ca_cert or 'system trust store'})."
+            )
+            # tls_ca_cert unset trusts the system certificate store, which covers
+            # publicly-trusted certificates; a path trusts that file instead
+            ssl_context = ssl.create_default_context(cafile=rabbitmq_config.tls_ca_cert)
+            # server_hostname enables SNI and hostname verification
+            parameters.ssl_options = pika.SSLOptions(
+                context=ssl_context, server_hostname=rabbitmq_config.host
+            )
 
         # Save connection parameters for reconnection
         self._connection_parameters = parameters
@@ -648,6 +652,31 @@ class Application:
             error (Exception): exception representing reason for loss of connection
         """
         logger.error(f"Connection error: {error}")
+        if isinstance(error, ssl.SSLCertVerificationError) or (
+            "CERTIFICATE_VERIFY_FAILED" in str(error)
+        ):
+            rabbitmq_config = self.config.rc.server_configuration.servers.rabbitmq
+            host, port = rabbitmq_config.host, rabbitmq_config.port
+            logger.error(
+                f"Certificate verification failed for {host}:{port}.\n"
+                "If this is your own server with a self-signed or privately-signed "
+                "certificate, add the path to that certificate in your YAML "
+                "configuration file:\n"
+                "    servers:\n"
+                "      rabbitmq:\n"
+                f'        tls_ca_cert: "/path/to/certificate.pem"\n'
+                f"The certificate must list '{host}' in its subjectAltName, "
+                "otherwise verification fails even with tls_ca_cert set. "
+                "Regenerate it if needed, for example:\n"
+                f'    openssl req -x509 -newkey rsa:2048 -nodes -days 825 \\\n'
+                f'      -keyout key.pem -out certificate.pem -subj "/CN={host}" \\\n'
+                f'      -addext "subjectAltName=DNS:{host}"\n'
+                "Note that tls_ca_cert replaces the system trust store for this "
+                "connection, so remove it before connecting to a server with a "
+                "publicly-trusted certificate. Do not work around this by setting "
+                "tls: false, which disables encryption entirely and would expose "
+                "your access token."
+            )
         self._is_connected.clear()
 
     def on_connection_closed(self, connection, reason):
