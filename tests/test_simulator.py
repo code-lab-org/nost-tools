@@ -239,15 +239,29 @@ class TestSimulatorMethods(unittest.TestCase):
             lambda: simulator.get_time_step() == new_time_step,
             f"time step to become {new_time_step}",
         )
+        # Let several steps elapse at the new size before terminating, so the
+        # assertion has a well-defined window. Terminating immediately leaves too
+        # few changes recorded, and the final step is clamped to the end time.
+        first_new_step = len(recorder.changes)
+        wait_for(
+            self,
+            lambda: len(recorder.changes) >= first_new_step + 3,
+            "three time changes at the new step size",
+        )
         simulator.terminate()
-        # wait for execution to terminate
         wait_for_mode(self, simulator, Mode.TERMINATED)
-        # The final recorded step is measured from the last three time changes, so
-        # assert there are enough before indexing into them
-        self.assertGreaterEqual(len(recorder.changes), 3)
-        self.assertEqual(
-            recorder.changes[-2]["new_value"] - recorder.changes[-3]["new_value"],
-            new_time_step,
+
+        # Intervals within the sampled window, avoiding fixed indices into a list
+        # whose length depends on how fast execution ran
+        times = [
+            change["new_value"]
+            for change in recorder.changes[first_new_step - 1 : first_new_step + 3]
+        ]
+        deltas = [later - earlier for earlier, later in zip(times, times[1:])]
+        self.assertTrue(deltas, "no time changes recorded after the step change")
+        self.assertTrue(
+            all(delta == new_time_step for delta in deltas),
+            f"expected every step to be {new_time_step}, got {deltas}",
         )
 
     def test_simulator_execute_change_duration(self):
