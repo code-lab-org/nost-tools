@@ -7,35 +7,11 @@ from nost_tools.observer import RecordingObserver
 from nost_tools.entity import Entity
 from nost_tools.simulator import Mode, Simulator
 
+from .fakes import wait_for, wait_for_mode
+
 
 class NullEntity(Entity):
     pass
-
-
-def wait_for_mode(test, simulator, mode, timeout=15):
-    """
-    Blocks until the simulator reaches a mode, failing the test if it never does.
-
-    Waiting in an unbounded loop turns a stalled simulator into a hung test, which
-    surfaces as a job timeout with no diagnostic rather than a failure.
-    """
-    deadline = time.monotonic() + timeout
-    while simulator.get_mode() != mode:
-        if time.monotonic() > deadline:
-            test.fail(
-                f"simulator did not reach {mode} within {timeout}s "
-                f"(mode is {simulator.get_mode()})"
-            )
-        time.sleep(0.05)
-
-
-def wait_for(test, predicate, description, timeout=15):
-    """Blocks until predicate() is true, failing the test if it never becomes true."""
-    deadline = time.monotonic() + timeout
-    while not predicate():
-        if time.monotonic() > deadline:
-            test.fail(f"timed out after {timeout}s waiting for {description}")
-        time.sleep(0.05)
 
 
 class TestSimulatorMethods(unittest.TestCase):

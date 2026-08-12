@@ -2,68 +2,19 @@ import threading
 import time
 import unittest
 
-import pika
-
 from nost_tools.application import Application
 
-
-class FakeChannel:
-    """Records basic_publish calls and the thread each was made from."""
-
-    def __init__(self, fail=False):
-        self.published = []
-        self.publish_threads = []
-        self.fail = fail
-        self.is_closing = False
-        self.is_closed = False
-
-    def basic_publish(self, exchange, routing_key, body, properties=None):
-        self.publish_threads.append(threading.current_thread())
-        if self.fail:
-            raise RuntimeError("simulated publish failure")
-        self.published.append((exchange, routing_key, body))
-
-
-class FakeIOLoop:
-    """
-    Records callbacks instead of running them.
-
-    Deferring execution is what distinguishes scheduling a publish from performing
-    it inline, which is the behavior the thread-safety fix depends on.
-    """
-
-    def __init__(self):
-        self.callbacks = []
-
-    def add_callback_threadsafe(self, callback):
-        self.callbacks.append(callback)
-
-    def run_pending(self):
-        """Runs recorded callbacks in order, as pika's IO loop would."""
-        pending, self.callbacks = self.callbacks, []
-        for callback in pending:
-            callback()
-        return len(pending)
-
-
-class FakeConnection:
-    def __init__(self):
-        self.ioloop = FakeIOLoop()
-        self.is_closed = False
+from .fakes import wire_broker
 
 
 def make_app(connected=True, queue_max_size=100, failing_channel=False):
-    """Builds an Application wired to fakes, bypassing start_up()."""
-    app = Application("test_app", setup_signal_handlers=False)
-    app.prefix = "test"
-    app.channel = FakeChannel(fail=failing_channel)
-    app.connection = FakeConnection()
-    app._queue_max_size = queue_max_size
-    # Avoids needing a full YAML configuration tree for publishing
-    app._build_basic_properties = lambda: pika.BasicProperties()
-    if connected:
-        app._is_connected.set()
-    return app
+    """Builds an Application wired to broker doubles, bypassing start_up()."""
+    return wire_broker(
+        Application("test_app", setup_signal_handlers=False),
+        connected=connected,
+        queue_max_size=queue_max_size,
+        failing_channel=failing_channel,
+    )
 
 
 class TestSendMessage(unittest.TestCase):
