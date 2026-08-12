@@ -1,68 +1,22 @@
+import ssl
 import threading
+import time
 import unittest
-
-import pika
+from unittest.mock import MagicMock
 
 from nost_tools.application import Application
 
-
-class FakeChannel:
-    """Records basic_publish calls and the thread each was made from."""
-
-    def __init__(self, fail=False):
-        self.published = []
-        self.publish_threads = []
-        self.fail = fail
-        self.is_closing = False
-        self.is_closed = False
-
-    def basic_publish(self, exchange, routing_key, body, properties=None):
-        self.publish_threads.append(threading.current_thread())
-        if self.fail:
-            raise RuntimeError("simulated publish failure")
-        self.published.append((exchange, routing_key, body))
-
-
-class FakeIOLoop:
-    """
-    Records callbacks instead of running them.
-
-    Deferring execution is what distinguishes scheduling a publish from performing
-    it inline, which is the behavior the thread-safety fix depends on.
-    """
-
-    def __init__(self):
-        self.callbacks = []
-
-    def add_callback_threadsafe(self, callback):
-        self.callbacks.append(callback)
-
-    def run_pending(self):
-        """Runs recorded callbacks in order, as pika's IO loop would."""
-        pending, self.callbacks = self.callbacks, []
-        for callback in pending:
-            callback()
-        return len(pending)
-
-
-class FakeConnection:
-    def __init__(self):
-        self.ioloop = FakeIOLoop()
-        self.is_closed = False
+from .fakes import wire_broker
 
 
 def make_app(connected=True, queue_max_size=100, failing_channel=False):
-    """Builds an Application wired to fakes, bypassing start_up()."""
-    app = Application("test_app", setup_signal_handlers=False)
-    app.prefix = "test"
-    app.channel = FakeChannel(fail=failing_channel)
-    app.connection = FakeConnection()
-    app._queue_max_size = queue_max_size
-    # Avoids needing a full YAML configuration tree for publishing
-    app._build_basic_properties = lambda: pika.BasicProperties()
-    if connected:
-        app._is_connected.set()
-    return app
+    """Builds an Application wired to broker doubles, bypassing start_up()."""
+    return wire_broker(
+        Application("test_app", setup_signal_handlers=False),
+        connected=connected,
+        queue_max_size=queue_max_size,
+        failing_channel=failing_channel,
+    )
 
 
 class TestSendMessage(unittest.TestCase):
@@ -184,12 +138,78 @@ class TestShutdownDrain(unittest.TestCase):
     def test_drain_returns_immediately_when_connection_is_closed(self):
         app = make_app()
         app.connection.is_closed = True
-        app._drain_pending_publishes(timeout=5.0)  # must not block
+
+        started = time.monotonic()
+        app._drain_pending_publishes(timeout=5.0)
+        elapsed = time.monotonic() - started
+
+        # Returns without waiting out the timeout, and schedules no sentinel
+        self.assertLess(elapsed, 1.0)
+        self.assertEqual(app.connection.ioloop.callbacks, [])
 
     def test_drain_does_not_deadlock_when_called_on_io_thread(self):
         app = make_app()
         app._io_thread = threading.current_thread()
         app._drain_pending_publishes(timeout=5.0)  # must not block
+        self.assertEqual(app.connection.ioloop.callbacks, [])
+
+
+class TestConnectionErrorHandling(unittest.TestCase):
+    def test_certificate_failure_logs_actionable_guidance(self):
+        """
+        A verification failure must name the setting that fixes it. Without this
+        a self-hosted broker produces a bare OpenSSL error and a support ticket.
+        """
+        app = make_app()
+        app.config = MagicMock()
+        app.config.rc.server_configuration.servers.rabbitmq.host = "broker.example.edu"
+        app.config.rc.server_configuration.servers.rabbitmq.port = 5671
+
+        with self.assertLogs("nost_tools.application", level="ERROR") as captured:
+            app.on_connection_error(
+                None,
+                ssl.SSLCertVerificationError(
+                    "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed"
+                ),
+            )
+
+        guidance = "\n".join(captured.output)
+        self.assertIn("tls_ca_cert", guidance)
+        self.assertIn("subjectAltName", guidance)
+        self.assertIn("broker.example.edu", guidance)
+
+    def test_unrelated_connection_error_omits_certificate_guidance(self):
+        app = make_app()
+        app.config = MagicMock()
+
+        with self.assertLogs("nost_tools.application", level="ERROR") as captured:
+            app.on_connection_error(None, ConnectionRefusedError("Connection refused"))
+
+        self.assertNotIn("tls_ca_cert", "\n".join(captured.output))
+
+    def test_connection_error_clears_the_connected_flag(self):
+        app = make_app()
+        app.config = MagicMock()
+        self.assertTrue(app._is_connected.is_set())
+
+        app.on_connection_error(None, ConnectionRefusedError("Connection refused"))
+
+        self.assertFalse(app._is_connected.is_set())
+
+
+class TestChannelLevelFailure(unittest.TestCase):
+    def test_send_message_queues_when_the_channel_is_gone(self):
+        """
+        A channel-level failure such as a 403 leaves _is_connected set while the
+        channel is torn down, so the application reports itself connected with no
+        way to publish. Messages must be queued rather than lost or raised.
+        """
+        app = make_app()
+        app.channel = None  # _is_connected deliberately left set
+
+        app.send_message("repro", "topic", "payload")
+
+        self.assertEqual(len(app._message_queue), 1)
         self.assertEqual(app.connection.ioloop.callbacks, [])
 
 
