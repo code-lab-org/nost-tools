@@ -358,3 +358,28 @@ Removed:
 Upgrade Notes:
 - No configuration change is required for the NOS-T broker, the NASA-hosted Keycloak server, or a local broker running without TLS
 - A self-hosted server presenting a self-signed or privately-signed certificate requires `tls_ca_cert`; see the TLS Certificate Verification section of the YAML configuration documentation
+
+## 3.3.0
+Fixed:
+- **Thread-Safe Message Publishing** (`application.py`): Fixed RabbitMQ `505 UNEXPECTED_FRAME` errors caused by concurrent `basic_publish` calls from multiple threads interleaving AMQP frames on the wire:
+  - Added `_do_publish()`, which performs `basic_publish` exclusively on pika's IO thread
+  - Refactored `send_message()` to schedule publishes via `connection.ioloop.add_callback_threadsafe()` rather than calling `basic_publish` directly
+  - Added a `threading.Lock` (`_queue_lock`) protecting `_message_queue` against concurrent access
+  - Moved `_message_queue` initialization from a lazy `hasattr` check to eager initialization in `__init__`
+- **Message Ordering After a Failed Publish** (`application.py`): A message re-queued after a failed publish now retains the timestamp from when it was originally submitted:
+  - The queue is drained in timestamp order, so re-stamping a message on failure allowed it to be delivered after messages submitted later
+- **Silent Message Loss** (`application.py`): The publish paths now log an error when a message is discarded because the queue is full, and a warning when scheduling queued-message processing fails:
+  - Previously these paths discarded messages with no log entry, leaving no indication that a message was never delivered
+
+Added:
+- **Pending Message Flush on Shutdown** (`application.py`): `stop_application()` now waits for publishes already scheduled on the IO thread to complete before deleting exchanges and queues:
+  - Because publishing is asynchronous, messages submitted immediately before shutdown could otherwise be discarded when the IO loop stopped
+  - Waits up to 5 seconds, then logs a warning and proceeds rather than blocking shutdown indefinitely
+  - Returns immediately when the connection is already closed, or when called from the IO thread itself
+- **Application Test Coverage** (`tests/test_application.py`): Added 11 tests covering message publishing, queueing, and shutdown behavior:
+  - Verifies routing key construction, multi-topic sends, queueing while disconnected, queue-full handling, first-in first-out flush on reconnect, and timestamp preservation across re-queues
+  - Asserts that `send_message()` schedules publishes rather than performing them inline, guarding against reintroducing the concurrency defect
+
+Upgrade Notes:
+- `send_message()` returns once a publish has been scheduled, not once it has been written to the broker. Its signature is unchanged and existing callers require no modification, but code depending on a message reaching the broker before `send_message()` returns should account for the new timing
+- Applications that shut down immediately after sending are covered by the flush described above

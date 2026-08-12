@@ -85,6 +85,9 @@ class Application:
         self.declared_exchanges = set()
         self.predefined_exchanges_queues = False
         self._callbacks_per_topic = {}
+        # Message queue for when connection is down
+        self._message_queue = []
+        self._queue_lock = threading.Lock()
         # Token
         self.refresh_token = None
         self._token_refresh_thread = None
@@ -571,7 +574,7 @@ class Application:
                 self.add_message_callback(app_name, app_topic, user_callback)
 
         # Process any queued messages now that we're connected
-        if hasattr(self, "_message_queue") and self._message_queue:
+        if self._message_queue:
             # Schedule message processing to happen after all initialization
             self.connection.ioloop.call_later(0.1, self._process_message_queue)
 
@@ -963,6 +966,59 @@ class Application:
 
         return pika.BasicProperties(**properties_dict)
 
+    def _do_publish(self, timestamp, app_name, app_topic, routing_key, payload):
+        """
+        Performs basic_publish on the IO thread. If it fails, re-queues the message.
+        This method must only be called on the IO thread (via add_callback_threadsafe).
+
+        Args:
+            timestamp (float): time the message was originally submitted, preserved
+                across re-queues so that queue ordering remains first-in, first-out
+            app_name (str): application name
+            app_topic (str): topic name
+            routing_key (str): routing key derived from app_name and app_topic
+            payload (str): message payload
+        """
+        if self.channel is None or not self._is_connected.is_set():
+            with self._queue_lock:
+                if len(self._message_queue) < self._queue_max_size:
+                    self._message_queue.append(
+                        (timestamp, app_name, app_topic, payload)
+                    )
+                    logger.warning(
+                        f"Connection lost before publish, re-queued message for {routing_key}"
+                    )
+                else:
+                    logger.error(
+                        f"Message queue full, dropping message for {routing_key}"
+                    )
+            return
+
+        try:
+            self.channel.basic_publish(
+                exchange=self.prefix,
+                routing_key=routing_key,
+                body=payload,
+                properties=self._build_basic_properties(),
+            )
+            logger.debug(
+                f"Successfully sent message '{payload}' to topic '{routing_key}'."
+            )
+        except Exception as e:
+            logger.warning(f"Failed to publish message to {routing_key}: {e}")
+            with self._queue_lock:
+                if len(self._message_queue) < self._queue_max_size:
+                    self._message_queue.append(
+                        (timestamp, app_name, app_topic, payload)
+                    )
+                    logger.info(
+                        f"Queued failed message for retry (queue size: {len(self._message_queue)})"
+                    )
+                else:
+                    logger.error(
+                        f"Message queue full, dropping message for {routing_key}"
+                    )
+
     def send_message(self, app_name, app_topics, payload: str) -> None:
         """
         Sends a message to the broker. If the connection is down, the message is queued
@@ -973,11 +1029,6 @@ class Application:
             app_topics (str or list): topic name or list of topic names
             payload (str): message payload
         """
-        # Initialize message queue if it doesn't exist
-        if not hasattr(self, "_message_queue"):
-            self._message_queue = []
-            # self._queue_max_size = 1000  # Limit queue size to prevent memory issues
-
         if isinstance(app_topics, str):
             app_topics = [app_topics]
 
@@ -985,66 +1036,78 @@ class Application:
         if self.channel is None or not self._is_connected.is_set():
             logger.warning(f"Connection down, queueing message for later delivery")
 
-            # Queue the message if there's space available
-            if len(self._message_queue) < self._queue_max_size:
-                # Add timestamp to each message for FIFO ordering
-                timestamp = time.time()
-                for app_topic in app_topics:
-                    self._message_queue.append(
-                        (timestamp, app_name, app_topic, payload)
+            with self._queue_lock:
+                if len(self._message_queue) < self._queue_max_size:
+                    timestamp = time.time()
+                    for app_topic in app_topics:
+                        self._message_queue.append(
+                            (timestamp, app_name, app_topic, payload)
+                        )
+                        logger.info(
+                            f"Queued message for topic {app_topic} (queue size: {len(self._message_queue)})"
+                        )
+                else:
+                    logger.error(
+                        f"Message queue full, dropping message for {app_topics}"
                     )
-                    logger.info(
-                        f"Queued message for topic {app_topic} (queue size: {len(self._message_queue)})"
-                    )
-            else:
-                logger.error(f"Message queue full, dropping message for {app_topics}")
             return
 
-        # Try to send any queued messages first
-        self._process_message_queue()
+        # Schedule queued message processing on the IO thread
+        if self._message_queue:
+            try:
+                self.connection.ioloop.add_callback_threadsafe(
+                    self._process_message_queue
+                )
+            except Exception as e:
+                # The queue is not lost; it is retried on the next send or reconnect
+                logger.warning(f"Failed to schedule queued message processing: {e}")
 
-        # Now send the current message
+        # Schedule each publish on the IO thread. All topics in this call share one
+        # timestamp, which is preserved if the message is later re-queued.
+        timestamp = time.time()
         for app_topic in app_topics:
             routing_key = self.create_routing_key(app_name=app_name, topic=app_topic)
             try:
-                self.channel.basic_publish(
-                    exchange=self.prefix,
-                    routing_key=routing_key,
-                    body=payload,
-                    properties=self._build_basic_properties(),
-                )
-                logger.debug(
-                    f"Successfully sent message '{payload}' to topic '{routing_key}'."
+                self.connection.ioloop.add_callback_threadsafe(
+                    functools.partial(
+                        self._do_publish,
+                        timestamp,
+                        app_name,
+                        app_topic,
+                        routing_key,
+                        payload,
+                    )
                 )
             except Exception as e:
-                logger.warning(f"Failed to publish message to {routing_key}: {e}")
-                # Queue the failed message if there's space available
-                if len(self._message_queue) < self._queue_max_size:
-                    timestamp = time.time()
-                    self._message_queue.append(
-                        (timestamp, app_name, app_topic, payload)
-                    )
-                    logger.info(
-                        f"Queued failed message for retry (queue size: {len(self._message_queue)})"
-                    )
+                logger.warning(f"Failed to schedule publish for {routing_key}: {e}")
+                with self._queue_lock:
+                    if len(self._message_queue) < self._queue_max_size:
+                        self._message_queue.append(
+                            (timestamp, app_name, app_topic, payload)
+                        )
+                    else:
+                        logger.error(
+                            f"Message queue full, dropping message for {routing_key}"
+                        )
 
     def _process_message_queue(self):
         """
         Process queued messages when connection is available.
         Attempts to send all queued messages in order of oldest first.
+        This method runs on the IO thread.
         """
-        if not hasattr(self, "_message_queue") or not self._message_queue:
-            return  # No messages to process
+        with self._queue_lock:
+            if not self._message_queue:
+                return
+            sorted_messages = sorted(self._message_queue, key=lambda x: x[0])
+            self._message_queue.clear()
 
         if self.channel is None or not self._is_connected.is_set():
-            return  # Still no connection
+            with self._queue_lock:
+                self._message_queue.extend(sorted_messages)
+            return
 
-        # Process the queue in timestamp order (oldest first)
-        logger.info(f"Processing message queue ({len(self._message_queue)} messages)")
-
-        # Sort messages by timestamp (oldest first)
-        sorted_messages = sorted(self._message_queue, key=lambda x: x[0])
-        self._message_queue.clear()
+        logger.info(f"Processing message queue ({len(sorted_messages)} messages)")
 
         success_count = 0
         for timestamp, app_name, app_topic, payload in sorted_messages:
@@ -1058,18 +1121,22 @@ class Application:
                 )
                 success_count += 1
             except Exception as e:
-                # If sending still fails, put it back in the queue with original timestamp
-                # to preserve ordering
-                logger.warning(f"Failed to resend queued message to {routing_key}: {e}")
-                self._message_queue.append((timestamp, app_name, app_topic, payload))
+                logger.warning(
+                    f"Failed to resend queued message to {routing_key}: {e}"
+                )
+                with self._queue_lock:
+                    self._message_queue.append(
+                        (timestamp, app_name, app_topic, payload)
+                    )
 
         if success_count > 0:
             logger.info(f"Successfully sent {success_count} queued messages")
 
-        if self._message_queue:
-            logger.info(
-                f"{len(self._message_queue)} messages remain queued for later delivery"
-            )
+        with self._queue_lock:
+            if self._message_queue:
+                logger.info(
+                    f"{len(self._message_queue)} messages remain queued for later delivery"
+                )
 
     def routing_key_matches_pattern(self, routing_key, pattern):
         """
@@ -1525,6 +1592,41 @@ class Application:
         """Stop the IO loop"""
         self.connection.ioloop.stop()
 
+    def _drain_pending_publishes(self, timeout: float = 5.0) -> None:
+        """
+        Waits for publishes already scheduled on the IO thread to complete.
+
+        Because ``send_message()`` schedules publishes rather than performing them
+        inline, messages may still be pending when shutdown begins. Callbacks run in
+        the order they were scheduled, so once a sentinel scheduled after them has
+        fired, every publish ahead of it has been executed.
+
+        Args:
+            timeout (float): seconds to wait before giving up, in which case pending
+                messages are abandoned and a warning is logged
+        """
+        if self.connection is None or self.connection.is_closed:
+            return
+
+        # Already on the IO thread, so callbacks scheduled earlier have already run
+        if self._io_thread is not None and threading.current_thread() is self._io_thread:
+            return
+
+        drained = threading.Event()
+        try:
+            self.connection.ioloop.add_callback_threadsafe(drained.set)
+        except Exception as e:
+            logger.warning(f"Could not flush pending messages before shutdown: {e}")
+            return
+
+        if drained.wait(timeout):
+            logger.debug("Pending messages flushed before shutdown.")
+        else:
+            logger.warning(
+                f"Timed out after {timeout} seconds waiting for pending messages "
+                "to publish; they may not have been delivered."
+            )
+
     def stop_application(self):
         """Cleanly shutdown the connection to RabbitMQ by stopping the consumer
         with RabbitMQ, cleaning up resources, and stopping all background threads.
@@ -1532,6 +1634,9 @@ class Application:
         if not self._closing:
             self._closing = True
             logger.debug("Initiating application shutdown sequence")
+
+            # Flush scheduled publishes before exchanges and queues are deleted
+            self._drain_pending_publishes()
 
             # Create a threading Event to signal when cleanup is complete
             cleanup_complete_event = threading.Event()
