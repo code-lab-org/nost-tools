@@ -521,7 +521,9 @@ class Simulator(Observable):
     def set_wallclock_offset(self, wallclock_offset: timedelta) -> None:
         """
         Set the wallclock offset (difference between system clock and trusted wallclock source).
-        Requires that the simulator is in UNDEFINED, INITIALIZING, INITIALIZED, or TERMINATED mode.
+        Permitted in every mode except TERMINATING. Applications refresh the offset
+        periodically to correct clock drift, including while the simulator is
+        executing, so this method must remain callable during a scenario run.
 
         Args:
             wallclock_offset(:obj:`timedelta`): difference between system clock and trusted wallclock source

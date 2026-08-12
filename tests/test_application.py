@@ -1,4 +1,5 @@
 import threading
+import time
 import unittest
 
 import pika
@@ -184,7 +185,14 @@ class TestShutdownDrain(unittest.TestCase):
     def test_drain_returns_immediately_when_connection_is_closed(self):
         app = make_app()
         app.connection.is_closed = True
-        app._drain_pending_publishes(timeout=5.0)  # must not block
+
+        started = time.monotonic()
+        app._drain_pending_publishes(timeout=5.0)
+        elapsed = time.monotonic() - started
+
+        # Returns without waiting out the timeout, and schedules no sentinel
+        self.assertLess(elapsed, 1.0)
+        self.assertEqual(app.connection.ioloop.callbacks, [])
 
     def test_drain_does_not_deadlock_when_called_on_io_thread(self):
         app = make_app()

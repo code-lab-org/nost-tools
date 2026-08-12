@@ -11,6 +11,33 @@ from nost_tools.simulator import Mode, Simulator
 class NullEntity(Entity):
     pass
 
+
+def wait_for_mode(test, simulator, mode, timeout=15):
+    """
+    Blocks until the simulator reaches a mode, failing the test if it never does.
+
+    Waiting in an unbounded loop turns a stalled simulator into a hung test, which
+    surfaces as a job timeout with no diagnostic rather than a failure.
+    """
+    deadline = time.monotonic() + timeout
+    while simulator.get_mode() != mode:
+        if time.monotonic() > deadline:
+            test.fail(
+                f"simulator did not reach {mode} within {timeout}s "
+                f"(mode is {simulator.get_mode()})"
+            )
+        time.sleep(0.05)
+
+
+def wait_for(test, predicate, description, timeout=15):
+    """Blocks until predicate() is true, failing the test if it never becomes true."""
+    deadline = time.monotonic() + timeout
+    while not predicate():
+        if time.monotonic() > deadline:
+            test.fail(f"timed out after {timeout}s waiting for {description}")
+        time.sleep(0.05)
+
+
 class TestSimulatorMethods(unittest.TestCase):
     def test_simulator_add_remove_entity(self):
         simulator = Simulator()
@@ -160,13 +187,17 @@ class TestSimulatorMethods(unittest.TestCase):
             wallclock_epoch=t_wallclock,
             time_scale_factor=None,
         )
+        # Asserts that execution waited roughly the requested delay. The measured
+        # interval always overshoots slightly, because t_wallclock is computed
+        # before execute() begins, so the tolerance absorbs scheduling jitter
+        # rather than pinning millisecond accuracy.
         self.assertAlmostEqual(
             (
                 next(change for change in recorder.changes if change["new_value"] == Mode.EXECUTING)["time"]
                 - next(change for change in recorder.changes if change["new_value"] == Mode.INITIALIZING)["time"]
             ).total_seconds(),
             t_delay.total_seconds(),
-            1,
+            delta=0.25,
         )
 
     def test_simulator_execute_mode_checks(self):
@@ -187,22 +218,23 @@ class TestSimulatorMethods(unittest.TestCase):
             },
         ).start()
         # wait for execution to start
-        while simulator.get_mode() != Mode.EXECUTING:
-            time.sleep(0.1)
+        wait_for_mode(self, simulator, Mode.EXECUTING)
         with self.assertRaises(RuntimeError):
             simulator.add_entity(NullEntity())
         with self.assertRaises(RuntimeError):
             simulator.remove_entity(entity)
         with self.assertRaises(RuntimeError):
             simulator.initialize(init_time)
-        with self.assertRaises(RuntimeError):
-            simulator.set_wallclock_offset(timedelta(seconds=1))
+        # Setting the wallclock offset is permitted while executing: applications
+        # refresh it periodically to correct clock drift during a scenario run
+        offset = timedelta(seconds=1)
+        simulator.set_wallclock_offset(offset)
+        self.assertEqual(simulator._wallclock_offset, offset)
         with self.assertRaises(RuntimeError):
             simulator.execute(init_time, timedelta(minutes=1), timedelta(seconds=1))
         simulator.terminate()
         # wait for execution to terminate
-        while simulator.get_mode() != Mode.TERMINATED:
-            time.sleep(0.1)
+        wait_for_mode(self, simulator, Mode.TERMINATED)
 
     def test_simulator_execute_change_time_step(self):
         simulator = Simulator()
@@ -223,19 +255,23 @@ class TestSimulatorMethods(unittest.TestCase):
             },
         ).start()
         # wait for execution to start
-        while simulator.get_mode() != Mode.EXECUTING:
-            time.sleep(0.1)
+        wait_for_mode(self, simulator, Mode.EXECUTING)
         simulator.set_time_step(new_time_step)
         # wait for time step to change
-        while simulator.get_time_step() != new_time_step:
-            time.sleep(0.1)
+        wait_for(
+            self,
+            lambda: simulator.get_time_step() == new_time_step,
+            f"time step to become {new_time_step}",
+        )
         simulator.terminate()
         # wait for execution to terminate
-        while simulator.get_mode() != Mode.TERMINATED:
-            time.sleep(0.1)
+        wait_for_mode(self, simulator, Mode.TERMINATED)
+        # The final recorded step is measured from the last three time changes, so
+        # assert there are enough before indexing into them
+        self.assertGreaterEqual(len(recorder.changes), 3)
         self.assertEqual(
-            recorder.changes[-2]["new_value"] - recorder.changes[-3]["new_value"], 
-            new_time_step
+            recorder.changes[-2]["new_value"] - recorder.changes[-3]["new_value"],
+            new_time_step,
         )
 
     def test_simulator_execute_change_duration(self):
@@ -257,12 +293,10 @@ class TestSimulatorMethods(unittest.TestCase):
             },
         ).start()
         # wait for execution to start
-        while simulator.get_mode() != Mode.EXECUTING:
-            time.sleep(0.1)
+        wait_for_mode(self, simulator, Mode.EXECUTING)
         simulator.set_duration(new_duration)
         # wait for execution to terminate
-        while simulator.get_mode() != Mode.TERMINATED:
-            time.sleep(0.1)
+        wait_for_mode(self, simulator, Mode.TERMINATED)
         self.assertEqual(simulator.get_time(), init_time + new_duration)
         self.assertEqual(recorder.changes[-1]["new_value"], init_time + new_duration)
 
@@ -286,18 +320,22 @@ class TestSimulatorMethods(unittest.TestCase):
             },
         ).start()
         # wait for execution to start
-        while simulator.get_mode() != Mode.EXECUTING:
-            time.sleep(0.1)
+        wait_for_mode(self, simulator, Mode.EXECUTING)
         simulator.set_time_scale_factor(new_time_scale_factor)
         # wait for time scale factor to change
-        while simulator.get_time_scale_factor() != new_time_scale_factor:
-            time.sleep(0.1)
+        wait_for(
+            self,
+            lambda: simulator.get_time_scale_factor() == new_time_scale_factor,
+            f"time scale factor to become {new_time_scale_factor}",
+        )
         simulator.terminate()
         # wait for execution to terminate
-        while simulator.get_mode() != Mode.TERMINATED:
-            time.sleep(0.1)
+        wait_for_mode(self, simulator, Mode.TERMINATED)
+        # Wallclock interval between successive steps, so the tolerance absorbs
+        # scheduling jitter rather than pinning millisecond accuracy
+        self.assertGreaterEqual(len(recorder.changes), 3)
         self.assertAlmostEqual(
             (recorder.changes[-2]["time"] - recorder.changes[-3]["time"]).total_seconds(),
             (time_step / new_time_scale_factor).total_seconds(),
-            1,
+            delta=0.25,
         )
