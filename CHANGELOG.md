@@ -431,3 +431,27 @@ Upgrade Notes:
 - `pip install nost_tools` no longer installs `numpy`, `pandas`, or `python-dateutil`. Code that relied on them arriving as transitive dependencies must declare them directly, or install `nost_tools[examples]`
 - `start_up()` now raises `ConnectionTimeoutError` rather than blocking when the broker cannot be reached. Applications that previously hung will fail promptly instead; those that catch `ConnectionError` already handle it
 - Applications inspecting connection state directly will observe it become false when the channel closes, where it previously remained true
+
+## 3.5.0
+Removed:
+- **Outdated `ConnectionConfig`** (`application_utils.py`, `__init__.py`): Removed the connection configuration class that predates the YAML-based configuration introduced in 2.0.0:
+  - Two classes shared the name `ConnectionConfig`. The one in `application_utils` exposed flat attributes and was constructed from positional arguments, while `start_up()` and everything it calls access `config.rc`, so any application constructing it failed immediately with `AttributeError: 'ConnectionConfig' object has no attribute 'rc'`
+  - `__init__.py` imported both on consecutive lines, so the working class from `configuration` shadowed the outdated one. `from nost_tools import ConnectionConfig` was unaffected; importing directly from `nost_tools.application_utils` returned the class that could not be used
+  - `ShutDownObserver`, `TimeStatusPublisher`, and `ModeStatusObserver` remain in `application_utils` and are unchanged
+
+Fixed:
+- **Connection Configuration Type Annotations** (`manager.py`, `managed_application.py`): `Manager.start_up()` and `ManagedApplication.start_up()` annotated their `config` parameter with the outdated class rather than the one callers pass. Annotations are not enforced at runtime, so behavior is unchanged, but the declared type was wrong and would be reported by a type checker.
+- **Example Applications** (`examples/`): Migrated six applications that constructed the outdated class and therefore could not run:
+  - The four application templates, which the documentation directs new users to when creating an application, and the two Snow Observing Systems applications
+  - Each now loads a YAML configuration file, matching the pattern used by the FireSat, Downlink, and Scalability examples. Broker settings, scenario timing, and application-specific values are read from that file rather than from `.env` files and Python constants
+  - `examples/snow_observing_systems/sos.yaml` predated the `execution` schema and failed to load; it has been rewritten
+  - Removed `TimeScaleUpdate` imports and the `time_scale_updates` argument from the two manager examples. The symbol no longer exists in the library, the value passed was always an empty list, and the only code demonstrating the feature was commented out. Time scale changes during a run are still supported, but are made programmatically rather than declared in advance
+  - Deleted `examples/firesat/fires/main_fire_backup.py`, a superseded copy of `main_fire.py`
+- **Example Configuration Files Were Not Tracked** (`.gitignore`): A blanket `*.yaml` rule excluded example configuration files from version control. Existing files remained tracked because the rule postdated them, but any new example configuration would have been silently omitted, leaving the example referencing a file absent from a fresh clone.
+
+Changed:
+- **Example Documentation** (`docs/`): The application template documentation now describes the YAML configuration rather than the deleted `config.py` modules. The pages have been renamed from `config` to `yaml` to match their contents, and the section ordering is now consistent across templates.
+
+Upgrade Notes:
+- Code importing `ConnectionConfig` directly from `nost_tools.application_utils` will no longer resolve. Such code could not have been working, because the class was incompatible with `start_up()`. Import from `nost_tools` or `nost_tools.configuration` instead
+- No behavior changes for applications that currently run
