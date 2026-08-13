@@ -42,9 +42,6 @@ sys.path.insert(
     0, os.path.abspath("../../examples/application_templates/satellite_template")
 )
 sys.path.insert(
-    0, os.path.abspath("../../examples/application_templates/manager_template")
-)
-sys.path.insert(
     0, os.path.abspath("../../examples/application_templates/ground_station_template")
 )
 sys.path.insert(
