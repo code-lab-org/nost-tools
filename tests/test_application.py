@@ -1,10 +1,15 @@
+import os
+import socket
 import ssl
+import tempfile
 import threading
 import time
 import unittest
 from unittest.mock import MagicMock
 
 from nost_tools.application import Application
+from nost_tools.configuration import ConnectionConfig
+from nost_tools.errors import ConnectionTimeoutError
 
 from .fakes import wire_broker
 
@@ -211,6 +216,109 @@ class TestChannelLevelFailure(unittest.TestCase):
 
         self.assertEqual(len(app._message_queue), 1)
         self.assertEqual(app.connection.ioloop.callbacks, [])
+
+
+class TestChannelClosedClearsConnectionState(unittest.TestCase):
+    """
+    A channel-level failure such as a 403 closes the channel while leaving the
+    connection open. The application must stop reporting itself connected, or
+    callers are told the wrong thing and send_message() tries to publish through
+    a channel that no longer exists.
+    """
+
+    def make_closed_channel_app(self):
+        app = make_app()
+        app._closing = False
+        app._reconnect_delay = 15
+        return app
+
+    def test_channel_close_clears_connected_flag(self):
+        app = self.make_closed_channel_app()
+        self.assertTrue(app._is_connected.is_set())
+
+        app.on_channel_closed(app.channel, RuntimeError("ACCESS_REFUSED"))
+
+        self.assertFalse(app._is_connected.is_set())
+        self.assertIsNone(app.channel)
+
+    def test_send_message_queues_after_a_channel_close(self):
+        app = self.make_closed_channel_app()
+        app.on_channel_closed(app.channel, RuntimeError("ACCESS_REFUSED"))
+
+        app.send_message("my_app", "topic", "payload")
+
+        self.assertEqual(len(app._message_queue), 1)
+
+
+class TestStartUpConnectionTimeout(unittest.TestCase):
+    """
+    start_up() previously waited on _is_connected with no timeout, so a broker
+    that never answered left the application hanging with no indication of why.
+    """
+
+    YAML = """
+info:
+  title: Connection timeout test
+  version: '1.0.0'
+  description: Points at a port with nothing listening
+servers:
+  rabbitmq:
+    keycloak_authentication: False
+    host: "127.0.0.1"
+    port: {port}
+    tls: False
+    virtual_host: "/"
+    connection_timeout: 2
+    connection_attempts: 1
+    retry_delay: 1
+execution:
+  general:
+    prefix: timeouttest
+"""
+
+    def setUp(self):
+        self._saved = {k: os.environ.get(k) for k in ("USERNAME", "PASSWORD")}
+        os.environ["USERNAME"] = "guest"
+        os.environ["PASSWORD"] = "guest"
+        # Bind a socket without listening, so connections hang rather than being
+        # refused; a refused connection would fail faster than the timeout path
+        self.dead = socket.socket()
+        self.dead.bind(("127.0.0.1", 0))
+        self.port = self.dead.getsockname()[1]
+
+        handle = tempfile.NamedTemporaryFile(
+            "w", suffix=".yaml", delete=False, encoding="utf-8"
+        )
+        handle.write(self.YAML.format(port=self.port))
+        handle.close()
+        self.config_path = handle.name
+
+    def tearDown(self):
+        self.dead.close()
+        for key, value in self._saved.items():
+            if value is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = value
+        os.unlink(self.config_path)
+
+    def test_start_up_raises_instead_of_hanging(self):
+        config = ConnectionConfig(yaml_file=self.config_path)
+        app = Application("timeout_test", setup_signal_handlers=False)
+
+        started = time.monotonic()
+        with self.assertRaises(ConnectionTimeoutError) as caught:
+            app.start_up(prefix="timeouttest", config=config, set_offset=False)
+        elapsed = time.monotonic() - started
+
+        # Returns near the configured timeout rather than blocking indefinitely
+        self.assertLess(elapsed, 20)
+        message = str(caught.exception)
+        self.assertIn("connection_timeout", message)
+        self.assertIn(str(self.port), message)
+
+    def test_timeout_error_is_catchable_as_connection_error(self):
+        self.assertTrue(issubclass(ConnectionTimeoutError, ConnectionError))
 
 
 if __name__ == "__main__":

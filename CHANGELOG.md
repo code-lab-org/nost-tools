@@ -403,3 +403,31 @@ Changed:
 - **Solace Certificate Guide Marked Legacy** (`certificate_authorization.rst`): The client certificate guide describes Solace, the message broker used before RabbitMQ, and none of its procedures apply to the current stack. It now opens with a notice to that effect and links to the TLS Certificate Verification section of the YAML configuration guide.
 - **Test Coverage** (`tests/`): Expanded the test suite from 44 to 114 tests and overall coverage from 36% to 48%, added end-to-end tests that run against a real RabbitMQ broker and skip when none is reachable, and fixed two tests that failed or intermittently flaked. Not part of the distributed package; recorded here as a record of repository state at this release:
   - The end-to-end tests now wait for a message to complete a round trip before asserting, rather than publishing immediately after registering a callback. `add_message_callback()` issues `queue_bind` asynchronously, so a message published before the binding is established matches no binding and is discarded by the broker.
+
+## 3.4.0
+Fixed:
+- **Connection Failures Now Raise Instead of Hanging** (`application.py`, `schemas.py`, `errors.py`): `start_up()` waits a bounded time for the connection and channel to open, and raises `ConnectionTimeoutError` when they do not:
+  - Previously it waited on an event with no timeout, so an unreachable host, a refused connection, or a certificate verification failure left the application blocked indefinitely with no indication of the cause
+  - The certificate guidance added in 3.2.0 was printed and then never acted on, because the process hung immediately afterward
+  - The error names the host and port, states that the underlying failure is logged above, and points at the setting that controls the wait
+  - `ConnectionTimeoutError` subclasses the built-in `ConnectionError`, so existing handlers catching that continue to work
+  - The IO thread is stopped and joined before raising; it is not a daemon, so abandoning it would prevent the interpreter from exiting
+- **Applications Reported Themselves Connected After Losing the Channel** (`application.py`): `on_channel_closed()` now clears the connection state alongside the channel reference:
+  - A channel-level failure, such as a `403 ACCESS_REFUSED` when publishing to an exchange outside the account's permissions, closes the channel while leaving the connection open
+  - The application continued to report itself connected with no channel, so `send_message()` attempted to publish through nothing rather than queueing, and callers inspecting the connection state were told the wrong thing
+  - Messages accumulated silently until the queue reached `queue_max_size` and were then discarded, with nothing raised and nothing in the application's own state indicating a problem
+
+Added:
+- **`connection_timeout` Configuration Field** (`schemas.py`): Added `servers.rabbitmq.connection_timeout`, the number of seconds `start_up()` waits for the connection and channel to open before raising. Defaults to 30 seconds, and covers the whole handshake including TLS negotiation and authentication, so it is longer than `socket_timeout`.
+
+Changed:
+- **Core Dependencies Trimmed** (`pyproject.toml`): `numpy` and `pandas` moved to the `examples` extra, and `python-dateutil` removed:
+  - None of the three are imported anywhere in the package; `numpy` and `pandas` are imported by 18 example files, which the `examples` extra did not previously declare
+  - `python-dateutil` is used by neither the package nor the examples, and arrives transitively through `pandas` and `matplotlib`
+  - `numpy` and `pandas` account for roughly 100 MB of compiled wheels, which matters against the 250 MB unzipped AWS Lambda layer limit
+  - Added `tomli` to the `dev` extra, required by the new packaging test on Python versions before 3.11
+
+Upgrade Notes:
+- `pip install nost_tools` no longer installs `numpy`, `pandas`, or `python-dateutil`. Code that relied on them arriving as transitive dependencies must declare them directly, or install `nost_tools[examples]`
+- `start_up()` now raises `ConnectionTimeoutError` rather than blocking when the broker cannot be reached. Applications that previously hung will fail promptly instead; those that catch `ConnectionError` already handle it
+- Applications inspecting connection state directly will observe it become false when the channel closes, where it previously remained true

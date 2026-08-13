@@ -22,10 +22,7 @@ classifiers = [
 ]
 dependencies = [
     "ntplib",
-    "numpy >= 2",
-    "pandas >= 2",
     "pydantic >= 2, < 3",
-    "python-dateutil",
     "pika >= 1",
     "python-dotenv",
     "pyyaml",
@@ -42,12 +39,15 @@ dev = [
     "coverage",
     "pylint",
     "pylint-pydantic",
-    "pytest"
+    "pytest",
+    "tomli; python_version < '3.11'"
 ]
 examples = [
     "dash",
     "dash-daq",
     "flask",
+    "numpy >= 2",
+    "pandas >= 2",
     "scipy",
     "seaborn",
     "skyfield",
