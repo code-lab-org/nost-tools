@@ -218,6 +218,38 @@ class TestChannelLevelFailure(unittest.TestCase):
         self.assertEqual(app.connection.ioloop.callbacks, [])
 
 
+class TestChannelClosedClearsConnectionState(unittest.TestCase):
+    """
+    A channel-level failure such as a 403 closes the channel while leaving the
+    connection open. The application must stop reporting itself connected, or
+    callers are told the wrong thing and send_message() tries to publish through
+    a channel that no longer exists.
+    """
+
+    def make_closed_channel_app(self):
+        app = make_app()
+        app._closing = False
+        app._reconnect_delay = 15
+        return app
+
+    def test_channel_close_clears_connected_flag(self):
+        app = self.make_closed_channel_app()
+        self.assertTrue(app._is_connected.is_set())
+
+        app.on_channel_closed(app.channel, RuntimeError("ACCESS_REFUSED"))
+
+        self.assertFalse(app._is_connected.is_set())
+        self.assertIsNone(app.channel)
+
+    def test_send_message_queues_after_a_channel_close(self):
+        app = self.make_closed_channel_app()
+        app.on_channel_closed(app.channel, RuntimeError("ACCESS_REFUSED"))
+
+        app.send_message("my_app", "topic", "payload")
+
+        self.assertEqual(len(app._message_queue), 1)
+
+
 class TestStartUpConnectionTimeout(unittest.TestCase):
     """
     start_up() previously waited on _is_connected with no timeout, so a broker

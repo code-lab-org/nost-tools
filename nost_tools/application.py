@@ -657,6 +657,13 @@ class Application:
         # Clear channel reference
         self.channel = None
 
+        # Without this the application keeps reporting itself connected while
+        # having no channel to publish through, so send_message() attempts to
+        # publish into nothing instead of queueing, and callers checking the
+        # connection state are told the wrong thing. A channel-level failure such
+        # as a 403 closes the channel while leaving the connection open.
+        self._is_connected.clear()
+
         # # Clear consumer tag reference
         # if hasattr(self, "_consumer_tag"):
         #     self._consumer_tag = None
