@@ -24,6 +24,7 @@ from .application_utils import (  # ConnectionConfig,
     TimeStatusPublisher,
 )
 from .configuration import ConnectionConfig
+from .errors import ConnectionTimeoutError
 from .schemas import ReadyStatus
 from .simulator import Simulator
 
@@ -511,7 +512,24 @@ class Application:
         # Start the I/O loop in a separate thread
         self._io_thread = threading.Thread(target=self._start_io_loop)
         self._io_thread.start()
-        self._is_connected.wait()
+
+        # Wait for the channel to open, rather than blocking indefinitely. A
+        # connection that never opens (unreachable host, refused connection,
+        # certificate verification failure) would otherwise hang the application
+        # with no indication of why.
+        connection_timeout = rabbitmq_config.connection_timeout
+        if not self._is_connected.wait(timeout=connection_timeout):
+            # The IO thread is not a daemon, so it must be stopped before raising
+            # or the process cannot exit
+            self._should_stop.set()
+            self._stop_io_thread()
+            raise ConnectionTimeoutError(
+                f"Could not connect to {rabbitmq_config.host}:{rabbitmq_config.port} "
+                f"within {connection_timeout} seconds. Check that the broker is "
+                "reachable and that the credentials and TLS settings are correct; "
+                "any underlying error is logged above. The timeout is configurable "
+                "with servers.rabbitmq.connection_timeout."
+            )
 
         if self.config.rc.simulation_configuration.predefined_exchanges_queues:
             # Get the unique exchanges and channel configurations
@@ -535,6 +553,30 @@ class Application:
         if self.shut_down_when_terminated:
             self._create_shut_down_observer()
         logger.info(f"Application {self.app_name} successfully started up.")
+
+    def _stop_io_thread(self, timeout=5):
+        """
+        Stops the IO loop and waits for its thread to exit.
+
+        The IO thread is not a daemon, so it must be stopped on any path that
+        abandons a connection, or the interpreter cannot exit.
+
+        Args:
+            timeout (int): seconds to wait for the thread to finish
+        """
+        if getattr(self, "stop_event", None) is not None:
+            self.stop_event.set()
+        try:
+            if self.connection is not None:
+                self.connection.ioloop.stop()
+        except Exception as e:
+            logger.debug(f"Could not stop the IO loop cleanly: {e}")
+        if self._io_thread is not None and self._io_thread.is_alive():
+            self._io_thread.join(timeout=timeout)
+            if self._io_thread.is_alive():
+                logger.warning(
+                    f"IO thread did not exit within {timeout} seconds."
+                )
 
     def _start_io_loop(self):
         """

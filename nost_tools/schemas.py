@@ -440,6 +440,12 @@ class RabbitMQConfig(BaseModel):
         1, description="RabbitMQ connection attempts before giving up."
     )
     retry_delay: int = Field(2, description="RabbitMQ retry delay, in seconds.")
+    connection_timeout: int = Field(
+        30,
+        description="Seconds to wait for the connection and channel to open during "
+        "start_up() before raising. Covers the whole handshake, including TLS and "
+        "authentication, so it is longer than socket_timeout.",
+    )
     socket_timeout: int = Field(10, description="RabbitMQ socket timeout, in seconds.")
     stack_timeout: int = Field(15, description="RabbitMQ stack timeout, in seconds.")
     locale: str = Field("en_US", description="RabbitMQ locale.")
