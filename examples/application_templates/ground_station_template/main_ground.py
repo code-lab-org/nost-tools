@@ -1,21 +1,19 @@
 # -*- coding: utf-8 -*-
 import logging
-from datetime import datetime, timezone, timedelta
-from dotenv import dotenv_values
 
-from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
-from nost_tools.simulator import Simulator, Mode
-from nost_tools.observer import Observer
+import pandas as pd
+
+from nost_tools.application_utils import ShutDownObserver
+from nost_tools.configuration import ConnectionConfig
 from nost_tools.managed_application import ManagedApplication
+from nost_tools.observer import Observer
+from nost_tools.simulator import Mode, Simulator
 
 from ground_config_files.schemas import GroundLocation
-from ground_config_files.config import (
-    PREFIX,
-    SCALE,
-    GROUND,
-)
 
 logging.basicConfig(level=logging.INFO)
+
+NAME = "ground"
 
 
 # define an observer to manage ground updates
@@ -57,16 +55,19 @@ class Environment(Observer):
 
 # name guard used to ensure script only executes if it is run as the __main__
 if __name__ == "__main__":
-    # Note that these are loaded from a .env file in current working directory
-    credentials = dotenv_values(".env")
-    HOST, PORT = credentials["HOST"], int(credentials["PORT"])
-    USERNAME, PASSWORD = credentials["USERNAME"], credentials["PASSWORD"]
-
-    # set the client credentials
-    config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, True)
+    # Load the connection and execution configuration. Passing app_name makes the
+    # configuration_parameters for this application available on
+    # config.rc.application_configuration.
+    config = ConnectionConfig(yaml_file="template.yaml", app_name=NAME)
 
     # create the managed application
-    app = ManagedApplication("ground")
+    app = ManagedApplication(NAME)
+
+    # read the ground station locations from the configuration
+    stations = config.rc.application_configuration["stations"]
+    GROUND = pd.json_normalize(stations)[
+        ["groundId", "latitude", "longitude", "elevAngle"]
+    ]
 
     # add the environment observer to monitor simulation for switch to EXECUTING mode
     app.simulator.add_observer(Environment(app, GROUND))
@@ -74,12 +75,9 @@ if __name__ == "__main__":
     # add a shutdown observer to shut down after a single test case
     app.simulator.add_observer(ShutDownObserver(app))
 
-    # start up the application on PREFIX, publish time status every 10 seconds of wallclock time
+    # start up the application on the prefix defined in the YAML file. The time
+    # step and time status interval come from the managed_applications section.
     app.start_up(
-        PREFIX,
+        config.rc.simulation_configuration.execution_parameters.general.prefix,
         config,
-        True,
-        time_status_step=timedelta(seconds=10) * SCALE,
-        time_status_init=datetime(2020, 1, 1, 7, 20, tzinfo=timezone.utc),
-        time_step=timedelta(seconds=1) * SCALE,
     )

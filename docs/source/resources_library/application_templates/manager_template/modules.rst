@@ -9,4 +9,4 @@ This template is for an NOS-T manager application, which synchronizes a test cas
   :maxdepth: 1
 
   main_manager
-  config
+  yaml

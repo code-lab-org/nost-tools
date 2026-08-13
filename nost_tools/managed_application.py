@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from nost_tools.simulator import Mode
 
 from .application import Application
-from .application_utils import ConnectionConfig
+from .configuration import ConnectionConfig
 from .schemas import (
     FreezeCommand,
     FreezeRequest,

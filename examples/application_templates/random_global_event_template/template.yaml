@@ -1,0 +1,44 @@
+info:
+  title: Novel Observing Strategies Testbed (NOS-T) YAML Configuration
+  version: '1.0.0'
+  description: Configuration for the random global event application template
+servers:
+  rabbitmq:
+    keycloak_authentication: False
+    host: "localhost"
+    port: 5672
+    tls: False
+    virtual_host: "/"
+    message_expiration: "60000"
+    heartbeat: 600
+    blocked_connection_timeout: 300
+execution:
+  general:
+    prefix: utility
+    wallclock_offset_refresh_interval: 60
+    ntp_host: "time.nist.gov"
+  managed_applications:
+    eventGenerator:
+      # Scenario seconds per wallclock second, so 3600 means one wallclock
+      # second advances the scenario by one hour
+      time_scale_factor: 3600
+      time_step: "0:00:01"
+      is_scenario_time_step: False
+      set_offset: True
+      # Interval between time status "heartbeat" messages
+      time_status_step: "0:00:10"
+      is_scenario_time_status_step: False
+      shut_down_when_terminated: True
+      # Name of the manager application that sends command messages
+      manager_app_name: "manager"
+      configuration_parameters:
+        # Number of random events generated for the scenario
+        EVENT_COUNT: 3
+        # Longest possible duration of a single event, in hours
+        MAX_EVENT_DURATION: 36.0
+        # Range of scenario time within which events can occur
+        SCENARIO_START: "2023-08-02T07:20:00+00:00"
+        SCENARIO_LENGTH: 144.0
+        # Set an integer for repeatable results, or leave blank for a new random
+        # sequence on every run
+        SEED:

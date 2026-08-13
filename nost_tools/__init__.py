@@ -1,7 +1,7 @@
-__version__ = "3.4.0"
+__version__ = "3.5.0"
 
 from .application import Application
-from .application_utils import ConnectionConfig, ModeStatusObserver, TimeStatusPublisher
+from .application_utils import ModeStatusObserver, TimeStatusPublisher
 from .configuration import ConnectionConfig
 from .entity import Entity
 from .logger_application import LoggerApplication

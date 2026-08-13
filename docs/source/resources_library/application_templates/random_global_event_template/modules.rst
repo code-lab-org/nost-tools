@@ -18,5 +18,5 @@ Please note that this template is built as a *managed* application - meaning tha
   :maxdepth: 1
 
   main_RandEvents
-  config
+  yaml
   schemas
