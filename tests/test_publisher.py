@@ -162,5 +162,54 @@ class TestWallclockTimeIntervalPublisher(unittest.TestCase):
         self.assertEqual(publisher.published, 0)
 
 
+class TestPublisherAttachedToRunningSimulator(unittest.TestCase):
+    """
+    A publisher added to an already-running simulator receives a time change
+    without ever having seen INITIALIZED. Both publishers previously compared
+    _next_time_status, still None from __init__, against a datetime and raised
+    TypeError. They now seed from the current time instead.
+    """
+
+    def setUp(self):
+        self.simulator = FakeSimulator()
+        self.app = FakeApp(self.simulator)
+
+    def test_scenario_publisher_seeds_instead_of_raising(self):
+        publisher = RecordingScenarioPublisher(self.app, timedelta(hours=1))
+        self.assertIsNone(publisher._next_time_status)
+
+        publisher.on_change(
+            Simulator, Simulator.PROPERTY_TIME, START, START + timedelta(hours=1)
+        )
+
+        self.assertEqual(publisher._next_time_status, START + timedelta(hours=2))
+        self.assertEqual(publisher.published, 1)
+
+    def test_wallclock_publisher_seeds_instead_of_raising(self):
+        publisher = RecordingWallclockPublisher(self.app, timedelta(seconds=10))
+        self.assertIsNone(publisher._next_time_status)
+
+        publisher.on_change(Simulator, Simulator.PROPERTY_TIME, None, None)
+
+        self.assertEqual(
+            publisher._next_time_status, START + timedelta(seconds=10)
+        )
+        self.assertEqual(publisher.published, 1)
+
+    def test_seeded_publisher_continues_on_its_interval(self):
+        """After seeding, subsequent changes publish at the configured interval."""
+        publisher = RecordingScenarioPublisher(self.app, timedelta(hours=1))
+        publisher.on_change(
+            Simulator, Simulator.PROPERTY_TIME, START, START + timedelta(hours=1)
+        )
+        publisher.on_change(
+            Simulator,
+            Simulator.PROPERTY_TIME,
+            START + timedelta(hours=1),
+            START + timedelta(hours=3),
+        )
+        self.assertEqual(publisher.published, 3)
+
+
 if __name__ == "__main__":
     unittest.main()

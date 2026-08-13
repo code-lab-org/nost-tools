@@ -71,6 +71,11 @@ class ScenarioTimeIntervalPublisher(Observer, ABC):
             else:
                 self._next_time_status = self.time_status_init
         elif property_name == Simulator.PROPERTY_TIME:
+            # A time change can arrive before INITIALIZED when a publisher is
+            # attached to an already-running simulator; seed from the current
+            # time rather than comparing against the None left by __init__
+            if self._next_time_status is None:
+                self._next_time_status = new_value
             while self._next_time_status <= new_value:
                 self.publish_message()
                 if self.time_status_step is None:
@@ -142,6 +147,10 @@ class WallclockTimeIntervalPublisher(Observer, ABC):
             else:
                 self._next_time_status = self.time_status_init
         elif property_name == Simulator.PROPERTY_TIME:
+            # As above: seed rather than compare against None when a publisher is
+            # attached to an already-running simulator
+            if self._next_time_status is None:
+                self._next_time_status = self.app.simulator.get_wallclock_time()
             while self._next_time_status <= self.app.simulator.get_wallclock_time():
                 self.publish_message()
                 if self.time_status_step is None:
