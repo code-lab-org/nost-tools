@@ -22,8 +22,8 @@ servers:
     socket_timeout: 10.0
     stack_timeout: 15.0
   keycloak:
-    host: "nost.smce.nasa.gov"
-    port: 8443
+    host: "auth.sciencecloud.nasa.gov"
+    port: 443
     tls: True
     token_refresh_interval: 240
     realm: "NOS-T"
