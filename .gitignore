@@ -163,3 +163,5 @@ testing/
 # Ignore documentation files
 CLAUDE.md
 *.yaml
+# Example configurations are part of the examples and must be tracked
+!examples/**/*.yaml
