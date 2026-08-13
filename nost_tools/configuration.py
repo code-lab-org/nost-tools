@@ -320,7 +320,7 @@ class ConnectionConfig:
 
         self.get_exchanges_channels()
 
-        server_config = self.yaml_config.copy()
+        server_config = self.yaml_config.model_copy()
         if hasattr(server_config, "channels"):
             del server_config.channels
         if hasattr(server_config, "execution"):
