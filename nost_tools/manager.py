@@ -79,6 +79,48 @@ class Manager(Application):
         self.init_retry_delay_s = None
         self.init_max_retry = None
 
+    def _required_apps_are_ready(self) -> bool:
+        """
+        True when every required application has reported a ready status.
+
+        Returns:
+            bool: True if all required applications are ready, or if none are
+                required, in which case there is nothing to wait for
+        """
+        return all(
+            self.required_apps_status[app] for app in self.required_apps
+        )
+
+    def _initialize_with_retry(self) -> bool:
+        """
+        Publishes the initialize command, retrying until the required
+        applications report ready or the retry attempts are exhausted.
+
+        The command is published once per attempt, and no further attempts are
+        made once every required application is ready.
+
+        Returns:
+            bool: True if the required applications reported ready, False if the
+                attempts were exhausted without them doing so
+        """
+        for _ in range(self.init_max_retry):
+            self.init(self.sim_start_time, self.sim_stop_time, self.required_apps)
+            next_try = self.simulator.get_wallclock_time() + timedelta(
+                seconds=self.init_retry_delay_s
+            )
+            while (
+                not self._required_apps_are_ready()
+                and self.simulator.get_wallclock_time() < next_try
+            ):
+                time.sleep(0.001)
+            if self._required_apps_are_ready():
+                return True
+        logger.warning(
+            f"Required applications did not report ready after "
+            f"{self.init_max_retry} attempts: {self.required_apps_status}"
+        )
+        return False
+
     def _sleep_with_heartbeat(self, total_seconds):
         """
         Sleep for a specified number of seconds while allowing connection heartbeats.
@@ -469,16 +511,7 @@ class Manager(Application):
         self._create_time_status_publisher(self.time_status_step, self.time_status_init)
 
         # Initialize with retry logic
-        for i in range(self.init_max_retry):
-            self.init(self.sim_start_time, self.sim_stop_time, self.required_apps)
-            next_try = self.simulator.get_wallclock_time() + timedelta(
-                seconds=self.init_retry_delay_s
-            )
-            while (
-                not all([self.required_apps_status[app] for app in self.required_apps])
-                and self.simulator.get_wallclock_time() < next_try
-            ):
-                time.sleep(0.001)
+        self._initialize_with_retry()
 
         # Configure start time if not provided
         if self.start_time is None:

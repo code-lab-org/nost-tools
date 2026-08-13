@@ -455,3 +455,13 @@ Changed:
 Upgrade Notes:
 - Code importing `ConnectionConfig` directly from `nost_tools.application_utils` will no longer resolve. Such code could not have been working, because the class was incompatible with `start_up()`. Import from `nost_tools` or `nost_tools.configuration` instead
 - No behavior changes for applications that currently run
+
+## 3.5.1
+Fixed:
+- **Repeated Initialize Commands** (`manager.py`): The manager now stops retrying once every required application has reported ready, rather than publishing the initialize command `init_max_retry` times on every run:
+  - The retry loop waited for the applications on each attempt but had no exit condition, so once they were ready the wait returned immediately and the next attempt published again. A run with the default `init_max_retry` of 5 sent five identical commands back to back, and every application answered with a ready status five times
+  - Retry behavior is unchanged when the applications do not report ready: the command is still published once per attempt, up to `init_max_retry` times
+  - The manager now logs a warning when the attempts are exhausted without the required applications becoming ready, where it previously proceeded to the start command silently
+
+Changed:
+- **Initialize Retry Extracted** (`manager.py`): The retry loop moved from `_execute_test_plan_impl` into `_initialize_with_retry()`, which returns whether the required applications became ready. A `_required_apps_are_ready()` helper replaces the readiness check that was previously repeated inline. No behavior change beyond the fix above; the extraction makes the loop directly testable.

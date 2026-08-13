@@ -6,6 +6,8 @@ so tests drain the recorded callbacks before inspecting what reached the channel
 """
 
 import json
+import threading
+import time
 import unittest
 from datetime import datetime, timedelta, timezone
 
@@ -151,6 +153,85 @@ class TestCommandsWhileDisconnected(unittest.TestCase):
         manager.init(START, STOP)
         self.assertEqual(manager.channel.published, [])
         self.assertEqual(len(manager._message_queue), 1)
+
+
+class TestInitializeRetryLoop(unittest.TestCase):
+    """
+    The manager republished the initialize command on every retry attempt, so a
+    run that succeeded immediately still sent init_max_retry commands and each
+    application answered with a ready status that many times.
+    """
+
+    MAX_RETRY = 5
+
+    def make_manager_for_retry(self, required_apps, ready):
+        manager = make_manager()
+        manager.required_apps = required_apps
+        manager.required_apps_status = {app: ready for app in required_apps}
+        manager.init_max_retry = self.MAX_RETRY
+        # Keep the wait short; a run where applications never report ready waits
+        # this long on every attempt
+        manager.init_retry_delay_s = 0.01
+        manager.sim_start_time = START
+        manager.sim_stop_time = STOP
+        return manager
+
+    def initialize_commands(self, manager):
+        """Drains scheduled publishes and returns the initialize commands sent."""
+        manager.connection.ioloop.run_pending()
+        return [key for key in manager.channel.routing_keys() if key.endswith("init")]
+
+    def test_ready_applications_receive_one_initialize_command(self):
+        manager = self.make_manager_for_retry(["planner"], ready=True)
+        self.assertTrue(manager._initialize_with_retry())
+        self.assertEqual(len(self.initialize_commands(manager)), 1)
+
+    def test_no_required_applications_receive_one_initialize_command(self):
+        """all([]) is True, so an empty list must not spin through every retry."""
+        manager = self.make_manager_for_retry([], ready=True)
+        self.assertTrue(manager._initialize_with_retry())
+        self.assertEqual(len(self.initialize_commands(manager)), 1)
+
+    def test_unready_applications_exhaust_the_retries(self):
+        manager = self.make_manager_for_retry(["planner"], ready=False)
+        self.assertFalse(manager._initialize_with_retry())
+        self.assertEqual(len(self.initialize_commands(manager)), self.MAX_RETRY)
+
+    def test_application_becoming_ready_mid_wait_stops_the_retries(self):
+        """
+        A late-arriving ready status must end the retries, not merely shorten one
+        wait. This is the case the defect made indistinguishable from success.
+        """
+        manager = self.make_manager_for_retry(["planner"], ready=False)
+        manager.init_retry_delay_s = 5
+
+        def report_ready():
+            time.sleep(0.2)
+            manager.required_apps_status["planner"] = True
+
+        threading.Thread(target=report_ready, daemon=True).start()
+        self.assertTrue(manager._initialize_with_retry())
+        self.assertEqual(len(self.initialize_commands(manager)), 1)
+
+
+class TestRequiredAppsAreReady(unittest.TestCase):
+    def test_true_when_every_application_is_ready(self):
+        manager = make_manager()
+        manager.required_apps = ["planner", "simulator"]
+        manager.required_apps_status = {"planner": True, "simulator": True}
+        self.assertTrue(manager._required_apps_are_ready())
+
+    def test_false_when_any_application_is_not_ready(self):
+        manager = make_manager()
+        manager.required_apps = ["planner", "simulator"]
+        manager.required_apps_status = {"planner": True, "simulator": False}
+        self.assertFalse(manager._required_apps_are_ready())
+
+    def test_true_when_no_applications_are_required(self):
+        manager = make_manager()
+        manager.required_apps = []
+        manager.required_apps_status = {}
+        self.assertTrue(manager._required_apps_are_ready())
 
 
 if __name__ == "__main__":
