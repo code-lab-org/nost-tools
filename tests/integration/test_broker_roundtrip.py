@@ -75,6 +75,28 @@ class BrokerTestCase(unittest.TestCase):
         )
         return app
 
+    def wait_for_subscription(
+        self, publisher, received, app_name, topic, timeout=15
+    ):
+        """
+        Publishes probe messages until one arrives, confirming the binding is live.
+
+        add_message_callback() issues queue_bind asynchronously on the IO thread,
+        so a message published immediately after registering a callback can reach
+        the exchange before the queue is bound, match no binding, and be silently
+        discarded. Waiting on a real round trip is deterministic, unlike guessing
+        a delay long enough for the bind to complete.
+
+        Clears `received` before returning so probes do not pollute assertions.
+        """
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            publisher.send_message(app_name, topic, "__probe__")
+            if wait_until(lambda: received, timeout=1):
+                received.clear()
+                return
+        self.fail(f"subscription to {app_name}.{topic} never became active")
+
 
 @requires_broker
 class TestPublishSubscribe(BrokerTestCase):
@@ -88,6 +110,7 @@ class TestPublishSubscribe(BrokerTestCase):
             "publisher", "data", lambda ch, method, props, body: received.append(body)
         )
         publisher = self.start(Application("publisher", setup_signal_handlers=False))
+        self.wait_for_subscription(publisher, received, "publisher", "data")
 
         payload = json.dumps({"value": 42})
         publisher.send_message("publisher", "data", payload)
@@ -107,6 +130,7 @@ class TestPublishSubscribe(BrokerTestCase):
             "publisher", "wanted", lambda ch, m, p, body: matched.append(body)
         )
         publisher = self.start(Application("publisher", setup_signal_handlers=False))
+        self.wait_for_subscription(publisher, matched, "publisher", "wanted")
 
         publisher.send_message("publisher", "unwanted", "no")
         publisher.send_message("publisher", "wanted", "yes")
@@ -126,6 +150,7 @@ class TestPublishSubscribe(BrokerTestCase):
             "publisher", "seq", lambda ch, m, p, body: received.append(body.decode())
         )
         publisher = self.start(Application("publisher", setup_signal_handlers=False))
+        self.wait_for_subscription(publisher, received, "publisher", "seq")
 
         for i in range(10):
             publisher.send_message("publisher", "seq", str(i))
@@ -215,7 +240,14 @@ class TestManagerProtocol(BrokerTestCase):
             "testapp", "status.ready", manager.on_app_ready_status
         )
         managed.add_message_callback("manager", "init", managed.on_manager_init)
-        time.sleep(1)  # let both subscriptions bind before publishing
+
+        # Both bindings must be live: the manager's init command has to reach the
+        # managed application, and its ready status has to reach the manager
+        probes = []
+        managed.add_message_callback(
+            "manager", "probe", lambda ch, m, p, body: probes.append(body)
+        )
+        self.wait_for_subscription(manager, probes, "manager", "probe")
 
         manager.init(START, STOP, required_apps=["testapp"])
 

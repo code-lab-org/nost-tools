@@ -76,8 +76,8 @@ For automated systems, scripts, and long-running processes that authenticate usi
        tls: True
        virtual_host: "/"
      keycloak:
-       host: "nost.smce.nasa.gov"
-       port: 8443
+       host: "auth.sciencecloud.nasa.gov"
+       port: 443
        tls: True
        token_refresh_interval: 240
        realm: "NOS-T"

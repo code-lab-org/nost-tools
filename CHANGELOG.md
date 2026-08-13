@@ -383,3 +383,23 @@ Added:
 Upgrade Notes:
 - `send_message()` returns once a publish has been scheduled, not once it has been written to the broker. Its signature is unchanged and existing callers require no modification, but code depending on a message reaching the broker before `send_message()` returns should account for the new timing
 - Applications that shut down immediately after sending are covered by the flush described above
+
+## 3.3.1
+Fixed:
+- **Keycloak Server Address in Documentation** (`example.yml`, `yml_file.rst`, `authentication_modes.rst`): Corrected the Keycloak host and port in every published configuration example, which named the RabbitMQ broker rather than the Keycloak server:
+  - The documented endpoint drops packets rather than refusing them, so a configuration copied from the examples produced a silent hang until the socket timeout expired, with no error indicating the cause
+  - `authentication_modes.rst` carried the same values in the section describing how to configure Keycloak authentication
+- **Interval Publishers Attached to a Running Simulator** (`publisher.py`): `ScenarioTimeIntervalPublisher` and `WallclockTimeIntervalPublisher` now seed their next publish time when a scenario time change arrives before the simulator reaches `INITIALIZED`:
+  - Both previously compared an unset value against a datetime and raised `TypeError`
+  - Reachable only when a publisher is added to an already-running simulator; the equivalent classes in `observer.py` already handled this
+- **Deprecated Pydantic Method** (`configuration.py`): Replaced `BaseModel.copy()` with `model_copy()`, removed in Pydantic V3:
+  - Emitted a deprecation warning on every configuration load
+  - Behavior is unchanged; the copy remains shallow and independent at the top level
+
+Changed:
+- **`set_wallclock_offset` Documentation** (`simulator.py`): Corrected the docstring, which stated the method requires `UNDEFINED`, `INITIALIZING`, `INITIALIZED`, or `TERMINATED` mode. The implementation has only ever rejected `TERMINATING`, and applications refresh the offset periodically to correct clock drift while a scenario is executing:
+  - No behavior change; the documented restriction never existed in the code
+  - Included in this release because it was corrected after 3.3.0 was tagged
+- **Solace Certificate Guide Marked Legacy** (`certificate_authorization.rst`): The client certificate guide describes Solace, the message broker used before RabbitMQ, and none of its procedures apply to the current stack. It now opens with a notice to that effect and links to the TLS Certificate Verification section of the YAML configuration guide.
+- **Test Coverage** (`tests/`): Expanded the test suite from 44 to 114 tests and overall coverage from 36% to 48%, added end-to-end tests that run against a real RabbitMQ broker and skip when none is reachable, and fixed two tests that failed or intermittently flaked. Not part of the distributed package; recorded here as a record of repository state at this release:
+  - The end-to-end tests now wait for a message to complete a round trip before asserting, rather than publishing immediately after registering a callback. `add_message_callback()` issues `queue_bind` asynchronously, so a message published before the binding is established matches no binding and is discarded by the broker.

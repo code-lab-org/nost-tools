@@ -89,8 +89,8 @@ Example:
 
 ..    servers:
 ..      keycloak:
-..        host: "nost.smce.nasa.gov"      # Keycloak server hostname
-..        port: 8443                      # Keycloak server port
+..        host: "auth.sciencecloud.nasa.gov"  # Keycloak server hostname
+..        port: 443                       # Keycloak server port
 ..        tls: True                       # Enable/disable TLS encryption
 ..        token_refresh_interval: 240     # Token refresh interval in seconds
 ..        realm: "NOS-T"                  # Keycloak realm name

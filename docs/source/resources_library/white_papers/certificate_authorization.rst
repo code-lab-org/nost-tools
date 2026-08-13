@@ -1,7 +1,18 @@
 .. _certAuth:
 
-Configuring Client Certificates with the Solace Broker
-======================================================
+Configuring Client Certificates with the Solace Broker (Legacy)
+===============================================================
+
+.. warning::
+
+   **This document describes Solace, the message broker NOS-T used before
+   RabbitMQ. None of the procedures below apply to the current stack.** It is
+   retained for historical reference only.
+
+   NOS-T authenticates clients with Keycloak-issued tokens rather than client
+   certificates. For configuring TLS against the current broker, including
+   self-signed certificates on a self-hosted server, see
+   :ref:`the TLS Certificate Verification section of the YAML configuration guide <yamlConfig>`.
 
 This guide provides a step-by-step method for authorizing broker clients. This will aid in ensuring that your communications over the broker are secure.
 

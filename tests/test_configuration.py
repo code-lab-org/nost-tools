@@ -5,6 +5,7 @@ Tests for YAML configuration loading, server settings, and TLS verification fiel
 import os
 import tempfile
 import unittest
+import warnings
 
 from nost_tools.configuration import ConnectionConfig
 from nost_tools.errors import ConfigurationError
@@ -88,6 +89,33 @@ class TestYamlLoading(unittest.TestCase):
         self.assertEqual(rabbitmq.virtual_host, "/")
         self.assertEqual(rabbitmq.frame_max, 131072)
         self.assertEqual(rabbitmq.queue_max_size, 5000)
+
+    def test_server_config_is_a_copy_that_leaves_the_parsed_yaml_intact(self):
+        """
+        server_config is built by copying the parsed YAML and deleting the
+        channels and execution sections. The copy must be independent at the top
+        level, or those deletions would strip the sections from yaml_config too.
+        """
+        config = self.load(MINIMAL_YAML)
+
+        self.assertFalse(hasattr(config.server_config, "channels"))
+        self.assertFalse(hasattr(config.server_config, "execution"))
+        self.assertTrue(hasattr(config.yaml_config, "channels"))
+        self.assertTrue(hasattr(config.yaml_config, "execution"))
+
+    def test_loading_emits_no_deprecation_warnings(self):
+        """Guards against reintroducing Pydantic APIs removed in V3."""
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            self.load(MINIMAL_YAML)
+
+        deprecations = [
+            str(w.message)
+            for w in caught
+            if issubclass(w.category, DeprecationWarning)
+            or "Deprecated" in str(w.message)
+        ]
+        self.assertEqual(deprecations, [])
 
 
 class TestTlsVerificationFields(unittest.TestCase):
