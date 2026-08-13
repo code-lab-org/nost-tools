@@ -12,7 +12,6 @@ import time
 import random
 import logging
 from datetime import timedelta
-from dotenv import dotenv_values
 import numpy as np  # type: ignore
 import pandas as pd # type:ignore
 # from pytz import timezone
@@ -22,12 +21,14 @@ from skyfield.api import wgs84, load # type:ignore
 pd.options.mode.chained_assignment = None
 
 from nost_tools.simulator import Mode # type:ignore
-from nost_tools.application_utils import ConnectionConfig, ShutDownObserver # type:ignore
+from nost_tools.application_utils import ShutDownObserver # type:ignore
+from nost_tools.configuration import ConnectionConfig # type:ignore
 from nost_tools.observer import Observer # type:ignore
 from nost_tools.managed_application import ManagedApplication # type:ignore
 
 from randEvents_config_files.schemas import EventStarted, EventDayChange, EventFinished # type:ignore
-from randEvents_config_files.config import PREFIX, SCALE, EVENT_COUNT, MAX_EVENT_DURATION, SCENARIO_START, SCENARIO_LENGTH, SEED # type:ignore 
+
+NAME = "eventGenerator"
 
 logging.basicConfig(level=logging.INFO)
 
@@ -227,27 +228,30 @@ class EventGenerator(Observer):
 # name guard used to ensure script only executes if it is run as the __main__
 if __name__ == "__main__":
 
-    # Note that these are loaded from a .env file in current working directory
-    credentials = dotenv_values(".env")
-    HOST, PORT = credentials["HOST"], int(credentials["PORT"])
-    USERNAME, PASSWORD = credentials["USERNAME"], credentials["PASSWORD"]
-
-    # set the client credentials
-    config = ConnectionConfig(USERNAME, PASSWORD, HOST, PORT, True)
+    # Load the connection and execution configuration. Passing app_name makes the
+    # configuration_parameters for this application available on
+    # config.rc.application_configuration.
+    config = ConnectionConfig(yaml_file="template.yaml", app_name=NAME)
+    parameters = config.rc.application_configuration
 
     # create the managed application
-    app = ManagedApplication("eventGenerator")
+    app = ManagedApplication(NAME)
+
+    # a SEED left blank in the configuration produces a new random sequence on
+    # every run; set an integer for repeatable results
+    seed = parameters["SEED"]
+    if seed is None:
+        seed = random.randint(0, 1000000000000)
 
     # generate events
     events = EventGenerator(
-        app, 
-        EVENT_COUNT,
-        MAX_EVENT_DURATION,
-        SCENARIO_START, 
-        SCENARIO_LENGTH,
-        SEED
+        app,
+        parameters["EVENT_COUNT"],
+        parameters["MAX_EVENT_DURATION"],
+        parameters["SCENARIO_START"],
+        parameters["SCENARIO_LENGTH"],
+        seed,
     )
-       
 
     # add the environment observer to monitor for event status events
     app.simulator.add_observer(events)
@@ -255,14 +259,11 @@ if __name__ == "__main__":
     # add a shutdown observer to shut down after a single test case
     app.simulator.add_observer(ShutDownObserver(app))
 
-    # start up the application on PREFIX, publish time status every 10 seconds of wallclock time
+    # start up the application on the prefix defined in the YAML file. The time
+    # step and time status interval come from the managed_applications section.
     app.start_up(
-        PREFIX,
+        config.rc.simulation_configuration.execution_parameters.general.prefix,
         config,
-        True,
-        time_status_step=timedelta(seconds=10) * SCALE,
-        time_status_init=SCENARIO_START,
-        time_step=timedelta(seconds=1) * SCALE,
     )
 
     # Ensures the application hangs until the simulation is terminated, to allow background threads to run

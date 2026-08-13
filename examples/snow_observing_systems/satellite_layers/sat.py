@@ -1,5 +1,4 @@
 from datetime import datetime, timezone, timedelta
-from dotenv import dotenv_values
 from skyfield.api import load, wgs84, EarthSatellite
 from skyfield.framelib import itrs
 import numpy as np
@@ -15,13 +14,14 @@ import xarray as xr
 import geopandas as gpd
 import rioxarray
 
-from nost_tools.application_utils import ConnectionConfig, ShutDownObserver
+from nost_tools.application_utils import ShutDownObserver
+from nost_tools.configuration import ConnectionConfig
 from nost_tools.entity import Entity
 from nost_tools.managed_application import ManagedApplication
 from nost_tools.publisher import WallclockTimeIntervalPublisher
 
 from constellation_config_files.schemas import SatelliteStatus, SnowLayer, ResolutionLayer, GcomLayer, CapellaLayer
-from constellation_config_files.config import PREFIX, NAME, SCALE, TLES, FIELD_OF_REGARD
+NAME = "constellation"
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
@@ -351,25 +351,10 @@ def read_and_encode_layers(position_publisher):
 
 # Main function
 if __name__ == "__main__":
-    credentials = dotenv_values("scoreboard/.env")
-    HOST, RABBITMQ_PORT, KEYCLOAK_PORT, KEYCLOAK_REALM = credentials["HOST"], int(credentials["RABBITMQ_PORT"]), int(credentials["KEYCLOAK_PORT"]), str(credentials["KEYCLOAK_REALM"])
-    USERNAME, PASSWORD = credentials["USERNAME"], credentials["PASSWORD"]
-    CLIENT_ID = credentials["CLIENT_ID"]
-    CLIENT_SECRET_KEY = credentials["CLIENT_SECRET_KEY"]
-    VIRTUAL_HOST = credentials["VIRTUAL_HOST"]
-    IS_TLS = credentials["IS_TLS"].lower() == 'true'
-
-    config = ConnectionConfig(
-        USERNAME,
-        PASSWORD,
-        HOST,
-        RABBITMQ_PORT,
-        KEYCLOAK_PORT,
-        KEYCLOAK_REALM,
-        CLIENT_ID,
-        CLIENT_SECRET_KEY,
-        VIRTUAL_HOST,
-        IS_TLS)
+    # Load the connection and execution configuration. Passing app_name makes the
+    # configuration_parameters for this application available on
+    # config.rc.application_configuration.
+    config = ConnectionConfig(yaml_file="sos.yaml", app_name=NAME)
 
     app = ManagedApplication(NAME)
 
@@ -377,7 +362,7 @@ if __name__ == "__main__":
     activesats = load.tle_file(activesats_url, reload=False, filename='./active.txt') #True
 
     by_name = {sat.name: sat for sat in activesats}
-    names = ['CAPELLA-14 (ACADIA-4)', 'GCOM-W1 (SHIZUKU)']
+    names = config.rc.application_configuration["SATELLITE_NAMES"]
             #  "AQUA", "TERRA", "SUOMI NPP", "NOAA 20 (JPSS-1)", "SENTINEL-2A", "SENTINEL-2B"] #'CAPELLA-14 (ACADIA)'
 
     ES = []
@@ -410,13 +395,11 @@ if __name__ == "__main__":
 
     app.simulator.add_observer(position_publisher)
 
+    # start up the application on the prefix defined in the YAML file. The time
+    # step and time status interval come from the managed_applications section.
     app.start_up(
-        PREFIX,
+        config.rc.simulation_configuration.execution_parameters.general.prefix,
         config,
-        True,
-        time_status_step=timedelta(seconds=10) * SCALE,
-        time_status_init=datetime.now(timezone.utc),
-        time_step=timedelta(seconds=1) * SCALE,
     )
 
     # while True:

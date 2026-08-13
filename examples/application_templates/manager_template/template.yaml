@@ -1,0 +1,41 @@
+info:
+  title: Novel Observing Strategies Testbed (NOS-T) YAML Configuration
+  version: '1.0.0'
+  description: Configuration for the manager application template
+servers:
+  rabbitmq:
+    keycloak_authentication: False
+    host: "localhost"
+    port: 5672
+    tls: False
+    virtual_host: "/"
+    message_expiration: "60000"
+    heartbeat: 600
+    blocked_connection_timeout: 300
+execution:
+  general:
+    prefix: template
+    wallclock_offset_refresh_interval: 60
+    ntp_host: "time.nist.gov"
+  manager:
+    sim_start_time: "2020-01-01T07:20:00+00:00"
+    sim_stop_time: "2020-01-01T10:20:00+00:00"
+    # Wallclock time at which to start; leave blank to start as soon as the
+    # required applications report ready
+    start_time:
+    time_step: "0:00:01"
+    # Scenario seconds per wallclock second, so 60 means one wallclock second
+    # advances the scenario by one minute
+    time_scale_factor: 60
+    time_status_step: "0:01:00"
+    is_scenario_time_status_step: True
+    # Lead time between a scheduled command and the action it triggers
+    command_lead: "0:00:02"
+    # Applications that must report ready before execution begins. Add the names
+    # of any managed applications taking part in the test case.
+    required_apps:
+      - manager
+    init_retry_delay_s: 5
+    init_max_retry: 5
+    set_offset: True
+    shut_down_when_terminated: True

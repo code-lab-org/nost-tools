@@ -1,0 +1,35 @@
+info:
+  title: Novel Observing Strategies Testbed (NOS-T) YAML Configuration
+  version: '1.0.0'
+  description: Configuration for the satellite application template
+servers:
+  rabbitmq:
+    keycloak_authentication: False
+    host: "localhost"
+    port: 5672
+    tls: False
+    virtual_host: "/"
+    message_expiration: "60000"
+    heartbeat: 600
+    blocked_connection_timeout: 300
+execution:
+  general:
+    prefix: template
+    wallclock_offset_refresh_interval: 60
+    ntp_host: "time.nist.gov"
+  managed_applications:
+    satellite:
+      # Scenario seconds per wallclock second, matching the manager's setting
+      time_scale_factor: 60
+      time_step: "0:00:01"
+      is_scenario_time_step: False
+      set_offset: True
+      # Interval between time status "heartbeat" messages
+      time_status_step: "0:00:10"
+      is_scenario_time_status_step: False
+      shut_down_when_terminated: True
+      # Name of the manager application that sends command messages
+      manager_app_name: "manager"
+      configuration_parameters:
+        # Satellite to load from the Celestrak active satellite catalogue
+        SATELLITE_NAME: "SUOMI NPP"
