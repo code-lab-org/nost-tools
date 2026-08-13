@@ -13,7 +13,7 @@ from typing import List
 from pydantic import ValidationError
 
 from .application import Application
-from .application_utils import ConnectionConfig
+from .configuration import ConnectionConfig
 from .schemas import (
     FreezeCommand,
     FreezeRequest,

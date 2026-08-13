@@ -5,130 +5,15 @@ Provides utility classes to help applications interact with the broker.
 import logging
 from typing import TYPE_CHECKING
 
-import yaml
-from dotenv import dotenv_values
-from pydantic import ValidationError
-
 from .observer import Observer
 from .publisher import ScenarioTimeIntervalPublisher
-from .schemas import Config, ModeStatus, TimeStatus
+from .schemas import ModeStatus, TimeStatus
 from .simulator import Mode, Simulator
 
 if TYPE_CHECKING:
     from .application import Application
 
 logger = logging.getLogger(__name__)
-
-
-class ConnectionConfig(object):
-    """Connection configuration.
-
-    The configuration settings to establish a connection to the broker, including authentication for the
-    user and identification of the server.
-
-    Attributes:
-        username (str): client username, provided by NOS-T operator
-        password (str): client password, provided by NOS-T operator
-        host (str): broker hostname
-        rabbitmq_port (int): RabbitMQ broker port number
-        keycloak_port (int): Keycloak IAM port number
-        keycloak_realm (str): Keycloak realm name
-        client_id (str): Keycloak client ID
-        client_secret_key (str): Keycloak client secret key
-        virtual_host (str): RabbitMQ virtual host
-        is_tls (bool): True, if the connection uses Transport Layer Security (TLS)
-        env_file (str): Path to the .env file
-        yaml_file (str): Path to the YAML configuration file
-    """
-
-    def __init__(
-        self,
-        username: str = None,
-        password: str = None,
-        host: str = None,
-        rabbitmq_port: int = None,
-        keycloak_port: int = None,
-        keycloak_realm: str = None,
-        client_id: str = None,
-        client_secret_key: str = None,
-        virtual_host: str = None,
-        is_tls: bool = True,
-        env_file: str = None,
-        yaml_file: str = None,
-    ):
-        """
-        Initializes a new connection configuration.
-
-        Args:
-            username (str): client username, provided by NOS-T operator
-            password (str): client password, provided by NOS-T operator
-            host (str): broker hostname
-            rabbitmq_port (int): RabbitMQ broker port number
-            keycloak_port (int): Keycloak IAM port number
-            keycloak_realm (str): Keycloak realm name
-            client_id (str): Keycloak client ID
-            client_secret_key (str): Keycloak client secret key
-            virtual_host (str): RabbitMQ virtual host
-            is_tls (bool): True, if the connection uses TLS
-            env_file (str): Path to the .env file
-            yaml_file (str): Path to the YAML configuration file
-        """
-        self.yaml_config = None  # Initialize the attribute to store YAML data
-        self.yaml_mode = (
-            False  # Initialize the attribute to store the mode of operation
-        )
-
-        if env_file and yaml_file:
-            logger.info(f"Loading configuration from {env_file} and {yaml_file}.")
-            self.load_config_from_files(env_file, yaml_file)
-            self.yaml_mode = True
-        else:
-            logger.info("Loading configuration from arguments.")
-            self.username = username
-            self.password = password
-            self.host = host
-            self.rabbitmq_port = rabbitmq_port
-            self.keycloak_port = keycloak_port
-            self.keycloak_realm = keycloak_realm
-            self.client_id = client_id
-            self.client_secret_key = client_secret_key
-            self.virtual_host = virtual_host
-            self.is_tls = is_tls
-
-    def load_config_from_files(self, env_file: str, yaml_file: str):
-        """
-        Loads configuration from .env and YAML files.
-
-        Args:
-            env_file (str): Path to the .env file
-            yaml_file (str): Path to the YAML configuration file
-        """
-        # Load .env file
-        credentials = dotenv_values(env_file)
-        self.username = credentials["USERNAME"]
-        self.password = credentials["PASSWORD"]
-        self.client_id = credentials["CLIENT_ID"]
-        self.client_secret_key = credentials["CLIENT_SECRET_KEY"]
-
-        # Load YAML file
-        with open(yaml_file, "r") as file:
-            yaml_data = yaml.safe_load(file)
-
-        try:
-            config = Config(**yaml_data)
-            self.yaml_config = yaml_data
-        except ValidationError as e:
-            raise ValueError(f"Invalid configuration: {e}")
-
-        self.host = config.servers.rabbitmq.host
-        self.rabbitmq_port = config.servers.rabbitmq.port
-        self.keycloak_port = config.servers.keycloak.port
-        self.keycloak_realm = config.servers.keycloak.realm
-        self.virtual_host = config.servers.rabbitmq.virtual_host
-        self.is_tls = config.servers.rabbitmq.tls and config.servers.keycloak.tls
-
-        if not self.is_tls:
-            raise ValueError("TLS must be enabled for both RabbitMQ and Keycloak.")
 
 
 class ShutDownObserver(Observer):
