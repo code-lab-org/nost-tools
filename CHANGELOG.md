@@ -473,3 +473,10 @@ Fixed:
 Changed:
 - **Test Plan Stages Extracted** (`manager.py`): `_execute_test_plan_impl` had grown to roughly a hundred lines that mixed parameter collection, subscription setup, three separate waits, and the commands themselves, so the order of the run could only be recovered by reading the whole body. The stages moved out into `_collect_execution_parameters()`, `_prepare_for_execution()`, `_wait_until_start_time()`, `_wait_for_execution()`, and `_wait_until_stop_time()`, leaving the method as the sequence of its steps. The initialize, start, and stop calls remain inline, being the plan itself rather than a stage of it. No behavior change: every statement moved verbatim, and the parsed syntax tree confirms none was rewritten, reordered, or dropped.
 - **Source Formatting**: The library and test sources are now formatted with `black`.
+
+## 3.5.3
+Fixed:
+- **Joblib Caches Erased at Shutdown** (`application.py`): `shut_down()` no longer deletes the on-disk caches of `joblib.Memory` instances belonging to the application:
+  - The cleanup performed at shutdown walked every object in the interpreter and called `Memory.clear()` on each `joblib.Memory` it found, which joblib documents as erasing the complete cache directory. NOS-T creates no such caches, so every one it reached was owned by the application, and a normal successful shutdown silently discarded everything the application had cached, forcing the next run to recompute it
+  - This affected any application whose process had joblib loaded, since that cleanup is gated on `joblib` being present in `sys.modules`. Applications that do not use joblib were never affected
+  - No library behavior depended on the sweep, and it had no bearing on the resource tracker warning the surrounding cleanup was written against, which concerns worker folders rather than cache directories
