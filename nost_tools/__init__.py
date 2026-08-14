@@ -1,4 +1,4 @@
-__version__ = "3.5.2"
+__version__ = "3.5.3"
 
 from .application import Application
 from .application_utils import ModeStatusObserver, TimeStatusPublisher
