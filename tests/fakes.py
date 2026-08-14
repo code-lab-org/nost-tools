@@ -42,12 +42,16 @@ def wait_for(test, predicate, description, timeout=15):
 class FakeChannel:
     """Records basic_publish calls and the thread each was made from."""
 
-    def __init__(self, fail=False):
+    def __init__(self, fail=False, fail_ops=()):
         self.published = []
         self.publish_threads = []
         self.fail = fail
+        # Queue operations that should raise, by name: "purge", "unbind", "delete"
+        self.fail_ops = set(fail_ops)
         self.is_closing = False
         self.is_closed = False
+        # Queue administration performed during teardown, in order
+        self.operations = []
 
     def basic_publish(self, exchange, routing_key, body, properties=None):
         self.publish_threads.append(threading.current_thread())
@@ -62,6 +66,31 @@ class FakeChannel:
     def bodies(self):
         """Message bodies published so far, in order."""
         return [body for _, _, body in self.published]
+
+    # Queue administration. A real broker answers these asynchronously and pika
+    # runs the callback on the IO thread; running it inline is the deterministic
+    # equivalent, and keeps the completion signalling under test rather than the
+    # scheduling.
+
+    def _run(self, op, queue, callback, **detail):
+        self.operations.append((op, queue, detail))
+        if op in self.fail_ops:
+            raise RuntimeError(f"simulated {op} failure")
+        if callback is not None:
+            callback(None)
+
+    def queue_purge(self, queue, callback=None):
+        self._run("purge", queue, callback)
+
+    def queue_unbind(self, queue, exchange=None, routing_key=None, callback=None):
+        self._run("unbind", queue, callback, exchange=exchange)
+
+    def queue_delete(self, queue, if_unused=False, if_empty=False, callback=None):
+        self._run("delete", queue, callback)
+
+    def ops(self, op):
+        """Queues an operation was performed on, in order."""
+        return [queue for name, queue, _ in self.operations if name == op]
 
 
 class FakeIOLoop:
