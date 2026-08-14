@@ -17,8 +17,10 @@ from nost_tools.application import Application
 from nost_tools.configuration import ConnectionConfig
 from nost_tools.manager import Manager
 from nost_tools.managed_application import ManagedApplication
+from nost_tools.simulator import Mode
 
 from .broker import (
+    write_scenario_config,
     requires_broker,
     restore_environment,
     set_broker_credentials,
@@ -257,6 +259,90 @@ class TestManagerProtocol(BrokerTestCase):
         )
         self.assertEqual(managed._sim_start_time, START)
         self.assertEqual(managed._sim_stop_time, STOP)
+
+
+@requires_broker
+class TestFullTestPlan(BrokerTestCase):
+    """
+    Drives a complete test plan through `_execute_test_plan_impl` against a real
+    broker: parameters read from YAML, initialize, wait for readiness, start,
+    execute, and stop.
+
+    The unit tests substitute a simulator whose clock the test controls, which
+    lets them assert sequencing but not that the orchestration works against a
+    real broker with a real simulator. This covers that.
+    """
+
+    def test_manager_drives_a_scenario_from_start_to_stop(self):
+        config_path = write_scenario_config(self.prefix, "testapp")
+        self.addCleanup(os.unlink, config_path)
+        config = ConnectionConfig(yaml_file=config_path)
+
+        managed = ManagedApplication("testapp", setup_signal_handlers=False)
+        self.apps.append(managed)
+        threading.Thread(
+            target=lambda: managed.start_up(
+                prefix=self.prefix, config=config, set_offset=False
+            ),
+            daemon=True,
+        ).start()
+        self.assertTrue(
+            wait_until(
+                lambda: managed._is_connected.is_set() and managed.channel is not None
+            ),
+            "managed application did not connect",
+        )
+
+        manager = Manager("manager", setup_signal_handlers=False)
+        self.apps.append(manager)
+        threading.Thread(
+            target=lambda: manager.start_up(
+                prefix=self.prefix, config=config, set_offset=False
+            ),
+            daemon=True,
+        ).start()
+        self.assertTrue(
+            wait_until(
+                lambda: manager._is_connected.is_set() and manager.channel is not None
+            ),
+            "manager did not connect",
+        )
+
+        # Let both applications' subscriptions bind before commanding
+        time.sleep(2)
+
+        manager.execute_test_plan()
+
+        self.assertTrue(
+            wait_until(
+                lambda: manager.required_apps_status.get("testapp"), timeout=30
+            ),
+            "manager never observed the application as ready",
+        )
+        self.assertTrue(
+            wait_until(
+                lambda: managed.simulator.get_mode()
+                in (Mode.EXECUTING, Mode.TERMINATING, Mode.TERMINATED),
+                timeout=30,
+            ),
+            f"application never executed (mode {managed.simulator.get_mode()})",
+        )
+        self.assertTrue(
+            wait_until(
+                lambda: managed.simulator.get_mode() == Mode.TERMINATED, timeout=60
+            ),
+            f"application never terminated (mode {managed.simulator.get_mode()})",
+        )
+
+        # The scenario window from the YAML file reached the application
+        self.assertEqual(
+            managed._sim_start_time,
+            datetime(2020, 1, 1, tzinfo=timezone.utc),
+        )
+        self.assertEqual(
+            managed._sim_stop_time,
+            datetime(2020, 1, 1, 0, 1, tzinfo=timezone.utc),
+        )
 
 
 if __name__ == "__main__":
