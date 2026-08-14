@@ -145,19 +145,22 @@ class TestFreezeCommand(unittest.TestCase):
         thread = self.run_freeze(manager, sim_freeze_time=START)
         self.release(manager, thread)
 
+
 class TestFreezeArgumentRequirements(unittest.TestCase):
     """
-    Documents current behaviour rather than endorsing it.
+    Documents the arguments a direct call must supply.
 
-    Three parameters are optional in the signature, but only one combination
-    works. The signature, the docstring, and the implementation disagree:
+    Applications freeze through ManagedApplication.request_freeze, which derives
+    the wallclock freeze time and, for a timed freeze, the resume time, before
+    sending a request. The manager therefore always receives a complete set, and
+    both indefinite and timed freezes work through that path.
 
-      freeze()                                 -> ValidationError
-      freeze(freeze_duration=D)                -> TypeError
-      freeze(freeze_duration=D, sim_freeze_time=T) -> TypeError
-      freeze(sim_freeze_time=T)                -> indefinite freeze, works
+    Calling Manager.freeze directly bypasses that derivation. Two of its
+    parameters are required despite being optional in the signature:
 
-    These tests pin the failures so a fix has to change them deliberately.
+      freeze()                                     -> ValidationError
+      freeze(freeze_duration=D, sim_freeze_time=T) -> TypeError, no resume_time
+      freeze(sim_freeze_time=T)                    -> indefinite freeze, works
     """
 
     def call_freeze(self, manager, **kwargs):
@@ -187,9 +190,11 @@ class TestFreezeArgumentRequirements(unittest.TestCase):
 
     def test_a_duration_without_a_resume_time_is_rejected(self):
         """
-        A timed freeze subtracts resume_time from the wallclock, so leaving it at
-        its documented default fails inside the wait loop rather than at the call
-        site. resume_time is not mentioned in the docstring at all.
+        A timed freeze subtracts resume_time from the wallclock, so omitting it
+        fails inside the wait loop rather than at the call site.
+
+        request_freeze() derives resume_time as the wallclock freeze time plus the
+        duration, so timed freezes requested by an application supply it and work.
         """
         manager = make_manager()
         error = self.call_freeze(

@@ -855,13 +855,29 @@ class Manager(Application):
         resume_time: datetime = None,
     ) -> None:
         """
-        Command to freeze a test run execution by updating the execution freeze duration and publishing a freeze command.
+        Command to freeze a test run execution by publishing a freeze command and pausing the simulator.
+
+        Managed applications should call :obj:`ManagedApplication.request_freeze`
+        rather than this method. That method derives the wallclock freeze time and,
+        for a timed freeze, the resume time, then sends a request the manager
+        handles here with every argument supplied.
 
         Args:
-            freeze_duration (:obj:`timedelta`, optional): Duration for which to freeze execution.
-                                                        If None, creates an indefinite freeze.
-            sim_freeze_time (:obj:`datetime`, optional): Scenario time at which to freeze execution.
-                                                        If None, freezes immediately.
+            freeze_duration (:obj:`timedelta`, optional): Wallclock duration for which to
+                                                        freeze execution. If None, creates an
+                                                        indefinite freeze that continues until
+                                                        the simulator resumes. If set,
+                                                        resume_time is required.
+            sim_freeze_time (:obj:`datetime`): Scenario time at which to freeze execution.
+                                                        Required: the freeze command cannot be
+                                                        built without it.
+            resume_time (:obj:`datetime`, optional): Wallclock time at which a timed freeze ends.
+                                                        Required when freeze_duration is set,
+                                                        and ignored otherwise.
+
+        Raises:
+            ValidationError: if sim_freeze_time is None.
+            TypeError: if freeze_duration is set and resume_time is None.
         """
         # publish a freeze command message
         command_params = {"simFreezeTime": sim_freeze_time}
