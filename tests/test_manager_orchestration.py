@@ -469,6 +469,76 @@ class TestTestPlanSequencing(unittest.TestCase):
 
         self.assertEqual(manager.required_apps_status, {})
 
+    def test_the_stop_wait_retries_while_the_end_time_is_ahead(self):
+        """
+        Covers the branch that sleeps and re-checks when the scenario has not yet
+        reached its end. Without it the plan would issue stop immediately.
+        """
+        manager = self.make_plan_manager()
+        # An end time two seconds of wallclock ahead, so the loop sleeps at least
+        # once before the remaining time reaches zero
+        manager.simulator.end_time = manager.simulator.get_time() + timedelta(seconds=2)
+
+        started = time.monotonic()
+        manager._execute_test_plan_impl(
+            sim_start_time=START,
+            sim_stop_time=STOP,
+            start_time=START,
+            required_apps=[],
+        )
+        elapsed = time.monotonic() - started
+
+        self.assertGreaterEqual(elapsed, 1.0, "the stop wait did not sleep")
+        self.assertEqual(len(published(manager, "stop")), 1)
+
+    def test_the_stop_wait_holds_while_the_simulator_is_paused(self):
+        """
+        While paused the scenario epochs are stale, so the remaining time cannot
+        be computed. The loop must wait for the resume rather than acting on a
+        stale value and stopping early.
+
+        The plan must start executing before it can pause: the stage before this
+        one polls for EXECUTING, so pausing up front would block there instead.
+        The first mode read is handed to that poll and every read after it
+        reports the pause, which puts the pause in the stop wait without a race.
+        """
+        manager = self.make_plan_manager()
+
+        first_read = [Mode.EXECUTING]
+        still_paused = threading.Event()
+        still_paused.set()
+
+        def get_mode():
+            if first_read:
+                return first_read.pop()
+            return Mode.PAUSED if still_paused.is_set() else Mode.EXECUTING
+
+        manager.simulator.get_mode = get_mode
+
+        finished = threading.Event()
+
+        def run_plan():
+            manager._execute_test_plan_impl(
+                sim_start_time=START,
+                sim_stop_time=STOP,
+                start_time=START,
+                required_apps=[],
+            )
+            finished.set()
+
+        thread = threading.Thread(target=run_plan, daemon=True)
+        thread.start()
+
+        # Held: no stop command is issued while paused, even though the end time
+        # has already been reached and would otherwise break the wait at once
+        self.assertFalse(finished.wait(timeout=1.0))
+        self.assertEqual(published(manager, "stop"), [])
+
+        # Resuming releases it
+        still_paused.clear()
+        self.assertTrue(finished.wait(timeout=10), "the plan never completed")
+        self.assertEqual(len(published(manager, "stop")), 1)
+
 
 class TestSleepWithHeartbeat(unittest.TestCase):
     def test_returns_immediately_for_a_non_positive_duration(self):

@@ -135,6 +135,12 @@ class FakeSimulator:
         self.time = scenario_time or datetime(2020, 1, 1, tzinfo=timezone.utc)
         self.end_time = None
         self.time_scale_factor = 1.0
+        # Scenario time is anchored to wallclock time by a fixed pair of epochs,
+        # as in the real simulator. Mapping from the live wallclock instead would
+        # make a future scenario time recede as fast as the clock advances, so no
+        # wait on it could ever finish.
+        self.wallclock_epoch = self._wallclock_base
+        self.simulation_epoch = self.time
         # Recorded calls, so a test can assert what the manager asked of it
         self.set_end_time_calls = []
         self.set_time_scale_factor_calls = []
@@ -172,9 +178,9 @@ class FakeSimulator:
         return self.time_scale_factor
 
     def get_wallclock_time_at_simulation_time(self, simulation_time):
-        """Maps scenario time to wallclock time at the current scale factor."""
-        elapsed = (simulation_time - self.time) / self.time_scale_factor
-        return self.wallclock_time + elapsed
+        """Maps scenario time to wallclock time against the fixed epoch pair."""
+        elapsed = (simulation_time - self.simulation_epoch) / self.time_scale_factor
+        return self.wallclock_epoch + elapsed
 
     # Commands issued by the manager
 
