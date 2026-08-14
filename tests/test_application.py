@@ -1,4 +1,6 @@
+import importlib.util
 import os
+import shutil
 import socket
 import ssl
 import tempfile
@@ -987,6 +989,62 @@ class TestShutDown(unittest.TestCase):
 
         self.assertTrue(app.stop_event.is_set())
         self.assertTrue(app._should_stop.is_set())
+
+
+@unittest.skipUnless(
+    importlib.util.find_spec("joblib") is not None,
+    "joblib is not installed; it is not a dependency of nost-tools",
+)
+class TestShutDownLeavesJoblibCachesAlone(unittest.TestCase):
+    """
+    Shutting down must not destroy caches belonging to the application.
+
+    Applications that use joblib own their own `Memory` caches; nost-tools
+    creates none and cannot tell which it would be safe to erase. Clearing one
+    costs the application every result it had cached, silently, on a successful
+    shutdown.
+    """
+
+    def setUp(self):
+        self.cache_dir = tempfile.mkdtemp(prefix="nost_test_cache_")
+
+    def tearDown(self):
+        shutil.rmtree(self.cache_dir, ignore_errors=True)
+
+    def cached_files(self):
+        return sum(len(files) for _, _, files in os.walk(self.cache_dir))
+
+    def test_an_application_owned_cache_survives_shut_down(self):
+        import joblib
+
+        memory = joblib.Memory(location=self.cache_dir, verbose=0)
+
+        @memory.cache
+        def expensive(n):
+            return sum(i * i for i in range(n))
+
+        for n in (10_000, 20_000):
+            expensive(n)
+        before = self.cached_files()
+        self.assertGreater(before, 0, "the cache was never populated")
+
+        app = wire_broker(Application("cache_test", setup_signal_handlers=False))
+        app.channel = FakeChannel()
+        app._drain_pending_publishes = lambda *args, **kwargs: None
+        with unittest.mock.patch("os._exit"):
+            app.shut_down()
+
+        self.assertEqual(
+            self.cached_files(),
+            before,
+            "shutting down erased a joblib cache the application owned",
+        )
+        self.assertTrue(
+            expensive.check_call_in_cache(10_000),
+            "the cached result is gone and would have to be recomputed",
+        )
+        # Referenced past the shutdown so the sweep cannot miss it via collection
+        self.assertIsNotNone(memory)
 
 
 if __name__ == "__main__":

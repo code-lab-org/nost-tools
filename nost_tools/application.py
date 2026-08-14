@@ -900,23 +900,14 @@ class Application:
             if joblib_used:
                 logger.debug("Cleaning up joblib resources")
                 try:
-                    import joblib
                     from joblib.externals.loky import process_executor
 
                     # Force garbage collection to help break reference cycles
                     gc.collect()
 
-                    # Clear any joblib Memory caches
-                    memory_locations = []
-                    for obj in gc.get_objects():
-                        if isinstance(obj, joblib.Memory):
-                            memory_locations.append(obj.location)
-                            obj.clear()
-
-                    if memory_locations:
-                        logger.debug(
-                            f"Cleared {len(memory_locations)} joblib memory caches"
-                        )
+                    # Caches belonging to the application are deliberately left
+                    # alone: nost-tools creates none, so every joblib.Memory
+                    # reachable here is owned by someone else
 
                     # Find and terminate any active Parallel instances
                     terminated_count = 0
