@@ -222,7 +222,9 @@ class ScenarioTimeIntervalCallback(Observer):
     ):
         if property_name == source.PROPERTY_TIME:
             if self._next_time is None:
-                init = self.time_init if self.time_init is not None else self.time_interval
+                init = (
+                    self.time_init if self.time_init is not None else self.time_interval
+                )
                 self._next_time = old_value + init
             while self._next_time <= new_value:
                 self.callback(source, self._next_time)
@@ -259,7 +261,9 @@ class WallclockTimeIntervalCallback(Observer):
             and new_value == Mode.EXECUTING
         ):
             wallclock_now = self.simulator.get_wallclock_time()
-            self._next_time = wallclock_now + (self.time_interval if self.time_interval is not None else timedelta())
+            self._next_time = wallclock_now + (
+                self.time_interval if self.time_interval is not None else timedelta()
+            )
             return
 
         if property_name == Simulator.PROPERTY_MODE and new_value == Mode.INITIALIZED:

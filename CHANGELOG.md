@@ -465,3 +465,11 @@ Fixed:
 
 Changed:
 - **Initialize Retry Extracted** (`manager.py`): The retry loop moved from `_execute_test_plan_impl` into `_initialize_with_retry()`, which returns whether the required applications became ready. A `_required_apps_are_ready()` helper replaces the readiness check that was previously repeated inline. No behavior change beyond the fix above; the extraction makes the loop directly testable.
+
+## 3.5.2
+Fixed:
+- **Freeze Documentation** (`manager.py`): The `Manager.freeze()` docstring described `sim_freeze_time` as optional and did not mention `resume_time` at all, which read as though a bare call froze execution immediately and a duration alone was enough for a timed freeze. Both arguments are required in the cases described, and the docstring now states this and records what each omission raises. It also points to `ManagedApplication.request_freeze()`, which derives the missing arguments and is how applications should freeze a run. Documentation only; no behavior changed.
+
+Changed:
+- **Test Plan Stages Extracted** (`manager.py`): `_execute_test_plan_impl` had grown to roughly a hundred lines that mixed parameter collection, subscription setup, three separate waits, and the commands themselves, so the order of the run could only be recovered by reading the whole body. The stages moved out into `_collect_execution_parameters()`, `_prepare_for_execution()`, `_wait_until_start_time()`, `_wait_for_execution()`, and `_wait_until_stop_time()`, leaving the method as the sequence of its steps. The initialize, start, and stop calls remain inline, being the plan itself rather than a stage of it. No behavior change: every statement moved verbatim, and the parsed syntax tree confirms none was rewritten, reordered, or dropped.
+- **Source Formatting**: The library and test sources are now formatted with `black`.

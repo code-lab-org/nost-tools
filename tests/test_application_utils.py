@@ -65,9 +65,7 @@ class TestShutDownObserver(unittest.TestCase):
         app = RecordingApp()
         observer = ShutDownObserver(app)
 
-        observer.on_change(
-            Simulator, Simulator.PROPERTY_TIME, START, Mode.TERMINATED
-        )
+        observer.on_change(Simulator, Simulator.PROPERTY_TIME, START, Mode.TERMINATED)
 
         self.assertEqual(app.shut_down_calls, 0)
 

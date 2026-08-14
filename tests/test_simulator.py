@@ -169,8 +169,16 @@ class TestSimulatorMethods(unittest.TestCase):
         # rather than pinning millisecond accuracy.
         self.assertAlmostEqual(
             (
-                next(change for change in recorder.changes if change["new_value"] == Mode.EXECUTING)["time"]
-                - next(change for change in recorder.changes if change["new_value"] == Mode.INITIALIZING)["time"]
+                next(
+                    change
+                    for change in recorder.changes
+                    if change["new_value"] == Mode.EXECUTING
+                )["time"]
+                - next(
+                    change
+                    for change in recorder.changes
+                    if change["new_value"] == Mode.INITIALIZING
+                )["time"]
             ).total_seconds(),
             t_delay.total_seconds(),
             delta=0.25,
@@ -325,7 +333,9 @@ class TestSimulatorMethods(unittest.TestCase):
         # scheduling jitter rather than pinning millisecond accuracy
         self.assertGreaterEqual(len(recorder.changes), 3)
         self.assertAlmostEqual(
-            (recorder.changes[-2]["time"] - recorder.changes[-3]["time"]).total_seconds(),
+            (
+                recorder.changes[-2]["time"] - recorder.changes[-3]["time"]
+            ).total_seconds(),
             (time_step / new_time_scale_factor).total_seconds(),
             delta=0.25,
         )

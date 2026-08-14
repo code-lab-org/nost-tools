@@ -106,7 +106,9 @@ class TestReadyStatusTracking(unittest.TestCase):
         manager.required_apps_status = {"planner": False, "simulator": False}
 
         manager.on_app_ready_status(
-            None, FakeMethod("test.planner.status.ready"), None,
+            None,
+            FakeMethod("test.planner.status.ready"),
+            None,
             self.ready_payload("planner"),
         )
 
@@ -118,7 +120,9 @@ class TestReadyStatusTracking(unittest.TestCase):
         manager.required_apps_status = {"planner": False}
 
         manager.on_app_ready_status(
-            None, FakeMethod("test.appender.status.ready"), None,
+            None,
+            FakeMethod("test.appender.status.ready"),
+            None,
             self.ready_payload("appender"),
         )
 
@@ -129,7 +133,9 @@ class TestReadyStatusTracking(unittest.TestCase):
         manager.required_apps_status = {"planner": True}
 
         manager.on_app_ready_status(
-            None, FakeMethod("test.planner.status.ready"), None,
+            None,
+            FakeMethod("test.planner.status.ready"),
+            None,
             self.ready_payload("planner", ready=False),
         )
 

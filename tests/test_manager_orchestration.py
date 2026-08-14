@@ -105,9 +105,7 @@ class TestFreezeCommand(unittest.TestCase):
 
     def run_freeze(self, manager, **kwargs):
         """Starts freeze() on a thread and returns it once the pause has landed."""
-        thread = threading.Thread(
-            target=manager.freeze, kwargs=kwargs, daemon=True
-        )
+        thread = threading.Thread(target=manager.freeze, kwargs=kwargs, daemon=True)
         thread.start()
         deadline = time.monotonic() + 5
         while time.monotonic() < deadline and manager.simulator.pause_calls == 0:
@@ -145,19 +143,22 @@ class TestFreezeCommand(unittest.TestCase):
         thread = self.run_freeze(manager, sim_freeze_time=START)
         self.release(manager, thread)
 
+
 class TestFreezeArgumentRequirements(unittest.TestCase):
     """
-    Documents current behaviour rather than endorsing it.
+    Documents the arguments a direct call must supply.
 
-    Three parameters are optional in the signature, but only one combination
-    works. The signature, the docstring, and the implementation disagree:
+    Applications freeze through ManagedApplication.request_freeze, which derives
+    the wallclock freeze time and, for a timed freeze, the resume time, before
+    sending a request. The manager therefore always receives a complete set, and
+    both indefinite and timed freezes work through that path.
 
-      freeze()                                 -> ValidationError
-      freeze(freeze_duration=D)                -> TypeError
-      freeze(freeze_duration=D, sim_freeze_time=T) -> TypeError
-      freeze(sim_freeze_time=T)                -> indefinite freeze, works
+    Calling Manager.freeze directly bypasses that derivation. Two of its
+    parameters are required despite being optional in the signature:
 
-    These tests pin the failures so a fix has to change them deliberately.
+      freeze()                                     -> ValidationError
+      freeze(freeze_duration=D, sim_freeze_time=T) -> TypeError, no resume_time
+      freeze(sim_freeze_time=T)                    -> indefinite freeze, works
     """
 
     def call_freeze(self, manager, **kwargs):
@@ -187,9 +188,11 @@ class TestFreezeArgumentRequirements(unittest.TestCase):
 
     def test_a_duration_without_a_resume_time_is_rejected(self):
         """
-        A timed freeze subtracts resume_time from the wallclock, so leaving it at
-        its documented default fails inside the wait loop rather than at the call
-        site. resume_time is not mentioned in the docstring at all.
+        A timed freeze subtracts resume_time from the wallclock, so omitting it
+        fails inside the wait loop rather than at the call site.
+
+        request_freeze() derives resume_time as the wallclock freeze time plus the
+        duration, so timed freezes requested by an application supply it and work.
         """
         manager = make_manager()
         error = self.call_freeze(
@@ -268,9 +271,7 @@ class TestUpdateRequests(unittest.TestCase):
                 break
             time.sleep(0.01)
 
-        self.assertEqual(
-            manager.simulator.set_time_scale_factor_calls[0][0], 30.0
-        )
+        self.assertEqual(manager.simulator.set_time_scale_factor_calls[0][0], 30.0)
 
     def test_malformed_update_request_does_not_raise(self):
         manager = make_manager()
@@ -308,7 +309,10 @@ class TestStartCommand(unittest.TestCase):
         manager.simulator.execute = lambda **kwargs: None
 
         manager.start(
-            START, STOP, start_time=START, time_step=timedelta(seconds=1),
+            START,
+            STOP,
+            start_time=START,
+            time_step=timedelta(seconds=1),
             time_scale_factor=60.0,
         )
 
@@ -325,7 +329,10 @@ class TestStartCommand(unittest.TestCase):
         manager.simulator.execute = lambda **kwargs: executed.append(kwargs)
 
         manager.start(
-            START, STOP, start_time=START, time_step=timedelta(seconds=1),
+            START,
+            STOP,
+            start_time=START,
+            time_step=timedelta(seconds=1),
             time_scale_factor=60.0,
         )
 
@@ -442,9 +449,7 @@ class TestTestPlanSequencing(unittest.TestCase):
             init_retry_delay_s=0.01,
             init_max_retry=1,
         )
-        manager = self.make_plan_manager(
-            yaml_file="config.yaml", parameters=parameters
-        )
+        manager = self.make_plan_manager(yaml_file="config.yaml", parameters=parameters)
 
         manager._execute_test_plan_impl(
             sim_start_time=None,
@@ -468,6 +473,76 @@ class TestTestPlanSequencing(unittest.TestCase):
         )
 
         self.assertEqual(manager.required_apps_status, {})
+
+    def test_the_stop_wait_retries_while_the_end_time_is_ahead(self):
+        """
+        Covers the branch that sleeps and re-checks when the scenario has not yet
+        reached its end. Without it the plan would issue stop immediately.
+        """
+        manager = self.make_plan_manager()
+        # An end time two seconds of wallclock ahead, so the loop sleeps at least
+        # once before the remaining time reaches zero
+        manager.simulator.end_time = manager.simulator.get_time() + timedelta(seconds=2)
+
+        started = time.monotonic()
+        manager._execute_test_plan_impl(
+            sim_start_time=START,
+            sim_stop_time=STOP,
+            start_time=START,
+            required_apps=[],
+        )
+        elapsed = time.monotonic() - started
+
+        self.assertGreaterEqual(elapsed, 1.0, "the stop wait did not sleep")
+        self.assertEqual(len(published(manager, "stop")), 1)
+
+    def test_the_stop_wait_holds_while_the_simulator_is_paused(self):
+        """
+        While paused the scenario epochs are stale, so the remaining time cannot
+        be computed. The loop must wait for the resume rather than acting on a
+        stale value and stopping early.
+
+        The plan must start executing before it can pause: the stage before this
+        one polls for EXECUTING, so pausing up front would block there instead.
+        The first mode read is handed to that poll and every read after it
+        reports the pause, which puts the pause in the stop wait without a race.
+        """
+        manager = self.make_plan_manager()
+
+        first_read = [Mode.EXECUTING]
+        still_paused = threading.Event()
+        still_paused.set()
+
+        def get_mode():
+            if first_read:
+                return first_read.pop()
+            return Mode.PAUSED if still_paused.is_set() else Mode.EXECUTING
+
+        manager.simulator.get_mode = get_mode
+
+        finished = threading.Event()
+
+        def run_plan():
+            manager._execute_test_plan_impl(
+                sim_start_time=START,
+                sim_stop_time=STOP,
+                start_time=START,
+                required_apps=[],
+            )
+            finished.set()
+
+        thread = threading.Thread(target=run_plan, daemon=True)
+        thread.start()
+
+        # Held: no stop command is issued while paused, even though the end time
+        # has already been reached and would otherwise break the wait at once
+        self.assertFalse(finished.wait(timeout=1.0))
+        self.assertEqual(published(manager, "stop"), [])
+
+        # Resuming releases it
+        still_paused.clear()
+        self.assertTrue(finished.wait(timeout=10), "the plan never completed")
+        self.assertEqual(len(published(manager, "stop")), 1)
 
 
 class TestSleepWithHeartbeat(unittest.TestCase):

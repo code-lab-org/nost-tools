@@ -87,9 +87,7 @@ class Manager(Application):
             bool: True if all required applications are ready, or if none are
                 required, in which case there is nothing to wait for
         """
-        return all(
-            self.required_apps_status[app] for app in self.required_apps
-        )
+        return all(self.required_apps_status[app] for app in self.required_apps)
 
     def _initialize_with_retry(self) -> bool:
         """
@@ -463,6 +461,62 @@ class Manager(Application):
             init_retry_delay_s (float): number of seconds to wait between initialization commands while waiting for required applications
             init_max_retry (int): number of initialization commands while waiting for required applications before continuing to execution
         """
+        self._collect_execution_parameters(
+            sim_start_time=sim_start_time,
+            sim_stop_time=sim_stop_time,
+            start_time=start_time,
+            time_step=time_step,
+            time_scale_factor=time_scale_factor,
+            time_status_step=time_status_step,
+            time_status_init=time_status_init,
+            command_lead=command_lead,
+            required_apps=required_apps,
+            init_retry_delay_s=init_retry_delay_s,
+            init_max_retry=init_max_retry,
+        )
+        self._prepare_for_execution()
+        self._initialize_with_retry()
+        self._wait_until_start_time()
+
+        # Issue the start command
+        self.start(
+            self.sim_start_time,
+            self.sim_stop_time,
+            self.start_time,
+            self.time_step,
+            self.time_scale_factor,
+            self.time_status_step,
+            self.time_status_init,
+        )
+
+        self._wait_for_execution()
+        self._wait_until_stop_time()
+
+        # Issue the stop command
+        self.stop(self.sim_stop_time)
+
+    def _collect_execution_parameters(
+        self,
+        sim_start_time: datetime = None,
+        sim_stop_time: datetime = None,
+        start_time: datetime = None,
+        time_step: timedelta = timedelta(seconds=1),
+        time_scale_factor: float = 1.0,
+        time_status_step: timedelta = None,
+        time_status_init: datetime = None,
+        command_lead: timedelta = timedelta(seconds=0),
+        required_apps: List[str] = [],
+        init_retry_delay_s: int = 5,
+        init_max_retry: int = 5,
+    ) -> None:
+        """
+        Records the execution parameters for this run on the manager.
+
+        A YAML configuration takes precedence over the arguments: when one is
+        loaded the arguments are ignored entirely, including any value set on the
+        manager beforehand. See :func:`_execute_test_plan_impl` for the meaning of
+        each argument.
+        """
         if self.config.rc.yaml_file:
             logger.debug(
                 f"Collecting execution parameters from YAML configuration file: {self.config.rc.yaml_file}"
@@ -501,6 +555,11 @@ class Manager(Application):
             self.init_retry_delay_s = init_retry_delay_s
             self.init_max_retry = init_max_retry
 
+    def _prepare_for_execution(self) -> None:
+        """
+        Subscribes to the status messages of the required applications and starts
+        publishing this manager's own time status.
+        """
         # Set up tracking of required applications
         self.required_apps_status = dict(
             zip(self.required_apps, [False] * len(self.required_apps))
@@ -510,9 +569,14 @@ class Manager(Application):
 
         self._create_time_status_publisher(self.time_status_step, self.time_status_init)
 
-        # Initialize with retry logic
-        self._initialize_with_retry()
+    def _wait_until_start_time(self) -> None:
+        """
+        Blocks until one command lead ahead of the wallclock start time, so the
+        start command reaches the managed applications before they must act on it.
 
+        Defaults the start time to one command lead from now when none was given,
+        which makes the wait return immediately.
+        """
         # Configure start time if not provided
         if self.start_time is None:
             self.start_time = self.simulator.get_wallclock_time() + self.command_lead
@@ -530,21 +594,21 @@ class Manager(Application):
         # Use our heartbeat-safe sleep
         self._sleep_with_heartbeat(sleep_seconds)
 
-        # Issue the start command
-        self.start(
-            self.sim_start_time,
-            self.sim_stop_time,
-            self.start_time,
-            self.time_step,
-            self.time_scale_factor,
-            self.time_status_step,
-            self.time_status_init,
-        )
-
-        # Wait for simulation to start executing
+    def _wait_for_execution(self) -> None:
+        """Blocks until this manager's own simulator reaches EXECUTING."""
         while self.simulator.get_mode() != Mode.EXECUTING:
             time.sleep(0.001)
 
+    def _wait_until_stop_time(self) -> None:
+        """
+        Blocks until one command lead ahead of the wallclock time matching the
+        scenario end time, so the stop command arrives before the scenario ends.
+
+        The end time is re-derived on every pass because a time scale update moves
+        it, and the wait holds while the simulator is paused rather than acting on
+        a stale value. Waits are capped at 30 seconds so a change in either is
+        picked up promptly.
+        """
         # Wait for stop time - simulator now handles freeze time internally
         while True:
             # Skip stop time calculation if simulator is paused/pausing
@@ -567,9 +631,6 @@ class Manager(Application):
             # Wait for timeout
             timeout = min(30.0, time_until_stop)
             time.sleep(timeout)
-
-        # Issue the stop command
-        self.stop(self.sim_stop_time)
 
     def on_app_ready_status(self, ch, method, properties, body) -> None:
         """
@@ -792,13 +853,29 @@ class Manager(Application):
         resume_time: datetime = None,
     ) -> None:
         """
-        Command to freeze a test run execution by updating the execution freeze duration and publishing a freeze command.
+        Command to freeze a test run execution by publishing a freeze command and pausing the simulator.
+
+        Managed applications should call :obj:`ManagedApplication.request_freeze`
+        rather than this method. That method derives the wallclock freeze time and,
+        for a timed freeze, the resume time, then sends a request the manager
+        handles here with every argument supplied.
 
         Args:
-            freeze_duration (:obj:`timedelta`, optional): Duration for which to freeze execution.
-                                                        If None, creates an indefinite freeze.
-            sim_freeze_time (:obj:`datetime`, optional): Scenario time at which to freeze execution.
-                                                        If None, freezes immediately.
+            freeze_duration (:obj:`timedelta`, optional): Wallclock duration for which to
+                                                        freeze execution. If None, creates an
+                                                        indefinite freeze that continues until
+                                                        the simulator resumes. If set,
+                                                        resume_time is required.
+            sim_freeze_time (:obj:`datetime`): Scenario time at which to freeze execution.
+                                                        Required: the freeze command cannot be
+                                                        built without it.
+            resume_time (:obj:`datetime`, optional): Wallclock time at which a timed freeze ends.
+                                                        Required when freeze_duration is set,
+                                                        and ignored otherwise.
+
+        Raises:
+            ValidationError: if sim_freeze_time is None.
+            TypeError: if freeze_duration is set and resume_time is None.
         """
         # publish a freeze command message
         command_params = {"simFreezeTime": sim_freeze_time}

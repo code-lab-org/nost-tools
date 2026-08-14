@@ -33,15 +33,19 @@ def make_managed_app(connected=True):
 
 
 def init_payload(required_apps=None):
-    return InitCommand.model_validate(
-        {
-            "taskingParameters": {
-                "simStartTime": START,
-                "simStopTime": STOP,
-                "requiredApps": required_apps or [],
+    return (
+        InitCommand.model_validate(
+            {
+                "taskingParameters": {
+                    "simStartTime": START,
+                    "simStopTime": STOP,
+                    "requiredApps": required_apps or [],
+                }
             }
-        }
-    ).model_dump_json(by_alias=True).encode("utf-8")
+        )
+        .model_dump_json(by_alias=True)
+        .encode("utf-8")
+    )
 
 
 class TestInitCommand(unittest.TestCase):
@@ -73,7 +77,9 @@ class TestInitCommand(unittest.TestCase):
 
 def stop_payload(sim_stop_time):
     return (
-        StopCommand.model_validate({"taskingParameters": {"simStopTime": sim_stop_time}})
+        StopCommand.model_validate(
+            {"taskingParameters": {"simStopTime": sim_stop_time}}
+        )
         .model_dump_json(by_alias=True)
         .encode("utf-8")
     )
@@ -97,8 +103,9 @@ class TestStopCommand(unittest.TestCase):
         thread.start()
         wait_for_mode(self, app.simulator, Mode.EXECUTING)
 
-        app.on_manager_stop(None, FakeMethod("test.manager.stop"), None,
-                            stop_payload(new_stop))
+        app.on_manager_stop(
+            None, FakeMethod("test.manager.stop"), None, stop_payload(new_stop)
+        )
 
         # set_end_time converts to a duration relative to the init time
         wait_for(
@@ -114,8 +121,9 @@ class TestStopCommand(unittest.TestCase):
         the IO thread survives, rather than propagating out of the callback.
         """
         app = make_managed_app()
-        app.on_manager_stop(None, FakeMethod("test.manager.stop"), None,
-                            stop_payload(STOP))
+        app.on_manager_stop(
+            None, FakeMethod("test.manager.stop"), None, stop_payload(STOP)
+        )
         self.assertEqual(app.simulator.get_mode(), Mode.UNDEFINED)
 
 

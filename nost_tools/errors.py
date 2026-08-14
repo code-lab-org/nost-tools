@@ -2,6 +2,7 @@
 Provides object models for common data structures.
 """
 
+
 class ConfigurationError(Exception):
     """Configuration error"""
 

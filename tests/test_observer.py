@@ -12,6 +12,7 @@ from nost_tools.observer import (
 )
 from nost_tools.simulator import Mode, Simulator
 
+
 # set up test observer
 class TestObserver(Observer):
     def __init__(self):
@@ -128,7 +129,9 @@ class FakeSimulator:
 class TestPropertyChangeCallback(unittest.TestCase):
     def test_fires_only_for_the_named_property(self):
         calls = []
-        callback = PropertyChangeCallback("mode", lambda source, value: calls.append(value))
+        callback = PropertyChangeCallback(
+            "mode", lambda source, value: calls.append(value)
+        )
 
         callback.on_change(object(), "mode", "old", "new")
         self.assertEqual(calls, ["new"])
@@ -159,7 +162,10 @@ class TestScenarioTimeIntervalCallback(unittest.TestCase):
     def test_fires_at_each_interval(self):
         callback = self.make(timedelta(hours=1))
         callback.on_change(
-            Simulator, Simulator.PROPERTY_TIME, self.start, self.start + timedelta(hours=1)
+            Simulator,
+            Simulator.PROPERTY_TIME,
+            self.start,
+            self.start + timedelta(hours=1),
         )
         self.assertEqual(self.fired, [self.start + timedelta(hours=1)])
 
@@ -167,7 +173,10 @@ class TestScenarioTimeIntervalCallback(unittest.TestCase):
         """A single large time step must fire once per interval it crossed."""
         callback = self.make(timedelta(hours=1))
         callback.on_change(
-            Simulator, Simulator.PROPERTY_TIME, self.start, self.start + timedelta(hours=3)
+            Simulator,
+            Simulator.PROPERTY_TIME,
+            self.start,
+            self.start + timedelta(hours=3),
         )
         self.assertEqual(
             self.fired,
@@ -181,7 +190,10 @@ class TestScenarioTimeIntervalCallback(unittest.TestCase):
     def test_first_trigger_defaults_to_one_interval(self):
         callback = self.make(timedelta(hours=6))
         callback.on_change(
-            Simulator, Simulator.PROPERTY_TIME, self.start, self.start + timedelta(hours=6)
+            Simulator,
+            Simulator.PROPERTY_TIME,
+            self.start,
+            self.start + timedelta(hours=6),
         )
         self.assertEqual(self.fired, [self.start + timedelta(hours=6)])
 
@@ -191,9 +203,14 @@ class TestScenarioTimeIntervalCallback(unittest.TestCase):
         first trigger from the repeating interval, so a daily callback set to fire
         at 23:55 keeps firing at 23:55 rather than sliding each day.
         """
-        callback = self.make(timedelta(days=1), time_init=timedelta(hours=23, minutes=55))
+        callback = self.make(
+            timedelta(days=1), time_init=timedelta(hours=23, minutes=55)
+        )
         callback.on_change(
-            Simulator, Simulator.PROPERTY_TIME, self.start, self.start + timedelta(days=3)
+            Simulator,
+            Simulator.PROPERTY_TIME,
+            self.start,
+            self.start + timedelta(days=3),
         )
         expected = [
             self.start + timedelta(hours=23, minutes=55),
@@ -267,9 +284,7 @@ class TestWallclockTimeIntervalCallback(unittest.TestCase):
             self.simulator, Simulator.PROPERTY_MODE, Mode.RESUMING, Mode.EXECUTING
         )
 
-        self.assertEqual(
-            callback._next_time, self.now + timedelta(hours=1, seconds=10)
-        )
+        self.assertEqual(callback._next_time, self.now + timedelta(hours=1, seconds=10))
         self.assertEqual(self.fired, [])
 
 

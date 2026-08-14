@@ -190,22 +190,33 @@ class Application:
                         # Check if the error indicates OTP is required
                         error_msg = str(e).lower()
                         error_body = ""
-                        if hasattr(e, 'response_body') and e.response_body:
+                        if hasattr(e, "response_body") and e.response_body:
                             try:
-                                error_body = e.response_body.decode('utf-8').lower()
+                                error_body = e.response_body.decode("utf-8").lower()
                             except:
                                 pass
 
                         # Look for OTP/TOTP requirement indicators in error message or response body
-                        otp_indicators = ['otp', 'totp', 'one-time', 'two-factor', '2fa', 'mfa']
-                        is_otp_required = any(indicator in error_msg or indicator in error_body
-                                             for indicator in otp_indicators)
+                        otp_indicators = [
+                            "otp",
+                            "totp",
+                            "one-time",
+                            "two-factor",
+                            "2fa",
+                            "mfa",
+                        ]
+                        is_otp_required = any(
+                            indicator in error_msg or indicator in error_body
+                            for indicator in otp_indicators
+                        )
 
                         if is_otp_required:
                             # OTP is required but wasn't provided or was incorrect
                             if otp:
                                 # OTP was provided but is incorrect
-                                logger.error(f"Authentication failed with provided OTP: {e}")
+                                logger.error(
+                                    f"Authentication failed with provided OTP: {e}"
+                                )
                                 raise Exception(
                                     f"Authentication failed. The provided OTP may be incorrect or expired. "
                                     f"Error: {e}"
@@ -222,7 +233,9 @@ class Application:
                                         totp=otp_input,
                                     )
                                 except KeycloakAuthenticationError as otp_error:
-                                    logger.error(f"Authentication failed with OTP: {otp_error}")
+                                    logger.error(
+                                        f"Authentication failed with OTP: {otp_error}"
+                                    )
                                     raise Exception(
                                         f"Authentication failed. Please check your credentials and OTP. "
                                         f"Error: {otp_error}"
@@ -236,7 +249,9 @@ class Application:
                             )
                 else:
                     # Service account authentication mode with client credentials
-                    logger.debug("Using service account authentication (client credentials)")
+                    logger.debug(
+                        "Using service account authentication (client credentials)"
+                    )
                     token = keycloak_openid.token(grant_type=["client_credentials"])
 
             if "access_token" in token:
@@ -446,7 +461,9 @@ class Application:
                         "refresh_token is required when access_token is provided "
                         "so the refresh thread can renew the session."
                     )
-                logger.info("Using pre-acquired access + refresh tokens; skipping Keycloak grant.")
+                logger.info(
+                    "Using pre-acquired access + refresh tokens; skipping Keycloak grant."
+                )
                 self.refresh_token = refresh_token
                 initial_access_token = access_token
             else:
@@ -574,9 +591,7 @@ class Application:
         if self._io_thread is not None and self._io_thread.is_alive():
             self._io_thread.join(timeout=timeout)
             if self._io_thread.is_alive():
-                logger.warning(
-                    f"IO thread did not exit within {timeout} seconds."
-                )
+                logger.warning(f"IO thread did not exit within {timeout} seconds.")
 
     def _start_io_loop(self):
         """
@@ -720,7 +735,7 @@ class Application:
                 f"The certificate must list '{host}' in its subjectAltName, "
                 "otherwise verification fails even with tls_ca_cert set. "
                 "Regenerate it if needed, for example:\n"
-                f'    openssl req -x509 -newkey rsa:2048 -nodes -days 825 \\\n'
+                f"    openssl req -x509 -newkey rsa:2048 -nodes -days 825 \\\n"
                 f'      -keyout key.pem -out certificate.pem -subj "/CN={host}" \\\n'
                 f'      -addext "subjectAltName=DNS:{host}"\n'
                 "Note that tls_ca_cert replaces the system trust store for this "
@@ -985,33 +1000,33 @@ class Application:
         rabbitmq_config = self.config.rc.server_configuration.servers.rabbitmq
 
         if rabbitmq_config.content_type is not None:
-            properties_dict['content_type'] = rabbitmq_config.content_type
+            properties_dict["content_type"] = rabbitmq_config.content_type
         if rabbitmq_config.content_encoding is not None:
-            properties_dict['content_encoding'] = rabbitmq_config.content_encoding
+            properties_dict["content_encoding"] = rabbitmq_config.content_encoding
         if rabbitmq_config.headers is not None:
-            properties_dict['headers'] = rabbitmq_config.headers
+            properties_dict["headers"] = rabbitmq_config.headers
         if rabbitmq_config.delivery_mode is not None:
-            properties_dict['delivery_mode'] = rabbitmq_config.delivery_mode
+            properties_dict["delivery_mode"] = rabbitmq_config.delivery_mode
         if rabbitmq_config.priority is not None:
-            properties_dict['priority'] = rabbitmq_config.priority
+            properties_dict["priority"] = rabbitmq_config.priority
         if rabbitmq_config.correlation_id is not None:
-            properties_dict['correlation_id'] = rabbitmq_config.correlation_id
+            properties_dict["correlation_id"] = rabbitmq_config.correlation_id
         if rabbitmq_config.reply_to is not None:
-            properties_dict['reply_to'] = rabbitmq_config.reply_to
+            properties_dict["reply_to"] = rabbitmq_config.reply_to
         if rabbitmq_config.message_expiration is not None:
-            properties_dict['expiration'] = rabbitmq_config.message_expiration
+            properties_dict["expiration"] = rabbitmq_config.message_expiration
         if rabbitmq_config.message_id is not None:
-            properties_dict['message_id'] = rabbitmq_config.message_id
+            properties_dict["message_id"] = rabbitmq_config.message_id
         if rabbitmq_config.timestamp is not None:
-            properties_dict['timestamp'] = rabbitmq_config.timestamp
+            properties_dict["timestamp"] = rabbitmq_config.timestamp
         if rabbitmq_config.type is not None:
-            properties_dict['type'] = rabbitmq_config.type
+            properties_dict["type"] = rabbitmq_config.type
         if rabbitmq_config.user_id is not None:
-            properties_dict['user_id'] = rabbitmq_config.user_id
+            properties_dict["user_id"] = rabbitmq_config.user_id
         if rabbitmq_config.app_id is not None:
-            properties_dict['app_id'] = rabbitmq_config.app_id
+            properties_dict["app_id"] = rabbitmq_config.app_id
         if rabbitmq_config.cluster_id is not None:
-            properties_dict['cluster_id'] = rabbitmq_config.cluster_id
+            properties_dict["cluster_id"] = rabbitmq_config.cluster_id
 
         return pika.BasicProperties(**properties_dict)
 
@@ -1170,9 +1185,7 @@ class Application:
                 )
                 success_count += 1
             except Exception as e:
-                logger.warning(
-                    f"Failed to resend queued message to {routing_key}: {e}"
-                )
+                logger.warning(f"Failed to resend queued message to {routing_key}: {e}")
                 with self._queue_lock:
                     self._message_queue.append(
                         (timestamp, app_name, app_topic, payload)
@@ -1658,7 +1671,10 @@ class Application:
             return
 
         # Already on the IO thread, so callbacks scheduled earlier have already run
-        if self._io_thread is not None and threading.current_thread() is self._io_thread:
+        if (
+            self._io_thread is not None
+            and threading.current_thread() is self._io_thread
+        ):
             return
 
         drained = threading.Event()
@@ -1872,7 +1888,9 @@ class Application:
         # If tolerance not provided, get default from general config (defaults to 12 hours)
         if tolerance is None and self.config and self.config.rc.yaml_file:
             try:
-                general_config = self.config.rc.simulation_configuration.execution_parameters.general
+                general_config = (
+                    self.config.rc.simulation_configuration.execution_parameters.general
+                )
                 if general_config and general_config.resume_tolerance:
                     tolerance = general_config.resume_tolerance
             except (AttributeError, KeyError):

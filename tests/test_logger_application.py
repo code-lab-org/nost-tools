@@ -102,7 +102,9 @@ class TestMessageLogging(unittest.TestCase):
     def test_undecodable_payload_does_not_raise(self):
         """A bad payload must not tear down the logger's IO thread."""
         self.app._open_log_file()
-        self.app.on_log_message(None, FakeMethod("test.topic"), None, b"\xff\xfe invalid")
+        self.app.on_log_message(
+            None, FakeMethod("test.topic"), None, b"\xff\xfe invalid"
+        )
         self.assertIsNotNone(self.app.log_file)
 
 
