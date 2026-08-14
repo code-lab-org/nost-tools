@@ -46,6 +46,76 @@ execution:
 """
 
 
+SCENARIO_YAML_TEMPLATE = """
+info:
+  title: Integration test scenario configuration
+  version: '1.0.0'
+  description: A short scenario the manager can drive end to end
+servers:
+  rabbitmq:
+    keycloak_authentication: False
+    host: "{host}"
+    port: {port}
+    tls: False
+    virtual_host: "/"
+    heartbeat: 60
+    connection_attempts: 2
+    retry_delay: 1
+execution:
+  general:
+    prefix: {prefix}
+  manager:
+    sim_start_time: "2020-01-01T00:00:00+00:00"
+    sim_stop_time: "2020-01-01T00:01:00+00:00"
+    start_time:
+    time_step: "0:00:01"
+    time_scale_factor: {time_scale_factor}
+    time_status_step: "0:00:10"
+    is_scenario_time_status_step: False
+    command_lead: "0:00:01"
+    required_apps:
+      - manager
+      - {app_name}
+    init_retry_delay_s: 2
+    init_max_retry: 5
+    set_offset: False
+    shut_down_when_terminated: False
+  managed_applications:
+    {app_name}:
+      time_scale_factor: {time_scale_factor}
+      time_step: "0:00:01"
+      is_scenario_time_step: False
+      set_offset: False
+      time_status_step: "0:00:10"
+      is_scenario_time_status_step: False
+      shut_down_when_terminated: False
+      manager_app_name: "manager"
+"""
+
+
+def write_scenario_config(prefix, app_name, time_scale_factor=60):
+    """
+    Writes a YAML configuration describing a one-minute scenario.
+
+    At the default scale factor the run takes about a second of wallclock time,
+    so a test can drive a complete test plan without waiting out a scenario.
+    """
+    handle = tempfile.NamedTemporaryFile(
+        "w", suffix=".yaml", delete=False, encoding="utf-8"
+    )
+    handle.write(
+        SCENARIO_YAML_TEMPLATE.format(
+            host=BROKER_HOST,
+            port=BROKER_PORT,
+            prefix=prefix,
+            app_name=app_name,
+            time_scale_factor=time_scale_factor,
+        )
+    )
+    handle.close()
+    return handle.name
+
+
 def broker_available():
     """True when a TCP connection to the configured broker succeeds."""
     probe = socket.socket()
