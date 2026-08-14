@@ -90,8 +90,9 @@ class FakeConnection:
         self.is_closed = False
 
 
-def wire_broker(app, prefix="test", connected=True, queue_max_size=100,
-                failing_channel=False):
+def wire_broker(
+    app, prefix="test", connected=True, queue_max_size=100, failing_channel=False
+):
     """
     Attaches broker doubles to an already-constructed application.
 
@@ -120,7 +121,9 @@ class FakeSimulator:
     directly lets a test assert command sequencing without waiting out a scenario.
     """
 
-    def __init__(self, wallclock_time=None, mode=None, scenario_time=None, frozen=False):
+    def __init__(
+        self, wallclock_time=None, mode=None, scenario_time=None, frozen=False
+    ):
         from nost_tools.simulator import Mode
 
         self._wallclock_base = wallclock_time or datetime(

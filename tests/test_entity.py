@@ -45,9 +45,12 @@ class TestEntityMethods(unittest.TestCase):
             entity.tick(time_step)
             self.assertEqual(len(observer.changes), i)
             entity.tock()
-            self.assertEqual(len(observer.changes), i+1)
+            self.assertEqual(len(observer.changes), i + 1)
             self.assertEqual(observer.changes[i]["source"], entity)
             self.assertEqual(observer.changes[i]["property_name"], "time")
-            self.assertEqual(observer.changes[i]["old_value"], init_time + i*time_step)
-            self.assertEqual(observer.changes[i]["new_value"], init_time + (i+1)*time_step)
-        
+            self.assertEqual(
+                observer.changes[i]["old_value"], init_time + i * time_step
+            )
+            self.assertEqual(
+                observer.changes[i]["new_value"], init_time + (i + 1) * time_step
+            )

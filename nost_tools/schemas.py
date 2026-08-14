@@ -504,7 +504,8 @@ class GeneralConfig(BaseModel):
         "pool.ntp.org", description="NTP host for wallclock offset synchronization."
     )
     resume_tolerance: Optional[timedelta] = Field(
-        timedelta(hours=12), description="Default time tolerance for resume requests (HH:MM:SS format in YAML)."
+        timedelta(hours=12),
+        description="Default time tolerance for resume requests (HH:MM:SS format in YAML).",
     )
 
 
@@ -736,8 +737,12 @@ class ChannelConfig(BaseModel):
 
 
 class Credentials(BaseModel):
-    username: Optional[str] = Field(None, description="Username for user authentication.")
-    password: Optional[str] = Field(None, description="Password for user authentication.")
+    username: Optional[str] = Field(
+        None, description="Username for user authentication."
+    )
+    password: Optional[str] = Field(
+        None, description="Password for user authentication."
+    )
     client_id: Optional[str] = Field(None, description="Client ID for authentication.")
     client_secret_key: Optional[str] = Field(
         None, description="Client secret key for authentication."
@@ -759,11 +764,21 @@ class Credentials(BaseModel):
         has_client_secret = self.client_secret_key is not None
 
         # Basic auth mode (localhost): username + password only
-        if has_username and has_password and not has_client_id and not has_client_secret:
+        if (
+            has_username
+            and has_password
+            and not has_client_id
+            and not has_client_secret
+        ):
             return self
 
         # Service account mode: client credentials only
-        if has_client_id and has_client_secret and not has_username and not has_password:
+        if (
+            has_client_id
+            and has_client_secret
+            and not has_username
+            and not has_password
+        ):
             return self
 
         # User account mode (Keycloak): all credentials required
@@ -794,13 +809,20 @@ class Credentials(BaseModel):
             )
 
         # If we only have partial client credentials
-        if (has_client_id and not has_client_secret) or (not has_client_id and has_client_secret):
+        if (has_client_id and not has_client_secret) or (
+            not has_client_id and has_client_secret
+        ):
             raise ValueError(
                 "Both client_id and client_secret_key must be provided together."
             )
 
         # No credentials at all
-        if not has_username and not has_password and not has_client_id and not has_client_secret:
+        if (
+            not has_username
+            and not has_password
+            and not has_client_id
+            and not has_client_secret
+        ):
             raise ValueError(
                 "No credentials provided. Valid modes: "
                 "(1) Basic auth: username + password, "

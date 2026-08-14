@@ -105,9 +105,7 @@ class TestFreezeCommand(unittest.TestCase):
 
     def run_freeze(self, manager, **kwargs):
         """Starts freeze() on a thread and returns it once the pause has landed."""
-        thread = threading.Thread(
-            target=manager.freeze, kwargs=kwargs, daemon=True
-        )
+        thread = threading.Thread(target=manager.freeze, kwargs=kwargs, daemon=True)
         thread.start()
         deadline = time.monotonic() + 5
         while time.monotonic() < deadline and manager.simulator.pause_calls == 0:
@@ -273,9 +271,7 @@ class TestUpdateRequests(unittest.TestCase):
                 break
             time.sleep(0.01)
 
-        self.assertEqual(
-            manager.simulator.set_time_scale_factor_calls[0][0], 30.0
-        )
+        self.assertEqual(manager.simulator.set_time_scale_factor_calls[0][0], 30.0)
 
     def test_malformed_update_request_does_not_raise(self):
         manager = make_manager()
@@ -313,7 +309,10 @@ class TestStartCommand(unittest.TestCase):
         manager.simulator.execute = lambda **kwargs: None
 
         manager.start(
-            START, STOP, start_time=START, time_step=timedelta(seconds=1),
+            START,
+            STOP,
+            start_time=START,
+            time_step=timedelta(seconds=1),
             time_scale_factor=60.0,
         )
 
@@ -330,7 +329,10 @@ class TestStartCommand(unittest.TestCase):
         manager.simulator.execute = lambda **kwargs: executed.append(kwargs)
 
         manager.start(
-            START, STOP, start_time=START, time_step=timedelta(seconds=1),
+            START,
+            STOP,
+            start_time=START,
+            time_step=timedelta(seconds=1),
             time_scale_factor=60.0,
         )
 
@@ -447,9 +449,7 @@ class TestTestPlanSequencing(unittest.TestCase):
             init_retry_delay_s=0.01,
             init_max_retry=1,
         )
-        manager = self.make_plan_manager(
-            yaml_file="config.yaml", parameters=parameters
-        )
+        manager = self.make_plan_manager(yaml_file="config.yaml", parameters=parameters)
 
         manager._execute_test_plan_impl(
             sim_start_time=None,

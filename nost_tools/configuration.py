@@ -200,7 +200,9 @@ class ConnectionConfig:
                 "PASSWORD": os.getenv("PASSWORD"),
             }
             # Check required fields for non-Keycloak auth
-            missing_fields = [field for field, value in env_data.items() if value is None]
+            missing_fields = [
+                field for field, value in env_data.items() if value is None
+            ]
             if missing_fields:
                 raise EnvironmentVariableError(
                     f"Missing required fields in .env file: {', '.join(missing_fields)}"
@@ -285,9 +287,13 @@ class ConnectionConfig:
             # Load app-specific configuration if app_name is provided
             if self.app_name:
                 # Try applications section first, then managed_applications
-                self.app_specific = self.get_app_specific_config(self.app_name, app_type="applications")
+                self.app_specific = self.get_app_specific_config(
+                    self.app_name, app_type="applications"
+                )
                 if not self.app_specific:
-                    self.app_specific = self.get_app_specific_config(self.app_name, app_type="managed_applications")
+                    self.app_specific = self.get_app_specific_config(
+                        self.app_name, app_type="managed_applications"
+                    )
         else:
             try:
                 self.yaml_config = Config(

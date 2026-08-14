@@ -87,9 +87,7 @@ class Manager(Application):
             bool: True if all required applications are ready, or if none are
                 required, in which case there is nothing to wait for
         """
-        return all(
-            self.required_apps_status[app] for app in self.required_apps
-        )
+        return all(self.required_apps_status[app] for app in self.required_apps)
 
     def _initialize_with_retry(self) -> bool:
         """

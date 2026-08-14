@@ -191,9 +191,7 @@ class TestPublisherAttachedToRunningSimulator(unittest.TestCase):
 
         publisher.on_change(Simulator, Simulator.PROPERTY_TIME, None, None)
 
-        self.assertEqual(
-            publisher._next_time_status, START + timedelta(seconds=10)
-        )
+        self.assertEqual(publisher._next_time_status, START + timedelta(seconds=10))
         self.assertEqual(publisher.published, 1)
 
     def test_seeded_publisher_continues_on_its_interval(self):

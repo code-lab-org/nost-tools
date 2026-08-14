@@ -77,9 +77,7 @@ class BrokerTestCase(unittest.TestCase):
         )
         return app
 
-    def wait_for_subscription(
-        self, publisher, received, app_name, topic, timeout=15
-    ):
+    def wait_for_subscription(self, publisher, received, app_name, topic, timeout=15):
         """
         Publishes probe messages until one arrives, confirming the binding is live.
 
@@ -105,9 +103,7 @@ class TestPublishSubscribe(BrokerTestCase):
     def test_message_published_by_one_app_reaches_a_subscriber(self):
         received = []
 
-        subscriber = self.start(
-            Application("subscriber", setup_signal_handlers=False)
-        )
+        subscriber = self.start(Application("subscriber", setup_signal_handlers=False))
         subscriber.add_message_callback(
             "publisher", "data", lambda ch, method, props, body: received.append(body)
         )
@@ -125,9 +121,7 @@ class TestPublishSubscribe(BrokerTestCase):
     def test_subscriber_only_receives_its_own_topic(self):
         matched, other = [], []
 
-        subscriber = self.start(
-            Application("subscriber", setup_signal_handlers=False)
-        )
+        subscriber = self.start(Application("subscriber", setup_signal_handlers=False))
         subscriber.add_message_callback(
             "publisher", "wanted", lambda ch, m, p, body: matched.append(body)
         )
@@ -145,9 +139,7 @@ class TestPublishSubscribe(BrokerTestCase):
     def test_messages_arrive_in_order(self):
         received = []
 
-        subscriber = self.start(
-            Application("subscriber", setup_signal_handlers=False)
-        )
+        subscriber = self.start(Application("subscriber", setup_signal_handlers=False))
         subscriber.add_message_callback(
             "publisher", "seq", lambda ch, m, p, body: received.append(body.decode())
         )
@@ -231,9 +223,7 @@ class TestConcurrentPublishing(BrokerTestCase):
 class TestManagerProtocol(BrokerTestCase):
     def test_managed_application_reports_ready_after_an_init_command(self):
         """Exercises the manager protocol across two real connections."""
-        managed = self.start(
-            ManagedApplication("testapp", setup_signal_handlers=False)
-        )
+        managed = self.start(ManagedApplication("testapp", setup_signal_handlers=False))
         manager = Manager("manager", setup_signal_handlers=False)
         manager.required_apps_status = {"testapp": False}
         self.start(manager)
@@ -314,9 +304,7 @@ class TestFullTestPlan(BrokerTestCase):
         manager.execute_test_plan()
 
         self.assertTrue(
-            wait_until(
-                lambda: manager.required_apps_status.get("testapp"), timeout=30
-            ),
+            wait_until(lambda: manager.required_apps_status.get("testapp"), timeout=30),
             "manager never observed the application as ready",
         )
         self.assertTrue(
