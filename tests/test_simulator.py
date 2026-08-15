@@ -326,16 +326,37 @@ class TestSimulatorMethods(unittest.TestCase):
             lambda: simulator.get_time_scale_factor() == new_time_scale_factor,
             f"time scale factor to become {new_time_scale_factor}",
         )
+        # Let several steps elapse at the new factor before terminating, so the
+        # assertion has a well-defined window. Waiting only for the factor to
+        # change leaves a single poll interval of execution, which yields about
+        # as many steps as the assertion needs and so fails intermittently.
+        first_new_step = len(recorder.changes)
+        wait_for(
+            self,
+            lambda: len(recorder.changes) >= first_new_step + 3,
+            "three time changes at the new time scale factor",
+        )
         simulator.terminate()
         # wait for execution to terminate
         wait_for_mode(self, simulator, Mode.TERMINATED)
+
         # Wallclock interval between successive steps, so the tolerance absorbs
-        # scheduling jitter rather than pinning millisecond accuracy
-        self.assertGreaterEqual(len(recorder.changes), 3)
-        self.assertAlmostEqual(
-            (
-                recorder.changes[-2]["time"] - recorder.changes[-3]["time"]
-            ).total_seconds(),
-            (time_step / new_time_scale_factor).total_seconds(),
-            delta=0.25,
-        )
+        # scheduling jitter rather than pinning millisecond accuracy. Sampled
+        # from a window anchored after the change committed, rather than fixed
+        # indices into a list whose length depends on how fast execution ran, so
+        # no interval spans the old factor.
+        times = [
+            change["time"]
+            for change in recorder.changes[first_new_step : first_new_step + 3]
+        ]
+        deltas = [
+            (later - earlier).total_seconds()
+            for earlier, later in zip(times, times[1:])
+        ]
+        self.assertEqual(len(deltas), 2, "the sampled window was short")
+        for delta in deltas:
+            self.assertAlmostEqual(
+                delta,
+                (time_step / new_time_scale_factor).total_seconds(),
+                delta=0.25,
+            )
