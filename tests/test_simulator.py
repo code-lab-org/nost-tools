@@ -304,7 +304,13 @@ class TestSimulatorMethods(unittest.TestCase):
         simulator.add_observer(recorder)
         init_time = datetime(2020, 1, 1, tzinfo=timezone.utc)
         time_step = timedelta(seconds=1)
-        new_time_scale_factor = 50
+        # Low enough that each step lasts 200ms of wallclock. Scheduler latency
+        # is a roughly fixed few milliseconds whatever the step size, so a short
+        # step buries the signal in it: at the 20ms steps this test used to
+        # measure, that noise was around a tenth of the reading and the assertion
+        # below could not be tightened without failing intermittently. Raising
+        # this factor shortens the steps and brings that problem back.
+        new_time_scale_factor = 5
         with self.assertRaises(RuntimeError):
             simulator.set_time_scale_factor(new_time_scale_factor)
         # start execution in background thread
@@ -340,11 +346,10 @@ class TestSimulatorMethods(unittest.TestCase):
         # wait for execution to terminate
         wait_for_mode(self, simulator, Mode.TERMINATED)
 
-        # Wallclock interval between successive steps, so the tolerance absorbs
-        # scheduling jitter rather than pinning millisecond accuracy. Sampled
-        # from a window anchored after the change committed, rather than fixed
-        # indices into a list whose length depends on how fast execution ran, so
-        # no interval spans the old factor.
+        # Wallclock interval between successive steps. Sampled from a window
+        # anchored after the change committed, rather than fixed indices into a
+        # list whose length depends on how fast execution ran, so no interval
+        # spans the old factor.
         times = [
             change["time"]
             for change in recorder.changes[first_new_step : first_new_step + 3]
@@ -354,9 +359,11 @@ class TestSimulatorMethods(unittest.TestCase):
             for earlier, later in zip(times, times[1:])
         ]
         self.assertEqual(len(deltas), 2, "the sampled window was short")
+        # Compared as a ratio rather than a difference. An absolute tolerance
+        # wide enough to absorb scheduling jitter also exceeds the interval being
+        # measured, so no speed-up of any magnitude could fail it: the error from
+        # running faster is bounded by the interval itself. The ratio makes the
+        # tolerance proportional, and stays correct if the step or factor change.
+        expected = (time_step / new_time_scale_factor).total_seconds()
         for delta in deltas:
-            self.assertAlmostEqual(
-                delta,
-                (time_step / new_time_scale_factor).total_seconds(),
-                delta=0.25,
-            )
+            self.assertAlmostEqual(delta / expected, 1.0, delta=0.25)
