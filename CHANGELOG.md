@@ -480,3 +480,20 @@ Fixed:
   - The cleanup performed at shutdown walked every object in the interpreter and called `Memory.clear()` on each `joblib.Memory` it found, which joblib documents as erasing the complete cache directory. NOS-T creates no such caches, so every one it reached was owned by the application, and a normal successful shutdown silently discarded everything the application had cached, forcing the next run to recompute it
   - This affected any application whose process had joblib loaded, since that cleanup is gated on `joblib` being present in `sys.modules`. Applications that do not use joblib were never affected
   - No library behavior depended on the sweep, and it had no bearing on the resource tracker warning the surrounding cleanup was written against, which concerns worker folders rather than cache directories
+
+## 3.6.0
+Fixed:
+- **Shutdown Killed the Process** (`application.py`): `shut_down()` now returns and lets the interpreter exit, rather than ending the process with `os._exit(0)`:
+  - `os._exit` skips interpreter shutdown entirely, so no `atexit` handler ever ran. Libraries holding worker processes or shared resources were never given the chance to release them, and reported what was left behind. Applications using `joblib` saw leaked semaphore and folder warnings on every run
+  - The IO thread is now stopped as part of shutting down. It was only ever stopped on the connection timeout path, and being a non-daemon thread it would otherwise block a normal exit indefinitely
+  - Shutdown usually runs on a background thread, so the main thread is signalled to release it from `signal.pause()`
+  - The token and wallclock refresh threads are now daemon threads, so neither can hold the process open
+
+Added:
+- **Guaranteed Exit** (`application.py`): a shutdown that does not end the process within thirty seconds now forces one, and logs why. Waking the main thread only works if it is waiting somewhere interruptible; an application waiting in a loop that cannot be interrupted would otherwise never exit. The timer is a daemon, so a process that exits on its own never reaches it
+- **Application Lifecycle Control** (`application.py`): a `force_exit_on_shutdown` argument to `Application` states whether a shutdown may end the process. It defaults to the value of `setup_signal_handlers`, distinguishing a standalone application that owns its process from one embedded in a host process, such as a service holding several applications, where ending the process would take the host down with it
+
+Upgrade Notes:
+- No changes are required. Applications that own their process exit as before, and those embedded in a host process are not force-exited
+- An application whose main thread waits somewhere that cannot be interrupted, such as `while True: pass`, now takes up to thirty seconds longer to exit and logs a warning naming the cause. Waiting with `signal.pause()` or on a `threading.Event` avoids both
+- `shut_down()` is now safe to call from an application embedded in a host process, where it previously would have ended the host

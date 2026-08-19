@@ -53,6 +53,7 @@ class Application:
         app_name: str,
         app_description: str = None,
         setup_signal_handlers: bool = True,
+        force_exit_on_shutdown: bool = None,
     ):
         """
         Initializes a new application.
@@ -61,6 +62,13 @@ class Application:
             app_name (str): application name
             app_description (str): application description (optional)
             setup_signal_handlers (bool): whether to set up signal handlers (default: True)
+            force_exit_on_shutdown (bool): whether shut_down() may end the process
+                if it does not exit on its own. Defaults to the value of
+                setup_signal_handlers, which distinguishes a standalone
+                application that owns its process from one embedded in a host
+                process, such as a web server holding several applications,
+                where ending the process would take the host down with it. Set
+                it explicitly to state the intent rather than rely on that.
         """
         self.simulator = Simulator()
         self.connection = None
@@ -79,6 +87,7 @@ class Application:
         self._consuming = False
         self._should_stop = threading.Event()
         self._closing = False
+        self._shut_down_complete = threading.Event()
         # Queues
         self.channel_configs = []
         self.unique_exchanges = {}
@@ -98,6 +107,16 @@ class Application:
         self._wallclock_refresh_thread = None
         self.wallclock_offset_refresh_interval = None
         # Set up signal handlers for graceful shutdown
+        self._signal_handlers_installed = setup_signal_handlers
+        # Whether a shutdown may end the process. Defaults to whether this
+        # application owns the process: a standalone one installs signal
+        # handlers and is the only thing running, while one embedded in a host
+        # process must never be able to bring the host down with it.
+        self._force_exit_on_shutdown = (
+            setup_signal_handlers
+            if force_exit_on_shutdown is None
+            else force_exit_on_shutdown
+        )
         if setup_signal_handlers:
             self._setup_signal_handlers()
 
@@ -285,7 +304,10 @@ class Application:
                 except Exception as e:
                     logger.debug(f"Failed to refresh access token: {e}")
 
-        self._token_refresh_thread = threading.Thread(target=refresh_token_periodically)
+        # Daemon so a thread stuck in a refresh cannot hold the process open
+        self._token_refresh_thread = threading.Thread(
+            target=refresh_token_periodically, daemon=True
+        )
         self._token_refresh_thread.start()
         logger.debug("Starting refresh token thread successfully completed.")
 
@@ -319,8 +341,9 @@ class Application:
                 except Exception as e:
                     logger.debug(f"Failed to refresh wallclock offset: {e}")
 
+        # Daemon so a thread stuck in an NTP request cannot hold the process open
         self._wallclock_refresh_thread = threading.Thread(
-            target=refresh_wallclock_periodically
+            target=refresh_wallclock_periodically, daemon=True
         )
         self._wallclock_refresh_thread.start()
         logger.debug("Starting wallclock offset refresh thread successfully completed.")
@@ -527,6 +550,10 @@ class Application:
         )
 
         # Start the I/O loop in a separate thread
+        # Deliberately not a daemon. Applications hand control to this thread and
+        # return from main: for the manager, execute_test_plan starts a daemon
+        # worker and returns immediately, so this is the only thread keeping the
+        # process alive for the length of a run. shut_down stops it explicitly.
         self._io_thread = threading.Thread(target=self._start_io_loop)
         self._io_thread.start()
 
@@ -849,7 +876,20 @@ class Application:
     def shut_down(self) -> None:
         """
         Shuts down the application by stopping the background event loop and disconnecting from the broker.
+
+        Returns rather than killing the process, so that interpreter shutdown
+        runs and libraries holding worker processes or shared resources get the
+        chance to release them.
+
+        Applications block in signal.pause() after start_up, and this usually
+        runs on a background thread, so returning alone would leave the main
+        thread parked with nothing to wake it. A signal to this process makes
+        pause() return, main() finish, and the interpreter exit on its own.
         """
+        if self._shut_down_complete.is_set():
+            logger.debug(f"Shutdown of {self.app_name} already completed; ignoring.")
+            return
+
         logger.info(f"Initiating shutdown of {self.app_name}")
 
         # Clean up simulator-related resources
@@ -869,13 +909,69 @@ class Application:
         if hasattr(self, "_should_stop"):
             self._should_stop.set()
 
+        # Stop the IO loop and join its thread, so the interpreter can exit on
+        # its own rather than having to be killed
+        self._stop_io_thread()
+
         # Comprehensive resource cleanup
         self._cleanup_resources()
 
+        self._shut_down_complete.set()
         logger.info(f"Shutdown of {self.app_name} completed successfully.")
 
-        # Exit the process
-        os._exit(0)
+        # Wake the main thread if the shutdown came from somewhere else, such as
+        # the observer that fires when the simulator terminates. The signal
+        # handler finds the shutdown already complete and returns immediately,
+        # which is enough for signal.pause() to return.
+        # Only with a handler installed: the default disposition for SIGTERM is
+        # to terminate at once, which is the abrupt exit this replaces.
+        if (
+            self._signal_handlers_installed
+            and threading.current_thread() is not threading.main_thread()
+        ):
+            logger.debug("Signalling the main thread to complete process exit.")
+            os.kill(os.getpid(), signal.SIGTERM)
+
+        self._arm_exit_fallback()
+
+    def _arm_exit_fallback(self, timeout: float = 30.0) -> None:
+        """
+        Guarantees the process exits, some seconds after a graceful one was offered.
+
+        Waking the main thread only works if it is waiting somewhere
+        interruptible. An application parked in a bare loop never notices the
+        signal, and a non-daemon thread that never finishes blocks interpreter
+        shutdown before atexit runs. Neither is something this library can
+        correct from here, so exit is guaranteed rather than merely attempted.
+
+        The timer is a daemon, so a process that exits on its own kills it
+        silently and never reaches the forced exit.
+
+        Applications that set force_exit_on_shutdown to False, directly or by
+        declining signal handlers, have taken responsibility for their own
+        process lifecycle, so no forced exit is armed for them.
+
+        Args:
+            timeout (float): seconds to allow for a graceful exit
+        """
+        if not self._force_exit_on_shutdown:
+            logger.debug("Forced exit disabled for this application; none armed.")
+            return
+
+        def force_exit():
+            time.sleep(timeout)
+            logger.warning(
+                f"Still running {timeout} seconds after shutdown; exiting now. "
+                "Cleanup handlers registered by other libraries will not run. "
+                "This happens when the main thread waits somewhere it cannot be "
+                "interrupted, such as `while True: pass`; wait with "
+                "signal.pause() or on a threading.Event instead."
+            )
+            os._exit(0)
+
+        threading.Thread(
+            target=force_exit, daemon=True, name="nost-exit-fallback"
+        ).start()
 
     def _cleanup_resources(self):
         """
