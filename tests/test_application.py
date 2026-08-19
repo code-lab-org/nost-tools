@@ -1,6 +1,7 @@
 import importlib.util
 import os
 import shutil
+import signal
 import socket
 import ssl
 import tempfile
@@ -935,15 +936,130 @@ class TestShutDown(unittest.TestCase):
         return app
 
     def run_shut_down(self, app):
-        """Runs shut_down with the process exit captured, returning the exit code."""
+        """
+        Runs shut_down, capturing any attempt to kill the process outright.
+
+        os._exit is patched throughout: unpatched, the fallback timer would take
+        the test runner down with it. The fallback is disarmed by default so it
+        cannot fire mid-suite; the tests that care about it arm it themselves.
+        """
         exits = []
+        app._arm_exit_fallback = lambda *args, **kwargs: None
         with unittest.mock.patch("os._exit", side_effect=exits.append):
             app.shut_down()
         return exits
 
-    def test_the_process_exits_cleanly(self):
+    def test_the_process_is_not_killed_outright(self):
+        """
+        shut_down returns and lets the interpreter exit on its own, so that
+        atexit handlers run. os._exit skips them, which leaves libraries holding
+        worker processes and shared resources no chance to release them.
+        """
         app = self.make_app()
-        self.assertEqual(self.run_shut_down(app), [0])
+        self.assertEqual(self.run_shut_down(app), [])
+
+    def test_a_graceful_exit_is_offered_before_the_fallback(self):
+        """The fallback must be armed, not taken: nothing is killed up front."""
+        app = self.make_app()
+        armed = []
+        app._arm_exit_fallback = lambda *args, **kwargs: armed.append(True)
+
+        exits = []
+        with unittest.mock.patch("os._exit", side_effect=exits.append):
+            app.shut_down()
+
+        self.assertEqual(armed, [True], "no fallback was armed")
+        self.assertEqual(
+            exits, [], "the process was killed rather than allowed to exit"
+        )
+
+    def test_the_fallback_forces_an_exit_when_the_process_will_not_end(self):
+        """
+        An application whose main thread waits somewhere uninterruptible, such as
+        `while True: pass`, cannot be woken by a signal. Without this the process
+        would hang forever instead of finishing its run.
+        """
+        app = self.make_app()
+        # The fallback is only armed for applications that own their process,
+        # which the test doubles deliberately do not
+        app._force_exit_on_shutdown = True
+        exits = []
+
+        with unittest.mock.patch("os._exit", side_effect=exits.append):
+            app._arm_exit_fallback(timeout=0.05)
+            # Longer than the fallback, short enough to keep the suite quick
+            time.sleep(0.6)
+
+        self.assertEqual(exits, [0], "the fallback never forced an exit")
+
+    def test_the_fallback_does_not_fire_when_the_process_exits_in_time(self):
+        """
+        The timer is a daemon precisely so a clean exit kills it first. Firing
+        anyway would skip the cleanup handlers the graceful path exists to run.
+        """
+        app = self.make_app()
+        app._force_exit_on_shutdown = True
+        exits = []
+
+        with unittest.mock.patch("os._exit", side_effect=exits.append):
+            app._arm_exit_fallback(timeout=30)
+            time.sleep(0.3)
+
+        self.assertEqual(exits, [], "the fallback fired before its timeout")
+
+    def preserve_signal_handlers(self):
+        """
+        Restores the process signal handlers after a test installs its own.
+
+        Constructing an application with setup_signal_handlers=True replaces the
+        handlers for the whole test process, which would leave later tests, and
+        Ctrl-C, dispatching into a discarded application.
+        """
+        for signal_number in (signal.SIGINT, signal.SIGTERM):
+            original = signal.getsignal(signal_number)
+            self.addCleanup(signal.signal, signal_number, original)
+
+    def test_forced_exit_follows_signal_handling_by_default(self):
+        """
+        A standalone application installs signal handlers and owns its process,
+        so a shutdown may end it. One embedded in a host process declines them,
+        and ending the process would take the host down with it.
+        """
+        self.preserve_signal_handlers()
+        standalone = Application("standalone", setup_signal_handlers=True)
+        embedded = Application("embedded", setup_signal_handlers=False)
+
+        self.assertTrue(standalone._force_exit_on_shutdown)
+        self.assertFalse(embedded._force_exit_on_shutdown)
+
+    def test_an_explicit_setting_overrides_that_default(self):
+        """
+        The two are only coupled by default. An application that manages signals
+        itself but still owns its process can say so, and the reverse.
+        """
+        self.preserve_signal_handlers()
+        owns_process = Application(
+            "owns_process", setup_signal_handlers=False, force_exit_on_shutdown=True
+        )
+        embedded = Application(
+            "embedded", setup_signal_handlers=True, force_exit_on_shutdown=False
+        )
+
+        self.assertTrue(owns_process._force_exit_on_shutdown)
+        self.assertFalse(embedded._force_exit_on_shutdown)
+
+    def test_the_io_thread_is_stopped(self):
+        """
+        The IO thread is what would otherwise keep a normal exit from happening,
+        so shutting it down is what makes returning safe.
+        """
+        app = self.make_app()
+        stopped = []
+        app._stop_io_thread = lambda *args, **kwargs: stopped.append(True)
+
+        self.run_shut_down(app)
+
+        self.assertEqual(stopped, [True])
 
     def test_the_time_status_publisher_is_detached_from_the_simulator(self):
         """
